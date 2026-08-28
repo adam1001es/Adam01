@@ -56,8 +56,8 @@ export default function WorksheetView({
       <div
         className={
           isModernFarbig
-            ? "-mx-6 -mt-6 mb-5 rounded-t-2xl bg-brand-gradient px-6 py-4 text-white"
-            : "mb-5 border-b-2 border-slate-900 pb-3"
+            ? `-mx-6 -mt-6 mb-5 rounded-t-2xl bg-brand-gradient px-6 py-4 text-white ${layout.zeigeMuster ? "pl-11" : ""}`
+            : `mb-5 border-b-2 border-slate-900 pb-3 ${layout.zeigeMuster ? "pl-11 pt-9" : ""}`
         }
       >
         {layout.schulname && (

@@ -68,13 +68,14 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
 - **Eckornamente statt Streifen**: nur in den vier (bzw. oberen zwei) Ecken je Seite ein
-  schlichter, zweizeiliger Kufi-Winkel (`lib/cornerOrnament.ts`) - wie klassische Buch-/
-  Zertifikatsränder, aber bewusst ganz minimal (ein Gold-Ton, kein Stern- oder Rankenmotiv, keine
-  Fläche in der Mitte), damit der Kopfbereich ruhig bleibt. Ohne Gottesname/Koran-Vers (gleiche
-  Begründung wie zuvor: Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). In Web/PDF
-  als Vektor gerendert (in PDF pageweit über `floating`-Positionierung); in Word über zwei
-  einmalig serverseitig gerenderte PNGs (`public/patterns/ecke-gold.png` + `ecke-gold-mirror.png`,
-  normale und gespiegelte Variante), an den Seitenrand-Ecken verankert. Optional abschaltbar.
+  zweizeiliger Kufi-Winkel mit gestuftem Mäander und zwei kleinen Quadrat-Akzenten
+  (`lib/cornerOrnament.ts`) - angelehnt an klassische Kufi-Bordüren/Zertifikatsränder, in einem
+  Gold-Ton (kein Stern- oder Rankenmotiv, keine Fläche in der Mitte), damit der Kopfbereich ruhig
+  bleibt. Ohne Gottesname/Koran-Vers (gleiche Begründung wie zuvor: Arbeitsblätter landen im
+  Schulalltag auch mal auf dem Boden). In Web/PDF als Vektor gerendert (in PDF pageweit über
+  `floating`-Positionierung); in Word über zwei einmalig serverseitig gerenderte PNGs
+  (`public/patterns/ecke-gold.png` + `ecke-gold-mirror.png`, normale und gespiegelte Variante), an
+  den Seitenrand-Ecken verankert. Optional abschaltbar.
 - **Druckfarbe (Farbe / Schwarz-Weiß)**: da die meisten Arbeitsblätter in der Schule ohnehin
   schwarzweiß ausgedruckt werden, lässt sich das pro Arbeitsblatt umschalten. Im Schwarz-Weiß-
   Modus wird der farbige Kopfbereich der „Modern“-Vorlage durch die schlichte, umrandete

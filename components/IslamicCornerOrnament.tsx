@@ -2,6 +2,7 @@ import {
   ECKORNAMENT_VIEWBOX,
   ECKORNAMENT_AUSSEN,
   ECKORNAMENT_INNEN,
+  ECKORNAMENT_QUADRATE,
   eckenTransform,
   Ecke,
 } from "@/lib/cornerOrnament";
@@ -45,6 +46,17 @@ export default function IslamicCornerOrnament({
       >
         <path d={ECKORNAMENT_AUSSEN} />
         <path d={ECKORNAMENT_INNEN} />
+        {ECKORNAMENT_QUADRATE.map((q, i) => (
+          <rect
+            key={i}
+            x={q.cx - q.groesse / 2}
+            y={q.cy - q.groesse / 2}
+            width={q.groesse}
+            height={q.groesse}
+            stroke="none"
+            fill={color}
+          />
+        ))}
       </g>
     </svg>
   );

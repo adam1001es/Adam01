@@ -1,17 +1,24 @@
 /**
- * Ganz dezentes islamisches Eckornament: ein schlichter, zweizeiliger Kufi-Winkel (wie man ihn
- * von klassischen Buch-/Zertifikatsrändern kennt) - rein geometrisch (rechtwinklige Linien),
- * keine Schrift, keine religiösen Symbole oder Namen. Wird nur in den Ecken platziert statt als
- * durchgehender Streifen.
+ * Islamisches Eckornament: ein zweizeiliger Kufi-Winkel mit gestuftem Mäander (wie man ihn von
+ * klassischen Buch-/Zertifikatsrändern und Kufi-Bordüren kennt), mit zwei kleinen Quadrat-Akzenten
+ * an den Stufen - rein geometrisch (rechtwinklige Linien), keine Schrift, keine religiösen Symbole
+ * oder Namen. Wird nur in den Ecken platziert statt als durchgehender Streifen.
  */
 
 export const ECKORNAMENT_VIEWBOX = "0 0 60 60";
 
-/** Äußere Linie: einfacher rechter Winkel. */
-export const ECKORNAMENT_AUSSEN = "M 2,56 L 2,4 L 56,4";
+/** Äußere Linie: einfacher rechter Winkel (Rahmen). */
+export const ECKORNAMENT_AUSSEN = "M 3,57 L 3,3 L 57,3";
 
-/** Innere Linie: paralleler Winkel mit einer kleinen Stufe (Kufi-Motiv). */
-export const ECKORNAMENT_INNEN = "M 10,56 L 10,22 L 18,22 L 18,12 L 56,12";
+/** Innere Linie: gestufter Kufi-Mäander. */
+export const ECKORNAMENT_INNEN =
+  "M 14,54 L 14,46 L 20,46 L 20,38 L 26,38 L 26,30 L 32,30 L 32,22 L 38,22 L 38,14 L 54,14";
+
+/** Kleine quadratische Akzente ("Knoten") an zwei der Mäander-Stufen. */
+export const ECKORNAMENT_QUADRATE: { cx: number; cy: number; groesse: number }[] = [
+  { cx: 20, cy: 38, groesse: 4.5 },
+  { cx: 32, cy: 22, groesse: 4.5 },
+];
 
 export type Ecke = "oben-links" | "oben-rechts" | "unten-links" | "unten-rechts";
 
