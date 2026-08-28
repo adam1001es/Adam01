@@ -15,8 +15,8 @@ import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 
-const WORT_BILD_PFAD = path.join(process.cwd(), "public/patterns/lernen-gold.png");
-const WORT_BILD_SEITENVERHAELTNIS = 556 / 452; // Breite/Höhe von public/patterns/lernen-gold.png
+const STERNBAND_BILD_PFAD = path.join(process.cwd(), "public/patterns/sternband-gold.png");
+const STERNBAND_SEITENVERHAELTNIS = 3200 / 128; // Breite/Höhe von public/patterns/sternband-gold.png
 
 function iconPfadDocx(key: IconKey): string {
   return path.join(process.cwd(), `public/icons/${key}.png`);
@@ -265,13 +265,14 @@ function sectionHeading(text: string, color: string, baseSize: number): Paragrap
 }
 
 /**
- * Dezentes islamisches Ornament für Word: das Kalligrafie-Wortbild ("تعلّم" - Lernen,
- * religiös unbedenklich) - bewusst ohne Linien/Rahmen, nur das ruhige Wortbild.
+ * Dezentes islamisches Ornament für Word: eine dünne Kette aus achtzackigen Sternen mit kleinen
+ * Rauten dazwischen (Zellige-/Girih-Motiv, stark reduziert auf einen schmalen Gold-Streifen statt
+ * flächiger, bunter Fliesenverzierung).
  */
 function musterDivider(): Paragraph {
-  const bildHoehe = 28;
-  const bildBreite = Math.round(bildHoehe * WORT_BILD_SEITENVERHAELTNIS);
-  const bildDaten = fs.readFileSync(WORT_BILD_PFAD);
+  const bildBreite = 580;
+  const bildHoehe = Math.round(bildBreite / STERNBAND_SEITENVERHAELTNIS);
+  const bildDaten = fs.readFileSync(STERNBAND_BILD_PFAD);
 
   return new Paragraph({
     alignment: AlignmentType.CENTER,

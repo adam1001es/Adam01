@@ -67,12 +67,13 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
-- **Dezentes Musterelement**: im Kopfbereich steht ruhig und ohne Linien/Ornamentik nur das Wort
-  „تعلّم" (Lernen) in arabischer Kalligrafie (Amiri-Schrift, Gold). Bewusst **kein** Gottesname und
-  **kein** Koran-Vers, da Arbeitsblätter im Schulalltag auch mal auf dem Boden landen oder
-  weggeworfen werden - das Wortbild ist ein einmalig serverseitig gerendertes PNG
-  (`public/patterns/lernen-gold.png`), damit die arabische Schriftformung (Ligaturen, Tashdid)
-  nicht vom jeweiligen PDF-/Word-Renderer abhängt. In Web/PDF/Word jeweils als eingebettetes Bild.
+- **Dezentes Musterelement**: im Kopfbereich ein schmaler, einfarbiger Streifen aus achtzackigen
+  Sternen mit kleinen Rauten dazwischen (`lib/geometricPattern.ts`) - ein stark reduziertes,
+  rein geometrisches Zellige-/Girih-Motiv (wie klassische islamische Fliesenkunst), bewusst nur
+  in Gold-Tönen statt der sonst üblichen kräftigen Mehrfarbigkeit, und ohne Gottesname/Koran-Vers
+  (gleiche Begründung wie zuvor: Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). In
+  Web/PDF als Vektor gerendert; in Word als einmalig serverseitig gerendertes PNG
+  (`public/patterns/sternband-gold.png`), da Word keine Vektor-Polygone in dieser Form unterstützt.
   Optional abschaltbar.
 
 ## Setup
