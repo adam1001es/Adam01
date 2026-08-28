@@ -1,20 +1,20 @@
-import { islamischesSternband } from "@/lib/geometricPattern";
+import { islamischerZierstreifen } from "@/lib/geometricPattern";
 
 const BREITE = 800;
-const HOEHE = 32;
+const HOEHE = 24;
 
 export default function IslamicPatternStrip({
   color = "#9c7a2c",
   opacity = 1,
-  anzahl = 8,
   className,
 }: {
   color?: string;
   opacity?: number;
-  anzahl?: number;
   className?: string;
 }) {
-  const { linie, sterne, rauten } = islamischesSternband(BREITE, HOEHE, anzahl);
+  const { linie, rauten } = islamischerZierstreifen(BREITE, HOEHE);
+  const gradientId = `zierstreifen-verlauf-${color.replace("#", "")}`;
+
   return (
     <div className={className} style={{ height: HOEHE }}>
       <svg
@@ -23,12 +23,16 @@ export default function IslamicPatternStrip({
         aria-hidden="true"
         style={{ width: "100%", height: HOEHE, opacity }}
       >
-        <line {...linie} stroke={color} strokeWidth={0.5} opacity={0.4} />
-        {sterne.map((d, i) => (
-          <path key={i} d={d} fill="#fdfbf5" stroke={color} strokeWidth={1.1} />
-        ))}
+        <defs>
+          <linearGradient id={gradientId} gradientUnits="userSpaceOnUse" x1={0} y1={0} x2={BREITE} y2={0}>
+            <stop offset="0%" stopColor={color} stopOpacity={0} />
+            <stop offset="50%" stopColor={color} stopOpacity={0.9} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <line {...linie} stroke={`url(#${gradientId})`} strokeWidth={1} />
         {rauten.map((d, i) => (
-          <path key={i} d={d} fill={color} opacity={0.65} />
+          <path key={i} d={d} fill={color} />
         ))}
       </svg>
     </div>

@@ -15,8 +15,8 @@ import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 
-const STERNBAND_BILD_PFAD = path.join(process.cwd(), "public/patterns/sternband-gold.png");
-const STERNBAND_SEITENVERHAELTNIS = 3200 / 128; // Breite/Höhe von public/patterns/sternband-gold.png
+const ZIERSTREIFEN_BILD_PFAD = path.join(process.cwd(), "public/patterns/zierstreifen-gold.png");
+const ZIERSTREIFEN_SEITENVERHAELTNIS = 3200 / 96; // Breite/Höhe von public/patterns/zierstreifen-gold.png
 
 function iconPfadDocx(key: IconKey): string {
   return path.join(process.cwd(), `public/icons/${key}.png`);
@@ -265,14 +265,13 @@ function sectionHeading(text: string, color: string, baseSize: number): Paragrap
 }
 
 /**
- * Dezentes islamisches Ornament für Word: eine dünne Kette aus achtzackigen Sternen mit kleinen
- * Rauten dazwischen (Zellige-/Girih-Motiv, stark reduziert auf einen schmalen Gold-Streifen statt
- * flächiger, bunter Fliesenverzierung).
+ * Ganz dezentes islamisches Zierelement für Word: ein dünner, beidseitig ausgeblendeter
+ * Goldsteg mit wenigen kleinen Rauten in der Mitte - minimalistisch statt flächig verziert.
  */
 function musterDivider(): Paragraph {
   const bildBreite = 580;
-  const bildHoehe = Math.round(bildBreite / STERNBAND_SEITENVERHAELTNIS);
-  const bildDaten = fs.readFileSync(STERNBAND_BILD_PFAD);
+  const bildHoehe = Math.round(bildBreite / ZIERSTREIFEN_SEITENVERHAELTNIS);
+  const bildDaten = fs.readFileSync(ZIERSTREIFEN_BILD_PFAD);
 
   return new Paragraph({
     alignment: AlignmentType.CENTER,

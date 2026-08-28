@@ -173,7 +173,7 @@ export default function NewWorksheetForm() {
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+    <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="space-y-6">
         <SectionCard icon={BookOpen} title="Inhalt" subtitle="Worum geht es und für wen?">
           <div className="mb-4 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
@@ -395,7 +395,7 @@ export default function NewWorksheetForm() {
         </button>
       </form>
 
-      <aside className="hidden lg:block">
+      <aside className="hidden md:block">
         <div className="sticky top-24">
           <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400">
             <Eye size={14} />

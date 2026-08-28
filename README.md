@@ -67,14 +67,14 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
-- **Dezentes Musterelement**: im Kopfbereich ein schmaler, einfarbiger Streifen aus achtzackigen
-  Sternen mit kleinen Rauten dazwischen (`lib/geometricPattern.ts`) - ein stark reduziertes,
-  rein geometrisches Zellige-/Girih-Motiv (wie klassische islamische Fliesenkunst), bewusst nur
-  in Gold-Tönen statt der sonst üblichen kräftigen Mehrfarbigkeit, und ohne Gottesname/Koran-Vers
-  (gleiche Begründung wie zuvor: Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). In
-  Web/PDF als Vektor gerendert; in Word als einmalig serverseitig gerendertes PNG
-  (`public/patterns/sternband-gold.png`), da Word keine Vektor-Polygone in dieser Form unterstützt.
-  Optional abschaltbar.
+- **Ganz dezentes Zierelement**: im Kopfbereich ein sehr minimalistischer, beidseitig
+  ausgeblendeter Goldsteg mit drei kleinen Rauten in der Mitte (`lib/geometricPattern.ts`) -
+  bewusst kein Stern- oder Rankenmotiv, sondern eine ruhige, moderne Interpretation klassischer
+  geometrischer Zierstreifen, nur in einem Gold-Ton, ohne Gottesname/Koran-Vers (gleiche
+  Begründung wie zuvor: Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). In Web/PDF
+  als Vektor mit Verlaufs-Ausblendung gerendert; in Word als einmalig serverseitig gerendertes PNG
+  (`public/patterns/zierstreifen-gold.png`), da Word keine Vektor-Verläufe in dieser Form
+  unterstützt. Optional abschaltbar.
 
 ## Setup
 
