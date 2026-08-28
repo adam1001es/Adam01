@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { WorksheetContentSchema, LayoutConfigSchema, Verification } from "@/lib/types";
+import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema, Verification } from "@/lib/types";
 import WorksheetView from "@/components/WorksheetView";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,7 @@ export default async function WorksheetPage({ params }: { params: { id: string }
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
   const verification = JSON.parse(worksheet.verification) as Verification;
   const vStyle = VERIFICATION_STYLE[verification.status];
+  const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
 
   return (
     <main>
@@ -61,7 +62,12 @@ export default async function WorksheetPage({ params }: { params: { id: string }
         )}
       </div>
 
-      <WorksheetView content={content} layout={layout} />
+      <WorksheetView
+        content={content}
+        layout={layout}
+        themenbereich={themenbereich}
+        erstelltAm={worksheet.createdAt}
+      />
     </main>
   );
 }

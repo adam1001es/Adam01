@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import React from "react";
 import { prisma } from "@/lib/prisma";
-import { WorksheetContentSchema, LayoutConfigSchema } from "@/lib/types";
+import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema } from "@/lib/types";
+import { THEMENBEREICHE } from "@/lib/curriculum";
 import { WorksheetPdfDocument } from "@/lib/pdf/WorksheetPdf";
 
 export const runtime = "nodejs";
@@ -18,8 +19,14 @@ export async function GET(
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
+  const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
 
-  const element = React.createElement(WorksheetPdfDocument, { content, layout });
+  const element = React.createElement(WorksheetPdfDocument, {
+    content,
+    layout,
+    themenbereichLabel: THEMENBEREICHE[themenbereich].label,
+    erstelltAm: worksheet.createdAt,
+  });
   const buffer = await renderToBuffer(
     element as unknown as Parameters<typeof renderToBuffer>[0],
   );

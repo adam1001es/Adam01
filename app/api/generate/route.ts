@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         bereich: req.bereich,
         thema: req.thema,
         schulstufe: req.schulstufe,
+        themenbereich: req.themenbereich,
         template: req.layout.template,
         layoutConfig: JSON.stringify(req.layout),
         contentJson: JSON.stringify(content),

@@ -8,6 +8,7 @@ import {
   BorderStyle,
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
+import { formatDoppelDatum } from "@/lib/hijri";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -22,6 +23,8 @@ const ACCENT = "0f9d58";
 export async function buildWorksheetDocx(
   content: WorksheetContent,
   layout: LayoutConfig,
+  themenbereichLabel: string,
+  erstelltAm: Date,
 ): Promise<Buffer> {
   const accentColor = layout.template === "modern" ? ACCENT : "111111";
   const baseSize = layout.schriftgroesse === "gross" ? 26 : 22; // halbe Punkte
@@ -53,8 +56,25 @@ export async function buildWorksheetDocx(
           size: baseSize - 2,
         }),
       ],
-      spacing: { after: 240 },
+      spacing: { after: 40 },
     }),
+    new Paragraph({
+      children: [
+        new TextRun({
+          text: `Themenbereich: ${themenbereichLabel}${layout.zeigeIslamischesDatum ? `  ·  ${formatDoppelDatum(erstelltAm)}` : ""}`,
+          size: baseSize - 6,
+          color: "666666",
+        }),
+      ],
+      spacing: { after: 120 },
+    }),
+  );
+
+  if (layout.zeigeMuster) {
+    children.push(musterDivider(accentColor, baseSize));
+  }
+
+  children.push(
     new Paragraph({
       children: [
         new TextRun({
@@ -62,7 +82,7 @@ export async function buildWorksheetDocx(
           size: baseSize - 2,
         }),
       ],
-      spacing: { after: 240 },
+      spacing: { before: 120, after: 240 },
     }),
     sectionHeading("Lernziel", accentColor, baseSize),
     new Paragraph({ children: [new TextRun({ text: content.lernziel, size: baseSize })], spacing: { after: 200 } }),
@@ -165,6 +185,21 @@ function sectionHeading(text: string, color: string, baseSize: number): Paragrap
   return new Paragraph({
     children: [new TextRun({ text, bold: true, color, size: baseSize + 4 })],
     spacing: { before: 200, after: 100 },
+  });
+}
+
+/** Einfache, textbasierte Annäherung an das geometrische Sternmuster (Word erlaubt kein Vektor-Muster ohne Bild-Asset). */
+function musterDivider(color: string, baseSize: number): Paragraph {
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    children: [
+      new TextRun({
+        text: Array(14).fill("✦").join("  "),
+        color,
+        size: baseSize - 8,
+      }),
+    ],
+    spacing: { after: 120 },
   });
 }
 

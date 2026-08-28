@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { THEMENBEREICH_KEYS } from "./curriculum";
 
 export const AUFGABEN_TYPEN = [
   "multiple_choice",
@@ -53,13 +54,18 @@ export const LayoutConfigSchema = z.object({
   schulname: z.string().optional(),
   loesungenSeparat: z.boolean().default(true),
   schriftgroesse: z.enum(["normal", "gross"]).default("normal"),
+  zeigeIslamischesDatum: z.boolean().default(true),
+  zeigeMuster: z.boolean().default(true),
 });
 export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
+
+export const ThemenbereichSchema = z.enum(THEMENBEREICH_KEYS);
 
 export const GenerateRequestSchema = z.object({
   bereich: z.string().min(1),
   thema: z.string().min(1),
   schulstufe: z.string().min(1),
+  themenbereich: ThemenbereichSchema.default("gemischt"),
   anzahlAufgaben: z.number().min(1).max(15).default(6),
   aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN)).min(1),
   zusatzhinweise: z.string().optional(),

@@ -12,12 +12,13 @@ import {
   Verification,
   VerificationSchema,
 } from "./types";
+import { buildCurriculumSystemContext } from "./curriculum";
 
-const GENERATION_SYSTEM_PROMPT = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (Lehrplan-Kontext IRPA/IGGÖ, staatlich anerkannter konfessioneller Unterricht). Du erstellst didaktisch hochwertige, altersgerechte Arbeitsblätter.
+const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, Lehrpläne der IGGÖ gem. BGBl. II Nr. 234/2011). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
 
 Wichtige Regeln für religiöse Inhalte:
-- Vertrete eine mehrheitsfähige, in Österreich für den schulischen Unterricht gängige sunnitische Grundposition; vermeide sektiererische oder kontroverse Einzelmeinungen.
-- Sei bei Koran- und Hadith-Zitaten sehr vorsichtig: Erfinde niemals Sure- und Vers-Nummern, wenn du dir nicht absolut sicher bist. Gib im Zweifel nur eine sinngemäße Wiedergabe ohne genaue Stellenangabe an und markiere die Quelle als "bitte_pruefen". Nur bei absolut eindeutigen, allgemein bekannten Stellen (z.B. Sure Al-Fatiha als Ganzes, das Schahada) darfst du "gesichert" verwenden - und auch dann nur den bekannten Grundtext, keine erfundenen Detailangaben.
+- Vertrete eine mehrheitsfähige, in Österreich für den schulischen Unterricht gängige sunnitische Grundposition (Sunnah); vermeide sektiererische oder kontroverse Einzelmeinungen.
+- Sei bei Koran- und Hadith-Zitaten sehr vorsichtig: Erfinde niemals Sure- und Vers-Nummern oder Hadith-Nummern, wenn du dir nicht absolut sicher bist. Gib im Zweifel nur eine sinngemäße Wiedergabe ohne genaue Stellenangabe an und markiere die Quelle als "bitte_pruefen". Nur bei absolut eindeutigen, allgemein bekannten Stellen (z.B. Sure Al-Fatiha als Ganzes, das Schahada) darfst du "gesichert" verwenden - und auch dann nur den bekannten Grundtext, keine erfundenen Detailangaben.
 - Inhalte müssen altersgerecht für die angegebene Schulstufe sein (Wortwahl, Komplexität, Aufgabenlänge).
 - Antworte ausschließlich auf Deutsch.
 - Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock, ohne Erklärtext davor oder danach.
@@ -36,15 +37,17 @@ Das JSON-Objekt muss exakt diese Struktur haben:
   "loesungen": [ { "nr": number, "loesung": string } ],
   "quellen": [ { "bezeichnung": string, "text"?: string, "sicherheit": "gesichert"|"bitte_pruefen" } ]
 }
-Jede Aufgabe braucht eine passende Lösung mit gleicher "nr". Bei "zuordnung" müssen zuordnungLinks und zuordnungRechts gleich lang sein.`;
+Jede Aufgabe braucht eine passende Lösung mit gleicher "nr". Bei "zuordnung" müssen zuordnungLinks und zuordnungRechts gleich lang sein.
+Jede verwendete Hadith-Quellenangabe MUSS die Sammlung im Feld "bezeichnung" nennen (z.B. "Sahih al-Bukhari, ...").`;
 
-const VERIFICATION_SYSTEM_PROMPT = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
+const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
 
-1. Fachliche/theologische Plausibilität - wirken Koran-/Hadith-Angaben erfunden oder unsicher? Passt die Darstellung zu einer mehrheitsfähigen, für den staatlichen Unterricht geeigneten Position?
-2. Altersgerechtigkeit für die angegebene Schulstufe.
-3. Vollständigkeit: hat jede Aufgabe eine Lösung? Sind Zuordnungen konsistent (gleiche Länge links/rechts)?
-4. Sprachliche Korrektheit (Deutsch).
-5. Neutralität/Eignung für konfessionellen Unterricht (keine kontroversen politischen Aussagen, keine Herabsetzung anderer Religionen/Gruppen).
+1. Fachliche/theologische Plausibilität - wirken Koran-/Hadith-Angaben erfunden oder unsicher? Passt die Darstellung zu einer mehrheitsfähigen, für den staatlichen Unterricht geeigneten Position (Sunnah)?
+2. Hadith-Quellen: stammen alle genannten Hadithe erkennbar aus Sahih al-Bukhari, Sahih Muslim oder einer anderen allgemein als sahih geltenden Sammlung? Wenn eine Quelle fehlt, unklar oder zweifelhaft ist, IMMER als Hinweis aufnehmen.
+3. Lehrplan-/Altersgerechtigkeit: passt Thema, Komplexität und Themenbereich zum mitgelieferten Schulstufen-Cluster und Themenbereich?
+4. Vollständigkeit: hat jede Aufgabe eine Lösung? Sind Zuordnungen konsistent (gleiche Länge links/rechts)?
+5. Sprachliche Korrektheit (Deutsch).
+6. Neutralität/Eignung für konfessionellen Unterricht (keine kontroversen politischen Aussagen, keine Herabsetzung anderer Religionen/Gruppen).
 
 Sei besonders streng bei allen Quellenangaben mit "sicherheit": "gesichert" - wenn du dir nicht sicher bist, ob die Stelle korrekt ist, stufe sie im Hinweis als fragwürdig ein.
 
@@ -56,7 +59,7 @@ Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock:
 }
 - "ok": keine relevanten Probleme.
 - "warnung": nutzbar, aber es gibt Punkte, die eine Lehrkraft vor Einsatz prüfen sollte (z.B. Quellenangaben gegenchecken).
-- "fehler": das Arbeitsblatt sollte vor Verwendung überarbeitet werden (z.B. offensichtlich falsche/erfundene Zitate, fehlende Lösungen, unpassende Altersstufe).
+- "fehler": das Arbeitsblatt sollte vor Verwendung überarbeitet werden (z.B. offensichtlich falsche/erfundene Zitate, Hadithe aus unbekannter/zweifelhafter Quelle, fehlende Lösungen, unpassende Altersstufe).
 Liste in "hinweise" konkrete, konstruktive Punkte auf (auch bei "ok" ruhig ein bis zwei Hinweise, z.B. "Sure X vor Verwendung gegenchecken").`;
 
 function buildUserPrompt(req: GenerateRequest): string {
@@ -79,10 +82,12 @@ export async function generateAndVerifyWorksheet(
 ): Promise<GenerationResult> {
   const client = getAnthropicClient();
 
+  const curriculumContext = buildCurriculumSystemContext(req.themenbereich, req.schulstufe);
+
   const genResponse = await client.messages.create({
     model: GENERATION_MODEL,
     max_tokens: 8000,
-    system: GENERATION_SYSTEM_PROMPT,
+    system: `${GENERATION_SYSTEM_PROMPT_BASE}\n\n${curriculumContext}`,
     messages: [{ role: "user", content: buildUserPrompt(req) }],
   });
 
@@ -92,7 +97,7 @@ export async function generateAndVerifyWorksheet(
   const verifyResponse = await client.messages.create({
     model: VERIFICATION_MODEL,
     max_tokens: 4000,
-    system: VERIFICATION_SYSTEM_PROMPT,
+    system: `${VERIFICATION_SYSTEM_PROMPT_BASE}\n\n${curriculumContext}`,
     messages: [
       {
         role: "user",

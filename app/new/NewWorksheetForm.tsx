@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AUFGABEN_TYPEN, TEMPLATES } from "@/lib/types";
+import { THEMENBEREICHE, THEMENBEREICH_KEYS, ThemenbereichKey, SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
 
 const TYP_LABEL: Record<(typeof AUFGABEN_TYPEN)[number], string> = {
   multiple_choice: "Multiple Choice",
@@ -33,11 +34,14 @@ export default function NewWorksheetForm() {
     "offene_frage",
   ]);
   const [zusatzhinweise, setZusatzhinweise] = useState("");
+  const [themenbereich, setThemenbereich] = useState<ThemenbereichKey>("gemischt");
 
   const [template, setTemplate] = useState<(typeof TEMPLATES)[number]>("klassisch");
   const [schulname, setSchulname] = useState("");
   const [loesungenSeparat, setLoesungenSeparat] = useState(true);
   const [schriftgroesse, setSchriftgroesse] = useState<"normal" | "gross">("normal");
+  const [zeigeIslamischesDatum, setZeigeIslamischesDatum] = useState(true);
+  const [zeigeMuster, setZeigeMuster] = useState(true);
 
   function toggleTyp(typ: string) {
     setAufgabentypen((prev) =>
@@ -63,6 +67,7 @@ export default function NewWorksheetForm() {
           bereich,
           thema,
           schulstufe,
+          themenbereich,
           anzahlAufgaben,
           aufgabentypen,
           zusatzhinweise: zusatzhinweise || undefined,
@@ -71,6 +76,8 @@ export default function NewWorksheetForm() {
             schulname: schulname || undefined,
             loesungenSeparat,
             schriftgroesse,
+            zeigeIslamischesDatum,
+            zeigeMuster,
           },
         }),
       });
@@ -107,10 +114,33 @@ export default function NewWorksheetForm() {
               value={schulstufe}
               onChange={(e) => setSchulstufe(e.target.value)}
               placeholder="z.B. 4. Klasse Volksschule"
+              list="schulstufen-vorschlaege"
               required
             />
+            <datalist id="schulstufen-vorschlaege">
+              {SCHULSTUFEN_CLUSTER.map((c) => (
+                <option key={c.id} value={c.label} />
+              ))}
+            </datalist>
           </label>
         </div>
+        <label className="mt-4 block">
+          <span className="mb-1 block text-sm font-medium">Themenbereich (laut Lehrplan)</span>
+          <select
+            className="w-full rounded-md border border-slate-300 px-3 py-2"
+            value={themenbereich}
+            onChange={(e) => setThemenbereich(e.target.value as ThemenbereichKey)}
+          >
+            {THEMENBEREICH_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {THEMENBEREICHE[key].label}
+              </option>
+            ))}
+          </select>
+          <span className="mt-1 block text-xs text-slate-500">
+            {THEMENBEREICHE[themenbereich].beschreibung}
+          </span>
+        </label>
         <label className="mt-4 block">
           <span className="mb-1 block text-sm font-medium">Thema</span>
           <input
@@ -212,6 +242,22 @@ export default function NewWorksheetForm() {
             onChange={(e) => setLoesungenSeparat(e.target.checked)}
           />
           Lösungen auf separatem Blatt/Seite ausgeben
+        </label>
+        <label className="mt-2 flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={zeigeIslamischesDatum}
+            onChange={(e) => setZeigeIslamischesDatum(e.target.checked)}
+          />
+          Islamisches Datum (Hijri) neben dem gregorianischen Datum anzeigen
+        </label>
+        <label className="mt-2 flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={zeigeMuster}
+            onChange={(e) => setZeigeMuster(e.target.checked)}
+          />
+          Dezentes islamisches Ornament-Muster im Kopfbereich anzeigen
         </label>
       </section>
 

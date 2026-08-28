@@ -1,4 +1,7 @@
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
+import { THEMENBEREICHE, ThemenbereichKey } from "@/lib/curriculum";
+import { formatDoppelDatum } from "@/lib/hijri";
+import IslamicPatternStrip from "./IslamicPatternStrip";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -11,15 +14,20 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
 export default function WorksheetView({
   content,
   layout,
+  themenbereich,
+  erstelltAm,
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
+  themenbereich: ThemenbereichKey;
+  erstelltAm: Date;
 }) {
   const isModern = layout.template === "modern";
   const isKompakt = layout.template === "kompakt";
   const fontClass = isModern || isKompakt ? "font-sans" : "font-serif";
   const textSize = layout.schriftgroesse === "gross" ? "text-lg" : "text-base";
   const spacing = isKompakt ? "space-y-3" : "space-y-5";
+  const musterFarbe = isModern ? "#0f9d58" : isKompakt ? "#64748b" : "#8a6d1f";
 
   return (
     <div className={`rounded-lg border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
@@ -39,7 +47,17 @@ export default function WorksheetView({
         <div className={`text-sm ${isModern ? "text-brand-50" : "text-slate-600"}`}>
           {content.fach} · {content.schulstufe} · Thema: {content.thema}
         </div>
+        <div className={`mt-1 text-xs ${isModern ? "text-brand-50/80" : "text-slate-400"}`}>
+          Themenbereich: {THEMENBEREICHE[themenbereich].label}
+          {layout.zeigeIslamischesDatum && <> · {formatDoppelDatum(erstelltAm)}</>}
+        </div>
       </div>
+
+      {layout.zeigeMuster && (
+        <div className="-mt-2 mb-4">
+          <IslamicPatternStrip color={musterFarbe} />
+        </div>
+      )}
 
       <div className="mb-5 text-sm text-slate-500">
         Name: _______________________&nbsp;&nbsp;&nbsp; Klasse: __________&nbsp;&nbsp;&nbsp; Datum: __________

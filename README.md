@@ -17,6 +17,31 @@ Religiöse Quellenangaben (Koran/Hadith) werden bewusst konservativ generiert un
 besteht, als **„bitte prüfen“** markiert – das System ersetzt keine fachliche Endkontrolle durch
 eine Lehrkraft.
 
+## Lehrplan- und Quellen-Verankerung
+
+Generierung und Verifikation orientieren sich an der öffentlich bekannten Grobstruktur des
+österreichischen Lehrplans für islamischen Religionsunterricht (IGGÖ, BGBl. II Nr. 234/2011):
+
+- **Themenbereich** pro Arbeitsblatt wählbar: Iman (Glaubenslehre), Fiqh al-Ibadat
+  (gottesdienstliche Praxis), Fiqh al-Muamalat (zwischenmenschliche Beziehungen/Ethik),
+  Islamische Kulturgeschichte – oder automatisch passend zum Thema.
+- **Schulstufen-Cluster** (Volksschule, Sekundarstufe I, Polytechnische Schule, Sekundarstufe
+  II, Berufsschule) steuern Sprachniveau und Komplexität.
+- **Hadithe** werden nur aus Sahih al-Bukhari/Sahih Muslim (bevorzugt) oder anderen allgemein als
+  sahih geltenden Sammlungen verwendet; die Verifikation prüft das gezielt gegen.
+- Siehe `lib/curriculum.ts` für Details und Quellenangaben. Diese App bildet die Lehrplan-Struktur
+  nur orientierend ab (kein Volltext-Zugriff) – die Lehrkraft prüft die konkrete Passung zur
+  jeweiligen Schulart/Schulstufe weiterhin anhand von BGBl. II Nr. 234/2011.
+
+## Layout-Extras
+
+- **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
+  Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
+  Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
+- **Dezentes Musterelement**: ein minimaler, rein rechnerisch erzeugter achtzackiger Stern
+  (klassisches geometrisches Grundmotiv) als Zierstreifen im Kopfbereich, in Web und PDF als SVG,
+  in Word als vereinfachte Textzeile (`lib/pattern.ts`). Optional abschaltbar.
+
 ## Setup
 
 ```bash
@@ -39,8 +64,8 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 - Prisma + SQLite (Verlauf aller generierten Arbeitsblätter)
 - `@anthropic-ai/sdk` (Modell: `claude-opus-5`) für Generierung + Verifikation
 - `@react-pdf/renderer` für PDF-Export, `docx` für Word-Export
-- Drei Layout-Vorlagen (Klassisch / Modern / Kompakt), je mit Schulname, Schriftgröße und
-  „Lösungen separat“ konfigurierbar
+- Drei Layout-Vorlagen (Klassisch / Modern / Kompakt), je mit Schulname, Schriftgröße,
+  „Lösungen separat“, islamischem Datum und Musterstreifen konfigurierbar
 
 ## Erweiterungsideen
 

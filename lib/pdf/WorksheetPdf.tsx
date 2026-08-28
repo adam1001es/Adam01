@@ -1,6 +1,8 @@
 import React from "react";
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
+import { formatDoppelDatum } from "@/lib/hijri";
+import { IslamicPatternStripPdf } from "./IslamicPatternStripPdf";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -46,6 +48,15 @@ function buildStyles(layout: LayoutConfig) {
     metaZeile: {
       fontSize: baseFontSize - 1,
       opacity: 0.9,
+    },
+    metaZeile2: {
+      fontSize: baseFontSize - 3,
+      opacity: 0.75,
+      marginTop: 2,
+    },
+    musterStreifen: {
+      marginTop: isModern ? 0 : 8,
+      marginBottom: isKompakt ? 8 : 14,
     },
     nameZeile: {
       marginTop: isKompakt ? 6 : 12,
@@ -101,9 +112,13 @@ function buildStyles(layout: LayoutConfig) {
 function Header({
   content,
   layout,
+  themenbereichLabel,
+  erstelltAm,
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
+  themenbereichLabel: string;
+  erstelltAm: Date;
 }) {
   const styles = buildStyles(layout);
   return (
@@ -113,6 +128,23 @@ function Header({
       <Text style={styles.metaZeile}>
         {content.fach} · {content.schulstufe} · Thema: {content.thema}
       </Text>
+      <Text style={styles.metaZeile2}>
+        Themenbereich: {themenbereichLabel}
+        {layout.zeigeIslamischesDatum ? `  ·  ${formatDoppelDatum(erstelltAm)}` : ""}
+      </Text>
+    </View>
+  );
+}
+
+function MusterStreifen({ layout }: { layout: LayoutConfig }) {
+  const styles = buildStyles(layout);
+  if (!layout.zeigeMuster) return null;
+  const isModern = layout.template === "modern";
+  const isKompakt = layout.template === "kompakt";
+  const farbe = isModern ? "#0f9d58" : isKompakt ? "#64748b" : "#8a6d1f";
+  return (
+    <View style={styles.musterStreifen}>
+      <IslamicPatternStripPdf color={farbe} />
     </View>
   );
 }
@@ -214,15 +246,25 @@ function LoesungenSeite({
 export function WorksheetPdfDocument({
   content,
   layout,
+  themenbereichLabel,
+  erstelltAm,
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
+  themenbereichLabel: string;
+  erstelltAm: Date;
 }) {
   const styles = buildStyles(layout);
   return (
     <Document title={content.titel}>
       <Page size="A4" style={styles.page}>
-        <Header content={content} layout={layout} />
+        <Header
+          content={content}
+          layout={layout}
+          themenbereichLabel={themenbereichLabel}
+          erstelltAm={erstelltAm}
+        />
+        <MusterStreifen layout={layout} />
         <NameZeile layout={layout} />
         <Text style={styles.sectionTitel}>Lernziel</Text>
         <Text style={styles.einleitung}>{content.lernziel}</Text>

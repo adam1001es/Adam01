@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { WorksheetContentSchema, LayoutConfigSchema } from "@/lib/types";
+import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema } from "@/lib/types";
+import { THEMENBEREICHE } from "@/lib/curriculum";
 import { buildWorksheetDocx } from "@/lib/docx/buildWorksheetDocx";
 
 export const runtime = "nodejs";
@@ -16,8 +17,14 @@ export async function GET(
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
+  const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
 
-  const buffer = await buildWorksheetDocx(content, layout);
+  const buffer = await buildWorksheetDocx(
+    content,
+    layout,
+    THEMENBEREICHE[themenbereich].label,
+    worksheet.createdAt,
+  );
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

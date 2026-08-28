@@ -13,6 +13,7 @@ model Worksheet {
   bereich     String // grober Fachbereich, z.B. "Islamischer Religionsunterricht"
   thema       String // konkretes Thema, vom Nutzer vorgegeben
   schulstufe  String
+  themenbereich String @default("gemischt") // Iman | Fiqh al-Ibadat | Fiqh al-Muamalat | Islamische Kulturgeschichte
   template    String // "klassisch" | "modern" | "kompakt"
   layoutConfig String  // JSON: Schulname, Schriftgröße, Lösungen separat, Spalten, ...
   contentJson String // JSON: generierter Arbeitsblatt-Inhalt (siehe lib/types.ts)
