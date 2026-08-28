@@ -33,3 +33,17 @@ export async function PATCH(
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const existing = await prisma.worksheet.findUnique({ where: { id: params.id } });
+  if (!existing) {
+    return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
+  }
+
+  await prisma.worksheet.delete({ where: { id: params.id } });
+
+  return NextResponse.json({ ok: true });
+}

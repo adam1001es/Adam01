@@ -16,7 +16,7 @@ import {
   Palette,
   Images,
 } from "lucide-react";
-import { AUFGABEN_TYPEN, TEMPLATES, WorksheetContent } from "@/lib/types";
+import { AUFGABEN_TYPEN, TEMPLATES, FARBMODI, Farbmodus, WorksheetContent } from "@/lib/types";
 import {
   THEMENBEREICHE,
   THEMENBEREICH_KEYS,
@@ -110,6 +110,7 @@ export default function NewWorksheetForm() {
   const [zeigeIslamischesDatum, setZeigeIslamischesDatum] = useState(true);
   const [zeigeMuster, setZeigeMuster] = useState(true);
   const [zeigeLernziel, setZeigeLernziel] = useState(false);
+  const [farbmodus, setFarbmodus] = useState<Farbmodus>("farbe");
 
   function toggleTyp(typ: string) {
     setAufgabentypen((prev) =>
@@ -147,6 +148,7 @@ export default function NewWorksheetForm() {
             zeigeIslamischesDatum,
             zeigeMuster,
             zeigeLernziel,
+            farbmodus,
           },
         }),
       });
@@ -170,6 +172,7 @@ export default function NewWorksheetForm() {
     zeigeIslamischesDatum,
     zeigeMuster,
     zeigeLernziel,
+    farbmodus,
   };
 
   return (
@@ -311,6 +314,22 @@ export default function NewWorksheetForm() {
         </SectionCard>
 
         <SectionCard icon={LayoutTemplate} title="Layout" subtitle="So sieht das fertige Blatt aus">
+          <div className="mb-5 overflow-hidden rounded-xl border border-slate-200">
+            <div className="h-[110px] overflow-hidden bg-slate-50">
+              <div className="origin-top-left scale-[0.42]" style={{ width: "238%" }}>
+                <WorksheetView
+                  content={VORSCHAU_INHALT}
+                  layout={vorschauLayout}
+                  themenbereich={themenbereich}
+                  erstelltAm={new Date()}
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 border-t border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-400">
+              <Eye size={12} />
+              Live-Vorschau von Vorlage, Muster &amp; Druckfarbe
+            </div>
+          </div>
           <span className={labelClass}>Vorlage</span>
           <div className="mb-5 flex flex-wrap gap-2">
             {TEMPLATES.map((t) => {
@@ -336,6 +355,34 @@ export default function NewWorksheetForm() {
               );
             })}
           </div>
+          <span className={labelClass}>Druckfarbe</span>
+          <div className="mb-5 flex flex-wrap gap-2">
+            {FARBMODI.map((f) => {
+              const active = farbmodus === f;
+              return (
+                <button
+                  type="button"
+                  key={f}
+                  onClick={() => setFarbmodus(f)}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
+                    active
+                      ? "border-brand-600 bg-brand-50 text-brand-700"
+                      : "border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}
+                >
+                  <span
+                    className="h-2.5 w-2.5 rounded-full border border-slate-300"
+                    style={{ backgroundColor: f === "farbe" ? "#0e6b4a" : "#1a1a1a" }}
+                  />
+                  {f === "farbe" ? "Farbe" : "Schwarz-Weiß"}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mb-5 -mt-3 text-xs leading-relaxed text-slate-400">
+            Schwarz-Weiß spart Toner/Tinte beim Ausdrucken in der Schule: farbiger Kopfbereich,
+            Muster und Akzente werden durch schwarz/grau ersetzt.
+          </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className={labelClass}>Schulname (optional, im Kopf)</span>

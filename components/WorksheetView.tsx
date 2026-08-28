@@ -25,14 +25,25 @@ export default function WorksheetView({
   themenbereich: ThemenbereichKey;
   erstelltAm: Date;
 }) {
+  const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
   const isModern = layout.template === "modern";
   const isKompakt = layout.template === "kompakt";
+  // Bei Schwarz-Weiß-Druck macht der farbige "modern"-Kopfbereich keinen Sinn (viel Toner/Tinte,
+  // im Graustil oft schwer lesbar) - dann immer die schlichte, umrandete Kopfzeile.
+  const isModernFarbig = isModern && !istSchwarzweiss;
   const fontClass = isModern || isKompakt ? "font-sans" : "font-serif";
   const textSize = layout.schriftgroesse === "gross" ? "text-lg" : "text-base";
   const spacing = isKompakt ? "space-y-3" : "space-y-5";
   // Bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich - dort hell statt dunkelgrün,
   // sonst kaum sichtbar.
-  const musterFarbe = isModern ? "#f4ead1" : isKompakt ? "#8a8474" : "#9c7a2c";
+  const musterFarbe = istSchwarzweiss
+    ? "#1a1a1a"
+    : isModern
+      ? "#f4ead1"
+      : isKompakt
+        ? "#8a8474"
+        : "#9c7a2c";
+  const akzentKlasse = isModernFarbig ? "text-brand-700" : "";
 
   return (
     <div className={`relative rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
@@ -44,21 +55,21 @@ export default function WorksheetView({
       )}
       <div
         className={
-          isModern
+          isModernFarbig
             ? "-mx-6 -mt-6 mb-5 rounded-t-2xl bg-brand-gradient px-6 py-4 text-white"
             : "mb-5 border-b-2 border-slate-900 pb-3"
         }
       >
         {layout.schulname && (
-          <div className={`text-sm ${isModern ? "text-brand-50" : "text-slate-500"}`}>
+          <div className={`text-sm ${isModernFarbig ? "text-brand-50" : "text-slate-500"}`}>
             {layout.schulname}
           </div>
         )}
         <h1 className="text-2xl font-bold">{content.titel}</h1>
-        <div className={`text-sm ${isModern ? "text-brand-50" : "text-slate-600"}`}>
+        <div className={`text-sm ${isModernFarbig ? "text-brand-50" : "text-slate-600"}`}>
           {content.fach} · {content.schulstufe} · Thema: {content.thema}
         </div>
-        <div className={`mt-1 text-xs ${isModern ? "text-brand-50/80" : "text-slate-400"}`}>
+        <div className={`mt-1 text-xs ${isModernFarbig ? "text-brand-50/80" : "text-slate-400"}`}>
           Themenbereich: {THEMENBEREICHE[themenbereich].label}
           {layout.zeigeIslamischesDatum && <> · {formatDoppelDatum(erstelltAm)}</>}
         </div>
@@ -71,16 +82,16 @@ export default function WorksheetView({
       <div className={spacing}>
         {layout.zeigeLernziel && (
           <div>
-            <h2 className={`mb-1 font-semibold ${isModern ? "text-brand-700" : ""}`}>Lernziel</h2>
+            <h2 className={`mb-1 font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>Lernziel</h2>
             <p>{content.lernziel}</p>
           </div>
         )}
         <div>
-          <h2 className={`mb-1 font-semibold ${isModern ? "text-brand-700" : ""}`}>Einleitung</h2>
+          <h2 className={`mb-1 font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>Einleitung</h2>
           <p>{content.einleitung}</p>
         </div>
         <div>
-          <h2 className={`mb-2 font-semibold ${isModern ? "text-brand-700" : ""}`}>Aufgaben</h2>
+          <h2 className={`mb-2 font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>Aufgaben</h2>
           <ol className={spacing}>
             {content.aufgaben.map((a) => (
               <li key={a.nr}>
@@ -149,11 +160,11 @@ export default function WorksheetView({
           </ol>
         </div>
 
-        {!layout.loesungenSeparat && <LoesungenBlock content={content} isModern={isModern} />}
+        {!layout.loesungenSeparat && <LoesungenBlock content={content} isModernFarbig={isModernFarbig} />}
 
         {content.quellen.length > 0 && (
           <div>
-            <h2 className={`mb-2 font-semibold ${isModern ? "text-brand-700" : ""}`}>
+            <h2 className={`mb-2 font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>
               Quellenangaben
             </h2>
             <ul className="space-y-1 text-sm">
@@ -180,10 +191,10 @@ export default function WorksheetView({
 
       {layout.loesungenSeparat && (
         <div className="mt-8 border-t-2 border-dashed border-slate-300 pt-6">
-          <h2 className={`mb-2 text-lg font-semibold ${isModern ? "text-brand-700" : ""}`}>
+          <h2 className={`mb-2 text-lg font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>
             {content.titel} — Lösungsblatt
           </h2>
-          <LoesungenBlock content={content} isModern={isModern} />
+          <LoesungenBlock content={content} isModernFarbig={isModernFarbig} />
         </div>
       )}
     </div>
@@ -192,14 +203,14 @@ export default function WorksheetView({
 
 function LoesungenBlock({
   content,
-  isModern,
+  isModernFarbig,
 }: {
   content: WorksheetContent;
-  isModern: boolean;
+  isModernFarbig: boolean;
 }) {
   return (
     <div>
-      <h2 className={`mb-2 font-semibold ${isModern ? "text-brand-700" : ""}`}>Lösungen</h2>
+      <h2 className={`mb-2 font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>Lösungen</h2>
       <ol className="space-y-1">
         {content.loesungen.map((l) => (
           <li key={l.nr}>

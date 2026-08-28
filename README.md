@@ -75,6 +75,19 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
   als Vektor gerendert (in PDF pageweit über `floating`-Positionierung); in Word über zwei
   einmalig serverseitig gerenderte PNGs (`public/patterns/ecke-gold.png` + `ecke-gold-mirror.png`,
   normale und gespiegelte Variante), an den Seitenrand-Ecken verankert. Optional abschaltbar.
+- **Druckfarbe (Farbe / Schwarz-Weiß)**: da die meisten Arbeitsblätter in der Schule ohnehin
+  schwarzweiß ausgedruckt werden, lässt sich das pro Arbeitsblatt umschalten. Im Schwarz-Weiß-
+  Modus wird der farbige Kopfbereich der „Modern“-Vorlage durch die schlichte, umrandete
+  Kopfzeile ersetzt und alle Akzentfarben (Muster, Überschriften) werden schwarz/dunkelgrau statt
+  grün/gold - in Web, PDF und Word konsistent (inkl. eigener schwarzer Eckornament-Bilder für
+  Word, `public/patterns/ecke-schwarz.png` + `ecke-schwarz-mirror.png`).
+
+## Arbeitsblätter verwalten
+
+Auf der Übersichtsseite lässt sich jedes Arbeitsblatt einzeln löschen (Papierkorb-Symbol) oder
+über „Alle löschen" der komplette Bestand auf einmal entfernen - jeweils mit Sicherheitsabfrage,
+da das Löschen unwiderruflich ist. Auch auf der Detailseite eines Arbeitsblatts gibt es einen
+„Löschen"-Button.
 
 ## Setup
 

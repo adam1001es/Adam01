@@ -25,8 +25,11 @@ function buildStyles(layout: LayoutConfig) {
   const baseFontSize = layout.schriftgroesse === "gross" ? 13 : 11;
   const isKompakt = layout.template === "kompakt";
   const isModern = layout.template === "modern";
+  const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
+  // Bei Schwarz-Weiß-Druck macht der farbige "modern"-Kopfbereich keinen Sinn (viel Toner/Tinte).
+  const isModernFarbig = isModern && !istSchwarzweiss;
   const fontFamily = isModern || isKompakt ? "Helvetica" : "Times-Roman";
-  const headerColor = isModern ? "#0f9d58" : "#111111";
+  const headerColor = isModernFarbig ? "#0f9d58" : "#111111";
 
   return StyleSheet.create({
     page: {
@@ -37,16 +40,16 @@ function buildStyles(layout: LayoutConfig) {
       lineHeight: 1.4,
     },
     headerBar: {
-      backgroundColor: isModern ? headerColor : "transparent",
-      color: isModern ? "#ffffff" : "#111111",
-      padding: isModern ? 12 : 0,
+      backgroundColor: isModernFarbig ? headerColor : "transparent",
+      color: isModernFarbig ? "#ffffff" : "#111111",
+      padding: isModernFarbig ? 12 : 0,
       marginBottom: isKompakt ? 10 : 18,
-      borderBottom: isModern ? undefined : "2px solid #111111",
-      paddingBottom: isModern ? 12 : 8,
+      borderBottom: isModernFarbig ? undefined : "2px solid #111111",
+      paddingBottom: isModernFarbig ? 12 : 8,
       // Platz für die Eckornamente, damit Titeltext sie nicht überlappt.
-      paddingTop: layout.zeigeMuster ? (isModern ? 12 : 16) : isModern ? 12 : 0,
-      paddingLeft: layout.zeigeMuster ? 26 : isModern ? 12 : 0,
-      paddingRight: layout.zeigeMuster ? 26 : isModern ? 12 : 0,
+      paddingTop: layout.zeigeMuster ? (isModernFarbig ? 12 : 16) : isModernFarbig ? 12 : 0,
+      paddingLeft: layout.zeigeMuster ? 26 : isModernFarbig ? 12 : 0,
+      paddingRight: layout.zeigeMuster ? 26 : isModernFarbig ? 12 : 0,
     },
     schulname: {
       fontSize: baseFontSize - 1,
@@ -81,7 +84,7 @@ function buildStyles(layout: LayoutConfig) {
       fontWeight: 700,
       marginTop: 14,
       marginBottom: 6,
-      color: isModern ? headerColor : "#111111",
+      color: isModernFarbig ? headerColor : "#111111",
     },
     einleitung: {
       marginBottom: 10,
@@ -182,8 +185,16 @@ function EckOrnamente({ layout }: { layout: LayoutConfig }) {
   if (!layout.zeigeMuster) return null;
   const isModern = layout.template === "modern";
   const isKompakt = layout.template === "kompakt";
-  // Bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich - dort hell statt dunkelgrün.
-  const farbe = isModern ? "#f4ead1" : isKompakt ? "#8a8474" : "#9c7a2c";
+  const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
+  // Bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich - dort hell statt dunkelgrün,
+  // außer bei Schwarz-Weiß-Druck (dann gibt es den farbigen Kopfbereich gar nicht).
+  const farbe = istSchwarzweiss
+    ? "#1a1a1a"
+    : isModern
+      ? "#f4ead1"
+      : isKompakt
+        ? "#8a8474"
+        : "#9c7a2c";
   return (
     <>
       <IslamicCornerOrnamentPdf ecke="oben-links" color={farbe} />

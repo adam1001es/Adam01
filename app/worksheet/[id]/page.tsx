@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema, Verification } from "@/lib/types";
 import WorksheetView from "@/components/WorksheetView";
 import FavoritButton from "@/components/FavoritButton";
+import DeleteButton from "@/components/DeleteButton";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +71,7 @@ export default async function WorksheetPage({ params }: { params: { id: string }
           >
             <FileType2 size={15} /> Word (.docx)
           </a>
+          <DeleteButton worksheetId={worksheet.id} titel={content.titel} redirectTo="/" variant="button" />
         </div>
       </div>
 

@@ -62,6 +62,9 @@ export type Verification = z.infer<typeof VerificationSchema>;
 export const TEMPLATES = ["klassisch", "modern", "kompakt"] as const;
 export type Template = (typeof TEMPLATES)[number];
 
+export const FARBMODI = ["farbe", "schwarzweiss"] as const;
+export type Farbmodus = (typeof FARBMODI)[number];
+
 export const LayoutConfigSchema = z.object({
   template: z.enum(TEMPLATES).default("klassisch"),
   schulname: z.string().optional(),
@@ -70,6 +73,7 @@ export const LayoutConfigSchema = z.object({
   zeigeIslamischesDatum: z.boolean().default(true),
   zeigeMuster: z.boolean().default(true),
   zeigeLernziel: z.boolean().default(false),
+  farbmodus: z.enum(FARBMODI).default("farbe"),
 });
 export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
 

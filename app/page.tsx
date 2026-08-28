@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import FavoritButton from "@/components/FavoritButton";
+import DeleteButton from "@/components/DeleteButton";
+import DeleteAllButton from "@/components/DeleteAllButton";
 import IslamicCornerOrnament from "@/components/IslamicCornerOrnament";
 
 const STATUS_STYLE: Record<string, { text: string; className: string; icon: typeof CheckCircle2 }> = {
@@ -58,40 +60,49 @@ export default async function DashboardPage() {
           </p>
         </div>
       ) : (
-        <ul className="mt-8 space-y-3">
-          {worksheets.map((w) => {
-            const status = STATUS_STYLE[w.status] ?? STATUS_STYLE.entwurf;
-            const StatusIcon = status.icon;
-            return (
-              <li key={w.id}>
-                <Link
-                  href={`/worksheet/${w.id}`}
-                  className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5"
-                >
-                  <FavoritButton worksheetId={w.id} initialFavorit={w.favorit} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-display text-base font-semibold text-slate-800 group-hover:text-brand-700">
-                      {w.thema}
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                      <span className="inline-flex items-center gap-1">
-                        <GraduationCap size={13} /> {w.schulstufe}
-                      </span>
-                      <span>{w.bereich}</span>
-                      <span>{new Date(w.createdAt).toLocaleString("de-AT")}</span>
-                    </div>
-                  </div>
-                  <span
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${status.className}`}
+        <>
+          <div className="mt-8 flex items-center justify-between">
+            <p className="text-sm text-slate-500">
+              {worksheets.length} {worksheets.length === 1 ? "Arbeitsblatt" : "Arbeitsblätter"}
+            </p>
+            <DeleteAllButton anzahl={worksheets.length} />
+          </div>
+          <ul className="mt-3 space-y-3">
+            {worksheets.map((w) => {
+              const status = STATUS_STYLE[w.status] ?? STATUS_STYLE.entwurf;
+              const StatusIcon = status.icon;
+              return (
+                <li key={w.id}>
+                  <Link
+                    href={`/worksheet/${w.id}`}
+                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5"
                   >
-                    <StatusIcon size={13} />
-                    {status.text}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+                    <FavoritButton worksheetId={w.id} initialFavorit={w.favorit} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-display text-base font-semibold text-slate-800 group-hover:text-brand-700">
+                        {w.thema}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                        <span className="inline-flex items-center gap-1">
+                          <GraduationCap size={13} /> {w.schulstufe}
+                        </span>
+                        <span>{w.bereich}</span>
+                        <span>{new Date(w.createdAt).toLocaleString("de-AT")}</span>
+                      </div>
+                    </div>
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${status.className}`}
+                    >
+                      <StatusIcon size={13} />
+                      {status.text}
+                    </span>
+                    <DeleteButton worksheetId={w.id} titel={w.thema} />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
     </main>
   );

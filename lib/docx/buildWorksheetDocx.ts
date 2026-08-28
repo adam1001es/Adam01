@@ -20,18 +20,21 @@ import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 
-const ECKE_BILD_PFAD = path.join(process.cwd(), "public/patterns/ecke-gold.png");
-const ECKE_BILD_MIRROR_PFAD = path.join(process.cwd(), "public/patterns/ecke-gold-mirror.png");
 const ECKE_GROESSE = 28;
+
+function eckeBildPfad(farbmodus: LayoutConfig["farbmodus"], mirror: boolean): string {
+  const farbe = farbmodus === "schwarzweiss" ? "schwarz" : "gold";
+  return path.join(process.cwd(), `public/patterns/ecke-${farbe}${mirror ? "-mirror" : ""}.png`);
+}
 
 /**
  * Zwei an den oberen Seitenecken verankerte Bild-Runs (fließen nicht mit dem Text) - positioniert
  * relativ zum Satzspiegel (Seitenrand), damit sie wie in Web/PDF direkt in den Content-Ecken
  * sitzen statt am rohen Papierrand.
  */
-function eckOrnamente(): ImageRun[] {
-  const bildDatenLinks = fs.readFileSync(ECKE_BILD_PFAD);
-  const bildDatenRechts = fs.readFileSync(ECKE_BILD_MIRROR_PFAD);
+function eckOrnamente(farbmodus: LayoutConfig["farbmodus"]): ImageRun[] {
+  const bildDatenLinks = fs.readFileSync(eckeBildPfad(farbmodus, false));
+  const bildDatenRechts = fs.readFileSync(eckeBildPfad(farbmodus, true));
   const basis = {
     type: "png" as const,
     transformation: { width: ECKE_GROESSE, height: ECKE_GROESSE },
@@ -77,13 +80,14 @@ export async function buildWorksheetDocx(
   themenbereichLabel: string,
   erstelltAm: Date,
 ): Promise<Buffer> {
-  const accentColor = layout.template === "modern" ? ACCENT : "111111";
+  const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
+  const accentColor = layout.template === "modern" && !istSchwarzweiss ? ACCENT : "111111";
   const baseSize = layout.schriftgroesse === "gross" ? 26 : 22; // halbe Punkte
 
   const children: Paragraph[] = [];
 
   if (layout.zeigeMuster) {
-    children.push(new Paragraph({ children: eckOrnamente(), spacing: { after: 0 } }));
+    children.push(new Paragraph({ children: eckOrnamente(layout.farbmodus), spacing: { after: 0 } }));
   }
 
   if (layout.schulname) {
@@ -280,7 +284,7 @@ export async function buildWorksheetDocx(
   if (layout.loesungenSeparat) {
     const loesungChildren: Paragraph[] = [];
     if (layout.zeigeMuster) {
-      loesungChildren.push(new Paragraph({ children: eckOrnamente(), spacing: { after: 0 } }));
+      loesungChildren.push(new Paragraph({ children: eckOrnamente(layout.farbmodus), spacing: { after: 0 } }));
     }
     loesungChildren.push(
       new Paragraph({
