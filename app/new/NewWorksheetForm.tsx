@@ -2,8 +2,41 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AUFGABEN_TYPEN, TEMPLATES } from "@/lib/types";
-import { THEMENBEREICHE, THEMENBEREICH_KEYS, ThemenbereichKey, SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
+import { AUFGABEN_TYPEN, TEMPLATES, WorksheetContent } from "@/lib/types";
+import { THEMENBEREICHE, THEMENBEREICH_KEYS, ThemenbereichKey, SCHULSTUFEN_OPTIONEN } from "@/lib/curriculum";
+import WorksheetView from "@/components/WorksheetView";
+
+const ANDERE_SCHULSTUFE = "__andere__";
+
+const VORSCHAU_INHALT: WorksheetContent = {
+  titel: "Beispiel: Die 5 Säulen des Islam",
+  fach: "Islamischer Religionsunterricht",
+  schulstufe: "4. Klasse Volksschule",
+  thema: "Die 5 Säulen des Islam",
+  lernziel: "Die Schüler:innen können die fünf Säulen des Islam benennen.",
+  einleitung: "So könnte die Einleitung deines Arbeitsblatts aussehen.",
+  aufgaben: [
+    {
+      nr: 1,
+      typ: "multiple_choice",
+      frage: "Welche Aussage gehört zu den 5 Säulen?",
+      optionen: ["Das Fasten im Ramadan", "Das Feiern von Weihnachten", "Ein Beispiel-Text"],
+    },
+    {
+      nr: 2,
+      typ: "lueckentext",
+      frage: "Das Fasten im Ramadan heißt auf Arabisch ______.",
+      wortliste: ["Sawm", "Zakat", "Hadsch"],
+    },
+    { nr: 3, typ: "offene_frage", frage: "So sieht eine offene Frage aus." },
+  ],
+  loesungen: [
+    { nr: 1, loesung: "Das Fasten im Ramadan" },
+    { nr: 2, loesung: "Sawm" },
+    { nr: 3, loesung: "Individuelle Antwort" },
+  ],
+  quellen: [{ bezeichnung: "Beispiel-Quelle", sicherheit: "gesichert" }],
+};
 
 const TYP_LABEL: Record<(typeof AUFGABEN_TYPEN)[number], string> = {
   multiple_choice: "Multiple Choice",
@@ -26,7 +59,9 @@ export default function NewWorksheetForm() {
 
   const [bereich, setBereich] = useState("Islamischer Religionsunterricht");
   const [thema, setThema] = useState("");
-  const [schulstufe, setSchulstufe] = useState("4. Klasse Volksschule");
+  const [schulstufeAuswahl, setSchulstufeAuswahl] = useState(SCHULSTUFEN_OPTIONEN[0]);
+  const [schulstufeFrei, setSchulstufeFrei] = useState("");
+  const schulstufe = schulstufeAuswahl === ANDERE_SCHULSTUFE ? schulstufeFrei : schulstufeAuswahl;
   const [anzahlAufgaben, setAnzahlAufgaben] = useState(6);
   const [aufgabentypen, setAufgabentypen] = useState<string[]>([
     "multiple_choice",
@@ -95,7 +130,18 @@ export default function NewWorksheetForm() {
     }
   }
 
+  const vorschauLayout = {
+    template,
+    schulname: schulname || undefined,
+    loesungenSeparat,
+    schriftgroesse,
+    zeigeIslamischesDatum,
+    zeigeMuster,
+    zeigeLernziel,
+  };
+
   return (
+    <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
     <form onSubmit={handleSubmit} className="space-y-8">
       <section className="rounded-lg border border-slate-200 bg-white p-5">
         <h2 className="mb-4 font-semibold">Inhalt</h2>
@@ -111,19 +157,27 @@ export default function NewWorksheetForm() {
           </label>
           <label className="block">
             <span className="mb-1 block text-sm font-medium">Schulstufe</span>
-            <input
+            <select
               className="w-full rounded-md border border-slate-300 px-3 py-2"
-              value={schulstufe}
-              onChange={(e) => setSchulstufe(e.target.value)}
-              placeholder="z.B. 4. Klasse Volksschule"
-              list="schulstufen-vorschlaege"
-              required
-            />
-            <datalist id="schulstufen-vorschlaege">
-              {SCHULSTUFEN_CLUSTER.map((c) => (
-                <option key={c.id} value={c.label} />
+              value={schulstufeAuswahl}
+              onChange={(e) => setSchulstufeAuswahl(e.target.value)}
+            >
+              {SCHULSTUFEN_OPTIONEN.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
               ))}
-            </datalist>
+              <option value={ANDERE_SCHULSTUFE}>Andere (frei eingeben) …</option>
+            </select>
+            {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
+              <input
+                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2"
+                value={schulstufeFrei}
+                onChange={(e) => setSchulstufeFrei(e.target.value)}
+                placeholder="Eigene Schulstufe eingeben"
+                required
+              />
+            )}
           </label>
         </div>
         <label className="mt-4 block">
@@ -283,5 +337,22 @@ export default function NewWorksheetForm() {
         {loading ? "Wird erstellt und geprüft …" : "Arbeitsblatt erstellen"}
       </button>
     </form>
+
+      <aside className="hidden lg:block">
+        <div className="sticky top-6">
+          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+            Live-Vorschau des Layouts (Beispiel-Inhalt)
+          </div>
+          <div className="max-h-[85vh] overflow-y-auto rounded-lg">
+            <WorksheetView
+              content={VORSCHAU_INHALT}
+              layout={vorschauLayout}
+              themenbereich={themenbereich}
+              erstelltAm={new Date()}
+            />
+          </div>
+        </div>
+      </aside>
+    </div>
   );
 }

@@ -27,7 +27,7 @@ export default function WorksheetView({
   const fontClass = isModern || isKompakt ? "font-sans" : "font-serif";
   const textSize = layout.schriftgroesse === "gross" ? "text-lg" : "text-base";
   const spacing = isKompakt ? "space-y-3" : "space-y-5";
-  const musterFarbe = isModern ? "#0f9d58" : isKompakt ? "#64748b" : "#8a6d1f";
+  const musterFarbe = isModern ? "#0e6b4a" : isKompakt ? "#8a8474" : "#9c7a2c";
 
   return (
     <div className={`rounded-lg border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
@@ -101,6 +101,12 @@ export default function WorksheetView({
                         <span>{a.zuordnungRechts?.[i]}</span>
                       </div>
                     ))}
+                  </div>
+                )}
+                {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (
+                  <div className="ml-5 mt-1 text-sm text-slate-600">
+                    <span className="font-medium">Wortliste: </span>
+                    {a.wortliste.join(" · ")}
                   </div>
                 )}
               </li>

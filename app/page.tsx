@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import FavoritButton from "@/components/FavoritButton";
 
 const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   geprueft: { text: "Geprüft", className: "bg-brand-100 text-brand-700" },
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const worksheets = await prisma.worksheet.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: [{ favorit: "desc" }, { createdAt: "desc" }],
     take: 50,
   });
 
@@ -38,9 +39,10 @@ export default async function DashboardPage() {
               <li key={w.id}>
                 <Link
                   href={`/worksheet/${w.id}`}
-                  className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 hover:border-brand-500"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-4 hover:border-brand-500"
                 >
-                  <div>
+                  <FavoritButton worksheetId={w.id} initialFavorit={w.favorit} />
+                  <div className="flex-1">
                     <div className="font-medium">{w.thema}</div>
                     <div className="text-sm text-slate-500">
                       {w.bereich} · {w.schulstufe} ·{" "}

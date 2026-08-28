@@ -71,7 +71,7 @@ export async function buildWorksheetDocx(
   );
 
   if (layout.zeigeMuster) {
-    children.push(musterDivider(accentColor, baseSize));
+    children.push(musterDivider(baseSize));
   }
 
   children.push(
@@ -131,6 +131,20 @@ export async function buildWorksheetDocx(
         );
       });
     }
+    if (a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0) {
+      children.push(
+        new Paragraph({
+          indent: { left: 360 },
+          children: [
+            new TextRun({
+              text: `Wortliste: ${a.wortliste.join(" · ")}`,
+              size: baseSize,
+              italics: true,
+            }),
+          ],
+        }),
+      );
+    }
   }
 
   if (!layout.loesungenSeparat) {
@@ -181,17 +195,18 @@ function sectionHeading(text: string, color: string, baseSize: number): Paragrap
 }
 
 /** Einfache, textbasierte Annäherung an das geometrische Sternmuster (Word erlaubt kein Vektor-Muster ohne Bild-Asset). */
-function musterDivider(color: string, baseSize: number): Paragraph {
+function musterDivider(baseSize: number): Paragraph {
+  const GOLD = "9c7a2c";
   return new Paragraph({
     alignment: AlignmentType.CENTER,
     children: [
       new TextRun({
-        text: Array(14).fill("✦").join("  "),
-        color,
-        size: baseSize - 8,
+        text: Array(11).fill("✧").join("   ·   "),
+        color: GOLD,
+        size: baseSize - 10,
       }),
     ],
-    spacing: { after: 120 },
+    spacing: { after: 160 },
   });
 }
 

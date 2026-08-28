@@ -19,5 +19,6 @@ model Worksheet {
   contentJson String // JSON: generierter Arbeitsblatt-Inhalt (siehe lib/types.ts)
   verification String  // JSON: Verifikationsergebnis (Status, Hinweise)
   status      String   @default("entwurf") // entwurf | geprueft | verworfen
+  favorit     Boolean  @default(false)
   createdAt   DateTime @default(now())
 }

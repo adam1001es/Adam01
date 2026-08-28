@@ -32,12 +32,13 @@ Das JSON-Objekt muss exakt diese Struktur haben:
   "lernziel": string,
   "einleitung": string,
   "aufgaben": [
-    { "nr": number, "typ": "multiple_choice"|"lueckentext"|"zuordnung"|"offene_frage"|"wahr_falsch", "frage": string, "optionen"?: string[], "zuordnungLinks"?: string[], "zuordnungRechts"?: string[] }
+    { "nr": number, "typ": "multiple_choice"|"lueckentext"|"zuordnung"|"offene_frage"|"wahr_falsch", "frage": string, "optionen"?: string[], "zuordnungLinks"?: string[], "zuordnungRechts"?: string[], "wortliste"?: string[] }
   ],
   "loesungen": [ { "nr": number, "loesung": string } ],
   "quellen": [ { "bezeichnung": string, "text"?: string, "sicherheit": "gesichert"|"bitte_pruefen" } ]
 }
 Jede Aufgabe braucht eine passende Lösung mit gleicher "nr". Bei "zuordnung" müssen zuordnungLinks und zuordnungRechts gleich lang sein.
+Bei "lueckentext" MUSS "wortliste" gesetzt sein: eine durcheinandergewürfelte Liste aus allen richtigen Lücken-Wörtern plus 1-2 plausiblen, aber falschen Ablenker-Wörtern, damit die Schüler:innen aus einer Wortliste auswählen können.
 Jede verwendete Hadith-Quellenangabe MUSS die Sammlung im Feld "bezeichnung" nennen (z.B. "Sahih al-Bukhari, ...").`;
 
 const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
@@ -45,7 +46,7 @@ const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und
 1. Fachliche/theologische Plausibilität - wirken Koran-/Hadith-Angaben erfunden oder unsicher? Passt die Darstellung zu einer mehrheitsfähigen, für den staatlichen Unterricht geeigneten Position (Sunnah)?
 2. Hadith-Quellen: stammen alle genannten Hadithe erkennbar aus Sahih al-Bukhari, Sahih Muslim oder einer anderen allgemein als sahih geltenden Sammlung? Wenn eine Quelle fehlt, unklar oder zweifelhaft ist, IMMER als Hinweis aufnehmen.
 3. Lehrplan-/Altersgerechtigkeit: passt Thema, Komplexität und Themenbereich zum mitgelieferten Schulstufen-Cluster und Themenbereich?
-4. Vollständigkeit: hat jede Aufgabe eine Lösung? Sind Zuordnungen konsistent (gleiche Länge links/rechts)?
+4. Vollständigkeit: hat jede Aufgabe eine Lösung? Sind Zuordnungen konsistent (gleiche Länge links/rechts)? Hat jede Lückentext-Aufgabe eine passende Wortliste (enthält das richtige Lösungswort plus 1-2 Ablenker)?
 5. Sprachliche Korrektheit (Deutsch).
 6. Neutralität/Eignung für konfessionellen Unterricht (keine kontroversen politischen Aussagen, keine Herabsetzung anderer Religionen/Gruppen).
 

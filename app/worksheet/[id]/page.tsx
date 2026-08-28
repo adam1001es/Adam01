@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema, Verification } from "@/lib/types";
 import WorksheetView from "@/components/WorksheetView";
+import FavoritButton from "@/components/FavoritButton";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,8 @@ export default async function WorksheetPage({ params }: { params: { id: string }
         <a href="/" className="text-sm text-slate-500 hover:underline">
           ← Zur Übersicht
         </a>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <FavoritButton worksheetId={worksheet.id} initialFavorit={worksheet.favorit} />
           <a
             href={`/worksheet/${worksheet.id}/edit`}
             className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:border-brand-500"

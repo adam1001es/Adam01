@@ -134,7 +134,7 @@ function MusterStreifen({ layout }: { layout: LayoutConfig }) {
   if (!layout.zeigeMuster) return null;
   const isModern = layout.template === "modern";
   const isKompakt = layout.template === "kompakt";
-  const farbe = isModern ? "#0f9d58" : isKompakt ? "#64748b" : "#8a6d1f";
+  const farbe = isModern ? "#0e6b4a" : isKompakt ? "#8a8474" : "#9c7a2c";
   return (
     <View style={styles.musterStreifen}>
       <IslamicPatternStripPdf color={farbe} />
@@ -177,6 +177,9 @@ function AufgabenListe({
                 <Text>{a.zuordnungRechts?.[i] ?? ""}</Text>
               </View>
             ))}
+          {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (
+            <Text style={styles.option}>Wortliste: {a.wortliste.join(" · ")}</Text>
+          )}
         </View>
       ))}
     </View>

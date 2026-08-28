@@ -245,6 +245,25 @@ export default function EditWorksheetForm({
                 </div>
               )}
 
+              {a.typ === "lueckentext" && (
+                <label className="mb-2 block">
+                  <span className="mb-1 block text-sm font-medium">
+                    Wortliste (durch Komma getrennt)
+                  </span>
+                  <input
+                    className="w-full rounded-md border border-slate-300 px-3 py-2"
+                    value={(a.wortliste ?? []).join(", ")}
+                    onChange={(e) => {
+                      const wortliste = e.target.value
+                        .split(",")
+                        .map((w) => w.trim())
+                        .filter((w) => w.length > 0);
+                      updateAufgabe(a.nr, { wortliste });
+                    }}
+                  />
+                </label>
+              )}
+
               <label className="block">
                 <span className="mb-1 block text-sm font-medium">Lösung</span>
                 <textarea

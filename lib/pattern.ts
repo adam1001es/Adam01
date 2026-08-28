@@ -1,7 +1,8 @@
 /**
- * Punkte für einen achtzackigen Stern ("Chatam"-Motiv, klassisches Grundmuster islamischer
- * Geometrie - zwei um 45° versetzte Quadrate). Bewusst minimal und rein rechnerisch erzeugt,
- * kein Bild-Asset nötig - für Web-SVG, PDF-SVG und als Vorlage für Deko-Elemente.
+ * Dezentes, edles islamisches Ornament: ein achtzackiger Stern ("Chatam"-Motiv, klassisches
+ * Grundmuster islamischer Geometrie - zwei um 45° versetzte Quadrate), fein konturiert
+ * (nur Kontur, keine Füllung) und durch einen dünnen Faden verbunden - wie eine Kette aus
+ * kleinen Ornamenten. Bewusst rein rechnerisch erzeugt, kein Bild-Asset nötig.
  */
 export function achtzackigerSternPunkte(
   cx: number,
@@ -23,18 +24,25 @@ export function achtzackigerSternPunkte(
 
 export interface MusterStern {
   cx: number;
+  cy: number;
   points: string;
 }
 
-/** Erzeugt eine Reihe gleichmäßig verteilter Sterne für einen Zier-Streifen der gegebenen Breite. */
-export function musterStreifen(breite: number, hoehe: number, anzahl = 16): MusterStern[] {
-  const aussenRadius = hoehe * 0.42;
+export interface GirihFaden {
+  sterne: MusterStern[];
+  fadenY: number;
+}
+
+/** Erzeugt einen dünnen "Faden" mit fein konturierten Sternen als Zier-Streifen. */
+export function girihFaden(breite: number, hoehe: number, anzahl = 11): GirihFaden {
+  const aussenRadius = hoehe * 0.3;
   const innenRadius = aussenRadius * 0.42;
   const abstand = breite / anzahl;
+  const cy = hoehe / 2;
   const sterne: MusterStern[] = [];
   for (let i = 0; i < anzahl; i++) {
     const cx = abstand * i + abstand / 2;
-    sterne.push({ cx, points: achtzackigerSternPunkte(cx, hoehe / 2, aussenRadius, innenRadius) });
+    sterne.push({ cx, cy, points: achtzackigerSternPunkte(cx, cy, aussenRadius, innenRadius) });
   }
-  return sterne;
+  return { sterne, fadenY: cy };
 }

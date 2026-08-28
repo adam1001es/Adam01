@@ -16,6 +16,7 @@ export const AufgabeSchema = z.object({
   optionen: z.array(z.string()).optional(),
   zuordnungLinks: z.array(z.string()).optional(),
   zuordnungRechts: z.array(z.string()).optional(),
+  wortliste: z.array(z.string()).optional(), // Wortliste zur Auswahl bei Lückentext-Aufgaben
 });
 export type Aufgabe = z.infer<typeof AufgabeSchema>;
 

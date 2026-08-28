@@ -83,6 +83,24 @@ export const SCHULSTUFEN_CLUSTER: SchulstufenCluster[] = [
   },
 ];
 
+/** Kuratierte Schulstufen-Auswahl fürs Formular (statt Freitext-Eingabe). */
+export const SCHULSTUFEN_OPTIONEN: string[] = [
+  "1. Klasse Volksschule",
+  "2. Klasse Volksschule",
+  "3. Klasse Volksschule",
+  "4. Klasse Volksschule",
+  "1. Klasse Mittelschule/AHS-Unterstufe (5. Schulstufe)",
+  "2. Klasse Mittelschule/AHS-Unterstufe (6. Schulstufe)",
+  "3. Klasse Mittelschule/AHS-Unterstufe (7. Schulstufe)",
+  "4. Klasse Mittelschule/AHS-Unterstufe (8. Schulstufe)",
+  "Polytechnische Schule (9. Schulstufe)",
+  "5. Klasse AHS-Oberstufe/BMHS (9. Schulstufe)",
+  "6. Klasse AHS-Oberstufe/BMHS (10. Schulstufe)",
+  "7. Klasse AHS-Oberstufe/BMHS (11. Schulstufe)",
+  "8. Klasse AHS-Oberstufe/BMHS (12. Schulstufe)",
+  "Berufsschule",
+];
+
 export function guessSchulstufenCluster(schulstufeText: string): SchulstufenCluster {
   const text = schulstufeText.toLowerCase();
   const zahl = parseInt(text.match(/\d+/)?.[0] ?? "", 10);
