@@ -99,7 +99,7 @@ export default function NewWorksheetForm() {
   const [schriftgroesse, setSchriftgroesse] = useState<"normal" | "gross">("normal");
   const [zeigeIslamischesDatum, setZeigeIslamischesDatum] = useState(true);
   const [zeigeMuster, setZeigeMuster] = useState(true);
-  const [zeigeLernziel, setZeigeLernziel] = useState(true);
+  const [zeigeLernziel, setZeigeLernziel] = useState(false);
 
   function toggleTyp(typ: string) {
     setAufgabentypen((prev) =>
@@ -166,6 +166,14 @@ export default function NewWorksheetForm() {
     <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="space-y-6">
         <SectionCard icon={BookOpen} title="Inhalt" subtitle="Worum geht es und für wen?">
+          <div className="mb-4 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
+            <ToggleSwitch
+              checked={zeigeLernziel}
+              onChange={setZeigeLernziel}
+              label="Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen"
+              description="Standardmäßig aus – nur einblenden, wenn gewünscht"
+            />
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className={labelClass}>Bereich / Fach</span>
@@ -341,12 +349,7 @@ export default function NewWorksheetForm() {
               checked={zeigeMuster}
               onChange={setZeigeMuster}
               label="Islamisches Ornament-Muster anzeigen"
-              description="Dezenter, konturierter Sternstreifen im Kopfbereich"
-            />
-            <ToggleSwitch
-              checked={zeigeLernziel}
-              onChange={setZeigeLernziel}
-              label="Lernziel-Abschnitt anzeigen"
+              description="Dezenter Zierstreifen im Kopfbereich"
             />
           </div>
         </SectionCard>
