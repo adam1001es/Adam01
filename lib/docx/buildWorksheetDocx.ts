@@ -84,8 +84,16 @@ export async function buildWorksheetDocx(
       ],
       spacing: { before: 120, after: 240 },
     }),
-    sectionHeading("Lernziel", accentColor, baseSize),
-    new Paragraph({ children: [new TextRun({ text: content.lernziel, size: baseSize })], spacing: { after: 200 } }),
+  );
+
+  if (layout.zeigeLernziel) {
+    children.push(
+      sectionHeading("Lernziel", accentColor, baseSize),
+      new Paragraph({ children: [new TextRun({ text: content.lernziel, size: baseSize })], spacing: { after: 200 } }),
+    );
+  }
+
+  children.push(
     sectionHeading("Einleitung", accentColor, baseSize),
     new Paragraph({ children: [new TextRun({ text: content.einleitung, size: baseSize })], spacing: { after: 200 } }),
     sectionHeading("Aufgaben", accentColor, baseSize),
@@ -133,12 +141,11 @@ export async function buildWorksheetDocx(
   if (content.quellen.length > 0) {
     children.push(sectionHeading("Quellenangaben", accentColor, baseSize));
     for (const q of content.quellen) {
-      const suffix = q.sicherheit === "bitte_pruefen" ? "  (bitte vor Verwendung prüfen)" : "";
       children.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: `${q.bezeichnung}${q.text ? ` — „${q.text}“` : ""}${suffix}`,
+              text: `${q.bezeichnung}${q.text ? ` — „${q.text}“` : ""}`,
               size: baseSize - 2,
             }),
           ],
@@ -146,21 +153,6 @@ export async function buildWorksheetDocx(
       );
     }
   }
-
-  children.push(
-    new Paragraph({
-      border: { top: { style: BorderStyle.SINGLE, size: 4, color: "999999" } },
-      spacing: { before: 300 },
-      children: [
-        new TextRun({
-          text: "Automatisch erstellter Inhalt. Religiöse Quellenangaben (Koran/Hadith) bitte vor dem Einsatz im Unterricht fachlich gegenprüfen.",
-          size: baseSize - 4,
-          color: "666666",
-          italics: true,
-        }),
-      ],
-    }),
-  );
 
   const sections = [{ children }];
 

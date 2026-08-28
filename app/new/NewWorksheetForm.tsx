@@ -42,6 +42,7 @@ export default function NewWorksheetForm() {
   const [schriftgroesse, setSchriftgroesse] = useState<"normal" | "gross">("normal");
   const [zeigeIslamischesDatum, setZeigeIslamischesDatum] = useState(true);
   const [zeigeMuster, setZeigeMuster] = useState(true);
+  const [zeigeLernziel, setZeigeLernziel] = useState(true);
 
   function toggleTyp(typ: string) {
     setAufgabentypen((prev) =>
@@ -78,6 +79,7 @@ export default function NewWorksheetForm() {
             schriftgroesse,
             zeigeIslamischesDatum,
             zeigeMuster,
+            zeigeLernziel,
           },
         }),
       });
@@ -258,6 +260,14 @@ export default function NewWorksheetForm() {
             onChange={(e) => setZeigeMuster(e.target.checked)}
           />
           Dezentes islamisches Ornament-Muster im Kopfbereich anzeigen
+        </label>
+        <label className="mt-2 flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={zeigeLernziel}
+            onChange={(e) => setZeigeLernziel(e.target.checked)}
+          />
+          Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen
         </label>
       </section>
 

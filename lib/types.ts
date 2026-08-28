@@ -56,6 +56,7 @@ export const LayoutConfigSchema = z.object({
   schriftgroesse: z.enum(["normal", "gross"]).default("normal"),
   zeigeIslamischesDatum: z.boolean().default(true),
   zeigeMuster: z.boolean().default(true),
+  zeigeLernziel: z.boolean().default(true),
 });
 export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
 

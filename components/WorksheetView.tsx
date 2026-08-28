@@ -64,10 +64,12 @@ export default function WorksheetView({
       </div>
 
       <div className={spacing}>
-        <div>
-          <h2 className={`mb-1 font-semibold ${isModern ? "text-brand-700" : ""}`}>Lernziel</h2>
-          <p>{content.lernziel}</p>
-        </div>
+        {layout.zeigeLernziel && (
+          <div>
+            <h2 className={`mb-1 font-semibold ${isModern ? "text-brand-700" : ""}`}>Lernziel</h2>
+            <p>{content.lernziel}</p>
+          </div>
+        )}
         <div>
           <h2 className={`mb-1 font-semibold ${isModern ? "text-brand-700" : ""}`}>Einleitung</h2>
           <p>{content.einleitung}</p>
@@ -119,7 +121,7 @@ export default function WorksheetView({
                   {q.bezeichnung}
                   {q.text ? ` — „${q.text}“` : ""}
                   {q.sicherheit === "bitte_pruefen" && (
-                    <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
+                    <span className="no-print ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
                       bitte prüfen
                     </span>
                   )}
@@ -130,7 +132,7 @@ export default function WorksheetView({
         )}
       </div>
 
-      <p className="mt-6 border-t border-slate-200 pt-3 text-xs text-slate-500">
+      <p className="no-print mt-6 border-t border-slate-200 pt-3 text-xs text-slate-500">
         Automatisch erstellter Inhalt. Religiöse Quellenangaben (Koran/Hadith) bitte vor dem
         Einsatz im Unterricht fachlich gegenprüfen.
       </p>

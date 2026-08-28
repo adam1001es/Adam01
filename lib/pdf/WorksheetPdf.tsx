@@ -99,13 +99,6 @@ function buildStyles(layout: LayoutConfig) {
       marginBottom: 4,
       fontSize: baseFontSize - 1,
     },
-    disclaimer: {
-      marginTop: 16,
-      fontSize: baseFontSize - 2,
-      opacity: 0.75,
-      borderTop: "1px solid #999999",
-      paddingTop: 6,
-    },
   });
 }
 
@@ -206,20 +199,9 @@ function QuellenListe({
         <Text key={i} style={styles.quelle}>
           {q.bezeichnung}
           {q.text ? ` — „${q.text}“` : ""}
-          {q.sicherheit === "bitte_pruefen" ? "  (bitte vor Verwendung prüfen)" : ""}
         </Text>
       ))}
     </View>
-  );
-}
-
-function Disclaimer({ layout }: { layout: LayoutConfig }) {
-  const styles = buildStyles(layout);
-  return (
-    <Text style={styles.disclaimer}>
-      Automatisch erstellter Inhalt. Religiöse Quellenangaben (Koran/Hadith) bitte vor dem
-      Einsatz im Unterricht fachlich gegenprüfen.
-    </Text>
   );
 }
 
@@ -266,20 +248,22 @@ export function WorksheetPdfDocument({
         />
         <MusterStreifen layout={layout} />
         <NameZeile layout={layout} />
-        <Text style={styles.sectionTitel}>Lernziel</Text>
-        <Text style={styles.einleitung}>{content.lernziel}</Text>
+        {layout.zeigeLernziel && (
+          <>
+            <Text style={styles.sectionTitel}>Lernziel</Text>
+            <Text style={styles.einleitung}>{content.lernziel}</Text>
+          </>
+        )}
         <Text style={styles.sectionTitel}>Einleitung</Text>
         <Text style={styles.einleitung}>{content.einleitung}</Text>
         <AufgabenListe content={content} layout={layout} />
         {!layout.loesungenSeparat && <LoesungenSeite content={content} layout={layout} />}
         <QuellenListe content={content} layout={layout} />
-        <Disclaimer layout={layout} />
       </Page>
       {layout.loesungenSeparat && (
         <Page size="A4" style={styles.page}>
           <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
           <LoesungenSeite content={content} layout={layout} />
-          <Disclaimer layout={layout} />
         </Page>
       )}
     </Document>
