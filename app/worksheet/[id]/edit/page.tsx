@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema } from "@/lib/types";
 import EditWorksheetForm from "@/components/EditWorksheetForm";
@@ -14,11 +16,16 @@ export default async function EditWorksheetPage({ params }: { params: { id: stri
   return (
     <main>
       <div className="mb-4">
-        <a href={`/worksheet/${worksheet.id}`} className="text-sm text-slate-500 hover:underline">
-          ← Zurück zur Ansicht (ohne zu speichern)
-        </a>
+        <Link
+          href={`/worksheet/${worksheet.id}`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-700"
+        >
+          <ArrowLeft size={15} /> Zurück zur Ansicht (ohne zu speichern)
+        </Link>
       </div>
-      <h1 className="mb-6 text-2xl font-semibold">Arbeitsblatt bearbeiten</h1>
+      <h1 className="mb-6 font-display text-2xl font-semibold text-slate-800 sm:text-3xl">
+        Arbeitsblatt bearbeiten
+      </h1>
       <EditWorksheetForm worksheetId={worksheet.id} initialContent={content} />
     </main>
   );

@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display), Georgia, serif;
+  }
+
+  ::selection {
+    background-color: theme("colors.gold.200");
+  }
+}
+
 @media print {
   .no-print {
     display: none !important;

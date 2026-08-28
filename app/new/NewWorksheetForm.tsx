@@ -2,9 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  BookOpen,
+  ListChecks,
+  LayoutTemplate,
+  Wand2,
+  CheckSquare,
+  PenLine,
+  ArrowLeftRight,
+  MessageSquareText,
+  ToggleLeft,
+  Eye,
+} from "lucide-react";
 import { AUFGABEN_TYPEN, TEMPLATES, WorksheetContent } from "@/lib/types";
 import { THEMENBEREICHE, THEMENBEREICH_KEYS, ThemenbereichKey, SCHULSTUFEN_OPTIONEN } from "@/lib/curriculum";
 import WorksheetView from "@/components/WorksheetView";
+import ToggleSwitch from "@/components/ToggleSwitch";
+import SectionCard from "@/components/SectionCard";
+import { inputClass, labelClass } from "@/lib/formStyles";
 
 const ANDERE_SCHULSTUFE = "__andere__";
 
@@ -45,18 +60,18 @@ const VORSCHAU_INHALT: WorksheetContent = {
   quellen: [{ bezeichnung: "Beispiel-Quelle", sicherheit: "gesichert" }],
 };
 
-const TYP_LABEL: Record<(typeof AUFGABEN_TYPEN)[number], string> = {
-  multiple_choice: "Multiple Choice",
-  lueckentext: "Lückentext",
-  zuordnung: "Zuordnung",
-  offene_frage: "Offene Frage",
-  wahr_falsch: "Wahr oder Falsch",
+const TYP_META: Record<(typeof AUFGABEN_TYPEN)[number], { label: string; icon: typeof CheckSquare }> = {
+  multiple_choice: { label: "Multiple Choice", icon: CheckSquare },
+  lueckentext: { label: "Lückentext", icon: PenLine },
+  zuordnung: { label: "Zuordnung", icon: ArrowLeftRight },
+  offene_frage: { label: "Offene Frage", icon: MessageSquareText },
+  wahr_falsch: { label: "Wahr oder Falsch", icon: ToggleLeft },
 };
 
-const TEMPLATE_LABEL: Record<(typeof TEMPLATES)[number], string> = {
-  klassisch: "Klassisch (schlicht, seriös)",
-  modern: "Modern (farbiger Kopfbereich)",
-  kompakt: "Kompakt (platzsparend)",
+const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {
+  klassisch: { label: "Klassisch", swatch: "#9c7a2c" },
+  modern: { label: "Modern", swatch: "#12704c" },
+  kompakt: { label: "Kompakt", swatch: "#64748b" },
 };
 
 export default function NewWorksheetForm() {
@@ -148,211 +163,217 @@ export default function NewWorksheetForm() {
   };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-    <form onSubmit={handleSubmit} className="space-y-8">
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <h2 className="mb-4 font-semibold">Inhalt</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium">Bereich / Fach</span>
+    <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <SectionCard icon={BookOpen} title="Inhalt" subtitle="Worum geht es und für wen?">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className={labelClass}>Bereich / Fach</span>
+              <input
+                className={inputClass}
+                value={bereich}
+                onChange={(e) => setBereich(e.target.value)}
+                placeholder="z.B. Islamischer Religionsunterricht"
+                required
+              />
+            </label>
+            <label className="block">
+              <span className={labelClass}>Schulstufe</span>
+              <select
+                className={inputClass}
+                value={schulstufeAuswahl}
+                onChange={(e) => setSchulstufeAuswahl(e.target.value)}
+              >
+                {SCHULSTUFEN_OPTIONEN.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+                <option value={ANDERE_SCHULSTUFE}>Andere (frei eingeben) …</option>
+              </select>
+              {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
+                <input
+                  className={`${inputClass} mt-2`}
+                  value={schulstufeFrei}
+                  onChange={(e) => setSchulstufeFrei(e.target.value)}
+                  placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
+                  required
+                />
+              )}
+            </label>
+          </div>
+          <label className="mt-4 block">
+            <span className={labelClass}>Themenbereich (laut Lehrplan)</span>
+            <select
+              className={inputClass}
+              value={themenbereich}
+              onChange={(e) => setThemenbereich(e.target.value as ThemenbereichKey)}
+            >
+              {THEMENBEREICH_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {THEMENBEREICHE[key].label}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+              {THEMENBEREICHE[themenbereich].beschreibung}
+            </span>
+          </label>
+          <label className="mt-4 block">
+            <span className={labelClass}>Thema</span>
             <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
-              value={bereich}
-              onChange={(e) => setBereich(e.target.value)}
-              placeholder="z.B. Islamischer Religionsunterricht"
+              className={inputClass}
+              value={thema}
+              onChange={(e) => setThema(e.target.value)}
+              placeholder="z.B. Die 5 Säulen des Islam"
               required
             />
           </label>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium">Schulstufe</span>
-            <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
-              value={schulstufeAuswahl}
-              onChange={(e) => setSchulstufeAuswahl(e.target.value)}
-            >
-              {SCHULSTUFEN_OPTIONEN.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-              <option value={ANDERE_SCHULSTUFE}>Andere (frei eingeben) …</option>
-            </select>
-            {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
-              <input
-                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2"
-                value={schulstufeFrei}
-                onChange={(e) => setSchulstufeFrei(e.target.value)}
-                placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
-                required
-              />
-            )}
-          </label>
-        </div>
-        <label className="mt-4 block">
-          <span className="mb-1 block text-sm font-medium">Themenbereich (laut Lehrplan)</span>
-          <select
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
-            value={themenbereich}
-            onChange={(e) => setThemenbereich(e.target.value as ThemenbereichKey)}
-          >
-            {THEMENBEREICH_KEYS.map((key) => (
-              <option key={key} value={key}>
-                {THEMENBEREICHE[key].label}
-              </option>
-            ))}
-          </select>
-          <span className="mt-1 block text-xs text-slate-500">
-            {THEMENBEREICHE[themenbereich].beschreibung}
-          </span>
-        </label>
-        <label className="mt-4 block">
-          <span className="mb-1 block text-sm font-medium">Thema</span>
-          <input
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
-            value={thema}
-            onChange={(e) => setThema(e.target.value)}
-            placeholder="z.B. Die 5 Säulen des Islam"
-            required
-          />
-        </label>
-        <label className="mt-4 block">
-          <span className="mb-1 block text-sm font-medium">Zusätzliche Hinweise (optional)</span>
-          <textarea
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
-            rows={2}
-            value={zusatzhinweise}
-            onChange={(e) => setZusatzhinweise(e.target.value)}
-            placeholder="z.B. Bezug zum Ramadan herstellen, einfache Sprache"
-          />
-        </label>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <h2 className="mb-4 font-semibold">Aufgaben</h2>
-        <label className="mb-4 block max-w-xs">
-          <span className="mb-1 block text-sm font-medium">Anzahl Aufgaben</span>
-          <input
-            type="number"
-            min={1}
-            max={15}
-            className="w-full rounded-md border border-slate-300 px-3 py-2"
-            value={anzahlAufgaben}
-            onChange={(e) => setAnzahlAufgaben(Number(e.target.value))}
-          />
-        </label>
-        <span className="mb-1 block text-sm font-medium">Aufgabentypen</span>
-        <div className="flex flex-wrap gap-2">
-          {AUFGABEN_TYPEN.map((typ) => (
-            <button
-              type="button"
-              key={typ}
-              onClick={() => toggleTyp(typ)}
-              className={`rounded-full border px-3 py-1.5 text-sm ${
-                aufgabentypen.includes(typ)
-                  ? "border-brand-600 bg-brand-50 text-brand-700"
-                  : "border-slate-300 text-slate-600"
-              }`}
-            >
-              {TYP_LABEL[typ]}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <h2 className="mb-4 font-semibold">Layout</h2>
-        <span className="mb-1 block text-sm font-medium">Vorlage</span>
-        <div className="mb-4 flex flex-wrap gap-2">
-          {TEMPLATES.map((t) => (
-            <button
-              type="button"
-              key={t}
-              onClick={() => setTemplate(t)}
-              className={`rounded-md border px-3 py-1.5 text-sm ${
-                template === t
-                  ? "border-brand-600 bg-brand-50 text-brand-700"
-                  : "border-slate-300 text-slate-600"
-              }`}
-            >
-              {TEMPLATE_LABEL[t]}
-            </button>
-          ))}
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium">Schulname (optional, im Kopf)</span>
-            <input
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
-              value={schulname}
-              onChange={(e) => setSchulname(e.target.value)}
-              placeholder="z.B. Islamische Volksschule Wien"
+          <label className="mt-4 block">
+            <span className={labelClass}>Zusätzliche Hinweise (optional)</span>
+            <textarea
+              className={inputClass}
+              rows={2}
+              value={zusatzhinweise}
+              onChange={(e) => setZusatzhinweise(e.target.value)}
+              placeholder="z.B. Bezug zum Ramadan herstellen, einfache Sprache"
             />
           </label>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium">Schriftgröße</span>
-            <select
-              className="w-full rounded-md border border-slate-300 px-3 py-2"
-              value={schriftgroesse}
-              onChange={(e) => setSchriftgroesse(e.target.value as "normal" | "gross")}
-            >
-              <option value="normal">Normal</option>
-              <option value="gross">Groß</option>
-            </select>
+        </SectionCard>
+
+        <SectionCard icon={ListChecks} title="Aufgaben" subtitle="Umfang und Aufgabentypen">
+          <label className="mb-5 block max-w-[10rem]">
+            <span className={labelClass}>Anzahl Aufgaben</span>
+            <input
+              type="number"
+              min={1}
+              max={15}
+              className={inputClass}
+              value={anzahlAufgaben}
+              onChange={(e) => setAnzahlAufgaben(Number(e.target.value))}
+            />
           </label>
-        </div>
-        <label className="mt-4 flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={loesungenSeparat}
-            onChange={(e) => setLoesungenSeparat(e.target.checked)}
-          />
-          Lösungen auf separatem Blatt/Seite ausgeben
-        </label>
-        <label className="mt-2 flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={zeigeIslamischesDatum}
-            onChange={(e) => setZeigeIslamischesDatum(e.target.checked)}
-          />
-          Islamisches Datum (Hijri) neben dem gregorianischen Datum anzeigen
-        </label>
-        <label className="mt-2 flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={zeigeMuster}
-            onChange={(e) => setZeigeMuster(e.target.checked)}
-          />
-          Dezentes islamisches Ornament-Muster im Kopfbereich anzeigen
-        </label>
-        <label className="mt-2 flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={zeigeLernziel}
-            onChange={(e) => setZeigeLernziel(e.target.checked)}
-          />
-          Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen
-        </label>
-      </section>
+          <span className={labelClass}>Aufgabentypen</span>
+          <div className="flex flex-wrap gap-2">
+            {AUFGABEN_TYPEN.map((typ) => {
+              const meta = TYP_META[typ];
+              const active = aufgabentypen.includes(typ);
+              return (
+                <button
+                  type="button"
+                  key={typ}
+                  onClick={() => toggleTyp(typ)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                    active
+                      ? "border-brand-600 bg-brand-50 text-brand-700"
+                      : "border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}
+                >
+                  <meta.icon size={14} strokeWidth={2.25} />
+                  {meta.label}
+                </button>
+              );
+            })}
+          </div>
+        </SectionCard>
 
-      {error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
-      )}
+        <SectionCard icon={LayoutTemplate} title="Layout" subtitle="So sieht das fertige Blatt aus">
+          <span className={labelClass}>Vorlage</span>
+          <div className="mb-5 flex flex-wrap gap-2">
+            {TEMPLATES.map((t) => {
+              const meta = TEMPLATE_META[t];
+              const active = template === t;
+              return (
+                <button
+                  type="button"
+                  key={t}
+                  onClick={() => setTemplate(t)}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
+                    active
+                      ? "border-brand-600 bg-brand-50 text-brand-700"
+                      : "border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}
+                >
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: meta.swatch }}
+                  />
+                  {meta.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className={labelClass}>Schulname (optional, im Kopf)</span>
+              <input
+                className={inputClass}
+                value={schulname}
+                onChange={(e) => setSchulname(e.target.value)}
+                placeholder="z.B. Islamische Volksschule Wien"
+              />
+            </label>
+            <label className="block">
+              <span className={labelClass}>Schriftgröße</span>
+              <select
+                className={inputClass}
+                value={schriftgroesse}
+                onChange={(e) => setSchriftgroesse(e.target.value as "normal" | "gross")}
+              >
+                <option value="normal">Normal</option>
+                <option value="gross">Groß</option>
+              </select>
+            </label>
+          </div>
+          <div className="mt-4 divide-y divide-slate-100 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
+            <ToggleSwitch
+              checked={loesungenSeparat}
+              onChange={setLoesungenSeparat}
+              label="Lösungen auf separatem Blatt/Seite ausgeben"
+            />
+            <ToggleSwitch
+              checked={zeigeIslamischesDatum}
+              onChange={setZeigeIslamischesDatum}
+              label="Islamisches Datum (Hijri) anzeigen"
+              description="Neben dem gregorianischen Datum im Kopfbereich"
+            />
+            <ToggleSwitch
+              checked={zeigeMuster}
+              onChange={setZeigeMuster}
+              label="Islamisches Ornament-Muster anzeigen"
+              description="Dezenter, konturierter Sternstreifen im Kopfbereich"
+            />
+            <ToggleSwitch
+              checked={zeigeLernziel}
+              onChange={setZeigeLernziel}
+              label="Lernziel-Abschnitt anzeigen"
+            />
+          </div>
+        </SectionCard>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-md bg-brand-600 px-4 py-3 font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-      >
-        {loading ? "Wird erstellt und geprüft …" : "Arbeitsblatt erstellen"}
-      </button>
-    </form>
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-3.5 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
+        >
+          <Wand2 size={18} strokeWidth={2.25} />
+          {loading ? "Wird erstellt und geprüft …" : "Arbeitsblatt erstellen"}
+        </button>
+      </form>
 
       <aside className="hidden lg:block">
-        <div className="sticky top-6">
-          <div className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+        <div className="sticky top-24">
+          <div className="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+            <Eye size={14} />
             Live-Vorschau des Layouts (Beispiel-Inhalt)
           </div>
-          <div className="max-h-[85vh] overflow-y-auto rounded-lg">
+          <div className="max-h-[80vh] overflow-y-auto rounded-2xl shadow-card">
             <WorksheetView
               content={VORSCHAU_INHALT}
               layout={vorschauLayout}

@@ -30,11 +30,11 @@ export default function WorksheetView({
   const musterFarbe = isModern ? "#0e6b4a" : isKompakt ? "#8a8474" : "#9c7a2c";
 
   return (
-    <div className={`rounded-lg border border-slate-200 bg-white p-6 shadow-sm print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
+    <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
       <div
         className={
           isModern
-            ? "-mx-6 -mt-6 mb-5 rounded-t-lg bg-brand-600 px-6 py-4 text-white"
+            ? "-mx-6 -mt-6 mb-5 rounded-t-2xl bg-brand-gradient px-6 py-4 text-white"
             : "mb-5 border-b-2 border-slate-900 pb-3"
         }
       >

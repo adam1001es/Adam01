@@ -1,5 +1,18 @@
 import type { Metadata } from "next";
+import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
+import SiteHeader from "@/components/SiteHeader";
+
+const display = Newsreader({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
+});
+
+const sans = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
   title: "Arbeitsblatt-Generator",
@@ -12,27 +25,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de">
-      <body className="min-h-screen bg-slate-50 text-slate-900">
-        <div className="mx-auto max-w-5xl px-4 py-6">
-          <header className="no-print mb-8 flex items-center justify-between border-b border-slate-200 pb-4">
-            <a href="/" className="text-lg font-semibold text-brand-700">
-              📘 Arbeitsblatt-Generator
-            </a>
-            <nav className="flex gap-4 text-sm">
-              <a href="/" className="hover:text-brand-600">
-                Übersicht
-              </a>
-              <a
-                href="/new"
-                className="rounded-md bg-brand-600 px-3 py-1.5 font-medium text-white hover:bg-brand-700"
-              >
-                + Neues Arbeitsblatt
-              </a>
-            </nav>
-          </header>
-          {children}
-        </div>
+    <html lang="de" className={`${display.variable} ${sans.variable}`}>
+      <body className="min-h-screen bg-canvas font-sans text-slate-900">
+        <SiteHeader />
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
       </body>
     </html>
   );
