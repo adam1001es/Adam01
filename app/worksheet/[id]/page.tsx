@@ -35,6 +35,12 @@ export default async function WorksheetPage({ params }: { params: { id: string }
         </a>
         <div className="flex gap-2">
           <a
+            href={`/worksheet/${worksheet.id}/edit`}
+            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:border-brand-500"
+          >
+            ✎ Bearbeiten
+          </a>
+          <a
             href={`/api/worksheet/${worksheet.id}/pdf`}
             target="_blank"
             className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:border-brand-500"
