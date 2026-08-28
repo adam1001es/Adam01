@@ -46,7 +46,7 @@ Generierung und Verifikation orientieren sich an der öffentlich bekannten Grobs
 
 ```bash
 npm install
-cp .env.example .env   # DATABASE_URL(_UNPOOLED) und ANTHROPIC_API_KEY eintragen
+cp .env.example .env   # DATABASE_URL und ANTHROPIC_API_KEY eintragen
 npx prisma migrate deploy
 npm run dev
 ```
@@ -58,17 +58,14 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 
 ### Umgebungsvariablen (`.env`)
 
-- `DATABASE_URL` – Postgres-Verbindung (pooled). Auf Vercel automatisch durch die
-  Postgres-Integration (Storage-Tab) gesetzt.
-- `DATABASE_URL_UNPOOLED` – Postgres-Verbindung ohne Connection-Pooling, für Migrationen.
-  Ebenfalls automatisch von Vercel gesetzt.
+- `DATABASE_URL` – Postgres-Verbindung. Auf Vercel automatisch durch die Postgres-Integration
+  (Storage-Tab) gesetzt.
 - `ANTHROPIC_API_KEY` – dein Anthropic API-Key
 
 ## Deployment (Vercel)
 
 1. Projekt in Vercel aus diesem GitHub-Repo importieren.
-2. Im Tab **Storage** eine Postgres-Datenbank anlegen (setzt `DATABASE_URL` /
-   `DATABASE_URL_UNPOOLED` automatisch).
+2. Im Tab **Storage** eine Postgres-Datenbank anlegen (setzt `DATABASE_URL` automatisch).
 3. Unter **Settings → Environment Variables** `ANTHROPIC_API_KEY` eintragen.
 4. Deployen – der Build-Schritt (`prisma migrate deploy && next build`) legt das Datenbankschema
    automatisch an.
