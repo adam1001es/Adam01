@@ -13,9 +13,17 @@ import {
   MessageSquareText,
   ToggleLeft,
   Eye,
+  Palette,
+  Images,
 } from "lucide-react";
 import { AUFGABEN_TYPEN, TEMPLATES, WorksheetContent } from "@/lib/types";
-import { THEMENBEREICHE, THEMENBEREICH_KEYS, ThemenbereichKey, SCHULSTUFEN_OPTIONEN } from "@/lib/curriculum";
+import {
+  THEMENBEREICHE,
+  THEMENBEREICH_KEYS,
+  ThemenbereichKey,
+  SCHULSTUFEN_OPTIONEN,
+  istFrueheVolksschulstufe,
+} from "@/lib/curriculum";
 import WorksheetView from "@/components/WorksheetView";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import SectionCard from "@/components/SectionCard";
@@ -66,6 +74,8 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN)[number], { label: string; icon: t
   zuordnung: { label: "Zuordnung", icon: ArrowLeftRight },
   offene_frage: { label: "Offene Frage", icon: MessageSquareText },
   wahr_falsch: { label: "Wahr oder Falsch", icon: ToggleLeft },
+  ausmalbild: { label: "Ausmalbild", icon: Palette },
+  bildergeschichte: { label: "Bildergeschichte", icon: Images },
 };
 
 const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {
@@ -283,6 +293,21 @@ export default function NewWorksheetForm() {
               );
             })}
           </div>
+          {istFrueheVolksschulstufe(schulstufe) && (
+            <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
+              <p className="text-xs leading-relaxed text-gold-700">
+                Kinder der 1./2. Klasse Volksschule können meist noch nicht lesen/schreiben.
+                Empfehlung: überwiegend „Ausmalbild" und „Bildergeschichte" statt Lesetext-Aufgaben.
+              </p>
+              <button
+                type="button"
+                onClick={() => setAufgabentypen(["ausmalbild", "bildergeschichte"])}
+                className="shrink-0 whitespace-nowrap rounded-full border border-gold-300 bg-white px-3 py-1.5 text-xs font-medium text-gold-700 transition hover:bg-gold-100"
+              >
+                Empfehlung übernehmen
+              </button>
+            </div>
+          )}
         </SectionCard>
 
         <SectionCard icon={LayoutTemplate} title="Layout" subtitle="So sieht das fertige Blatt aus">

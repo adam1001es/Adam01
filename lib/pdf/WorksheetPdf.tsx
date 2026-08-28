@@ -1,8 +1,10 @@
 import React from "react";
-import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
+import path from "path";
+import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
+import { ICONS, IconKey } from "@/lib/icons";
 import { IslamicPatternStripPdf } from "./IslamicPatternStripPdf";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
@@ -11,7 +13,13 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   zuordnung: "Zuordnung",
   offene_frage: "Offene Frage",
   wahr_falsch: "Wahr oder Falsch",
+  ausmalbild: "Ausmalbild",
+  bildergeschichte: "Bildergeschichte",
 };
+
+function iconPfadPdf(key: IconKey): string {
+  return path.join(process.cwd(), `public/icons/${key}.png`);
+}
 
 function buildStyles(layout: LayoutConfig) {
   const baseFontSize = layout.schriftgroesse === "gross" ? 13 : 11;
@@ -100,6 +108,42 @@ function buildStyles(layout: LayoutConfig) {
       marginBottom: 4,
       fontSize: baseFontSize - 1,
     },
+    ausmalRahmen: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 6,
+      marginLeft: 12,
+      padding: 14,
+      border: "1.5px dashed #94a3b8",
+      borderRadius: 10,
+      width: 160,
+    },
+    bildergeschichteReihe: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginTop: 6,
+      gap: 10,
+    },
+    bildergeschichteSchritt: {
+      width: 90,
+      alignItems: "center",
+    },
+    bildergeschichteBildRahmen: {
+      width: 70,
+      height: 70,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: 8,
+    },
+    bildergeschichteText: {
+      fontSize: baseFontSize - 3,
+      fontStyle: "italic",
+      color: "#475569",
+      textAlign: "center",
+      marginTop: 3,
+    },
   });
 }
 
@@ -180,6 +224,32 @@ function AufgabenListe({
             ))}
           {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (
             <Text style={styles.option}>Wortliste: {a.wortliste.join(" · ")}</Text>
+          )}
+          {a.typ === "ausmalbild" && a.bild && (
+            <View style={styles.ausmalRahmen}>
+              <Image
+                src={iconPfadPdf(a.bild)}
+                style={{ width: 110 * ICONS[a.bild].seitenverhaeltnis, height: 110 }}
+              />
+            </View>
+          )}
+          {a.typ === "bildergeschichte" && a.bildergeschichteSchritte && (
+            <View style={styles.bildergeschichteReihe}>
+              {a.bildergeschichteSchritte.map((schritt, i) => (
+                <View key={i} style={styles.bildergeschichteSchritt}>
+                  <View style={styles.bildergeschichteBildRahmen}>
+                    <Image
+                      src={iconPfadPdf(schritt.bild)}
+                      style={{
+                        width: 50 * ICONS[schritt.bild].seitenverhaeltnis,
+                        height: 50,
+                      }}
+                    />
+                  </View>
+                  <Text style={styles.bildergeschichteText}>{schritt.vorlesetext}</Text>
+                </View>
+              ))}
+            </View>
           )}
         </View>
       ))}

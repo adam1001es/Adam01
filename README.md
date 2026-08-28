@@ -45,6 +45,23 @@ religiöse Sach-/Darstellungskompetenz, interkulturelle/interreligiöse Kompeten
 Deutungs-/Urteilskompetenz, lebensweltliche Anwendungskompetenz) sowie an sprachsensiblem
 Unterricht und Lebensweltbezug. Details in `lib/curriculum.ts`.
 
+### Bildbasierte Aufgaben für noch nicht lese-/schreibkundige Kinder (1./2. Klasse Volksschule)
+
+Für die 1./2. Schulstufe (Kinder können zu Schulbeginn meist noch nicht lesen/schreiben) gibt es
+zwei zusätzliche, bildbasierte Aufgabentypen statt Lesetext-Aufgaben:
+
+- **Ausmalbild**: ein Symbol aus einer kuratierten Strichzeichnungs-Bibliothek (`lib/icons.ts`,
+  `public/icons/`) zum Ausmalen, mit kurzer vorlesbarer Anweisung.
+- **Bildergeschichte**: eine Abfolge von 3–5 Symbolen, jeweils mit einem kurzen Vorlesetext für
+  die Lehrkraft (das Kind hört zu und schaut sich die Bilder an, statt selbst zu lesen).
+
+Die Symbol-Bibliothek umfasst neutrale, altersgerechte Motive (Halbmond, Stern, Moschee, Laterne,
+Herz, Buch, Sonne, Wassertropfen, Familie, Gebetsteppich) – bewusst ohne Gottesname/Koran-Text,
+aus demselben Grund wie beim Musterwort. Die KI wählt bei der Generierung ausschließlich aus dieser
+festen Liste, wird bei dieser Schulstufe zu überwiegend bildbasierten Aufgaben angeleitet und die
+Verifikation prüft das gegen. Im Erstellen-Formular gibt es dafür eine Empfehlung samt
+Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt ist.
+
 ## Layout-Extras
 
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische

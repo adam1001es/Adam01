@@ -13,6 +13,8 @@
  * IGGÖ-Schulamt maßgeblich - die Lehrkraft muss dies vor Einsatz gegenprüfen.
  */
 
+import { ICON_KEYS, ICONS } from "./icons";
+
 export const THEMENBEREICH_KEYS = ["iman", "ibadat", "muamalat", "kulturgeschichte", "gemischt"] as const;
 export type ThemenbereichKey = (typeof THEMENBEREICH_KEYS)[number];
 
@@ -126,6 +128,20 @@ export function guessSchulstufenCluster(schulstufeText: string): SchulstufenClus
 }
 
 /**
+ * Schüler:innen der 1./2. Schulstufe (1./2. Klasse Volksschule) sind zu Schulbeginn noch nicht
+ * lese-/schreibkundig - klassische Text-Aufgabentypen (Lückentext, offene Frage, ...) sind für
+ * sie kaum nutzbar. Für diese Stufe werden bildbasierte Aufgabentypen (Ausmalbild,
+ * Bildergeschichte mit Vorlesetext für die Lehrkraft) bevorzugt.
+ */
+export function istFrueheVolksschulstufe(schulstufeText: string): boolean {
+  const text = schulstufeText.toLowerCase();
+  const zahl = parseInt(text.match(/\d+/)?.[0] ?? "", 10);
+  if (!text.includes("volksschule") && !text.includes("grundschule")) return false;
+  if (Number.isNaN(zahl)) return false;
+  return zahl <= 2;
+}
+
+/**
  * Allgemeine didaktische Standards (nicht RU-spezifisch, im deutschsprachigen Schulwesen
  * fachübergreifend etabliert): die drei Anforderungsbereiche (AFB I-III), wie sie u.a. in der
  * österreichischen (Zentral-)Matura und in deutschen Bildungsstandards verwendet werden.
@@ -182,6 +198,21 @@ export const HADITH_QUELLEN = {
 export function buildCurriculumSystemContext(themenbereich: ThemenbereichKey, schulstufeText: string): string {
   const bereich = THEMENBEREICHE[themenbereich];
   const cluster = guessSchulstufenCluster(schulstufeText);
+  const fruehLesend = istFrueheVolksschulstufe(schulstufeText);
+
+  const iconListe = ICON_KEYS.map((k) => `"${k}" (${ICONS[k].label})`).join(", ");
+  const vorlesekundigHinweis = fruehLesend
+    ? `
+
+WICHTIG - noch nicht lese-/schreibkundige Kinder (1./2. Schulstufe Volksschule):
+Diese Schüler:innen können noch nicht (oder kaum) lesen und schreiben. Textlastige Aufgabentypen
+(Lückentext, offene Frage, Multiple Choice mit viel Lesetext, Wahr/Falsch als Lesetext) sind für
+sie NICHT geeignet und sollen vermieden bzw. nur ganz vereinzelt und mit sehr wenigen, sehr
+kurzen Wörtern eingesetzt werden. Verwende stattdessen überwiegend die bildbasierten Aufgabentypen:
+- "ausmalbild": ein Bild-Symbol zum Ausmalen. Feld "bild" MUSS einer dieser Schlüssel sein: ${iconListe}. Feld "frage" ist eine ganz kurze, einfache Anweisung, die die Lehrkraft vorliest (z.B. "Male die Moschee bunt aus.").
+- "bildergeschichte": eine kleine Bildergeschichte aus 3-5 Schritten. Feld "bildergeschichteSchritte" ist ein Array von Objekten { "bild": <Schlüssel aus der Liste oben>, "vorlesetext": <ein kurzer, einfacher Satz, den die Lehrkraft laut vorliest> }. Feld "frage" ist eine kurze Überschrift/Rahmenanweisung (z.B. "Hört gut zu und schaut euch die Bilder an.").
+Nutze bei diesen beiden Typen AUSSCHLIESSLICH die oben aufgelisteten Bild-Schlüssel, erfinde keine neuen. Setze "anforderungsbereich" bei diesen Aufgaben auf "afb1" (Wahrnehmen/Wiedererkennen). Ein Arbeitsblatt für diese Stufe soll überwiegend aus "ausmalbild"- und "bildergeschichte"-Aufgaben bestehen.`
+    : "";
 
   const afbSpanne =
     cluster.id === "volksschule"
@@ -203,5 +234,5 @@ Pädagogisch-didaktische Standards (im deutschsprachigen Schulwesen etablierte A
 - Kompetenzorientierung: Berücksichtige - altersgerecht und wo thematisch passend - mehr als nur Faktenwissen, orientiert an den anerkannten Kompetenzbereichen des Religionsunterrichts (Wahrnehmung, religiöse Sach-/Darstellungskompetenz, interkulturelle/interreligiöse Kompetenz, ethische Deutungs-/Urteilskompetenz, lebensweltliche Anwendungskompetenz). Nicht jede Aufgabe muss jede Kompetenz abdecken, aber das Arbeitsblatt als Ganzes soll nicht nur auf Auswendiglernen abzielen.
 - Das "lernziel" MUSS kompetenzorientiert/operationalisiert formuliert sein, mit einem Verb passend zum höchsten enthaltenen Anforderungsbereich (z.B. "Die Schüler:innen können ... nennen/beschreiben" bei reinem AFB I, "... erklären/vergleichen" bei AFB II, "... beurteilen/begründen" bei AFB III).
 - Sprachsensibler Unterricht: kurze, klare Sätze passend zur Schulstufe; erkläre Fachbegriffe und arabische Begriffe im Kontext, statt sie unerklärt vorauszusetzen.
-- Lebensweltbezug: verknüpfe Inhalte, wo sinnvoll, mit dem Alltag der Schüler:innen in Österreich (Familie, Schule, gesellschaftliches Zusammenleben) statt rein abstrakt zu bleiben.`;
+- Lebensweltbezug: verknüpfe Inhalte, wo sinnvoll, mit dem Alltag der Schüler:innen in Österreich (Familie, Schule, gesellschaftliches Zusammenleben) statt rein abstrakt zu bleiben.${vorlesekundigHinweis}`;
 }

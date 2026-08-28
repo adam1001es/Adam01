@@ -33,13 +33,14 @@ Das JSON-Objekt muss exakt diese Struktur haben:
   "lernziel": string,
   "einleitung": string,
   "aufgaben": [
-    { "nr": number, "typ": "multiple_choice"|"lueckentext"|"zuordnung"|"offene_frage"|"wahr_falsch", "frage": string, "optionen"?: string[], "zuordnungLinks"?: string[], "zuordnungRechts"?: string[], "wortliste"?: string[], "anforderungsbereich": "afb1"|"afb2"|"afb3" }
+    { "nr": number, "typ": "multiple_choice"|"lueckentext"|"zuordnung"|"offene_frage"|"wahr_falsch"|"ausmalbild"|"bildergeschichte", "frage": string, "optionen"?: string[], "zuordnungLinks"?: string[], "zuordnungRechts"?: string[], "wortliste"?: string[], "bild"?: string, "bildergeschichteSchritte"?: [{ "bild": string, "vorlesetext": string }], "anforderungsbereich": "afb1"|"afb2"|"afb3" }
   ],
   "loesungen": [ { "nr": number, "loesung": string } ],
   "quellen": [ { "bezeichnung": string, "text"?: string, "sicherheit": "gesichert"|"bitte_pruefen" } ]
 }
 Jede Aufgabe braucht eine passende Lösung mit gleicher "nr" UND ein Feld "anforderungsbereich" (siehe pädagogische Standards unten). Bei "zuordnung" müssen zuordnungLinks und zuordnungRechts gleich lang sein.
 Bei "lueckentext" MUSS "wortliste" gesetzt sein: eine durcheinandergewürfelte Liste aus allen richtigen Lücken-Wörtern plus 1-2 plausiblen, aber falschen Ablenker-Wörtern, damit die Schüler:innen aus einer Wortliste auswählen können.
+Die Typen "ausmalbild" und "bildergeschichte" sind bildbasierte Aufgaben für noch nicht lese-/schreibkundige Kinder (siehe Hinweis unten, falls zutreffend) - "bild" bzw. die "bild"-Felder in "bildergeschichteSchritte" MÜSSEN einer der vorgegebenen Bild-Schlüssel sein. Bei diesen beiden Typen kann "loesung" ein kurzer Hinweis für die Lehrkraft sein (z.B. "Kein Lösungswort - Kind malt frei aus.").
 Jede verwendete Hadith-Quellenangabe MUSS die Sammlung im Feld "bezeichnung" nennen (z.B. "Sahih al-Bukhari, ...").`;
 
 const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
@@ -52,6 +53,7 @@ const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und
 6. Neutralität/Eignung für konfessionellen Unterricht (keine kontroversen politischen Aussagen, keine Herabsetzung anderer Religionen/Gruppen).
 6b. Terminologie: Wird durchgehend "Allah" statt "Gott" verwendet, grammatikalisch korrekt? Falls "Gott" irrtümlich vorkommt, als Hinweis aufnehmen.
 7. Kompetenzorientierung: Sind die "anforderungsbereich"-Angaben (afb1/afb2/afb3) plausibel und passt die Verteilung zur Schulstufe (nicht nur AFB I bei älteren Schulstufen)? Ist das Lernziel kompetenzorientiert/operationalisiert formuliert (passendes Verb zum höchsten Anforderungsbereich)?
+8. Falls "ausmalbild"/"bildergeschichte"-Aufgaben enthalten sind: sind "frage" bzw. "vorlesetext" wirklich sehr kurz und einfach formuliert (vorlesbar für noch nicht lesekundige Kinder)? Falls die Schulstufe 1./2. Klasse Volksschule ist, aber trotzdem überwiegend textlastige Aufgabentypen verwendet wurden, als Hinweis/Fehler aufnehmen.
 
 Sei besonders streng bei allen Quellenangaben mit "sicherheit": "gesichert" - wenn du dir nicht sicher bist, ob die Stelle korrekt ist, stufe sie im Hinweis als fragwürdig ein.
 

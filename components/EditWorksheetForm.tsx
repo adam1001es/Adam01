@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileEdit, ListChecks, BookMarked, Plus, Trash2, Save } from "lucide-react";
-import { WorksheetContent, Aufgabe, Quelle } from "@/lib/types";
+import { WorksheetContent, Aufgabe, Quelle, BildergeschichteSchritt } from "@/lib/types";
 import { ANFORDERUNGSBEREICHE, ANFORDERUNGSBEREICHE_KEYS, AnforderungsbereichKey } from "@/lib/curriculum";
+import { ICON_KEYS, ICONS, IconKey, iconPfadWeb } from "@/lib/icons";
 import SectionCard from "@/components/SectionCard";
 import { inputClass, labelClass } from "@/lib/formStyles";
 
@@ -14,7 +15,34 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   zuordnung: "Zuordnung",
   offene_frage: "Offene Frage",
   wahr_falsch: "Wahr oder Falsch",
+  ausmalbild: "Ausmalbild",
+  bildergeschichte: "Bildergeschichte",
 };
+
+function IconSelect({
+  value,
+  onChange,
+}: {
+  value: IconKey | undefined;
+  onChange: (key: IconKey) => void;
+}) {
+  return (
+    <select
+      className={inputClass}
+      value={value ?? ""}
+      onChange={(e) => onChange(e.target.value as IconKey)}
+    >
+      <option value="" disabled>
+        — Bild wählen —
+      </option>
+      {ICON_KEYS.map((key) => (
+        <option key={key} value={key}>
+          {ICONS[key].label}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 function naechsteNr(aufgaben: Aufgabe[]): number {
   return aufgaben.reduce((max, a) => Math.max(max, a.nr), 0) + 1;
@@ -298,6 +326,77 @@ export default function EditWorksheetForm({
                     }}
                   />
                 </label>
+              )}
+
+              {a.typ === "ausmalbild" && (
+                <div className="mb-3 flex items-end gap-3">
+                  <label className="block max-w-xs flex-1">
+                    <span className={labelClass}>Bild</span>
+                    <IconSelect
+                      value={a.bild}
+                      onChange={(bild) => updateAufgabe(a.nr, { bild })}
+                    />
+                  </label>
+                  {a.bild && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={iconPfadWeb(a.bild)} alt="" className="h-14 w-auto" />
+                  )}
+                </div>
+              )}
+
+              {a.typ === "bildergeschichte" && (
+                <div className="mb-3 space-y-2">
+                  <span className={labelClass}>Bildschritte</span>
+                  {(a.bildergeschichteSchritte ?? []).map((schritt, i) => (
+                    <div key={i} className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
+                      {schritt.bild && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={iconPfadWeb(schritt.bild)} alt="" className="mt-1 h-10 w-auto shrink-0" />
+                      )}
+                      <div className="flex-1 space-y-1.5">
+                        <IconSelect
+                          value={schritt.bild}
+                          onChange={(bild) => {
+                            const schritte: BildergeschichteSchritt[] = [...(a.bildergeschichteSchritte ?? [])];
+                            schritte[i] = { ...schritte[i], bild };
+                            updateAufgabe(a.nr, { bildergeschichteSchritte: schritte });
+                          }}
+                        />
+                        <input
+                          className={inputClass}
+                          placeholder="Vorlesetext für die Lehrkraft"
+                          value={schritt.vorlesetext}
+                          onChange={(e) => {
+                            const schritte: BildergeschichteSchritt[] = [...(a.bildergeschichteSchritte ?? [])];
+                            schritte[i] = { ...schritte[i], vorlesetext: e.target.value };
+                            updateAufgabe(a.nr, { bildergeschichteSchritte: schritte });
+                          }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const schritte = (a.bildergeschichteSchritte ?? []).filter((_, j) => j !== i);
+                          updateAufgabe(a.nr, { bildergeschichteSchritte: schritte });
+                        }}
+                        className="mt-1 text-red-400 hover:text-red-600"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
+                  <AddButton
+                    onClick={() => {
+                      const schritte: BildergeschichteSchritt[] = [
+                        ...(a.bildergeschichteSchritte ?? []),
+                        { bild: "halbmond", vorlesetext: "" },
+                      ];
+                      updateAufgabe(a.nr, { bildergeschichteSchritte: schritte });
+                    }}
+                  >
+                    Schritt hinzufügen
+                  </AddButton>
+                </div>
               )}
 
               <label className="block">

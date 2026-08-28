@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { THEMENBEREICH_KEYS, ANFORDERUNGSBEREICHE_KEYS } from "./curriculum";
+import { ICON_KEYS } from "./icons";
 
 export const AUFGABEN_TYPEN = [
   "multiple_choice",
@@ -7,7 +8,15 @@ export const AUFGABEN_TYPEN = [
   "zuordnung",
   "offene_frage",
   "wahr_falsch",
+  "ausmalbild",
+  "bildergeschichte",
 ] as const;
+
+export const BildergeschichteSchrittSchema = z.object({
+  bild: z.enum(ICON_KEYS),
+  vorlesetext: z.string(), // Satz, den die Lehrkraft laut vorliest - für noch nicht lesekundige Kinder
+});
+export type BildergeschichteSchritt = z.infer<typeof BildergeschichteSchrittSchema>;
 
 export const AufgabeSchema = z.object({
   nr: z.number(),
@@ -17,6 +26,8 @@ export const AufgabeSchema = z.object({
   zuordnungLinks: z.array(z.string()).optional(),
   zuordnungRechts: z.array(z.string()).optional(),
   wortliste: z.array(z.string()).optional(), // Wortliste zur Auswahl bei Lückentext-Aufgaben
+  bild: z.enum(ICON_KEYS).optional(), // Symbol bei "ausmalbild"
+  bildergeschichteSchritte: z.array(BildergeschichteSchrittSchema).optional(), // bei "bildergeschichte"
   anforderungsbereich: z.enum(ANFORDERUNGSBEREICHE_KEYS).optional(),
 });
 export type Aufgabe = z.infer<typeof AufgabeSchema>;

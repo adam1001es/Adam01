@@ -13,9 +13,14 @@ import {
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
+import { ICONS, IconKey } from "@/lib/icons";
 
 const WORT_BILD_PFAD = path.join(process.cwd(), "public/patterns/lernen-gold.png");
 const WORT_BILD_SEITENVERHAELTNIS = 556 / 452; // Breite/Höhe von public/patterns/lernen-gold.png
+
+function iconPfadDocx(key: IconKey): string {
+  return path.join(process.cwd(), `public/icons/${key}.png`);
+}
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -23,6 +28,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   zuordnung: "Zuordnung",
   offene_frage: "Offene Frage",
   wahr_falsch: "Wahr oder Falsch",
+  ausmalbild: "Ausmalbild",
+  bildergeschichte: "Bildergeschichte",
 };
 
 const ACCENT = "0f9d58";
@@ -158,6 +165,55 @@ export async function buildWorksheetDocx(
           ],
         }),
       );
+    }
+    if (a.typ === "ausmalbild" && a.bild) {
+      const bildHoehe = 130;
+      const bildBreite = Math.round(bildHoehe * ICONS[a.bild].seitenverhaeltnis);
+      children.push(
+        new Paragraph({
+          indent: { left: 360 },
+          border: {
+            top: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+            bottom: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+            left: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+            right: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+          },
+          children: [
+            new ImageRun({
+              type: "png",
+              data: fs.readFileSync(iconPfadDocx(a.bild)),
+              transformation: { width: bildBreite, height: bildHoehe },
+            }),
+          ],
+          spacing: { before: 80 },
+        }),
+      );
+    }
+    if (a.typ === "bildergeschichte" && a.bildergeschichteSchritte) {
+      a.bildergeschichteSchritte.forEach((schritt, i) => {
+        const bildHoehe = 60;
+        const bildBreite = Math.round(bildHoehe * ICONS[schritt.bild].seitenverhaeltnis);
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: i === 0 ? 100 : 160 },
+            children: [
+              new TextRun({ text: `${i + 1}. `, bold: true, size: baseSize - 2 }),
+              new ImageRun({
+                type: "png",
+                data: fs.readFileSync(iconPfadDocx(schritt.bild)),
+                transformation: { width: bildBreite, height: bildHoehe },
+              }),
+            ],
+          }),
+          new Paragraph({
+            indent: { left: 360 },
+            children: [
+              new TextRun({ text: schritt.vorlesetext, italics: true, size: baseSize - 2, color: "475569" }),
+            ],
+          }),
+        );
+      });
     }
   }
 

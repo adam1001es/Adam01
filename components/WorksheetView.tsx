@@ -1,6 +1,7 @@
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { THEMENBEREICHE, ThemenbereichKey, ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { formatDoppelDatum } from "@/lib/hijri";
+import { ICONS, iconPfadWeb } from "@/lib/icons";
 import IslamicPatternStrip from "./IslamicPatternStrip";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
@@ -9,6 +10,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   zuordnung: "Zuordnung",
   offene_frage: "Offene Frage",
   wahr_falsch: "Wahr oder Falsch",
+  ausmalbild: "Ausmalbild",
+  bildergeschichte: "Bildergeschichte",
 };
 
 export default function WorksheetView({
@@ -107,6 +110,35 @@ export default function WorksheetView({
                   <div className="ml-5 mt-1 text-sm text-slate-600">
                     <span className="font-medium">Wortliste: </span>
                     {a.wortliste.join(" · ")}
+                  </div>
+                )}
+                {a.typ === "ausmalbild" && a.bild && (
+                  <div className="mt-2 flex justify-center">
+                    <div className="rounded-2xl border-2 border-dashed border-slate-300 p-6">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={iconPfadWeb(a.bild)}
+                        alt={ICONS[a.bild].label}
+                        style={{ height: 140, width: "auto" }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {a.typ === "bildergeschichte" && a.bildergeschichteSchritte && (
+                  <div className="mt-2 flex flex-wrap justify-center gap-4">
+                    {a.bildergeschichteSchritte.map((schritt, i) => (
+                      <div key={i} className="flex w-28 flex-col items-center text-center">
+                        <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={iconPfadWeb(schritt.bild)}
+                            alt={ICONS[schritt.bild].label}
+                            style={{ height: 60, width: "auto" }}
+                          />
+                        </div>
+                        <p className="mt-1 text-xs italic text-slate-500">{schritt.vorlesetext}</p>
+                      </div>
+                    ))}
                   </div>
                 )}
               </li>
