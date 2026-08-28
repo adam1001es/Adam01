@@ -1,0 +1,31 @@
+import Anthropic from "@anthropic-ai/sdk";
+
+let client: Anthropic | null = null;
+
+export function getAnthropicClient(): Anthropic {
+  if (!client) {
+    client = new Anthropic();
+  }
+  return client;
+}
+
+export const GENERATION_MODEL = "claude-opus-5";
+export const VERIFICATION_MODEL = "claude-opus-5";
+
+/** Extrahiert das erste { ... } JSON-Objekt aus einer Modellantwort, auch wenn Fließtext drumherum steht. */
+export function extractJson(text: string): unknown {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error("Keine JSON-Struktur in der Modellantwort gefunden.");
+  }
+  const jsonSlice = text.slice(start, end + 1);
+  return JSON.parse(jsonSlice);
+}
+
+export function getTextFromMessage(message: Anthropic.Message): string {
+  return message.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("\n");
+}

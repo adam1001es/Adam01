@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Ein generiertes Arbeitsblatt inkl. Konfiguration, Inhalt und Verifikationsergebnis.
+model Worksheet {
+  id          String   @id @default(cuid())
+  bereich     String // grober Fachbereich, z.B. "Islamischer Religionsunterricht"
+  thema       String // konkretes Thema, vom Nutzer vorgegeben
+  schulstufe  String
+  template    String // "klassisch" | "modern" | "kompakt"
+  layoutConfig String  // JSON: Schulname, Schriftgröße, Lösungen separat, Spalten, ...
+  contentJson String // JSON: generierter Arbeitsblatt-Inhalt (siehe lib/types.ts)
+  verification String  // JSON: Verifikationsergebnis (Status, Hinweise)
+  status      String   @default("entwurf") // entwurf | geprueft | verworfen
+  createdAt   DateTime @default(now())
+}
