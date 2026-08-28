@@ -2,7 +2,7 @@ import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { THEMENBEREICHE, ThemenbereichKey, ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, iconPfadWeb } from "@/lib/icons";
-import IslamicPatternStrip from "./IslamicPatternStrip";
+import IslamicCornerOrnament from "./IslamicCornerOrnament";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -30,10 +30,18 @@ export default function WorksheetView({
   const fontClass = isModern || isKompakt ? "font-sans" : "font-serif";
   const textSize = layout.schriftgroesse === "gross" ? "text-lg" : "text-base";
   const spacing = isKompakt ? "space-y-3" : "space-y-5";
-  const musterFarbe = isModern ? "#0e6b4a" : isKompakt ? "#8a8474" : "#9c7a2c";
+  // Bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich - dort hell statt dunkelgrün,
+  // sonst kaum sichtbar.
+  const musterFarbe = isModern ? "#f4ead1" : isKompakt ? "#8a8474" : "#9c7a2c";
 
   return (
-    <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
+    <div className={`relative rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
+      {layout.zeigeMuster && (
+        <>
+          <IslamicCornerOrnament ecke="oben-links" color={musterFarbe} className="m-3" />
+          <IslamicCornerOrnament ecke="oben-rechts" color={musterFarbe} className="m-3" />
+        </>
+      )}
       <div
         className={
           isModern
@@ -55,12 +63,6 @@ export default function WorksheetView({
           {layout.zeigeIslamischesDatum && <> · {formatDoppelDatum(erstelltAm)}</>}
         </div>
       </div>
-
-      {layout.zeigeMuster && (
-        <div className="mb-4">
-          <IslamicPatternStrip color={musterFarbe} />
-        </div>
-      )}
 
       <div className="mb-5 text-sm text-slate-500">
         Name: _______________________&nbsp;&nbsp;&nbsp; Klasse: __________&nbsp;&nbsp;&nbsp; Datum: __________

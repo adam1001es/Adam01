@@ -5,7 +5,7 @@ import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
-import { IslamicPatternStripPdf } from "./IslamicPatternStripPdf";
+import { IslamicCornerOrnamentPdf } from "./IslamicCornerOrnamentPdf";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -43,6 +43,10 @@ function buildStyles(layout: LayoutConfig) {
       marginBottom: isKompakt ? 10 : 18,
       borderBottom: isModern ? undefined : "2px solid #111111",
       paddingBottom: isModern ? 12 : 8,
+      // Platz für die Eckornamente, damit Titeltext sie nicht überlappt.
+      paddingTop: layout.zeigeMuster ? (isModern ? 12 : 16) : isModern ? 12 : 0,
+      paddingLeft: layout.zeigeMuster ? 26 : isModern ? 12 : 0,
+      paddingRight: layout.zeigeMuster ? 26 : isModern ? 12 : 0,
     },
     schulname: {
       fontSize: baseFontSize - 1,
@@ -63,9 +67,9 @@ function buildStyles(layout: LayoutConfig) {
       opacity: 0.75,
       marginTop: 2,
     },
-    musterStreifen: {
-      marginTop: isModern ? 0 : 8,
-      marginBottom: isKompakt ? 8 : 14,
+    seiteInhalt: {
+      position: "relative",
+      flexGrow: 1,
     },
     nameZeile: {
       marginTop: isKompakt ? 6 : 12,
@@ -174,16 +178,17 @@ function Header({
   );
 }
 
-function MusterStreifen({ layout }: { layout: LayoutConfig }) {
-  const styles = buildStyles(layout);
+function EckOrnamente({ layout }: { layout: LayoutConfig }) {
   if (!layout.zeigeMuster) return null;
   const isModern = layout.template === "modern";
   const isKompakt = layout.template === "kompakt";
-  const farbe = isModern ? "#0e6b4a" : isKompakt ? "#8a8474" : "#9c7a2c";
+  // Bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich - dort hell statt dunkelgrün.
+  const farbe = isModern ? "#f4ead1" : isKompakt ? "#8a8474" : "#9c7a2c";
   return (
-    <View style={styles.musterStreifen}>
-      <IslamicPatternStripPdf color={farbe} />
-    </View>
+    <>
+      <IslamicCornerOrnamentPdf ecke="oben-links" color={farbe} />
+      <IslamicCornerOrnamentPdf ecke="oben-rechts" color={farbe} />
+    </>
   );
 }
 
@@ -317,30 +322,42 @@ export function WorksheetPdfDocument({
   return (
     <Document title={content.titel}>
       <Page size="A4" style={styles.page}>
-        <Header
-          content={content}
-          layout={layout}
-          themenbereichLabel={themenbereichLabel}
-          erstelltAm={erstelltAm}
-        />
-        <MusterStreifen layout={layout} />
-        <NameZeile layout={layout} />
-        {layout.zeigeLernziel && (
-          <>
-            <Text style={styles.sectionTitel}>Lernziel</Text>
-            <Text style={styles.einleitung}>{content.lernziel}</Text>
-          </>
-        )}
-        <Text style={styles.sectionTitel}>Einleitung</Text>
-        <Text style={styles.einleitung}>{content.einleitung}</Text>
-        <AufgabenListe content={content} layout={layout} />
-        {!layout.loesungenSeparat && <LoesungenSeite content={content} layout={layout} />}
-        <QuellenListe content={content} layout={layout} />
+        <View style={styles.seiteInhalt}>
+          <EckOrnamente layout={layout} />
+          <Header
+            content={content}
+            layout={layout}
+            themenbereichLabel={themenbereichLabel}
+            erstelltAm={erstelltAm}
+          />
+          <NameZeile layout={layout} />
+          {layout.zeigeLernziel && (
+            <>
+              <Text style={styles.sectionTitel}>Lernziel</Text>
+              <Text style={styles.einleitung}>{content.lernziel}</Text>
+            </>
+          )}
+          <Text style={styles.sectionTitel}>Einleitung</Text>
+          <Text style={styles.einleitung}>{content.einleitung}</Text>
+          <AufgabenListe content={content} layout={layout} />
+          {!layout.loesungenSeparat && <LoesungenSeite content={content} layout={layout} />}
+          <QuellenListe content={content} layout={layout} />
+        </View>
       </Page>
       {layout.loesungenSeparat && (
         <Page size="A4" style={styles.page}>
-          <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
-          <LoesungenSeite content={content} layout={layout} />
+          <View style={styles.seiteInhalt}>
+            <EckOrnamente layout={layout} />
+            <Text
+              style={[
+                styles.titel,
+                layout.zeigeMuster ? { paddingTop: 16, paddingLeft: 26, paddingRight: 26 } : {},
+              ]}
+            >
+              {content.titel} — Lösungsblatt
+            </Text>
+            <LoesungenSeite content={content} layout={layout} />
+          </View>
         </Page>
       )}
     </Document>

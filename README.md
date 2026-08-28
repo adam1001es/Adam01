@@ -67,14 +67,14 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
-- **Ganz dezentes Zierelement**: im Kopfbereich ein sehr minimalistischer, beidseitig
-  ausgeblendeter Goldsteg mit drei kleinen Rauten in der Mitte (`lib/geometricPattern.ts`) -
-  bewusst kein Stern- oder Rankenmotiv, sondern eine ruhige, moderne Interpretation klassischer
-  geometrischer Zierstreifen, nur in einem Gold-Ton, ohne Gottesname/Koran-Vers (gleiche
+- **Eckornamente statt Streifen**: nur in den vier (bzw. oberen zwei) Ecken je Seite ein
+  schlichter, zweizeiliger Kufi-Winkel (`lib/cornerOrnament.ts`) - wie klassische Buch-/
+  Zertifikatsränder, aber bewusst ganz minimal (ein Gold-Ton, kein Stern- oder Rankenmotiv, keine
+  Fläche in der Mitte), damit der Kopfbereich ruhig bleibt. Ohne Gottesname/Koran-Vers (gleiche
   Begründung wie zuvor: Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). In Web/PDF
-  als Vektor mit Verlaufs-Ausblendung gerendert; in Word als einmalig serverseitig gerendertes PNG
-  (`public/patterns/zierstreifen-gold.png`), da Word keine Vektor-Verläufe in dieser Form
-  unterstützt. Optional abschaltbar.
+  als Vektor gerendert (in PDF pageweit über `floating`-Positionierung); in Word über zwei
+  einmalig serverseitig gerenderte PNGs (`public/patterns/ecke-gold.png` + `ecke-gold-mirror.png`,
+  normale und gespiegelte Variante), an den Seitenrand-Ecken verankert. Optional abschaltbar.
 
 ## Setup
 

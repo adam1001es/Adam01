@@ -9,14 +9,51 @@ import {
   HeadingLevel,
   AlignmentType,
   BorderStyle,
+  HorizontalPositionAlign,
+  HorizontalPositionRelativeFrom,
+  VerticalPositionAlign,
+  VerticalPositionRelativeFrom,
+  TextWrappingType,
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 
-const ZIERSTREIFEN_BILD_PFAD = path.join(process.cwd(), "public/patterns/zierstreifen-gold.png");
-const ZIERSTREIFEN_SEITENVERHAELTNIS = 3200 / 96; // Breite/Höhe von public/patterns/zierstreifen-gold.png
+const ECKE_BILD_PFAD = path.join(process.cwd(), "public/patterns/ecke-gold.png");
+const ECKE_BILD_MIRROR_PFAD = path.join(process.cwd(), "public/patterns/ecke-gold-mirror.png");
+const ECKE_GROESSE = 28;
+
+/**
+ * Zwei an den oberen Seitenecken verankerte Bild-Runs (fließen nicht mit dem Text) - positioniert
+ * relativ zum Satzspiegel (Seitenrand), damit sie wie in Web/PDF direkt in den Content-Ecken
+ * sitzen statt am rohen Papierrand.
+ */
+function eckOrnamente(): ImageRun[] {
+  const bildDatenLinks = fs.readFileSync(ECKE_BILD_PFAD);
+  const bildDatenRechts = fs.readFileSync(ECKE_BILD_MIRROR_PFAD);
+  const basis = {
+    type: "png" as const,
+    transformation: { width: ECKE_GROESSE, height: ECKE_GROESSE },
+    floating: {
+      horizontalPosition: { relative: HorizontalPositionRelativeFrom.MARGIN, align: HorizontalPositionAlign.LEFT },
+      verticalPosition: { relative: VerticalPositionRelativeFrom.MARGIN, align: VerticalPositionAlign.TOP },
+      wrap: { type: TextWrappingType.NONE },
+      allowOverlap: true,
+    },
+  };
+  return [
+    new ImageRun({ ...basis, data: bildDatenLinks }),
+    new ImageRun({
+      ...basis,
+      data: bildDatenRechts,
+      floating: {
+        ...basis.floating,
+        horizontalPosition: { relative: HorizontalPositionRelativeFrom.MARGIN, align: HorizontalPositionAlign.RIGHT },
+      },
+    }),
+  ];
+}
 
 function iconPfadDocx(key: IconKey): string {
   return path.join(process.cwd(), `public/icons/${key}.png`);
@@ -44,6 +81,10 @@ export async function buildWorksheetDocx(
   const baseSize = layout.schriftgroesse === "gross" ? 26 : 22; // halbe Punkte
 
   const children: Paragraph[] = [];
+
+  if (layout.zeigeMuster) {
+    children.push(new Paragraph({ children: eckOrnamente(), spacing: { after: 0 } }));
+  }
 
   if (layout.schulname) {
     children.push(
@@ -83,10 +124,6 @@ export async function buildWorksheetDocx(
       spacing: { after: 120 },
     }),
   );
-
-  if (layout.zeigeMuster) {
-    children.push(musterDivider());
-  }
 
   children.push(
     new Paragraph({
@@ -241,14 +278,18 @@ export async function buildWorksheetDocx(
   const sections = [{ children }];
 
   if (layout.loesungenSeparat) {
-    const loesungChildren: Paragraph[] = [
+    const loesungChildren: Paragraph[] = [];
+    if (layout.zeigeMuster) {
+      loesungChildren.push(new Paragraph({ children: eckOrnamente(), spacing: { after: 0 } }));
+    }
+    loesungChildren.push(
       new Paragraph({
         heading: HeadingLevel.HEADING_1,
         alignment: AlignmentType.LEFT,
         children: [new TextRun({ text: `${content.titel} — Lösungsblatt`, color: accentColor, bold: true })],
         spacing: { after: 240 },
       }),
-    ];
+    );
     pushLoesungen(loesungChildren, content, baseSize);
     sections.push({ children: loesungChildren });
   }
@@ -261,28 +302,6 @@ function sectionHeading(text: string, color: string, baseSize: number): Paragrap
   return new Paragraph({
     children: [new TextRun({ text, bold: true, color, size: baseSize + 4 })],
     spacing: { before: 200, after: 100 },
-  });
-}
-
-/**
- * Ganz dezentes islamisches Zierelement für Word: ein dünner, beidseitig ausgeblendeter
- * Goldsteg mit wenigen kleinen Rauten in der Mitte - minimalistisch statt flächig verziert.
- */
-function musterDivider(): Paragraph {
-  const bildBreite = 580;
-  const bildHoehe = Math.round(bildBreite / ZIERSTREIFEN_SEITENVERHAELTNIS);
-  const bildDaten = fs.readFileSync(ZIERSTREIFEN_BILD_PFAD);
-
-  return new Paragraph({
-    alignment: AlignmentType.CENTER,
-    spacing: { before: 80, after: 160 },
-    children: [
-      new ImageRun({
-        type: "png",
-        data: bildDaten,
-        transformation: { width: bildBreite, height: bildHoehe },
-      }),
-    ],
   });
 }
 
