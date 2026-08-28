@@ -54,7 +54,7 @@ export default function WorksheetView({
       </div>
 
       {layout.zeigeMuster && (
-        <div className="-mt-2 mb-4">
+        <div className="mb-4 mt-1">
           <IslamicPatternStrip color={musterFarbe} />
         </div>
       )}

@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Plus, LayoutGrid } from "lucide-react";
-import { achtzackigerSternPunkte } from "@/lib/pattern";
 
 function LogoMark() {
-  const points = achtzackigerSternPunkte(12, 12, 10, 4.2);
   return (
     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient shadow-card">
-      <svg width={20} height={20} viewBox="0 0 24 24" aria-hidden="true">
-        <polygon points={points} fill="none" stroke="#f4ead1" strokeWidth={1.4} />
+      <svg width={18} height={18} viewBox="0 0 24 24" aria-hidden="true">
+        <path
+          d="M12,4 C16.5,8 16.5,16 12,20 C7.5,16 7.5,8 12,4 Z M12,4 V20"
+          fill="none"
+          stroke="#f4ead1"
+          strokeWidth={1.4}
+          strokeLinecap="round"
+        />
       </svg>
     </span>
   );

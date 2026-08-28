@@ -1,48 +1,58 @@
 /**
- * Dezentes, edles islamisches Ornament: ein achtzackiger Stern ("Chatam"-Motiv, klassisches
- * Grundmuster islamischer Geometrie - zwei um 45° versetzte Quadrate), fein konturiert
- * (nur Kontur, keine Füllung) und durch einen dünnen Faden verbunden - wie eine Kette aus
- * kleinen Ornamenten. Bewusst rein rechnerisch erzeugt, kein Bild-Asset nötig.
+ * Dezentes islamisches Ornament: eine Arabeske (Islimi-Rankenmotiv) - ein wellenförmiger
+ * Rankenstamm mit kleinen Blattakzenten, wie man es von Manuskript-/Buchrändern kennt.
+ * Rein florale Ornamentik, keine Schrift, keine religiösen Symbole oder Namen - bewusst
+ * rein rechnerisch (Bezierkurven) erzeugt, kein Bild-Asset nötig.
  */
-export function achtzackigerSternPunkte(
-  cx: number,
-  cy: number,
-  aussenRadius: number,
-  innenRadius: number,
-): string {
-  const zacken = 8;
-  const punkte: string[] = [];
-  for (let i = 0; i < zacken * 2; i++) {
-    const radius = i % 2 === 0 ? aussenRadius : innenRadius;
-    const winkel = (Math.PI / zacken) * i - Math.PI / 2;
-    const x = cx + radius * Math.cos(winkel);
-    const y = cy + radius * Math.sin(winkel);
-    punkte.push(`${x.toFixed(2)},${y.toFixed(2)}`);
-  }
-  return punkte.join(" ");
+
+export interface ArabeskeBlatt {
+  d: string;
 }
 
-export interface MusterStern {
-  cx: number;
-  cy: number;
-  points: string;
+export interface ArabeskeRanke {
+  stammPfad: string;
+  blaetter: ArabeskeBlatt[];
 }
 
-export interface GirihFaden {
-  sterne: MusterStern[];
-  fadenY: number;
+/** Rundes, geschlossenes Blatt (Mandelform) mit Basis bei (cx,baseY), Spitze bei (cx,tipY). */
+function rundesBlatt(cx: number, baseY: number, tipY: number, breite: number): string {
+  const laenge = tipY - baseY; // negativ = nach oben, positiv = nach unten
+  const schulterY = baseY + laenge * 0.55;
+  const f = (n: number) => n.toFixed(2);
+  return (
+    `M ${f(cx - breite)},${f(baseY)} ` +
+    `C ${f(cx - breite)},${f(schulterY)} ${f(cx - breite * 0.35)},${f(tipY)} ${f(cx)},${f(tipY)} ` +
+    `C ${f(cx + breite * 0.35)},${f(tipY)} ${f(cx + breite)},${f(schulterY)} ${f(cx + breite)},${f(baseY)} Z`
+  );
 }
 
-/** Erzeugt einen dünnen "Faden" mit fein konturierten Sternen als Zier-Streifen. */
-export function girihFaden(breite: number, hoehe: number, anzahl = 11): GirihFaden {
-  const aussenRadius = hoehe * 0.3;
-  const innenRadius = aussenRadius * 0.42;
-  const abstand = breite / anzahl;
+/** Erzeugt einen sanft wellenförmigen Rankenpfad mit runden Blattakzenten an den Wellenbergen. */
+export function arabeskeRanke(breite: number, hoehe: number, wellen = 4): ArabeskeRanke {
   const cy = hoehe / 2;
-  const sterne: MusterStern[] = [];
-  for (let i = 0; i < anzahl; i++) {
-    const cx = abstand * i + abstand / 2;
-    sterne.push({ cx, cy, points: achtzackigerSternPunkte(cx, cy, aussenRadius, innenRadius) });
+  const amplitude = hoehe * 0.28;
+  const periode = breite / wellen;
+  const halbPeriode = periode / 2;
+  const blattBreite = halbPeriode * 0.16;
+  const blattLaenge = amplitude * 0.6;
+
+  let stammPfad = `M 0,${cy.toFixed(2)}`;
+  const blaetter: ArabeskeBlatt[] = [];
+
+  for (let i = 0; i < wellen; i++) {
+    const x0 = i * periode;
+
+    // Bergsegment (nach oben)
+    const bergSpitzeX = x0 + halbPeriode / 2;
+    const bergSpitzeY = cy - amplitude;
+    stammPfad += ` C ${(x0 + halbPeriode * 0.25).toFixed(2)},${(cy - amplitude * 1.25).toFixed(2)} ${(x0 + halbPeriode * 0.75).toFixed(2)},${(cy - amplitude * 1.25).toFixed(2)} ${(x0 + halbPeriode).toFixed(2)},${cy.toFixed(2)}`;
+    blaetter.push({ d: rundesBlatt(bergSpitzeX, bergSpitzeY, bergSpitzeY - blattLaenge, blattBreite) });
+
+    // Talsegment (nach unten)
+    const talSpitzeX = x0 + halbPeriode + halbPeriode / 2;
+    const talSpitzeY = cy + amplitude;
+    stammPfad += ` C ${(x0 + halbPeriode + halbPeriode * 0.25).toFixed(2)},${(cy + amplitude * 1.25).toFixed(2)} ${(x0 + halbPeriode + halbPeriode * 0.75).toFixed(2)},${(cy + amplitude * 1.25).toFixed(2)} ${(x0 + periode).toFixed(2)},${cy.toFixed(2)}`;
+    blaetter.push({ d: rundesBlatt(talSpitzeX, talSpitzeY, talSpitzeY + blattLaenge, blattBreite) });
   }
-  return { sterne, fadenY: cy };
+
+  return { stammPfad, blaetter };
 }

@@ -39,7 +39,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0">
-          <IslamicPatternStrip color="#f4ead1" opacity={0.35} anzahl={20} />
+          <IslamicPatternStrip color="#f4ead1" opacity={0.35} wellen={16} zeigeWort={false} />
         </div>
       </div>
 
