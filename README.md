@@ -46,22 +46,40 @@ Generierung und Verifikation orientieren sich an der öffentlich bekannten Grobs
 
 ```bash
 npm install
-cp .env.example .env   # ANTHROPIC_API_KEY eintragen
+cp .env.example .env   # DATABASE_URL(_UNPOOLED) und ANTHROPIC_API_KEY eintragen
 npx prisma migrate deploy
 npm run dev
 ```
+
+Für lokale Entwicklung brauchst du eine eigene Postgres-Instanz (z.B. lokal installiert oder via
+Docker: `docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16`).
 
 Danach [http://localhost:3000](http://localhost:3000) öffnen.
 
 ### Umgebungsvariablen (`.env`)
 
-- `DATABASE_URL` – SQLite-Datei, standardmäßig `file:./dev.db` (relativ zu `prisma/`)
+- `DATABASE_URL` – Postgres-Verbindung (pooled). Auf Vercel automatisch durch die
+  Postgres-Integration (Storage-Tab) gesetzt.
+- `DATABASE_URL_UNPOOLED` – Postgres-Verbindung ohne Connection-Pooling, für Migrationen.
+  Ebenfalls automatisch von Vercel gesetzt.
 - `ANTHROPIC_API_KEY` – dein Anthropic API-Key
+
+## Deployment (Vercel)
+
+1. Projekt in Vercel aus diesem GitHub-Repo importieren.
+2. Im Tab **Storage** eine Postgres-Datenbank anlegen (setzt `DATABASE_URL` /
+   `DATABASE_URL_UNPOOLED` automatisch).
+3. Unter **Settings → Environment Variables** `ANTHROPIC_API_KEY` eintragen.
+4. Deployen – der Build-Schritt (`prisma migrate deploy && next build`) legt das Datenbankschema
+   automatisch an.
+
+SQLite (lokale Datei) funktioniert nicht auf Vercel, da dort keine dauerhafte Festplatte zur
+Verfügung steht – deshalb Postgres statt SQLite.
 
 ## Tech-Stack
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
-- Prisma + SQLite (Verlauf aller generierten Arbeitsblätter)
+- Prisma + PostgreSQL (Verlauf aller generierten Arbeitsblätter)
 - `@anthropic-ai/sdk` (Modell: `claude-opus-5`) für Generierung + Verifikation
 - `@react-pdf/renderer` für PDF-Export, `docx` für Word-Export
 - Drei Layout-Vorlagen (Klassisch / Modern / Kompakt), je mit Schulname, Schriftgröße,
