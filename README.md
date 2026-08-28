@@ -33,6 +33,18 @@ Generierung und Verifikation orientieren sich an der öffentlich bekannten Grobs
   nur orientierend ab (kein Volltext-Zugriff) – die Lehrkraft prüft die konkrete Passung zur
   jeweiligen Schulart/Schulstufe weiterhin anhand von BGBl. II Nr. 234/2011.
 
+## Pädagogisch-didaktische Fundierung
+
+Jede Aufgabe wird einem **Anforderungsbereich** zugeordnet (AFB I Reproduktion, AFB II Transfer,
+AFB III Reflexion/Urteil – etabliertes Modell aus österreichischer/deutscher Aufgabenkultur,
+z.B. Zentralmatura), sichtbar als kleines Label neben jeder Aufgabe. Die Verteilung wird an die
+Schulstufe angepasst (Volksschule primär AFB I/II, höhere Schulstufen bewusst mit AFB-III-Anteil).
+Das Lernziel wird kompetenzorientiert/operationalisiert formuliert. Zusätzlich orientiert sich die
+Generierung an den fünf anerkannten Kompetenzbereichen des Religionsunterrichts (Wahrnehmung,
+religiöse Sach-/Darstellungskompetenz, interkulturelle/interreligiöse Kompetenz, ethische
+Deutungs-/Urteilskompetenz, lebensweltliche Anwendungskompetenz) sowie an sprachsensiblem
+Unterricht und Lebensweltbezug. Details in `lib/curriculum.ts`.
+
 ## Layout-Extras
 
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische

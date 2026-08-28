@@ -21,14 +21,21 @@ const VORSCHAU_INHALT: WorksheetContent = {
       typ: "multiple_choice",
       frage: "Welche Aussage gehört zu den 5 Säulen?",
       optionen: ["Das Fasten im Ramadan", "Das Feiern von Weihnachten", "Ein Beispiel-Text"],
+      anforderungsbereich: "afb1",
     },
     {
       nr: 2,
       typ: "lueckentext",
       frage: "Das Fasten im Ramadan heißt auf Arabisch ______.",
       wortliste: ["Sawm", "Zakat", "Hadsch"],
+      anforderungsbereich: "afb1",
     },
-    { nr: 3, typ: "offene_frage", frage: "So sieht eine offene Frage aus." },
+    {
+      nr: 3,
+      typ: "offene_frage",
+      frage: "So sieht eine offene Frage aus (z.B. mit eigener Begründung).",
+      anforderungsbereich: "afb3",
+    },
   ],
   loesungen: [
     { nr: 1, loesung: "Das Fasten im Ramadan" },
@@ -152,6 +159,7 @@ export default function NewWorksheetForm() {
               className="w-full rounded-md border border-slate-300 px-3 py-2"
               value={bereich}
               onChange={(e) => setBereich(e.target.value)}
+              placeholder="z.B. Islamischer Religionsunterricht"
               required
             />
           </label>
@@ -174,7 +182,7 @@ export default function NewWorksheetForm() {
                 className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2"
                 value={schulstufeFrei}
                 onChange={(e) => setSchulstufeFrei(e.target.value)}
-                placeholder="Eigene Schulstufe eingeben"
+                placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
                 required
               />
             )}
@@ -277,6 +285,7 @@ export default function NewWorksheetForm() {
               className="w-full rounded-md border border-slate-300 px-3 py-2"
               value={schulname}
               onChange={(e) => setSchulname(e.target.value)}
+              placeholder="z.B. Islamische Volksschule Wien"
             />
           </label>
           <label className="block">

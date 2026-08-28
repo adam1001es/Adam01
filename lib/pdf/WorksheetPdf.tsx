@@ -2,6 +2,7 @@ import React from "react";
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
+import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { IslamicPatternStripPdf } from "./IslamicPatternStripPdf";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
@@ -160,7 +161,10 @@ function AufgabenListe({
       <Text style={styles.sectionTitel}>Aufgaben</Text>
       {content.aufgaben.map((a) => (
         <View key={a.nr} style={styles.aufgabe} wrap={false}>
-          <Text style={styles.aufgabeTyp}>{TYP_LABEL[a.typ]}</Text>
+          <Text style={styles.aufgabeTyp}>
+            {TYP_LABEL[a.typ]}
+            {a.anforderungsbereich ? `  ·  ${ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}` : ""}
+          </Text>
           <Text style={styles.aufgabeKopf}>
             {a.nr}. {a.frage}
           </Text>

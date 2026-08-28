@@ -1,5 +1,5 @@
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
-import { THEMENBEREICHE, ThemenbereichKey } from "@/lib/curriculum";
+import { THEMENBEREICHE, ThemenbereichKey, ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { formatDoppelDatum } from "@/lib/hijri";
 import IslamicPatternStrip from "./IslamicPatternStrip";
 
@@ -81,6 +81,7 @@ export default function WorksheetView({
               <li key={a.nr}>
                 <div className="mb-0.5 text-xs uppercase tracking-wide text-slate-400">
                   {TYP_LABEL[a.typ]}
+                  {a.anforderungsbereich && ` · ${ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}`}
                 </div>
                 <div className="font-medium">
                   {a.nr}. {a.frage}

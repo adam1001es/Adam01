@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { WorksheetContent, Aufgabe, Quelle } from "@/lib/types";
+import { ANFORDERUNGSBEREICHE, ANFORDERUNGSBEREICHE_KEYS, AnforderungsbereichKey } from "@/lib/curriculum";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -189,6 +190,28 @@ export default function EditWorksheetForm({
                   Entfernen
                 </button>
               </div>
+              <label className="mb-2 block max-w-sm">
+                <span className="mb-1 block text-sm font-medium">Anforderungsbereich</span>
+                <select
+                  className="w-full rounded-md border border-slate-300 px-3 py-2"
+                  value={a.anforderungsbereich ?? ""}
+                  onChange={(e) =>
+                    updateAufgabe(a.nr, {
+                      anforderungsbereich: (e.target.value || undefined) as
+                        | AnforderungsbereichKey
+                        | undefined,
+                    })
+                  }
+                >
+                  <option value="">— nicht gesetzt —</option>
+                  {ANFORDERUNGSBEREICHE_KEYS.map((key) => (
+                    <option key={key} value={key}>
+                      {ANFORDERUNGSBEREICHE[key].label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <label className="mb-2 block">
                 <span className="mb-1 block text-sm font-medium">Frage</span>
                 <textarea

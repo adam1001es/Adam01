@@ -9,6 +9,7 @@ import {
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
+import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -102,7 +103,14 @@ export async function buildWorksheetDocx(
   for (const a of content.aufgaben) {
     children.push(
       new Paragraph({
-        children: [new TextRun({ text: TYP_LABEL[a.typ], italics: true, size: baseSize - 4, color: "666666" })],
+        children: [
+          new TextRun({
+            text: `${TYP_LABEL[a.typ]}${a.anforderungsbereich ? `  ·  ${ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}` : ""}`,
+            italics: true,
+            size: baseSize - 4,
+            color: "666666",
+          }),
+        ],
         spacing: { before: 160 },
       }),
       new Paragraph({

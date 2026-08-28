@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { THEMENBEREICH_KEYS } from "./curriculum";
+import { THEMENBEREICH_KEYS, ANFORDERUNGSBEREICHE_KEYS } from "./curriculum";
 
 export const AUFGABEN_TYPEN = [
   "multiple_choice",
@@ -17,6 +17,7 @@ export const AufgabeSchema = z.object({
   zuordnungLinks: z.array(z.string()).optional(),
   zuordnungRechts: z.array(z.string()).optional(),
   wortliste: z.array(z.string()).optional(), // Wortliste zur Auswahl bei Lückentext-Aufgaben
+  anforderungsbereich: z.enum(ANFORDERUNGSBEREICHE_KEYS).optional(),
 });
 export type Aufgabe = z.infer<typeof AufgabeSchema>;
 

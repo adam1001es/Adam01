@@ -125,6 +125,49 @@ export function guessSchulstufenCluster(schulstufeText: string): SchulstufenClus
   return SCHULSTUFEN_CLUSTER[1];
 }
 
+/**
+ * Allgemeine didaktische Standards (nicht RU-spezifisch, im deutschsprachigen Schulwesen
+ * fachübergreifend etabliert): die drei Anforderungsbereiche (AFB I-III), wie sie u.a. in der
+ * österreichischen (Zentral-)Matura und in deutschen Bildungsstandards verwendet werden.
+ */
+export const ANFORDERUNGSBEREICHE_KEYS = ["afb1", "afb2", "afb3"] as const;
+export type AnforderungsbereichKey = (typeof ANFORDERUNGSBEREICHE_KEYS)[number];
+
+export const ANFORDERUNGSBEREICHE: Record<
+  AnforderungsbereichKey,
+  { label: string; beschreibung: string; operatoren: string[] }
+> = {
+  afb1: {
+    label: "AFB I – Reproduktion",
+    beschreibung: "Wiedergeben von Sachverhalten/Fakten im gelernten Zusammenhang.",
+    operatoren: ["nennen", "beschreiben", "wiedergeben", "aufzählen"],
+  },
+  afb2: {
+    label: "AFB II – Reorganisation/Transfer",
+    beschreibung: "Erklären, Vergleichen, Anwenden und Übertragen auf vergleichbare neue Zusammenhänge.",
+    operatoren: ["erklären", "vergleichen", "erläutern", "einordnen", "anwenden"],
+  },
+  afb3: {
+    label: "AFB III – Reflexion/Urteil",
+    beschreibung: "Eigenständige Deutungen, Begründungen und Bewertungen komplexer Sachverhalte.",
+    operatoren: ["beurteilen", "Stellung nehmen", "reflektieren", "begründen", "diskutieren"],
+  },
+};
+
+/**
+ * Kompetenzbereiche des Religionsunterrichts: angelehnt an das gemeinsame, konfessions-
+ * übergreifende Kompetenzmodell für den Religionsunterricht in Österreich (Sekundarstufe II/
+ * Reifeprüfung, von den für RU verantwortlichen Kirchen/Religionsgesellschaften vereinbart) -
+ * hier altersgerecht auf alle Schulstufen herunterskaliert.
+ */
+export const KOMPETENZBEREICHE_RU = {
+  wahrnehmung: "Wahrnehmungskompetenz – religiöse/ethische Fragen, Symbole und Ausdrucksformen wahrnehmen und beschreiben",
+  sachDarstellung: "Religiöse Sach- und Darstellungskompetenz – fachliches Wissen sachgerecht darstellen und erklären",
+  interkulturellInterreligioes: "Interkulturelle und interreligiöse Kompetenz – eigene Position im Verhältnis zu anderen Positionen einordnen",
+  ethischeDeutungUrteil: "Ethische Deutungs- und Urteilskompetenz – Sachverhalte deuten, ethisch reflektieren, begründet Stellung beziehen",
+  lebensweltlicheAnwendung: "Lebensweltliche Anwendungskompetenz – Gelerntes auf die eigene Lebenswelt beziehen und anwenden",
+};
+
 /** Hadith-Sammlungen, die im österreichischen IGGÖ-Lehrplan/Unterrichtsmaterialien als anerkannt gelten. */
 export const HADITH_QUELLEN = {
   primaer: ["Sahih al-Bukhari", "Sahih Muslim"],
@@ -140,11 +183,25 @@ export function buildCurriculumSystemContext(themenbereich: ThemenbereichKey, sc
   const bereich = THEMENBEREICHE[themenbereich];
   const cluster = guessSchulstufenCluster(schulstufeText);
 
+  const afbSpanne =
+    cluster.id === "volksschule"
+      ? "Volksschule: Schwerpunkt AFB I (nennen, beschreiben) mit ersten einfachen AFB-II-Ansätzen (erklären in eigenen Worten). Kein AFB III."
+      : cluster.id === "sek1" || cluster.id === "poly"
+        ? "Sekundarstufe I/Polytechnische Schule: Mischung aus AFB I und AFB II, erste einfache AFB-III-Ansätze (z.B. eigene Meinung kurz begründen)."
+        : "Sekundarstufe II/Berufsschule: bewusste Mischung aus AFB I, II und III - mindestens eine Aufgabe soll Beurteilen/Begründen/Reflektieren (AFB III) verlangen.";
+
   return `Orientierungsrahmen (österreichischer Lehrplan für islamischen Religionsunterricht, IGGÖ, BGBl. II Nr. 234/2011 - Grobstruktur, kein Volltext-Zitat):
 - Themenbereich für dieses Arbeitsblatt: "${bereich.label}" - ${bereich.beschreibung}
 - Schulstufen-Cluster: "${cluster.label}" - ${cluster.hinweis}
 - Halte dich bei Sprache, Abstraktionsgrad und Aufgabenlänge strikt an dieses Schulstufen-Cluster.
 - Achte darauf, dass der Inhalt klar in den genannten Themenbereich passt (bzw. bei "gemischt" den am besten passenden der vier Bereiche - Iman, Fiqh al-Ibadat, Fiqh al-Muamalat, Islamische Kulturgeschichte - triffst).
 - Hadithe ausschließlich aus: ${HADITH_QUELLEN.primaer.join(", ")} (bevorzugt), oder aus ${HADITH_QUELLEN.sekundaerNurWennAllgemeinAlsSahihBekannt.join(", ")} NUR wenn allgemein als sahih/gesichert bekannt. Keine schwachen (da'if) oder erfundenen (mawdu') Hadithe. Im Zweifel: Hadith weglassen und stattdessen auf den Koran oder etablierten Konsens zurückgreifen.
-- Diese App bildet die Lehrplan-Struktur nur orientierend ab, nicht als Volltext. Die Lehrkraft prüft die konkrete Passung zur jeweiligen Schulart/Schulstufe weiterhin anhand von BGBl. II Nr. 234/2011.`;
+- Diese App bildet die Lehrplan-Struktur nur orientierend ab, nicht als Volltext. Die Lehrkraft prüft die konkrete Passung zur jeweiligen Schulart/Schulstufe weiterhin anhand von BGBl. II Nr. 234/2011.
+
+Pädagogisch-didaktische Standards (im deutschsprachigen Schulwesen etablierte Aufgabenkultur):
+- Anforderungsbereiche (AFB I-III): Jede Aufgabe bekommt im Feld "anforderungsbereich" den Wert "afb1" (Reproduktion: ${ANFORDERUNGSBEREICHE.afb1.operatoren.join("/")}), "afb2" (Transfer: ${ANFORDERUNGSBEREICHE.afb2.operatoren.join("/")}) oder "afb3" (Reflexion/Urteil: ${ANFORDERUNGSBEREICHE.afb3.operatoren.join("/")}). Verteilung für diese Schulstufe: ${afbSpanne} Baue NICHT nur reine Abfrage-Aufgaben (AFB I).
+- Kompetenzorientierung: Berücksichtige - altersgerecht und wo thematisch passend - mehr als nur Faktenwissen, orientiert an den anerkannten Kompetenzbereichen des Religionsunterrichts (Wahrnehmung, religiöse Sach-/Darstellungskompetenz, interkulturelle/interreligiöse Kompetenz, ethische Deutungs-/Urteilskompetenz, lebensweltliche Anwendungskompetenz). Nicht jede Aufgabe muss jede Kompetenz abdecken, aber das Arbeitsblatt als Ganzes soll nicht nur auf Auswendiglernen abzielen.
+- Das "lernziel" MUSS kompetenzorientiert/operationalisiert formuliert sein, mit einem Verb passend zum höchsten enthaltenen Anforderungsbereich (z.B. "Die Schüler:innen können ... nennen/beschreiben" bei reinem AFB I, "... erklären/vergleichen" bei AFB II, "... beurteilen/begründen" bei AFB III).
+- Sprachsensibler Unterricht: kurze, klare Sätze passend zur Schulstufe; erkläre Fachbegriffe und arabische Begriffe im Kontext, statt sie unerklärt vorauszusetzen.
+- Lebensweltbezug: verknüpfe Inhalte, wo sinnvoll, mit dem Alltag der Schüler:innen in Österreich (Familie, Schule, gesellschaftliches Zusammenleben) statt rein abstrakt zu bleiben.`;
 }
