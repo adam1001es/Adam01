@@ -27,7 +27,6 @@ export default function WorksheetView({
   const fontClass = isModern || isKompakt ? "font-sans" : "font-serif";
   const textSize = layout.schriftgroesse === "gross" ? "text-lg" : "text-base";
   const spacing = isKompakt ? "space-y-3" : "space-y-5";
-  const musterFarbe = isModern ? "#0e6b4a" : isKompakt ? "#8a8474" : "#9c7a2c";
 
   return (
     <div className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
@@ -54,8 +53,8 @@ export default function WorksheetView({
       </div>
 
       {layout.zeigeMuster && (
-        <div className="mb-4 mt-1">
-          <IslamicPatternStrip color={musterFarbe} />
+        <div className="mb-4">
+          <IslamicPatternStrip />
         </div>
       )}
 

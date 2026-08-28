@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import FavoritButton from "@/components/FavoritButton";
-import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 
 const STATUS_STYLE: Record<string, { text: string; className: string; icon: typeof CheckCircle2 }> = {
   geprueft: { text: "Geprüft", className: "bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200", icon: CheckCircle2 },
@@ -38,8 +37,9 @@ export default async function DashboardPage() {
             Neues Arbeitsblatt erstellen
           </Link>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0">
-          <IslamicPatternStrip color="#f4ead1" opacity={0.35} wellen={16} zeigeWort={false} />
+        <div className="pointer-events-none absolute -bottom-3 -right-3 opacity-20 sm:-bottom-4 sm:-right-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/patterns/lernen-gold.png" alt="" aria-hidden="true" className="h-20 w-auto brightness-[6] sm:h-24" />
         </div>
       </div>
 

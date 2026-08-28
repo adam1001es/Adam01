@@ -50,14 +50,13 @@ Unterricht und Lebensweltbezug. Details in `lib/curriculum.ts`.
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
-- **Dezentes Musterelement**: eine Arabeske (Islimi-Rankenmotiv, rein rechnerisch erzeugte
-  Bezierkurven, `lib/pattern.ts`) als Zierstreifen im Kopfbereich, mit dem Wort „علم" (ilm,
-  Wissen/Bildung) in arabischer Kalligrafie (Amiri-Schrift) mittig eingebettet. Bewusst
-  **kein** Gottesname und **kein** Koran-Vers, da Arbeitsblätter im Schulalltag auch mal auf dem
-  Boden landen oder weggeworfen werden - das Wortbild ist ein einmalig serverseitig gerendertes
-  PNG (`public/patterns/ilm-gold.png`), damit die arabische Schriftformung nicht vom jeweiligen
-  PDF-/Word-Renderer abhängt. In Web/PDF als Vektor+Bild, in Word als Bild mit Linienrahmen
-  (kein Vektor-Rankenmuster ohne Bild-Asset möglich). Optional abschaltbar.
+- **Dezentes Musterelement**: im Kopfbereich steht ruhig und ohne Linien/Ornamentik nur das Wort
+  „تعلّم" (Lernen) in arabischer Kalligrafie (Amiri-Schrift, Gold). Bewusst **kein** Gottesname und
+  **kein** Koran-Vers, da Arbeitsblätter im Schulalltag auch mal auf dem Boden landen oder
+  weggeworfen werden - das Wortbild ist ein einmalig serverseitig gerendertes PNG
+  (`public/patterns/lernen-gold.png`), damit die arabische Schriftformung (Ligaturen, Tashdid)
+  nicht vom jeweiligen PDF-/Word-Renderer abhängt. In Web/PDF/Word jeweils als eingebettetes Bild.
+  Optional abschaltbar.
 
 ## Setup
 

@@ -133,12 +133,9 @@ function Header({
 function MusterStreifen({ layout }: { layout: LayoutConfig }) {
   const styles = buildStyles(layout);
   if (!layout.zeigeMuster) return null;
-  const isModern = layout.template === "modern";
-  const isKompakt = layout.template === "kompakt";
-  const farbe = isModern ? "#0e6b4a" : isKompakt ? "#8a8474" : "#9c7a2c";
   return (
     <View style={styles.musterStreifen}>
-      <IslamicPatternStripPdf color={farbe} />
+      <IslamicPatternStripPdf />
     </View>
   );
 }

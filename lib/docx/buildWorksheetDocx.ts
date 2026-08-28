@@ -14,8 +14,8 @@ import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 
-const WORT_BILD_PFAD = path.join(process.cwd(), "public/patterns/ilm-gold.png");
-const WORT_BILD_SEITENVERHAELTNIS = 335 / 228; // Breite/Höhe von public/patterns/ilm-gold.png
+const WORT_BILD_PFAD = path.join(process.cwd(), "public/patterns/lernen-gold.png");
+const WORT_BILD_SEITENVERHAELTNIS = 556 / 452; // Breite/Höhe von public/patterns/lernen-gold.png
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -209,22 +209,16 @@ function sectionHeading(text: string, color: string, baseSize: number): Paragrap
 }
 
 /**
- * Dezentes islamisches Ornament für Word: das Kalligrafie-Wortbild ("علم" - Wissen/Bildung,
- * religiös unbedenklich), gerahmt von zwei dünnen Goldlinien (Word erlaubt kein Vektor-
- * Rankenmuster ohne Bild-Asset, daher hier vereinfacht auf Bild + Linienrahmen).
+ * Dezentes islamisches Ornament für Word: das Kalligrafie-Wortbild ("تعلّم" - Lernen,
+ * religiös unbedenklich) - bewusst ohne Linien/Rahmen, nur das ruhige Wortbild.
  */
 function musterDivider(): Paragraph {
-  const GOLD = "9c7a2c";
-  const bildHoehe = 26;
+  const bildHoehe = 28;
   const bildBreite = Math.round(bildHoehe * WORT_BILD_SEITENVERHAELTNIS);
   const bildDaten = fs.readFileSync(WORT_BILD_PFAD);
 
   return new Paragraph({
     alignment: AlignmentType.CENTER,
-    border: {
-      top: { style: BorderStyle.SINGLE, size: 4, color: GOLD, space: 6 },
-      bottom: { style: BorderStyle.SINGLE, size: 4, color: GOLD, space: 6 },
-    },
     spacing: { before: 80, after: 160 },
     children: [
       new ImageRun({
