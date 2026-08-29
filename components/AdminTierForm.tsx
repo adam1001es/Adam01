@@ -41,7 +41,7 @@ export default function AdminTierForm({
         }}
         className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
       >
-        <option value="">Kein Abo</option>
+        <option value="">Kostenlos (3/Monat)</option>
         <option value="starter">Starter (30/Monat)</option>
         <option value="pro">Pro (80/Monat)</option>
       </select>

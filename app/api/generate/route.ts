@@ -4,10 +4,16 @@ import { GenerateRequestSchema } from "@/lib/types";
 import { generateAndVerifyWorksheet } from "@/lib/generateWorksheet";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
-import { TRIAL_LIMIT, getTrialStatus, incrementTrialUsage } from "@/lib/trial";
+import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json(
+      { error: "Bitte anmelden, um ein Arbeitsblatt zu erstellen." },
+      { status: 401 },
+    );
+  }
 
   let body: unknown;
   try {
@@ -25,20 +31,25 @@ export async function POST(request: NextRequest) {
   }
   const req = parsed.data;
 
-  // Kontingent/Testversion VOR dem teuren Claude-Aufruf prüfen, damit ein blockiertes
-  // Konto/Testkontingent keine API-Kosten verursacht.
-  if (user) {
-    const kontingent = await getKontingent(user);
-    if (kontingent.verbleibend <= 0) {
-      const grund = kontingent.tier
-        ? `Dein Kontingent für diesen Zyklus (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
-        : "Dein Konto hat noch kein aktives Abo. Wende dich an die Person, die den Zugang verwaltet.";
-      return NextResponse.json({ error: grund }, { status: 403 });
-    }
-  } else if ((await getTrialStatus()).verbleibend <= 0) {
+  // Kontingent VOR dem teuren Claude-Aufruf prüfen, damit ein blockiertes Konto keine
+  // API-Kosten verursacht.
+  const kontingent = await getKontingent(user);
+  if (kontingent.verbleibend <= 0) {
+    const grund = kontingent.tier
+      ? `Dein Kontingent für diesen Zyklus (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
+      : `Dein kostenloses Kontingent (${kontingent.limit} Arbeitsblätter/Monat) ist für diesen Zyklus aufgebraucht. Für mehr: ein Abo bei der Person anfragen, die den Zugang verwaltet.`;
+    return NextResponse.json({ error: grund }, { status: 403 });
+  }
+
+  // Nur Konten OHNE bezahltes Abo unterliegen zusätzlich der Browser-/IP-Sperre - sie
+  // verhindert, dass sich jemand mehrere Konten anlegt, um das Gratis-Kontingent zu
+  // vervielfachen. Bezahlte Abos wurden von einem Admin manuell freigeschaltet und sind
+  // davon ausgenommen.
+  if (!kontingent.tier && (await getTrialStatus()).verbleibend <= 0) {
     return NextResponse.json(
       {
-        error: `Die kostenlose Testversion (${TRIAL_LIMIT} Arbeitsblätter ohne Konto pro Monat) ist aufgebraucht. Bitte registrieren, um weiterzumachen.`,
+        error:
+          "Das kostenlose Kontingent für diesen Browser/dieses Netzwerk ist für diesen Monat aufgebraucht (unabhängig vom Konto). Für mehr: ein Abo anfragen.",
       },
       { status: 403 },
     );
@@ -58,11 +69,11 @@ export async function POST(request: NextRequest) {
         contentJson: JSON.stringify(content),
         verification: JSON.stringify(verification),
         status: verification.status === "fehler" ? "verworfen" : "geprueft",
-        userId: user?.id,
+        userId: user.id,
       },
     });
 
-    if (!user) await incrementTrialUsage();
+    if (!kontingent.tier) await incrementTrialUsage();
 
     return NextResponse.json({ id: worksheet.id });
   } catch (err) {

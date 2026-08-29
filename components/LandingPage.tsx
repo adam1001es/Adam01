@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Sparkles, ShieldCheck, FileDown, CalendarDays, CheckCircle2, Gift } from "lucide-react";
-import { TIER_QUOTA, TIER_PREIS_EUR } from "@/lib/quota";
-import { TRIAL_LIMIT } from "@/lib/trial";
+import { TIER_QUOTA, TIER_PREIS_EUR, KOSTENLOS_LIMIT } from "@/lib/quota";
 
 const FEATURES = [
   {
@@ -40,16 +39,10 @@ export default function LandingPage() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
-            href="/new"
+            href="/register"
             className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-card transition hover:shadow-card-hover"
           >
-            <Gift size={16} /> {TRIAL_LIMIT} Arbeitsblätter kostenlos testen
-          </Link>
-          <Link
-            href="/register"
-            className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-          >
-            Registrieren
+            <Gift size={16} /> {KOSTENLOS_LIMIT} Arbeitsblätter/Monat kostenlos registrieren
           </Link>
           <Link
             href="/login"
@@ -58,7 +51,9 @@ export default function LandingPage() {
             Anmelden
           </Link>
         </div>
-        <p className="mt-3 text-xs text-brand-50/80">Kein Konto, keine Kreditkarte nötig zum Ausprobieren.</p>
+        <p className="mt-3 text-xs text-brand-50/80">
+          Nur E-Mail + Passwort, keine Kreditkarte nötig zum Ausprobieren.
+        </p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
@@ -81,10 +76,16 @@ export default function LandingPage() {
           Zugang
         </h2>
         <p className="mb-6 text-center text-sm text-slate-500">
-          {TRIAL_LIMIT} Arbeitsblätter kostenlos und ohne Konto testen. Für regelmäßige Nutzung
-          danach eine Stufe wählen – das Kontingent wird nach Registrierung manuell freigeschaltet.
+          Jedes registrierte Konto bekommt automatisch {KOSTENLOS_LIMIT} Arbeitsblätter/Monat
+          kostenlos. Für regelmäßige Nutzung danach eine bezahlte Stufe anfragen – die
+          Freischaltung erfolgt manuell nach privat organisierter Bezahlung.
         </p>
-        <div className="mx-auto grid max-w-2xl gap-4 sm:grid-cols-2">
+        <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-card">
+            <div className="font-display text-lg font-semibold text-slate-800">Kostenlos</div>
+            <div className="mt-1 text-3xl font-semibold text-brand-700">0€</div>
+            <p className="mt-2 text-sm text-slate-500">{KOSTENLOS_LIMIT} Arbeitsblätter im Monat</p>
+          </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-card">
             <div className="font-display text-lg font-semibold text-slate-800">Starter</div>
             <div className="mt-1 text-3xl font-semibold text-brand-700">

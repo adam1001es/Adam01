@@ -106,43 +106,44 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
 
 - **Erster registrierter Account wird automatisch Admin** (es gibt noch keinen anderen Weg,
   Admin-Rechte zu vergeben) - dieser Account sollte also der/die Betreiber:in sein.
-- **Abo-Stufen** (siehe `lib/quota.ts`): „Starter" (30 Arbeitsblätter/Monat) und „Pro" (80/Monat).
-  Ein frisch registriertes Konto hat kein Abo (0 Arbeitsblätter erlaubt), bis ein Admin unter
-  `/admin` eine Stufe zuweist.
+- **Abo-Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 3
+  Arbeitsblätter/Monat - automatisch, ohne Admin-Freischaltung), „Starter" (30/Monat) und „Pro"
+  (80/Monat). Jedes frisch registrierte Konto startet automatisch auf „Kostenlos"; ein Admin
+  schaltet unter `/admin` bei Bedarf auf Starter/Pro hoch.
 - **Rollierender 30-Tage-Zyklus** ab dem individuellen Konto-Erstellungsdatum (nicht ab dem
   Kalendermonat) - jedes Konto hat also seinen eigenen Rhythmus.
-- Ist das Kontingent aufgebraucht oder kein Abo aktiv, wird das schon in `/new` sichtbar (Banner
-  + deaktivierter „Arbeitsblatt erstellen"-Button) und serverseitig in `/api/generate` **vor**
-  dem teuren Claude-Aufruf geprüft, damit ein blockiertes Konto keine API-Kosten verursacht.
-- **Nicht angemeldete Besucher** sehen auf `/` keine Login-Maske, sondern eine Produkt-/
-  Verkaufsseite (Funktionen, Starter-/Pro-Preise) mit Call-to-Action zu Registrierung/Login.
-- **`/admin`** ist auf Konten-Verwaltung ausgelegt: Kennzahlen (Konten gesamt, aktive Abos,
-  geschätzter Monatsumsatz), Suche nach E-Mail, Kontingent-Nutzung und Gesamtzahl erstellter
-  Arbeitsblätter je Konto, sowie Konten löschen (das eigene Admin-Konto ausgenommen - dessen
-  Arbeitsblätter bleiben beim Löschen eines Kontos erhalten, nur der Besitzer-Bezug entfällt).
+- Ist das Kontingent aufgebraucht, wird das schon in `/new` sichtbar (Banner + deaktivierter
+  „Arbeitsblatt erstellen"-Button) und serverseitig in `/api/generate` **vor** dem teuren
+  Claude-Aufruf geprüft, damit ein blockiertes Konto keine API-Kosten verursacht.
+- **Ein Login ist für jede Generierung Pflicht** - nicht angemeldete Besucher sehen auf `/`
+  keine Login-Maske, sondern eine Produkt-/Verkaufsseite (Funktionen, Kostenlos-/Starter-/
+  Pro-Preise) mit Call-to-Action zur (kostenlosen) Registrierung.
+- **`/admin`** ist auf Konten-Verwaltung ausgelegt: Kennzahlen (Konten gesamt, aktive bezahlte
+  Abos, geschätzter Monatsumsatz), Suche nach E-Mail, Kontingent-Nutzung und Gesamtzahl
+  erstellter Arbeitsblätter je Konto, sowie Konten löschen (das eigene Admin-Konto ausgenommen -
+  dessen Arbeitsblätter bleiben beim Löschen eines Kontos erhalten, nur der Besitzer-Bezug
+  entfällt).
 
-### Kostenlose Testversion ohne Konto
+### Missbrauchsschutz für das kostenlose Kontingent
 
-Damit Lehrpersonen die Seite vor einer Registrierung ausprobieren können, dürfen nicht
-angemeldete Besucher auf `/new` bis zu `TRIAL_LIMIT` (`lib/trial.ts`, aktuell 3) Arbeitsblätter
-**pro Kalendermonat** ohne Konto erstellen und ansehen/exportieren (`/worksheet/[id]` +
-PDF/Word-Export sind für Arbeitsblätter ohne Besitzer öffentlich - alles andere bleibt strikt
-konto-gebunden). Favorisieren, Bearbeiten und Löschen bleiben Konten vorbehalten.
+Ein Konto zu registrieren ist selbst kostenlos (nur E-Mail + Passwort) - ohne weitere Sperre
+könnte sich also jemand beliebig viele Konten anlegen, um ein Vielfaches des Gratis-Kontingents
+zu bekommen. Deshalb wird die **kostenlose** Stufe (nicht Starter/Pro - die wurden von einem
+Admin manuell freigeschaltet) zusätzlich über zwei unabhängige, browser-/netzwerkbasierte Zähler
+begrenzt (`lib/trial.ts`) - blockiert wird, sobald **einer** der beiden das Limit erreicht,
+unabhängig davon, welches Konto gerade eingeloggt ist:
+- **Cookie** (Browser, `trial_usage`) - verhindert das naive "neues Konto, gleicher Browser".
+- **IP-Adresse** (Server, Tabelle `TrialUsage`, pro Monat) - verhindert, dass Cookies löschen,
+  ein privater Tab oder ein neues Gerät allein das Kontingent vervielfachen.
 
-Das Kontingent wird über **zwei unabhängige Zähler** durchgesetzt - blockiert wird, sobald
-**einer** der beiden aufgebraucht ist:
-- **Cookie** (Browser, `trial_usage`) - verhindert das naive "Seite neu laden".
-- **IP-Adresse** (Server, Tabelle `TrialUsage`, pro Monat) - verhindert, dass Cookies
-  löschen, ein privater Tab oder ein neues Gerät allein das Kontingent zurücksetzen.
-
-Kein Login, kein Geräte-Fingerprinting. Bekannte, bewusst in Kauf genommene Grenze: mehrere
-Lehrpersonen im selben Schul-WLAN teilen sich oft dieselbe öffentliche IP-Adresse und damit
-faktisch ein gemeinsames Testkontingent - und wer über Mobilfunknetz statt WLAN testet oder ein
-VPN nutzt, bekommt trotzdem ein separates Kontingent. Eine wirklich wasserdichte
-Einzelpersonen-Grenze ohne jede Form von Identität (Konto, E-Mail, Telefonnummer) gibt es
-technisch nicht - das ist der bewusst gewählte Kompromiss zwischen völlig reibungslosem
-Ausprobieren und Missbrauchsschutz. IP-Adressen werden dafür nur mit Monat + Zähler gespeichert,
-nicht mit weiteren Daten verknüpft.
+Kein Geräte-Fingerprinting. Bekannte, bewusst in Kauf genommene Grenze: mehrere Lehrpersonen im
+selben Schul-WLAN teilen sich oft dieselbe öffentliche IP-Adresse und damit faktisch ein
+gemeinsames Gratis-Kontingent (unabhängig von ihren jeweils eigenen Konten) - und wer über
+Mobilfunknetz statt WLAN testet oder ein VPN nutzt, umgeht das zusätzlich. Eine wirklich
+wasserdichte Einzelpersonen-Grenze gibt es technisch nicht, ohne stärkere Identitätsprüfung
+(z.B. E-Mail-Bestätigung oder Telefonnummer) zu verlangen - das ist der bewusst gewählte
+Kompromiss zwischen Registrierungs-Reibungslosigkeit und Missbrauchsschutz. IP-Adressen werden
+dafür nur mit Monat + Zähler gespeichert, nicht mit weiteren Daten verknüpft.
 
 ## Arbeitsblätter verwalten
 

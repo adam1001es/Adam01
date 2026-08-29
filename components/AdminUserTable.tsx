@@ -63,7 +63,7 @@ export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
                   {r.createdAt.toLocaleDateString("de-AT")}
                 </td>
                 <td className="px-5 py-3 text-slate-500">
-                  {r.tier ? `${r.verbraucht} / ${r.limit}` : "–"}
+                  {r.verbraucht} / {r.limit}
                 </td>
                 <td className="px-5 py-3 text-slate-500">{r.gesamtErstellt}</td>
                 <td className="px-5 py-3">

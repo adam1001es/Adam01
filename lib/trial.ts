@@ -1,18 +1,21 @@
 import { headers, cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { KOSTENLOS_LIMIT } from "@/lib/quota";
 
 /**
- * Kostenlose Testversion ohne Konto: max. TRIAL_LIMIT Arbeitsblätter pro Kalendermonat.
+ * Zusätzliche Absicherung des kostenlosen Gratis-Kontingents (siehe lib/quota.ts): ein Login
+ * ist für jede Generierung Pflicht (app/api/generate), aber wer sich mehrere Konten anlegt,
+ * würde sonst ein Vielfaches von KOSTENLOS_LIMIT bekommen. Deshalb wird die Gratis-Nutzung
+ * ZUSÄTZLICH pro Browser/IP begrenzt - unabhängig davon, welches Konto gerade eingeloggt ist.
  * Zwei unabhängige Zähler, jeweils der niedrigere gewinnt (blockiert also schon, wenn EINER
  * der beiden aufgebraucht ist):
- * - Cookie (Browser) - verhindert das naive "einfach neu laden".
+ * - Cookie (Browser) - verhindert das naive "neues Konto, gleicher Browser".
  * - IP-Adresse (Server, DB-gestützt) - verhindert Cookies löschen / neues Gerät / Inkognito.
- * Kein Login, kein Gerätefingerprinting. Bekannte Grenze: mehrere Personen im selben
- * Schul-WLAN teilen sich eine öffentliche IP und damit faktisch ein gemeinsames Kontingent;
- * das ist ein bewusst akzeptierter Kompromiss (Reibungslosigkeit vs. Robustheit), kein Bug.
+ * Kein Geräte-Fingerprinting. Bekannte Grenze: mehrere Personen im selben Schul-WLAN teilen
+ * sich eine öffentliche IP und damit faktisch ein gemeinsames Gratis-Kontingent; das ist ein
+ * bewusst akzeptierter Kompromiss (Reibungslosigkeit vs. Robustheit), kein Bug. Bezahlte Abos
+ * (tier gesetzt) sind von dieser Zusatzsperre ausgenommen - siehe app/api/generate.
  */
-export const TRIAL_LIMIT = 3;
-
 const TRIAL_COOKIE = "trial_usage";
 const TRIAL_COOKIE_TAGE = 60;
 
@@ -58,7 +61,7 @@ export async function getTrialStatus(): Promise<TrialStatus> {
   const cookieCount = getCookieCount();
   const ipCount = await getIpCount(getClientIp());
   const genutzt = Math.max(cookieCount, ipCount);
-  return { verbleibend: Math.max(0, TRIAL_LIMIT - genutzt), cookieCount, ipCount };
+  return { verbleibend: Math.max(0, KOSTENLOS_LIMIT - genutzt), cookieCount, ipCount };
 }
 
 /** Nur aus Route Handlers aufrufbar (Server Components dürfen keine Cookies setzen). */
