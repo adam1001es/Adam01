@@ -193,7 +193,7 @@ function MusterStreifen({ layout }: { layout: LayoutConfig }) {
   const inhaltBreite = A4_BREITE_PT - 2 * seitenPolsterung;
   return (
     <View style={styles.musterStreifen}>
-      <IslamicPatternStripPdf hoehe={16} breite={inhaltBreite} />
+      <IslamicPatternStripPdf variante={layout.musterVariante} hoehe={16} breite={inhaltBreite} />
     </View>
   );
 }

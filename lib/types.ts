@@ -65,6 +65,9 @@ export type Template = (typeof TEMPLATES)[number];
 export const FARBMODI = ["farbe", "schwarzweiss"] as const;
 export type Farbmodus = (typeof FARBMODI)[number];
 
+export const MUSTER_VARIANTEN = ["sterne", "sechseck", "kalligrafie", "verlauf"] as const;
+export type MusterVariante = (typeof MUSTER_VARIANTEN)[number];
+
 export const LayoutConfigSchema = z.object({
   template: z.enum(TEMPLATES).default("klassisch"),
   schulname: z.string().optional(),
@@ -72,6 +75,7 @@ export const LayoutConfigSchema = z.object({
   schriftgroesse: z.enum(["normal", "gross"]).default("normal"),
   zeigeIslamischesDatum: z.boolean().default(true),
   zeigeMuster: z.boolean().default(true),
+  musterVariante: z.enum(MUSTER_VARIANTEN).default("sterne"),
   zeigeLernziel: z.boolean().default(false),
   farbmodus: z.enum(FARBMODI).default("farbe"),
 });

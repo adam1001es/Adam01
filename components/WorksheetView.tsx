@@ -62,7 +62,7 @@ export default function WorksheetView({
 
       {layout.zeigeMuster && (
         <div className="mb-4">
-          <IslamicPatternStrip hoehe={28} />
+          <IslamicPatternStrip variante={layout.musterVariante} hoehe={28} />
         </div>
       )}
 

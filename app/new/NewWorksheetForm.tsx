@@ -16,7 +16,15 @@ import {
   Palette,
   Images,
 } from "lucide-react";
-import { AUFGABEN_TYPEN, TEMPLATES, FARBMODI, Farbmodus, WorksheetContent } from "@/lib/types";
+import {
+  AUFGABEN_TYPEN,
+  TEMPLATES,
+  FARBMODI,
+  Farbmodus,
+  MUSTER_VARIANTEN,
+  MusterVariante,
+  WorksheetContent,
+} from "@/lib/types";
 import {
   THEMENBEREICHE,
   THEMENBEREICH_KEYS,
@@ -25,9 +33,11 @@ import {
   istFrueheVolksschulstufe,
 } from "@/lib/curriculum";
 import WorksheetView from "@/components/WorksheetView";
+import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import SectionCard from "@/components/SectionCard";
 import { inputClass, labelClass } from "@/lib/formStyles";
+import { MUSTER_LABEL } from "@/lib/patternStrip";
 
 const ANDERE_SCHULSTUFE = "__andere__";
 
@@ -109,6 +119,7 @@ export default function NewWorksheetForm() {
   const [schriftgroesse, setSchriftgroesse] = useState<"normal" | "gross">("normal");
   const [zeigeIslamischesDatum, setZeigeIslamischesDatum] = useState(true);
   const [zeigeMuster, setZeigeMuster] = useState(true);
+  const [musterVariante, setMusterVariante] = useState<MusterVariante>("sterne");
   const [zeigeLernziel, setZeigeLernziel] = useState(false);
   const [farbmodus, setFarbmodus] = useState<Farbmodus>("farbe");
 
@@ -147,6 +158,7 @@ export default function NewWorksheetForm() {
             schriftgroesse,
             zeigeIslamischesDatum,
             zeigeMuster,
+            musterVariante,
             zeigeLernziel,
             farbmodus,
           },
@@ -171,6 +183,7 @@ export default function NewWorksheetForm() {
     schriftgroesse,
     zeigeIslamischesDatum,
     zeigeMuster,
+    musterVariante,
     zeigeLernziel,
     farbmodus,
   };
@@ -424,6 +437,37 @@ export default function NewWorksheetForm() {
               description="Dezenter Zierstreifen im Kopfbereich"
             />
           </div>
+          {zeigeMuster && (
+            <div className="mt-4">
+              <span className={labelClass}>Musterauswahl</span>
+              <div className="grid grid-cols-2 gap-2">
+                {MUSTER_VARIANTEN.map((v) => {
+                  const active = musterVariante === v;
+                  return (
+                    <button
+                      type="button"
+                      key={v}
+                      onClick={() => setMusterVariante(v)}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border px-3 py-2.5 transition ${
+                        active
+                          ? "border-brand-600 bg-brand-50"
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex h-5 w-full items-center justify-center overflow-hidden">
+                        <IslamicPatternStrip variante={v} hoehe={20} />
+                      </div>
+                      <span
+                        className={`text-xs font-medium ${active ? "text-brand-700" : "text-slate-500"}`}
+                      >
+                        {MUSTER_LABEL[v]}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </SectionCard>
 
         {error && (

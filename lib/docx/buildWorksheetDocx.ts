@@ -10,27 +10,33 @@ import {
   AlignmentType,
   BorderStyle,
 } from "docx";
-import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
+import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 
-const MUSTERSTREIFEN_BILD_PFAD = path.join(process.cwd(), "public/patterns/leiste-schwarz.png");
-// public/patterns/leiste-schwarz.png ist eine einmalig serverseitig gerenderte Ansicht des
-// Vektor-Streifens (lib/patternStrip.ts) - fix auf die bekannte Satzspiegelbreite (A4, Standard-
-// Ränder) zugeschnitten, da Word (anders als Web/PDF) nicht responsiv auf Vektor-Ebene skaliert.
+// Jede public/patterns/leiste-*.png ist eine einmalig serverseitig gerenderte Ansicht des
+// jeweiligen Vektor-Streifens (lib/patternStrip.ts) - fix auf die bekannte Satzspiegelbreite
+// (A4, Standard-Ränder) zugeschnitten, da Word (anders als Web/PDF) nicht responsiv auf
+// Vektor-Ebene skaliert. Alle vier auf dasselbe Seitenverhältnis gerendert.
+const MUSTERSTREIFEN_BILD_PFADE: Record<MusterVariante, string> = {
+  sterne: path.join(process.cwd(), "public/patterns/leiste-sterne.png"),
+  sechseck: path.join(process.cwd(), "public/patterns/leiste-sechseck.png"),
+  kalligrafie: path.join(process.cwd(), "public/patterns/leiste-kalligrafie.png"),
+  verlauf: path.join(process.cwd(), "public/patterns/leiste-verlauf.png"),
+};
 const MUSTERSTREIFEN_BILD_SEITENVERHAELTNIS = 1740 / 84;
 
 /**
- * Über die volle Satzspiegelbreite verlaufender, an den Enden spitz zulaufender Zierstreifen -
- * fließt normal mit dem Text statt frei positioniert zu sein, damit er nie mit Titel/Text
- * kollidieren kann. Word bekommt (anders als Web/PDF) nie einen farbigen Kopfbereich-Hintergrund,
- * daher reicht hier immer die dunkle Bildvariante.
+ * Über die volle Satzspiegelbreite verlaufender Zierstreifen - fließt normal mit dem Text statt
+ * frei positioniert zu sein, damit er nie mit Titel/Text kollidieren kann. Word bekommt (anders
+ * als Web/PDF) nie einen farbigen Kopfbereich-Hintergrund, daher reicht hier immer die dunkle
+ * Bildvariante.
  */
-function musterDivider(): Paragraph {
+function musterDivider(variante: MusterVariante): Paragraph {
   const bildBreite = 580;
   const bildHoehe = Math.round(bildBreite / MUSTERSTREIFEN_BILD_SEITENVERHAELTNIS);
-  const bildDaten = fs.readFileSync(MUSTERSTREIFEN_BILD_PFAD);
+  const bildDaten = fs.readFileSync(MUSTERSTREIFEN_BILD_PFADE[variante]);
 
   return new Paragraph({
     alignment: AlignmentType.CENTER,
@@ -113,7 +119,7 @@ export async function buildWorksheetDocx(
   );
 
   if (layout.zeigeMuster) {
-    children.push(musterDivider());
+    children.push(musterDivider(layout.musterVariante));
   }
 
   children.push(
