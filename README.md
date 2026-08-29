@@ -125,16 +125,24 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
 
 Damit Lehrpersonen die Seite vor einer Registrierung ausprobieren können, dürfen nicht
 angemeldete Besucher auf `/new` bis zu `TRIAL_LIMIT` (`lib/trial.ts`, aktuell 3) Arbeitsblätter
-ohne Konto erstellen und ansehen/exportieren (`/worksheet/[id]` + PDF/Word-Export sind für
-Arbeitsblätter ohne Besitzer öffentlich - alles andere bleibt strikt konto-gebunden). Favorisieren,
-Bearbeiten und Löschen bleiben Konten vorbehalten.
+**pro Kalendermonat** ohne Konto erstellen und ansehen/exportieren (`/worksheet/[id]` +
+PDF/Word-Export sind für Arbeitsblätter ohne Besitzer öffentlich - alles andere bleibt strikt
+konto-gebunden). Favorisieren, Bearbeiten und Löschen bleiben Konten vorbehalten.
 
-Das Kontingent wird über ein einfaches Cookie gezählt (`trial_count`, 90 Tage) - **kein
-Login, kein IP-/Geräte-Tracking**. Das ist bewusst simpel und keine harte Abuse-Schranke: Wer
-Cookies löscht oder einen privaten Tab öffnet, bekommt ein neues Testkontingent. Für eine echte
-Schule/Kollegium mit ein paar Dutzend Nutzer:innen ist das ein akzeptabler Kompromiss zwischen
-Reibungslosigkeit und Kostenschutz; bei ernsthaftem Missbrauch müsste das durch etwas Stärkeres
-(z.B. eine echte IP-Rate-Begrenzung) ersetzt werden.
+Das Kontingent wird über **zwei unabhängige Zähler** durchgesetzt - blockiert wird, sobald
+**einer** der beiden aufgebraucht ist:
+- **Cookie** (Browser, `trial_usage`) - verhindert das naive "Seite neu laden".
+- **IP-Adresse** (Server, Tabelle `TrialUsage`, pro Monat) - verhindert, dass Cookies
+  löschen, ein privater Tab oder ein neues Gerät allein das Kontingent zurücksetzen.
+
+Kein Login, kein Geräte-Fingerprinting. Bekannte, bewusst in Kauf genommene Grenze: mehrere
+Lehrpersonen im selben Schul-WLAN teilen sich oft dieselbe öffentliche IP-Adresse und damit
+faktisch ein gemeinsames Testkontingent - und wer über Mobilfunknetz statt WLAN testet oder ein
+VPN nutzt, bekommt trotzdem ein separates Kontingent. Eine wirklich wasserdichte
+Einzelpersonen-Grenze ohne jede Form von Identität (Konto, E-Mail, Telefonnummer) gibt es
+technisch nicht - das ist der bewusst gewählte Kompromiss zwischen völlig reibungslosem
+Ausprobieren und Missbrauchsschutz. IP-Adressen werden dafür nur mit Monat + Zähler gespeichert,
+nicht mit weiteren Daten verknüpft.
 
 ## Arbeitsblätter verwalten
 

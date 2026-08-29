@@ -4,7 +4,7 @@ import { GenerateRequestSchema } from "@/lib/types";
 import { generateAndVerifyWorksheet } from "@/lib/generateWorksheet";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
-import { TRIAL_LIMIT, getTrialCount, incrementTrialCount } from "@/lib/trial";
+import { TRIAL_LIMIT, getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
         : "Dein Konto hat noch kein aktives Abo. Wende dich an die Person, die den Zugang verwaltet.";
       return NextResponse.json({ error: grund }, { status: 403 });
     }
-  } else if (getTrialCount() >= TRIAL_LIMIT) {
+  } else if ((await getTrialStatus()).verbleibend <= 0) {
     return NextResponse.json(
       {
-        error: `Die kostenlose Testversion (${TRIAL_LIMIT} Arbeitsblätter ohne Konto) ist aufgebraucht. Bitte registrieren, um weiterzumachen.`,
+        error: `Die kostenlose Testversion (${TRIAL_LIMIT} Arbeitsblätter ohne Konto pro Monat) ist aufgebraucht. Bitte registrieren, um weiterzumachen.`,
       },
       { status: 403 },
     );
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (!user) incrementTrialCount();
+    if (!user) await incrementTrialUsage();
 
     return NextResponse.json({ id: worksheet.id });
   } catch (err) {

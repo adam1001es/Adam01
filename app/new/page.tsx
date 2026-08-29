@@ -1,7 +1,7 @@
 import NewWorksheetForm from "./NewWorksheetForm";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
-import { TRIAL_LIMIT, getTrialCount } from "@/lib/trial";
+import { TRIAL_LIMIT, getTrialStatus } from "@/lib/trial";
 import KontingentBanner from "@/components/KontingentBanner";
 import TrialBanner from "@/components/TrialBanner";
 
@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function NewWorksheetPage() {
   const user = await getSessionUser();
   const kontingent = user ? await getKontingent(user) : null;
-  const trialRemaining = Math.max(0, TRIAL_LIMIT - getTrialCount());
-  const kannErstellen = kontingent ? kontingent.verbleibend > 0 : trialRemaining > 0;
+  const trialStatus = user ? null : await getTrialStatus();
+  const kannErstellen = kontingent ? kontingent.verbleibend > 0 : (trialStatus?.verbleibend ?? 0) > 0;
 
   return (
     <main>
@@ -27,7 +27,7 @@ export default async function NewWorksheetPage() {
         {kontingent ? (
           <KontingentBanner kontingent={kontingent} />
         ) : (
-          <TrialBanner remaining={trialRemaining} limit={TRIAL_LIMIT} />
+          <TrialBanner remaining={trialStatus!.verbleibend} limit={TRIAL_LIMIT} />
         )}
       </div>
       <NewWorksheetForm kannErstellen={kannErstellen} />

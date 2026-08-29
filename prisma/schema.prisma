@@ -48,3 +48,16 @@ model Session {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+// Zählt die kostenlosen Testversion-Generierungen ohne Konto pro IP-Adresse und Kalendermonat
+// (siehe lib/trial.ts) - zusätzlich zum Cookie-Zähler, damit Cookies löschen/neues Gerät allein
+// nicht reicht, um das Kontingent zu umgehen. Nur zur Missbrauchsprävention gespeichert.
+model TrialUsage {
+  id        String   @id @default(cuid())
+  ip        String
+  monat     String // "YYYY-MM"
+  anzahl    Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([ip, monat])
+}
