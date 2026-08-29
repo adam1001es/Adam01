@@ -427,8 +427,8 @@ export default function NewWorksheetForm() {
             <ToggleSwitch
               checked={zeigeIslamischesDatum}
               onChange={setZeigeIslamischesDatum}
-              label="Islamisches Datum (Hijri) anzeigen"
-              description="Neben dem gregorianischen Datum im Kopfbereich"
+              label="Datum im Kopfbereich anzeigen (gregorianisch + Hijri)"
+              description="Nur sinnvoll, wenn am Drucktag ausgeteilt wird - sonst bekommt der Schüler stattdessen ein Datumsfeld zum Selbst-Ausfüllen"
             />
             <ToggleSwitch
               checked={zeigeMuster}

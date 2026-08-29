@@ -125,7 +125,9 @@ export async function buildWorksheetDocx(
     new Paragraph({
       children: [
         new TextRun({
-          text: "Name: _______________________   Klasse: __________   Datum: __________",
+          text: layout.zeigeIslamischesDatum
+            ? "Name: _______________________   Klasse: __________"
+            : "Name: _______________________   Klasse: __________   Datum: __________",
           size: baseSize - 2,
         }),
       ],

@@ -200,7 +200,12 @@ function MusterStreifen({ layout }: { layout: LayoutConfig }) {
 
 function NameZeile({ layout }: { layout: LayoutConfig }) {
   const styles = buildStyles(layout);
-  return <Text style={styles.nameZeile}>Name: _______________________  Klasse: __________  Datum: __________</Text>;
+  return (
+    <Text style={styles.nameZeile}>
+      Name: _______________________  Klasse: __________
+      {!layout.zeigeIslamischesDatum && "  Datum: __________"}
+    </Text>
+  );
 }
 
 function AufgabenListe({

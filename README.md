@@ -66,7 +66,11 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
 
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
-  Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
+  Mondsichtung (`lib/hijri.ts`). Optional abschaltbar - sinnvoll nur, wenn das Arbeitsblatt am
+  Drucktag selbst ausgeteilt wird. Ist das Datum im Kopfbereich eingeschaltet, entfällt
+  automatisch das leere „Datum: ______“-Feld in der Zeile „Name / Klasse / Datum“ (der Schüler
+  würde dort ohnehin ein anderes, eigenes Datum eintragen als das oben schon aufgedruckte); ist
+  es ausgeschaltet, bleibt das Feld zum Selbst-Ausfüllen wie gewohnt bestehen.
 - **Musterstreifen**: ein Zierstreifen im Girih-Stil (wie klassische maurische/Alhambra-
   Randmuster) unter dem Kopfbereich, mit drei auswählbaren Varianten (`lib/patternStrip.ts`,
   Auswahl im Erstellen-Formular mit Live-Vorschau je Muster):
