@@ -88,7 +88,7 @@ export const GenerateRequestSchema = z.object({
   thema: z.string().min(1),
   schulstufe: z.string().min(1),
   themenbereich: ThemenbereichSchema.default("gemischt"),
-  anzahlAufgaben: z.number().min(1).max(15).default(6),
+  anzahlAufgaben: z.number().min(1).max(10).default(6),
   aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN)).min(1),
   zusatzhinweise: z.string().optional(),
   layout: LayoutConfigSchema,

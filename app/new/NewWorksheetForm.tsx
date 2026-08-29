@@ -40,6 +40,7 @@ import { inputClass, labelClass } from "@/lib/formStyles";
 import { MUSTER_LABEL } from "@/lib/patternStrip";
 
 const ANDERE_SCHULSTUFE = "__andere__";
+const ANZAHL_OPTIONEN = [3, 4, 5, 6, 7, 8, 9, 10];
 
 const VORSCHAU_INHALT: WorksheetContent = {
   titel: "Beispiel: Die 5 Säulen des Islam",
@@ -276,17 +277,29 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
         </SectionCard>
 
         <SectionCard icon={ListChecks} title="Aufgaben" subtitle="Umfang und Aufgabentypen">
-          <label className="mb-5 block max-w-[10rem]">
+          <div className="mb-5">
             <span className={labelClass}>Anzahl Aufgaben</span>
-            <input
-              type="number"
-              min={1}
-              max={15}
-              className={inputClass}
-              value={anzahlAufgaben}
-              onChange={(e) => setAnzahlAufgaben(Number(e.target.value))}
-            />
-          </label>
+            <div className="flex flex-wrap gap-2">
+              {ANZAHL_OPTIONEN.map((n) => (
+                <button
+                  type="button"
+                  key={n}
+                  onClick={() => setAnzahlAufgaben(n)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-medium transition ${
+                    anzahlAufgaben === n
+                      ? "border-brand-600 bg-brand-50 text-brand-700"
+                      : "border-slate-200 text-slate-500 hover:border-slate-300"
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+              Wie viele sinnvoll sind, hängt von Thema und Schulstufe ab - für jüngere Klassen
+              oder ausführlichere Aufgabentypen (z.B. offene Fragen) eher weniger wählen.
+            </p>
+          </div>
           <span className={labelClass}>Aufgabentypen</span>
           <div className="flex flex-wrap gap-2">
             {AUFGABEN_TYPEN.map((typ) => {
