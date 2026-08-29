@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Sparkles, ShieldCheck, FileDown, CalendarDays, CheckCircle2 } from "lucide-react";
+import { Sparkles, ShieldCheck, FileDown, CalendarDays, CheckCircle2, Gift } from "lucide-react";
 import { TIER_QUOTA, TIER_PREIS_EUR } from "@/lib/quota";
+import { TRIAL_LIMIT } from "@/lib/trial";
 
 const FEATURES = [
   {
@@ -39,10 +40,16 @@ export default function LandingPage() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
-            href="/register"
-            className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-card transition hover:shadow-card-hover"
+            href="/new"
+            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-card transition hover:shadow-card-hover"
           >
-            Jetzt registrieren
+            <Gift size={16} /> {TRIAL_LIMIT} Arbeitsblätter kostenlos testen
+          </Link>
+          <Link
+            href="/register"
+            className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            Registrieren
           </Link>
           <Link
             href="/login"
@@ -51,6 +58,7 @@ export default function LandingPage() {
             Anmelden
           </Link>
         </div>
+        <p className="mt-3 text-xs text-brand-50/80">Kein Konto, keine Kreditkarte nötig zum Ausprobieren.</p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2">
@@ -73,8 +81,8 @@ export default function LandingPage() {
           Zugang
         </h2>
         <p className="mb-6 text-center text-sm text-slate-500">
-          Kein kostenloses Ausprobieren ohne Konto – jedes Arbeitsblatt zählt auf ein zugewiesenes
-          Kontingent. Nach der Registrierung wird dein Zugang manuell freigeschaltet.
+          {TRIAL_LIMIT} Arbeitsblätter kostenlos und ohne Konto testen. Für regelmäßige Nutzung
+          danach eine Stufe wählen – das Kontingent wird nach Registrierung manuell freigeschaltet.
         </p>
         <div className="mx-auto grid max-w-2xl gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-card">

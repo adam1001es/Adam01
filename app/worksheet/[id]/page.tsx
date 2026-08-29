@@ -33,10 +33,18 @@ const VERIFICATION_STYLE: Record<
 
 export default async function WorksheetPage({ params }: { params: { id: string } }) {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
-
   const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!worksheet || worksheet.userId !== user.id) notFound();
+  if (!worksheet) notFound();
+
+  // Arbeitsblätter aus der kostenlosen Testversion (ohne Konto) haben keinen Besitzer
+  // (userId null) und sind daher öffentlich einsehbar/exportierbar; alles andere bleibt
+  // strikt an das erstellende Konto gebunden.
+  const isOwner = user !== null && worksheet.userId === user.id;
+  const isPublicTrial = worksheet.userId === null;
+  if (!isOwner && !isPublicTrial) {
+    if (!user) redirect("/login");
+    notFound();
+  }
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
@@ -55,13 +63,17 @@ export default async function WorksheetPage({ params }: { params: { id: string }
           <ArrowLeft size={15} /> Zur Übersicht
         </Link>
         <div className="flex items-center gap-2">
-          <FavoritButton worksheetId={worksheet.id} initialFavorit={worksheet.favorit} />
-          <Link
-            href={`/worksheet/${worksheet.id}/edit`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
-          >
-            <Pencil size={15} /> Bearbeiten
-          </Link>
+          {isOwner && (
+            <>
+              <FavoritButton worksheetId={worksheet.id} initialFavorit={worksheet.favorit} />
+              <Link
+                href={`/worksheet/${worksheet.id}/edit`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
+              >
+                <Pencil size={15} /> Bearbeiten
+              </Link>
+            </>
+          )}
           <a
             href={`/api/worksheet/${worksheet.id}/pdf`}
             target="_blank"
@@ -75,9 +87,21 @@ export default async function WorksheetPage({ params }: { params: { id: string }
           >
             <FileType2 size={15} /> Word (.docx)
           </a>
-          <DeleteButton worksheetId={worksheet.id} titel={content.titel} redirectTo="/" variant="button" />
+          {isOwner && (
+            <DeleteButton worksheetId={worksheet.id} titel={content.titel} redirectTo="/" variant="button" />
+          )}
         </div>
       </div>
+
+      {isPublicTrial && (
+        <div className="no-print mb-6 rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-800 shadow-sm">
+          Das ist ein Ergebnis aus der kostenlosen Testversion.{" "}
+          <Link href="/register" className="font-medium underline">
+            Jetzt registrieren
+          </Link>
+          , um Arbeitsblätter zu speichern, zu bearbeiten und zu favorisieren.
+        </div>
+      )}
 
       <div className={`no-print mb-6 flex gap-3 rounded-xl border p-4 text-sm shadow-sm ${vStyle.className}`}>
         <VIcon size={19} className="mt-0.5 shrink-0" />

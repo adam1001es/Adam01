@@ -4,12 +4,10 @@ import { GenerateRequestSchema } from "@/lib/types";
 import { generateAndVerifyWorksheet } from "@/lib/generateWorksheet";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
+import { TRIAL_LIMIT, getTrialCount, incrementTrialCount } from "@/lib/trial";
 
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
-  if (!user) {
-    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
-  }
 
   let body: unknown;
   try {
@@ -27,14 +25,23 @@ export async function POST(request: NextRequest) {
   }
   const req = parsed.data;
 
-  // Kontingent VOR dem teuren Claude-Aufruf prüfen, damit ein blockiertes Konto keine
-  // API-Kosten verursacht.
-  const kontingent = await getKontingent(user);
-  if (kontingent.verbleibend <= 0) {
-    const grund = kontingent.tier
-      ? `Dein Kontingent für diesen Zyklus (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
-      : "Dein Konto hat noch kein aktives Abo. Wende dich an die Person, die den Zugang verwaltet.";
-    return NextResponse.json({ error: grund }, { status: 403 });
+  // Kontingent/Testversion VOR dem teuren Claude-Aufruf prüfen, damit ein blockiertes
+  // Konto/Testkontingent keine API-Kosten verursacht.
+  if (user) {
+    const kontingent = await getKontingent(user);
+    if (kontingent.verbleibend <= 0) {
+      const grund = kontingent.tier
+        ? `Dein Kontingent für diesen Zyklus (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
+        : "Dein Konto hat noch kein aktives Abo. Wende dich an die Person, die den Zugang verwaltet.";
+      return NextResponse.json({ error: grund }, { status: 403 });
+    }
+  } else if (getTrialCount() >= TRIAL_LIMIT) {
+    return NextResponse.json(
+      {
+        error: `Die kostenlose Testversion (${TRIAL_LIMIT} Arbeitsblätter ohne Konto) ist aufgebraucht. Bitte registrieren, um weiterzumachen.`,
+      },
+      { status: 403 },
+    );
   }
 
   try {
@@ -51,9 +58,11 @@ export async function POST(request: NextRequest) {
         contentJson: JSON.stringify(content),
         verification: JSON.stringify(verification),
         status: verification.status === "fehler" ? "verworfen" : "geprueft",
-        userId: user.id,
+        userId: user?.id,
       },
     });
+
+    if (!user) incrementTrialCount();
 
     return NextResponse.json({ id: worksheet.id });
   } catch (err) {

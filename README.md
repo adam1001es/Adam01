@@ -115,12 +115,26 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
   + deaktivierter „Arbeitsblatt erstellen"-Button) und serverseitig in `/api/generate` **vor**
   dem teuren Claude-Aufruf geprüft, damit ein blockiertes Konto keine API-Kosten verursacht.
 - **Nicht angemeldete Besucher** sehen auf `/` keine Login-Maske, sondern eine Produkt-/
-  Verkaufsseite (Funktionen, Starter-/Pro-Preise) mit Call-to-Action zu Registrierung/Login - kein
-  kostenloses Ausprobieren ohne Konto möglich, jedes Konto startet ohne Kontingent.
+  Verkaufsseite (Funktionen, Starter-/Pro-Preise) mit Call-to-Action zu Registrierung/Login.
 - **`/admin`** ist auf Konten-Verwaltung ausgelegt: Kennzahlen (Konten gesamt, aktive Abos,
   geschätzter Monatsumsatz), Suche nach E-Mail, Kontingent-Nutzung und Gesamtzahl erstellter
   Arbeitsblätter je Konto, sowie Konten löschen (das eigene Admin-Konto ausgenommen - dessen
   Arbeitsblätter bleiben beim Löschen eines Kontos erhalten, nur der Besitzer-Bezug entfällt).
+
+### Kostenlose Testversion ohne Konto
+
+Damit Lehrpersonen die Seite vor einer Registrierung ausprobieren können, dürfen nicht
+angemeldete Besucher auf `/new` bis zu `TRIAL_LIMIT` (`lib/trial.ts`, aktuell 3) Arbeitsblätter
+ohne Konto erstellen und ansehen/exportieren (`/worksheet/[id]` + PDF/Word-Export sind für
+Arbeitsblätter ohne Besitzer öffentlich - alles andere bleibt strikt konto-gebunden). Favorisieren,
+Bearbeiten und Löschen bleiben Konten vorbehalten.
+
+Das Kontingent wird über ein einfaches Cookie gezählt (`trial_count`, 90 Tage) - **kein
+Login, kein IP-/Geräte-Tracking**. Das ist bewusst simpel und keine harte Abuse-Schranke: Wer
+Cookies löscht oder einen privaten Tab öffnet, bekommt ein neues Testkontingent. Für eine echte
+Schule/Kollegium mit ein paar Dutzend Nutzer:innen ist das ein akzeptabler Kompromiss zwischen
+Reibungslosigkeit und Kostenschutz; bei ernsthaftem Missbrauch müsste das durch etwas Stärkeres
+(z.B. eine echte IP-Rate-Begrenzung) ersetzt werden.
 
 ## Arbeitsblätter verwalten
 

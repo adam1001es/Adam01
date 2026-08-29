@@ -1,16 +1,17 @@
-import { redirect } from "next/navigation";
 import NewWorksheetForm from "./NewWorksheetForm";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
+import { TRIAL_LIMIT, getTrialCount } from "@/lib/trial";
 import KontingentBanner from "@/components/KontingentBanner";
+import TrialBanner from "@/components/TrialBanner";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewWorksheetPage() {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
-
-  const kontingent = await getKontingent(user);
+  const kontingent = user ? await getKontingent(user) : null;
+  const trialRemaining = Math.max(0, TRIAL_LIMIT - getTrialCount());
+  const kannErstellen = kontingent ? kontingent.verbleibend > 0 : trialRemaining > 0;
 
   return (
     <main>
@@ -23,9 +24,13 @@ export default async function NewWorksheetPage() {
         </p>
       </div>
       <div className="mb-6">
-        <KontingentBanner kontingent={kontingent} />
+        {kontingent ? (
+          <KontingentBanner kontingent={kontingent} />
+        ) : (
+          <TrialBanner remaining={trialRemaining} limit={TRIAL_LIMIT} />
+        )}
       </div>
-      <NewWorksheetForm kannErstellen={kontingent.verbleibend > 0} />
+      <NewWorksheetForm kannErstellen={kannErstellen} />
     </main>
   );
 }

@@ -11,14 +11,18 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const user = await getSessionUser();
-  if (!user) {
-    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
+  const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
+  if (!worksheet) {
+    return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 
-  const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!worksheet || worksheet.userId !== user.id) {
-    return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
+  // Arbeitsblätter aus der kostenlosen Testversion (ohne Konto) haben keinen Besitzer und sind
+  // öffentlich exportierbar; alles andere bleibt an das erstellende Konto gebunden.
+  if (worksheet.userId !== null) {
+    const user = await getSessionUser();
+    if (!user || worksheet.userId !== user.id) {
+      return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
+    }
   }
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
