@@ -1,18 +1,11 @@
 import React from "react";
-import { Svg, Path, Rect, G } from "@react-pdf/renderer";
-import {
-  ECKORNAMENT_VIEWBOX,
-  ECKORNAMENT_AUSSEN,
-  ECKORNAMENT_INNEN,
-  ECKORNAMENT_QUADRATE,
-  eckenTransform,
-  Ecke,
-} from "@/lib/cornerOrnament";
+import { Svg, Path, G } from "@react-pdf/renderer";
+import { ECKORNAMENT_VIEWBOX, ECKORNAMENT_PFADE, eckenTransform, Ecke } from "@/lib/cornerOrnament";
 
 export function IslamicCornerOrnamentPdf({
   ecke,
-  color = "#9c7a2c",
-  size = 24,
+  color = "#1a1a1a",
+  size = 40,
 }: {
   ecke: Ecke;
   color?: string;
@@ -37,23 +30,13 @@ export function IslamicCornerOrnamentPdf({
       <G
         stroke={color}
         fill="none"
-        strokeWidth={2}
-        strokeLinecap="square"
-        strokeLinejoin="miter"
+        strokeWidth={0.9}
+        strokeLinecap="round"
+        strokeLinejoin="round"
         transform={eckenTransform(ecke) || undefined}
       >
-        <Path d={ECKORNAMENT_AUSSEN} />
-        <Path d={ECKORNAMENT_INNEN} />
-        {ECKORNAMENT_QUADRATE.map((q, i) => (
-          <Rect
-            key={i}
-            x={q.cx - q.groesse / 2}
-            y={q.cy - q.groesse / 2}
-            width={q.groesse}
-            height={q.groesse}
-            stroke="none"
-            fill={color}
-          />
+        {ECKORNAMENT_PFADE.map((d, i) => (
+          <Path key={i} d={d} />
         ))}
       </G>
     </Svg>

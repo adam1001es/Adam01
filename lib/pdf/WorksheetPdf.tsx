@@ -47,9 +47,9 @@ function buildStyles(layout: LayoutConfig) {
       borderBottom: isModernFarbig ? undefined : "2px solid #111111",
       paddingBottom: isModernFarbig ? 12 : 8,
       // Platz für die Eckornamente, damit Titeltext sie nicht überlappt.
-      paddingTop: layout.zeigeMuster ? (isModernFarbig ? 12 : 16) : isModernFarbig ? 12 : 0,
-      paddingLeft: layout.zeigeMuster ? 26 : isModernFarbig ? 12 : 0,
-      paddingRight: layout.zeigeMuster ? 26 : isModernFarbig ? 12 : 0,
+      paddingTop: layout.zeigeMuster ? (isModernFarbig ? 30 : 34) : isModernFarbig ? 12 : 0,
+      paddingLeft: layout.zeigeMuster ? 14 : isModernFarbig ? 12 : 0,
+      paddingRight: layout.zeigeMuster ? 14 : isModernFarbig ? 12 : 0,
     },
     schulname: {
       fontSize: baseFontSize - 1,
@@ -184,17 +184,11 @@ function Header({
 function EckOrnamente({ layout }: { layout: LayoutConfig }) {
   if (!layout.zeigeMuster) return null;
   const isModern = layout.template === "modern";
-  const isKompakt = layout.template === "kompakt";
   const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
-  // Bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich - dort hell statt dunkelgrün,
-  // außer bei Schwarz-Weiß-Druck (dann gibt es den farbigen Kopfbereich gar nicht).
-  const farbe = istSchwarzweiss
-    ? "#1a1a1a"
-    : isModern
-      ? "#f4ead1"
-      : isKompakt
-        ? "#8a8474"
-        : "#9c7a2c";
+  const isModernFarbig = isModern && !istSchwarzweiss;
+  // Dünne, präzise schwarze Linien - nur bei "modern" sitzt das Eckornament auf dem farbigen
+  // Kopfbereich und braucht dort eine helle statt einer dunklen Farbe.
+  const farbe = isModernFarbig ? "#f4ead1" : "#1a1a1a";
   return (
     <>
       <IslamicCornerOrnamentPdf ecke="oben-links" color={farbe} />
@@ -334,13 +328,15 @@ export function WorksheetPdfDocument({
     <Document title={content.titel}>
       <Page size="A4" style={styles.page}>
         <View style={styles.seiteInhalt}>
-          <EckOrnamente layout={layout} />
           <Header
             content={content}
             layout={layout}
             themenbereichLabel={themenbereichLabel}
             erstelltAm={erstelltAm}
           />
+          {/* Nach dem Header im Baum, damit react-pdf sie über einem farbigen Kopfbereich zeichnet
+              (Zeichenreihenfolge statt echtem CSS-Stacking von position:absolute). */}
+          <EckOrnamente layout={layout} />
           <NameZeile layout={layout} />
           {layout.zeigeLernziel && (
             <>
@@ -358,15 +354,15 @@ export function WorksheetPdfDocument({
       {layout.loesungenSeparat && (
         <Page size="A4" style={styles.page}>
           <View style={styles.seiteInhalt}>
-            <EckOrnamente layout={layout} />
             <Text
               style={[
                 styles.titel,
-                layout.zeigeMuster ? { paddingTop: 16, paddingLeft: 26, paddingRight: 26 } : {},
+                layout.zeigeMuster ? { paddingTop: 34, paddingLeft: 14, paddingRight: 14 } : {},
               ]}
             >
               {content.titel} — Lösungsblatt
             </Text>
+            <EckOrnamente layout={layout} />
             <LoesungenSeite content={content} layout={layout} />
           </View>
         </Page>

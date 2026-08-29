@@ -34,30 +34,24 @@ export default function WorksheetView({
   const fontClass = isModern || isKompakt ? "font-sans" : "font-serif";
   const textSize = layout.schriftgroesse === "gross" ? "text-lg" : "text-base";
   const spacing = isKompakt ? "space-y-3" : "space-y-5";
-  // Bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich - dort hell statt dunkelgrün,
-  // sonst kaum sichtbar.
-  const musterFarbe = istSchwarzweiss
-    ? "#1a1a1a"
-    : isModern
-      ? "#f4ead1"
-      : isKompakt
-        ? "#8a8474"
-        : "#9c7a2c";
+  // Dünne, präzise schwarze Linien auf Weiß - nur bei "modern" sitzt das Eckornament auf dem
+  // farbigen Kopfbereich und braucht dort eine helle statt einer dunklen Farbe.
+  const musterFarbe = isModernFarbig ? "#f4ead1" : "#1a1a1a";
   const akzentKlasse = isModernFarbig ? "text-brand-700" : "";
 
   return (
     <div className={`relative rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
       {layout.zeigeMuster && (
         <>
-          <IslamicCornerOrnament ecke="oben-links" color={musterFarbe} className="m-3" />
-          <IslamicCornerOrnament ecke="oben-rechts" color={musterFarbe} className="m-3" />
+          <IslamicCornerOrnament ecke="oben-links" color={musterFarbe} size={64} className="m-2" />
+          <IslamicCornerOrnament ecke="oben-rechts" color={musterFarbe} size={64} className="m-2" />
         </>
       )}
       <div
         className={
           isModernFarbig
-            ? `-mx-6 -mt-6 mb-5 rounded-t-2xl bg-brand-gradient px-6 py-4 text-white ${layout.zeigeMuster ? "pl-11" : ""}`
-            : `mb-5 border-b-2 border-slate-900 pb-3 ${layout.zeigeMuster ? "pl-11 pt-9" : ""}`
+            ? `-mx-6 -mt-6 mb-5 rounded-t-2xl bg-brand-gradient px-6 py-4 text-white ${layout.zeigeMuster ? "pl-8 pt-14" : ""}`
+            : `mb-5 border-b-2 border-slate-900 pb-3 ${layout.zeigeMuster ? "pl-8 pt-20" : ""}`
         }
       >
         {layout.schulname && (

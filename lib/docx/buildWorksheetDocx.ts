@@ -20,21 +20,19 @@ import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 
-const ECKE_GROESSE = 28;
-
-function eckeBildPfad(farbmodus: LayoutConfig["farbmodus"], mirror: boolean): string {
-  const farbe = farbmodus === "schwarzweiss" ? "schwarz" : "gold";
-  return path.join(process.cwd(), `public/patterns/ecke-${farbe}${mirror ? "-mirror" : ""}.png`);
-}
+const ECKE_GROESSE = 44;
+const ECKE_BILD_PFAD = path.join(process.cwd(), "public/patterns/ecke-schwarz.png");
+const ECKE_BILD_MIRROR_PFAD = path.join(process.cwd(), "public/patterns/ecke-schwarz-mirror.png");
 
 /**
  * Zwei an den oberen Seitenecken verankerte Bild-Runs (fließen nicht mit dem Text) - positioniert
  * relativ zum Satzspiegel (Seitenrand), damit sie wie in Web/PDF direkt in den Content-Ecken
- * sitzen statt am rohen Papierrand.
+ * sitzen statt am rohen Papierrand. Word bekommt (anders als Web/PDF) nie einen farbigen
+ * Kopfbereich-Hintergrund, daher reicht hier immer die dünne schwarze Variante.
  */
-function eckOrnamente(farbmodus: LayoutConfig["farbmodus"]): ImageRun[] {
-  const bildDatenLinks = fs.readFileSync(eckeBildPfad(farbmodus, false));
-  const bildDatenRechts = fs.readFileSync(eckeBildPfad(farbmodus, true));
+function eckOrnamente(): ImageRun[] {
+  const bildDatenLinks = fs.readFileSync(ECKE_BILD_PFAD);
+  const bildDatenRechts = fs.readFileSync(ECKE_BILD_MIRROR_PFAD);
   const basis = {
     type: "png" as const,
     transformation: { width: ECKE_GROESSE, height: ECKE_GROESSE },
@@ -87,7 +85,7 @@ export async function buildWorksheetDocx(
   const children: Paragraph[] = [];
 
   if (layout.zeigeMuster) {
-    children.push(new Paragraph({ children: eckOrnamente(layout.farbmodus), spacing: { after: 0 } }));
+    children.push(new Paragraph({ children: eckOrnamente(), spacing: { after: 0 } }));
   }
 
   if (layout.schulname) {
@@ -284,7 +282,7 @@ export async function buildWorksheetDocx(
   if (layout.loesungenSeparat) {
     const loesungChildren: Paragraph[] = [];
     if (layout.zeigeMuster) {
-      loesungChildren.push(new Paragraph({ children: eckOrnamente(layout.farbmodus), spacing: { after: 0 } }));
+      loesungChildren.push(new Paragraph({ children: eckOrnamente(), spacing: { after: 0 } }));
     }
     loesungChildren.push(
       new Paragraph({
