@@ -41,10 +41,10 @@ export default async function DashboardPage() {
           </Link>
         </div>
         <div className="pointer-events-none">
-          <IslamicCornerOrnament ecke="oben-links" color="#f4ead1" size={44} className="m-4 opacity-70" />
-          <IslamicCornerOrnament ecke="oben-rechts" color="#f4ead1" size={44} className="m-4 opacity-70" />
-          <IslamicCornerOrnament ecke="unten-links" color="#f4ead1" size={44} className="m-4 opacity-70" />
-          <IslamicCornerOrnament ecke="unten-rechts" color="#f4ead1" size={44} className="m-4 opacity-70" />
+          <IslamicCornerOrnament ecke="oben-links" farbe="hell" size={56} className="m-4 opacity-70" />
+          <IslamicCornerOrnament ecke="oben-rechts" farbe="hell" size={56} className="m-4 opacity-70" />
+          <IslamicCornerOrnament ecke="unten-links" farbe="hell" size={56} className="m-4 opacity-70" />
+          <IslamicCornerOrnament ecke="unten-rechts" farbe="hell" size={56} className="m-4 opacity-70" />
         </div>
       </div>
 

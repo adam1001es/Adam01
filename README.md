@@ -68,16 +68,18 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
 - **Eckornamente statt Streifen**: nur in den vier (bzw. oberen zwei) Ecken je Seite ein
-  L-förmiges Ornament aus dünnen, präzisen schwarzen Linien (`lib/cornerOrnament.ts`) - bewusst
-  minimalistisch und luftig statt dicht gepackt, aber mit der klassischen islamisch-geometrischen
-  Formensprache: ein achtzackiger Stern nahe der Ecke, ein kleinerer zweiter Stern im vertikalen
-  Arm, Rauten mit Zickzack-Verbindungslinien, ein kufisch-eckiger Winkelakzent und zarte
-  Arabesken-Blattspitzen an den äußeren Enden. Ohne Gottesname/Koran-Vers (gleiche Begründung wie
-  zuvor: Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). In Web/PDF als Vektor
-  gerendert (in PDF pageweit über `floating`-Positionierung, bei der farbigen „Modern“-Vorlage
-  hell statt schwarz); in Word über zwei einmalig serverseitig gerenderte PNGs
-  (`public/patterns/ecke-schwarz.png` + `ecke-schwarz-mirror.png`, normale und gespiegelte
-  Variante), an den Seitenrand-Ecken verankert. Optional abschaltbar.
+  L-förmiges Ornament, aus einer vom Nutzer bereitgestellten Referenzvorlage freigestellt
+  (`public/patterns/ecke-schwarz.png` + `ecke-hell.png`, transparenter Hintergrund) statt
+  handgezeichnet, da das dichte Kufi-Geflecht mit mehreren achtzackigen Sternen, verschachtelten
+  Rauten-/Zickzack-Bändern und zarten Arabesken-Ranken an den äußeren Enden zu detailreich für
+  eine Vektor-Nachbildung ist. Ohne Gottesname/Koran-Vers (gleiche Begründung wie zuvor:
+  Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). Das Quellbild ist für die Ecke
+  „oben-rechts" gezeichnet; alle anderen Ecken werden per CSS-/Style-Transform gespiegelt
+  (`lib/cornerOrnament.ts`) statt als eigene Datei gepflegt. In Web/PDF als Bild eingebunden (in
+  PDF pageweit über `floating`-Positionierung, bei der farbigen „Modern“-Vorlage die helle statt
+  der dunklen Variante); in Word über zwei serverseitig vorbereitete PNGs (Normal- und
+  Spiegel-Variante, `ecke-schwarz.png` + `ecke-schwarz-mirror.png`), an den Seitenrand-Ecken
+  verankert. Optional abschaltbar.
 - **Druckfarbe (Farbe / Schwarz-Weiß)**: da die meisten Arbeitsblätter in der Schule ohnehin
   schwarzweiß ausgedruckt werden, lässt sich das pro Arbeitsblatt umschalten. Im Schwarz-Weiß-
   Modus wird der farbige Kopfbereich der „Modern“-Vorlage durch die schlichte, umrandete

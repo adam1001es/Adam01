@@ -46,10 +46,10 @@ function buildStyles(layout: LayoutConfig) {
       marginBottom: isKompakt ? 10 : 18,
       borderBottom: isModernFarbig ? undefined : "2px solid #111111",
       paddingBottom: isModernFarbig ? 12 : 8,
-      // Platz für die Eckornamente, damit Titeltext sie nicht überlappt.
-      paddingTop: layout.zeigeMuster ? (isModernFarbig ? 30 : 34) : isModernFarbig ? 12 : 0,
-      paddingLeft: layout.zeigeMuster ? 14 : isModernFarbig ? 12 : 0,
-      paddingRight: layout.zeigeMuster ? 14 : isModernFarbig ? 12 : 0,
+      // Platz für die (deutlich dichteren) Eckornamente, damit Titeltext sie nicht überlappt.
+      paddingTop: layout.zeigeMuster ? (isModernFarbig ? 66 : 78) : isModernFarbig ? 12 : 0,
+      paddingLeft: layout.zeigeMuster ? (isModernFarbig ? 64 : 68) : isModernFarbig ? 12 : 0,
+      paddingRight: layout.zeigeMuster ? (isModernFarbig ? 64 : 68) : isModernFarbig ? 12 : 0,
     },
     schulname: {
       fontSize: baseFontSize - 1,
@@ -186,13 +186,13 @@ function EckOrnamente({ layout }: { layout: LayoutConfig }) {
   const isModern = layout.template === "modern";
   const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
   const isModernFarbig = isModern && !istSchwarzweiss;
-  // Dünne, präzise schwarze Linien - nur bei "modern" sitzt das Eckornament auf dem farbigen
-  // Kopfbereich und braucht dort eine helle statt einer dunklen Farbe.
-  const farbe = isModernFarbig ? "#f4ead1" : "#1a1a1a";
+  // Nur bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich und braucht dort die
+  // helle statt der dunklen Bildvariante.
+  const farbe = isModernFarbig ? "hell" : "schwarz";
   return (
     <>
-      <IslamicCornerOrnamentPdf ecke="oben-links" color={farbe} />
-      <IslamicCornerOrnamentPdf ecke="oben-rechts" color={farbe} />
+      <IslamicCornerOrnamentPdf ecke="oben-links" farbe={farbe} />
+      <IslamicCornerOrnamentPdf ecke="oben-rechts" farbe={farbe} />
     </>
   );
 }
@@ -357,7 +357,7 @@ export function WorksheetPdfDocument({
             <Text
               style={[
                 styles.titel,
-                layout.zeigeMuster ? { paddingTop: 34, paddingLeft: 14, paddingRight: 14 } : {},
+                layout.zeigeMuster ? { paddingTop: 78, paddingLeft: 68, paddingRight: 68 } : {},
               ]}
             >
               {content.titel} — Lösungsblatt

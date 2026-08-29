@@ -1,25 +1,29 @@
-import { ECKORNAMENT_VIEWBOX, ECKORNAMENT_PFADE, eckenTransform, Ecke } from "@/lib/cornerOrnament";
+import { Ecke, EckFarbe, eckBildPfadWeb, eckenTransform, ECKORNAMENT_SEITENVERHAELTNIS } from "@/lib/cornerOrnament";
 
 export default function IslamicCornerOrnament({
   ecke,
-  color = "#1a1a1a",
-  size = 64,
+  farbe = "schwarz",
+  size = 92,
   className,
 }: {
   ecke: Ecke;
-  color?: string;
+  farbe?: EckFarbe;
   size?: number;
   className?: string;
 }) {
   const top = ecke === "oben-links" || ecke === "oben-rechts";
   const left = ecke === "oben-links" || ecke === "unten-links";
+  const hoehe = Math.round(size / ECKORNAMENT_SEITENVERHAELTNIS);
+  const transform = eckenTransform(ecke);
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox={ECKORNAMENT_VIEWBOX}
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={eckBildPfadWeb(farbe)}
+      alt=""
       aria-hidden="true"
+      width={size}
+      height={hoehe}
       className={className}
       style={{
         position: "absolute",
@@ -27,20 +31,10 @@ export default function IslamicCornerOrnament({
         bottom: top ? undefined : 0,
         left: left ? 0 : undefined,
         right: left ? undefined : 0,
+        width: size,
+        height: hoehe,
+        transform: transform || undefined,
       }}
-    >
-      <g
-        stroke={color}
-        fill="none"
-        strokeWidth={0.9}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        transform={eckenTransform(ecke) || undefined}
-      >
-        {ECKORNAMENT_PFADE.map((d, i) => (
-          <path key={i} d={d} />
-        ))}
-      </g>
-    </svg>
+    />
   );
 }

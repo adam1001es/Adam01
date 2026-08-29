@@ -19,23 +19,27 @@ import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
+import { ECKORNAMENT_SEITENVERHAELTNIS } from "@/lib/cornerOrnament";
 
-const ECKE_GROESSE = 44;
-const ECKE_BILD_PFAD = path.join(process.cwd(), "public/patterns/ecke-schwarz.png");
-const ECKE_BILD_MIRROR_PFAD = path.join(process.cwd(), "public/patterns/ecke-schwarz-mirror.png");
+const ECKE_BREITE = 40;
+const ECKE_HOEHE = Math.round(ECKE_BREITE / ECKORNAMENT_SEITENVERHAELTNIS);
+// Quellbild ist für die Ecke "oben-rechts" gezeichnet (Bogen oben + Arm rechts) - die
+// "-mirror"-Datei ist die dazu horizontal gespiegelte "oben-links"-Variante.
+const ECKE_BILD_LINKS_PFAD = path.join(process.cwd(), "public/patterns/ecke-schwarz-mirror.png");
+const ECKE_BILD_RECHTS_PFAD = path.join(process.cwd(), "public/patterns/ecke-schwarz.png");
 
 /**
  * Zwei an den oberen Seitenecken verankerte Bild-Runs (fließen nicht mit dem Text) - positioniert
  * relativ zum Satzspiegel (Seitenrand), damit sie wie in Web/PDF direkt in den Content-Ecken
  * sitzen statt am rohen Papierrand. Word bekommt (anders als Web/PDF) nie einen farbigen
- * Kopfbereich-Hintergrund, daher reicht hier immer die dünne schwarze Variante.
+ * Kopfbereich-Hintergrund, daher reicht hier immer die dunkle Bildvariante.
  */
 function eckOrnamente(): ImageRun[] {
-  const bildDatenLinks = fs.readFileSync(ECKE_BILD_PFAD);
-  const bildDatenRechts = fs.readFileSync(ECKE_BILD_MIRROR_PFAD);
+  const bildDatenLinks = fs.readFileSync(ECKE_BILD_LINKS_PFAD);
+  const bildDatenRechts = fs.readFileSync(ECKE_BILD_RECHTS_PFAD);
   const basis = {
     type: "png" as const,
-    transformation: { width: ECKE_GROESSE, height: ECKE_GROESSE },
+    transformation: { width: ECKE_BREITE, height: ECKE_HOEHE },
     floating: {
       horizontalPosition: { relative: HorizontalPositionRelativeFrom.MARGIN, align: HorizontalPositionAlign.LEFT },
       verticalPosition: { relative: VerticalPositionRelativeFrom.MARGIN, align: VerticalPositionAlign.TOP },
