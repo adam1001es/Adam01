@@ -2,22 +2,18 @@ import { MusterVariante } from "@/lib/types";
 
 /**
  * Islamische Musterelemente: vier auswählbare, horizontal durchlaufende Zierstreifen im
- * Girih-Stil (wie klassische maurische/Alhambra-Randmuster). Drei davon ("sterne", "sechseck",
- * "kalligrafie") sind echte Kachelmuster - eine Kachel wird so oft nebeneinandergesetzt, wie in
- * die verfügbare Breite passt, ohne Verzerrung. "verlauf" ist kein Kachelmuster, sondern ein
- * einzelnes, symmetrisches Motiv, das in der Mitte am dichtesten ist und zu beiden Rändern hin
- * an Dichte verliert, bis es spitz ausläuft - skaliert direkt (ohne Wiederholung) auf die volle
- * Breite.
+ * Girih-Stil (wie klassische maurische/Alhambra-Randmuster). Jede Variante ist ein echtes
+ * Kachelmuster - eine Kachel wird so oft nebeneinandergesetzt, wie in die verfügbare Breite
+ * passt, ohne Verzerrung.
  */
 
 export interface MusterPfadGruppe {
-  /** Strichstärke im Kachel-/Motiv-Koordinatensystem. */
+  /** Strichstärke im Kachel-Koordinatensystem. */
   strichstaerke: number;
   pfade: string[];
 }
 
-export interface KachelMusterDefinition {
-  art: "kachel";
+export interface MusterDefinition {
   kachelBreite: number;
   kachelHoehe: number;
   /** Y-Koordinaten der Rahmenlinie oben/unten. */
@@ -26,26 +22,16 @@ export interface KachelMusterDefinition {
   gruppen: MusterPfadGruppe[];
 }
 
-export interface VerlaufMusterDefinition {
-  art: "verlauf";
-  breite: number;
-  hoehe: number;
-  gruppen: MusterPfadGruppe[];
-}
-
-export type MusterDefinition = KachelMusterDefinition | VerlaufMusterDefinition;
-
 export const MUSTER_LABEL: Record<MusterVariante, string> = {
   sterne: "Sterne",
-  sechseck: "Sechseck",
+  halbmond: "Halbmond",
   kalligrafie: "Kalligrafie",
-  verlauf: "Verlauf",
+  kette: "Kette",
 };
 
 export const MUSTER_DEFINITIONEN: Record<MusterVariante, MusterDefinition> = {
   // Achtzackiger Stern mit innerem Kern, ineinandergreifende Rauten-/Vieleck-Formen.
   sterne: {
-    art: "kachel",
     kachelBreite: 80,
     kachelHoehe: 56,
     rahmenY: [1, 55],
@@ -84,81 +70,84 @@ export const MUSTER_DEFINITIONEN: Record<MusterVariante, MusterDefinition> = {
       },
     ],
   },
-  // Längliche Sechseck-Kachel mit eingeschriebenem sechszackigen Stern.
-  sechseck: {
-    art: "kachel",
-    kachelBreite: 90,
-    kachelHoehe: 56,
-    rahmenY: [1, 55],
-    rahmenStrichstaerke: 1.6,
+  // Zwei Halbmonde flankieren eine Raute - der Halbmond ist als ein einziger, geschlossener
+  // Pfad aus zwei gegenläufigen Bögen gezeichnet (nicht als zwei sich überlappende Kreise -
+  // das würde bei fill="none" nur zwei offene Ringe statt einer Mondsichel ergeben).
+  halbmond: {
+    kachelBreite: 100,
+    kachelHoehe: 52,
+    rahmenY: [1.5, 50.5],
+    rahmenStrichstaerke: 1.5,
     gruppen: [
       {
-        strichstaerke: 1.15,
+        strichstaerke: 1.3,
         pfade: [
-          "M0,28 L18,10 L72,10 L90,28 L72,46 L18,46 Z",
-          "M18,5 L24,10 L18,15 L12,10 Z",
-          "M72,5 L78,10 L72,15 L66,10 Z",
-          "M18,41 L24,46 L18,51 L12,46 Z",
-          "M72,41 L78,46 L72,51 L66,46 Z",
+          "M22,14 A13,13 0 1,0 22,38 A9,9 0 1,1 22,14 Z",
+          "M78,14 A13,13 0 1,0 78,38 A9,9 0 1,1 78,14 Z",
         ],
       },
       {
-        strichstaerke: 1.0,
+        strichstaerke: 1.15,
         pfade: [
-          "M45,13 L48.5,21.94 L57.99,20.5 L52,28 L57.99,35.5 L48.5,34.06 L45,43 L41.5,34.06 L32.01,35.5 L38,28 L32.01,20.5 L41.5,21.94 Z",
-          "M45,18 L53.66,23 L53.66,33 L45,38 L36.34,33 L36.34,23 Z",
+          "M42,26 L52,15 L62,26 L52,37 Z",
+          "M52,20 L57,26 L52,32 L47,26 Z",
+          "M30,26 H42",
+          "M62,26 H70",
         ],
       },
     ],
   },
-  // Stilisiertes و (waw) im Wechsel mit einem achtzackigen Stern an der Kachelnaht.
+  // Stilisiertes arabisches و (waw) im Kern eines zwölfzackigen Sterns, flankiert von Rauten.
   kalligrafie: {
-    art: "kachel",
-    kachelBreite: 90,
-    kachelHoehe: 56,
-    rahmenY: [1, 55],
-    rahmenStrichstaerke: 1.6,
+    kachelBreite: 120,
+    kachelHoehe: 60,
+    rahmenY: [1.5, 58.5],
+    rahmenStrichstaerke: 1.55,
     gruppen: [
       {
-        strichstaerke: 1.15,
+        strichstaerke: 1.35,
         pfade: [
-          "M44,25 C44,18.9247 48.9247,14 55,14 C61.0753,14 66,18.9247 66,25 C66,31.0753 61.0753,36 55,36 C48.9247,36 44,31.0753 44,25 Z",
-          "M60.5,34.57 C56,44 39,46 35,38 C33,33 38,31 43,33",
-          "M45,6 L50,11 L45,16 L40,11 Z",
-          "M45,40 L50,45 L45,50 L40,45 Z",
+          "M60,8 L63.5,17.5 L72.5,13.5 L70,23 L80,25 L72.5,32.5 L78,40 L68,38.5 L67,48.5 L60,42 L53,48.5 L52,38.5 L42,40 L47.5,32.5 L40,25 L50,23 L47.5,13.5 L56.5,17.5 Z",
         ],
+      },
+      {
+        strichstaerke: 1.4,
+        pfade: ["M56,25 Q60,21 65,24 L65,36 Q61,40 56,37 M65,31 H70"],
       },
       {
         strichstaerke: 1.0,
-        pfade: [
-          "M0,15 L2.3,22.46 L9.19,18.81 L5.54,25.7 L13,28 L5.54,30.3 L9.19,37.19 L2.3,33.54 L0,41 L-2.3,33.54 L-9.19,37.19 L-5.54,30.3 L-13,28 L-5.54,25.7 L-9.19,18.81 L-2.3,22.46 Z",
-        ],
+        pfade: ["M51,30 A9,9 0 1,0 69,30 A9,9 0 1,0 51,30 Z"],
+      },
+      {
+        strichstaerke: 1.15,
+        pfade: ["M12,30 L20,22 L28,30 L20,38 Z", "M92,30 L100,22 L108,30 L100,38 Z"],
+      },
+      {
+        strichstaerke: 1.1,
+        pfade: ["M28,30 H38", "M82,30 H92"],
       },
     ],
   },
-  // Nicht kachelbar: ein Motiv, das in der Mitte am dichtesten ist und zu den (spitz
-  // zulaufenden) Rändern hin an Dichte verliert - skaliert direkt auf die volle Breite.
-  verlauf: {
-    art: "verlauf",
-    breite: 1000,
-    hoehe: 48,
+  // Halbmond (korrekt als ein Pfad aus zwei gegenläufigen Bögen), Rauten-Kette und kleine
+  // Rauten-Akzente, verbunden durch dünne Linien.
+  kette: {
+    kachelBreite: 100,
+    kachelHoehe: 52,
+    rahmenY: [1.5, 50.5],
+    rahmenStrichstaerke: 1.5,
     gruppen: [
       {
-        strichstaerke: 1.15,
+        strichstaerke: 1.25,
+        pfade: ["M20,15 A11,11 0 1,0 20,37 A7.5,7.5 0 1,1 20,15 Z", "M38,26 L48,16 L58,26 L48,36 Z"],
+      },
+      {
+        strichstaerke: 1.1,
         pfade: [
-          "M500,7 L503.06,16.61 L512.02,11.98 L507.39,20.94 L517,24 L507.39,27.06 L512.02,36.02 L503.06,31.39 L500,41 L496.94,31.39 L487.98,36.02 L492.61,27.06 L483,24 L492.61,20.94 L487.98,11.98 L496.94,16.61 Z",
-          "M500,10.5 L505,15.5 L500,20.5 L495,15.5 Z",
-          "M500,27.5 L505,32.5 L500,37.5 L495,32.5 Z",
-          "M465,16 L471,24 L465,32 L459,24 Z",
-          "M535,16 L541,24 L535,32 L529,24 Z",
-          "M445,16 L421.67,32 L398.33,16 L375,32",
-          "M555,16 L578.33,32 L601.67,16 L625,32",
-          "M340,11 L350,24 L340,37 L330,24 Z",
-          "M660,11 L670,24 L660,37 L650,24 Z",
-          "M250,18 L256,24 L250,30 L244,24 Z",
-          "M750,18 L756,24 L750,30 L744,24 Z",
-          "M220,20 L0,24 L220,28",
-          "M780,20 L1000,24 L780,28",
+          "M48,21 L53,26 L48,31 L43,26 Z",
+          "M68,18 L74,12 L80,18 L74,24 Z",
+          "M68,34 L74,28 L80,34 L74,40 Z",
+          "M30,26 H38",
+          "M58,26 H66",
         ],
       },
     ],

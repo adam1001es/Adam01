@@ -71,22 +71,22 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
   Randmuster) unter dem Kopfbereich, mit vier auswählbaren Varianten (`lib/patternStrip.ts`,
   Auswahl im Erstellen-Formular mit Live-Vorschau je Muster):
   - **Sterne**: achtzackiger Stern mit innerem Kern, ineinandergreifende Rauten-/Vieleck-Formen.
-  - **Sechseck**: längliche Sechseck-Kacheln mit eingeschriebenem sechszackigen Stern.
-  - **Kalligrafie**: stilisiertes arabisches و (waw) im Wechsel mit einem achtzackigen Stern.
-  - **Verlauf**: kein Kachelmuster, sondern ein einzelnes Motiv, das in der Mitte am dichtesten
-    ist (achtzackiger Stern) und zu beiden Rändern hin an Dichte verliert, bis es spitz ausläuft.
+  - **Halbmond**: zwei Mondsicheln flankieren eine Raute. Die Mondsichel ist als ein einziger,
+    geschlossener Pfad aus zwei gegenläufigen Kreisbögen gezeichnet - zwei separate, sich
+    überlappende volle Kreise würden bei `fill="none"` nur als zwei offene Ringe erscheinen,
+    nicht als Sichel.
+  - **Kalligrafie**: stilisiertes arabisches و (waw) im Kern eines zwölfzackigen Sterns.
+  - **Kette**: Mondsichel, Rauten-Kette und kleine Rauten-Akzente, verbunden durch dünne Linien.
 
   Alle vier fließen unter dem Kopfbereich ganz normal mit dem Text statt frei/absolut
   positioniert zu sein - kollidieren daher nie mit Titel oder Meta-Zeilen. Eigene Vektor-Kacheln,
-  kein 1:1-Ausschnitt einer vom Nutzer bereitgestellten Referenzvorlage. Ohne Gottesname/Koran-
-  Vers (gleiche Begründung wie zuvor: Arbeitsblätter landen im Schulalltag auch mal auf dem
-  Boden). Die drei Kachelmuster wiederholen sich beliebig oft nebeneinander über die volle Breite,
-  ohne verzerrt zu werden; "Verlauf" skaliert stattdessen direkt (ohne Wiederholung) auf die
-  volle Breite. In Web als echtes SVG-`<pattern>` (kachelt automatisch auf jede Breite) bzw. als
-  direkt skaliertes SVG bei "Verlauf"; in PDF als explizit passend oft wiederholte Kachel
-  (react-pdf kennt kein `<pattern>`, die Seitenbreite ist dort aber ohnehin fix bekannt); in Word
-  als einmalig serverseitig gerenderte, auf die Satzspiegelbreite zugeschnittene PNG je Variante
-  (`public/patterns/leiste-{sterne,sechseck,kalligrafie,verlauf}.png`). Optional abschaltbar.
+  wiederholen sich beliebig oft nebeneinander über die volle Breite, ohne verzerrt zu werden.
+  Ohne Gottesname/Koran-Vers (gleiche Begründung wie zuvor: Arbeitsblätter landen im Schulalltag
+  auch mal auf dem Boden). In Web als echtes SVG-`<pattern>` (kachelt automatisch auf jede
+  Breite); in PDF als explizit passend oft wiederholte Kachel (react-pdf kennt kein `<pattern>`,
+  die Seitenbreite ist dort aber ohnehin fix bekannt); in Word als einmalig serverseitig
+  gerenderte, auf die Satzspiegelbreite zugeschnittene PNG je Variante
+  (`public/patterns/leiste-{sterne,halbmond,kalligrafie,kette}.png`). Optional abschaltbar.
 - **Druckfarbe (Farbe / Schwarz-Weiß)**: da die meisten Arbeitsblätter in der Schule ohnehin
   schwarzweiß ausgedruckt werden, lässt sich das pro Arbeitsblatt umschalten. Im Schwarz-Weiß-
   Modus wird der farbige Kopfbereich der „Modern“-Vorlage durch die schlichte, umrandete

@@ -65,7 +65,7 @@ export type Template = (typeof TEMPLATES)[number];
 export const FARBMODI = ["farbe", "schwarzweiss"] as const;
 export type Farbmodus = (typeof FARBMODI)[number];
 
-export const MUSTER_VARIANTEN = ["sterne", "sechseck", "kalligrafie", "verlauf"] as const;
+export const MUSTER_VARIANTEN = ["sterne", "halbmond", "kalligrafie", "kette"] as const;
 export type MusterVariante = (typeof MUSTER_VARIANTEN)[number];
 
 export const LayoutConfigSchema = z.object({

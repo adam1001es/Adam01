@@ -17,31 +17,6 @@ export default function IslamicPatternStrip({
 }) {
   const patternId = `musterstreifen-kachel-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const definition = MUSTER_DEFINITIONEN[variante];
-
-  if (definition.art === "verlauf") {
-    return (
-      <svg
-        width="100%"
-        height={hoehe}
-        viewBox={`0 0 ${definition.breite} ${definition.hoehe}`}
-        preserveAspectRatio="none"
-        aria-hidden="true"
-        className={className}
-        style={{ display: "block", opacity }}
-      >
-        <g stroke={color} fill="none" strokeLinejoin="round" strokeLinecap="round">
-          {definition.gruppen.map((gruppe, gi) => (
-            <g key={gi} strokeWidth={gruppe.strichstaerke}>
-              {gruppe.pfade.map((d, i) => (
-                <path key={i} d={d} />
-              ))}
-            </g>
-          ))}
-        </g>
-      </svg>
-    );
-  }
-
   const skalierung = hoehe / definition.kachelHoehe;
   const kachelBreitePx = definition.kachelBreite * skalierung;
   const [rahmenOben, rahmenUnten] = definition.rahmenY.map((y) => y * skalierung);
@@ -64,7 +39,7 @@ export default function IslamicPatternStrip({
           height={hoehe}
           viewBox={`0 0 ${definition.kachelBreite} ${definition.kachelHoehe}`}
         >
-          <g fill="none" stroke={color} strokeLinejoin="miter" strokeLinecap="round">
+          <g fill="none" stroke={color} strokeLinejoin="round" strokeLinecap="round">
             {definition.gruppen.map((gruppe, gi) => (
               <g key={gi} strokeWidth={gruppe.strichstaerke}>
                 {gruppe.pfade.map((d, i) => (

@@ -21,9 +21,9 @@ import { ICONS, IconKey } from "@/lib/icons";
 // Vektor-Ebene skaliert. Alle vier auf dasselbe Seitenverhältnis gerendert.
 const MUSTERSTREIFEN_BILD_PFADE: Record<MusterVariante, string> = {
   sterne: path.join(process.cwd(), "public/patterns/leiste-sterne.png"),
-  sechseck: path.join(process.cwd(), "public/patterns/leiste-sechseck.png"),
+  halbmond: path.join(process.cwd(), "public/patterns/leiste-halbmond.png"),
   kalligrafie: path.join(process.cwd(), "public/patterns/leiste-kalligrafie.png"),
-  verlauf: path.join(process.cwd(), "public/patterns/leiste-verlauf.png"),
+  kette: path.join(process.cwd(), "public/patterns/leiste-kette.png"),
 };
 const MUSTERSTREIFEN_BILD_SEITENVERHAELTNIS = 1740 / 84;
 
