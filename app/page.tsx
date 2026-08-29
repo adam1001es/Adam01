@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   return (
     <main>
       <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
-        <div className="max-w-2xl">
+        <div className="max-w-2xl pl-12 pt-12">
           <h1 className="font-display text-3xl font-semibold text-white sm:text-4xl">
             Deine Arbeitsblätter
           </h1>
