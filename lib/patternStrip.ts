@@ -1,28 +1,23 @@
 /**
- * Islamisches Musterelement: ein einfacher, horizontaler Zierstreifen, der über die volle Breite
- * des Arbeitsblatts verläuft und an beiden Enden spitz ausläuft - kein 1:1-Ausschnitt der vom
- * Nutzer bereitgestellten Referenzvorlage, sondern eine eigene, schlanke Neuzeichnung, die deren
- * Formensprache aufgreift: ein achtzackiger Stern in der Mitte, kleine und größere Rauten,
- * Zickzack-Verbindungslinien und eine doppelte, spitz zulaufende Linienführung an den Enden.
- * Als Vektor (Web/PDF) skaliert das beliebig auf die tatsächliche Breite, ohne zu verzerren -
- * anders als ein Rasterbild des dichten Original-Ecksausschnitts.
+ * Islamisches Musterelement: ein horizontal durchlaufender, echter Kachel-Zierstreifen (Girih-
+ * Stil) - ein achtzackiger Stern abwechselnd mit einer länglichen Sechseck-Form, eingefasst von
+ * einer doppelten Rahmenlinie oben/unten. Anders als der vorherige "ein Motiv, das an den Enden
+ * spitz zuläuft"-Entwurf ist das hier ein waagrecht beliebig oft wiederholbares Kachelmuster
+ * (wie klassische Rand-/Bordürenmuster in maurischer/Alhambra-Fliesenkunst) - eine Kachel wird
+ * so oft nebeneinandergesetzt, wie in die verfügbare Breite passt, ohne Verzerrung.
  */
 
-export const MUSTERSTREIFEN_VIEWBOX = "0 0 1000 48";
+/** Breite/Höhe einer einzelnen Kachel (Koordinatensystem, in dem die Pfade unten definiert sind). */
+export const MUSTERSTREIFEN_KACHEL_BREITE = 100;
+export const MUSTERSTREIFEN_KACHEL_HOEHE = 40;
 
-export const MUSTERSTREIFEN_PFADE: string[] = [
-  // Achtzackiger Stern in der Mitte
-  "M 500,8 L 502.68,17.53 L 511.31,12.69 L 506.47,21.32 L 516,24 L 506.47,26.68 L 511.31,35.31 L 502.68,30.47 L 500,40 L 497.32,30.47 L 488.69,35.31 L 493.53,26.68 L 484,24 L 493.53,21.32 L 488.69,12.69 L 497.32,17.53 Z",
-  // Kleine Rauten direkt neben dem Stern
-  "M 470,17 L 475,24 L 470,31 L 465,24 Z",
-  "M 530,17 L 535,24 L 530,31 L 525,24 Z",
-  // Zickzack-Verbindungen
-  "M 455,16 L 431.67,32 L 408.33,16 L 385,32",
-  "M 545,16 L 568.33,32 L 591.67,16 L 615,32",
-  // Größere Rauten
-  "M 320,12 L 329,24 L 320,36 L 311,24 Z",
-  "M 680,12 L 689,24 L 680,36 L 671,24 Z",
-  // Doppelte Linie, spitz zulaufend zu den Rändern
-  "M 300,18 L 0,24 L 300,30",
-  "M 700,18 L 1000,24 L 700,30",
-];
+/** Achtzackiger Stern, mittig in der Kachel (bei x=50). */
+export const MUSTERSTREIFEN_STERN_PFAD =
+  "M 50,4 L 52.68,13.53 L 61.31,8.69 L 56.47,17.32 L 66,20 L 56.47,22.68 L 61.31,31.31 L 52.68,26.47 L 50,36 L 47.32,26.47 L 38.69,31.31 L 43.53,22.68 L 34,20 L 43.53,17.32 L 38.69,8.69 L 47.32,13.53 Z";
+
+/** Längliche Sechseck-Verbindungsform, mittig auf der Kachelnaht (bei x=0) - verbindet beim
+ *  Aneinanderreihen die Sterne benachbarter Kacheln. */
+export const MUSTERSTREIFEN_HEXAGON_PFAD = "M 33,20 L 16,9 L -16,9 L -33,20 L -16,31 L 16,31 Z";
+
+/** Y-Koordinaten der doppelten Rahmenlinie oben/unten (im Kachel-Koordinatensystem). */
+export const MUSTERSTREIFEN_RAHMEN_Y = [3, 6, 34, 37] as const;

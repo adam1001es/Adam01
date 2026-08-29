@@ -184,12 +184,16 @@ function Header({
   );
 }
 
+const A4_BREITE_PT = 595.28;
+
 function MusterStreifen({ layout }: { layout: LayoutConfig }) {
   if (!layout.zeigeMuster) return null;
   const styles = buildStyles(layout);
+  const seitenPolsterung = layout.template === "kompakt" ? 24 : 40;
+  const inhaltBreite = A4_BREITE_PT - 2 * seitenPolsterung;
   return (
     <View style={styles.musterStreifen}>
-      <IslamicPatternStripPdf hoehe={16} />
+      <IslamicPatternStripPdf hoehe={16} breite={inhaltBreite} />
     </View>
   );
 }

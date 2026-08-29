@@ -67,17 +67,19 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
-- **Musterstreifen**: ein schlichter Zierstreifen, der horizontal über die volle Breite des
-  Arbeitsblatts verläuft und an beiden Enden spitz ausläuft, unter dem Kopfbereich, fließt ganz
-  normal mit dem Text statt frei/absolut positioniert zu sein - kollidiert daher nie mit Titel
-  oder Meta-Zeilen. Kein 1:1-Ausschnitt einer vom Nutzer bereitgestellten Referenzvorlage,
-  sondern eine eigene, schlanke Vektor-Neuzeichnung (`lib/patternStrip.ts`), die deren
-  Formensprache aufgreift: ein achtzackiger Stern in der Mitte, kleine und größere Rauten,
-  Zickzack-Verbindungslinien und eine doppelte, spitz zulaufende Linienführung an den Enden.
-  Ohne Gottesname/Koran-Vers (gleiche Begründung wie zuvor: Arbeitsblätter landen im
-  Schulalltag auch mal auf dem Boden). In Web/PDF als Vektor (skaliert verzerrungsfrei auf die
-  tatsächliche Breite); in Word als einmalig serverseitig gerenderte, auf die Satzspiegelbreite
-  zugeschnittene PNG (`public/patterns/leiste-schwarz.png`). Optional abschaltbar.
+- **Musterstreifen**: ein echtes Kachel-Bordürenmuster im Girih-Stil (wie klassische
+  maurische/Alhambra-Randmuster) - ein achtzackiger Stern abwechselnd mit einer länglichen
+  Sechseck-Form, eingefasst von einer doppelten Rahmenlinie, wiederholt sich beliebig oft
+  nebeneinander über die volle Breite des Arbeitsblatts, ohne verzerrt zu werden. Fließt unter
+  dem Kopfbereich ganz normal mit dem Text statt frei/absolut positioniert zu sein - kollidiert
+  daher nie mit Titel oder Meta-Zeilen. Eine eigene Vektor-Kachel (`lib/patternStrip.ts`), kein
+  1:1-Ausschnitt einer vom Nutzer bereitgestellten Referenzvorlage. Ohne Gottesname/Koran-Vers
+  (gleiche Begründung wie zuvor: Arbeitsblätter landen im Schulalltag auch mal auf dem Boden).
+  In Web als echtes SVG-`<pattern>` (kachelt automatisch auf jede Breite); in PDF als explizit
+  passend oft wiederholte Kachel (react-pdf kennt kein `<pattern>`, die Seitenbreite ist dort
+  aber ohnehin fix bekannt); in Word als einmalig serverseitig gerenderte, auf die
+  Satzspiegelbreite zugeschnittene PNG (`public/patterns/leiste-schwarz.png`). Optional
+  abschaltbar.
 - **Druckfarbe (Farbe / Schwarz-Weiß)**: da die meisten Arbeitsblätter in der Schule ohnehin
   schwarzweiß ausgedruckt werden, lässt sich das pro Arbeitsblatt umschalten. Im Schwarz-Weiß-
   Modus wird der farbige Kopfbereich der „Modern“-Vorlage durch die schlichte, umrandete
