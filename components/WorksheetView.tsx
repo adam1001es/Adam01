@@ -2,7 +2,7 @@ import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { THEMENBEREICHE, ThemenbereichKey, ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, iconPfadWeb } from "@/lib/icons";
-import IslamicCornerOrnament from "./IslamicCornerOrnament";
+import IslamicPatternStrip from "./IslamicPatternStrip";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -34,24 +34,15 @@ export default function WorksheetView({
   const fontClass = isModern || isKompakt ? "font-sans" : "font-serif";
   const textSize = layout.schriftgroesse === "gross" ? "text-lg" : "text-base";
   const spacing = isKompakt ? "space-y-3" : "space-y-5";
-  // Nur bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich und braucht dort die
-  // helle statt der dunklen Bildvariante.
-  const musterFarbe = isModernFarbig ? "hell" : "schwarz";
   const akzentKlasse = isModernFarbig ? "text-brand-700" : "";
 
   return (
     <div className={`relative rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
-      {layout.zeigeMuster && (
-        <>
-          <IslamicCornerOrnament ecke="oben-links" farbe={musterFarbe} size={92} className="m-2" />
-          <IslamicCornerOrnament ecke="oben-rechts" farbe={musterFarbe} size={92} className="m-2" />
-        </>
-      )}
       <div
         className={
           isModernFarbig
-            ? `-mx-6 -mt-6 mb-5 rounded-t-2xl bg-brand-gradient px-6 py-4 text-white ${layout.zeigeMuster ? "pl-[104px] pr-[104px] pt-[92px]" : ""}`
-            : `mb-5 border-b-2 border-slate-900 pb-3 ${layout.zeigeMuster ? "pl-[104px] pr-[104px] pt-[112px]" : ""}`
+            ? "-mx-6 -mt-6 mb-5 rounded-t-2xl bg-brand-gradient px-6 py-4 text-white"
+            : "mb-5 border-b-2 border-slate-900 pb-3"
         }
       >
         {layout.schulname && (
@@ -68,6 +59,12 @@ export default function WorksheetView({
           {layout.zeigeIslamischesDatum && <> · {formatDoppelDatum(erstelltAm)}</>}
         </div>
       </div>
+
+      {layout.zeigeMuster && (
+        <div className="mb-4 flex justify-center">
+          <IslamicPatternStrip hoehe={64} />
+        </div>
+      )}
 
       <div className="mb-5 text-sm text-slate-500">
         Name: _______________________&nbsp;&nbsp;&nbsp; Klasse: __________&nbsp;&nbsp;&nbsp; Datum: __________

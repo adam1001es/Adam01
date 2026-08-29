@@ -9,55 +9,36 @@ import {
   HeadingLevel,
   AlignmentType,
   BorderStyle,
-  HorizontalPositionAlign,
-  HorizontalPositionRelativeFrom,
-  VerticalPositionAlign,
-  VerticalPositionRelativeFrom,
-  TextWrappingType,
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
-import { ECKORNAMENT_SEITENVERHAELTNIS } from "@/lib/cornerOrnament";
+import { MUSTERSTREIFEN_SEITENVERHAELTNIS } from "@/lib/patternStrip";
 
-const ECKE_BREITE = 40;
-const ECKE_HOEHE = Math.round(ECKE_BREITE / ECKORNAMENT_SEITENVERHAELTNIS);
-// Quellbild ist für die Ecke "oben-rechts" gezeichnet (Bogen oben + Arm rechts) - die
-// "-mirror"-Datei ist die dazu horizontal gespiegelte "oben-links"-Variante.
-const ECKE_BILD_LINKS_PFAD = path.join(process.cwd(), "public/patterns/ecke-schwarz-mirror.png");
-const ECKE_BILD_RECHTS_PFAD = path.join(process.cwd(), "public/patterns/ecke-schwarz.png");
+const MUSTERSTREIFEN_BILD_PFAD = path.join(process.cwd(), "public/patterns/leiste-schwarz.png");
 
 /**
- * Zwei an den oberen Seitenecken verankerte Bild-Runs (fließen nicht mit dem Text) - positioniert
- * relativ zum Satzspiegel (Seitenrand), damit sie wie in Web/PDF direkt in den Content-Ecken
- * sitzen statt am rohen Papierrand. Word bekommt (anders als Web/PDF) nie einen farbigen
- * Kopfbereich-Hintergrund, daher reicht hier immer die dunkle Bildvariante.
+ * Ganz einfacher, zentrierter Zierstreifen - fließt normal mit dem Text statt frei positioniert
+ * zu sein, damit er nie mit Titel/Text kollidieren kann. Word bekommt (anders als Web/PDF) nie
+ * einen farbigen Kopfbereich-Hintergrund, daher reicht hier immer die dunkle Bildvariante.
  */
-function eckOrnamente(): ImageRun[] {
-  const bildDatenLinks = fs.readFileSync(ECKE_BILD_LINKS_PFAD);
-  const bildDatenRechts = fs.readFileSync(ECKE_BILD_RECHTS_PFAD);
-  const basis = {
-    type: "png" as const,
-    transformation: { width: ECKE_BREITE, height: ECKE_HOEHE },
-    floating: {
-      horizontalPosition: { relative: HorizontalPositionRelativeFrom.MARGIN, align: HorizontalPositionAlign.LEFT },
-      verticalPosition: { relative: VerticalPositionRelativeFrom.MARGIN, align: VerticalPositionAlign.TOP },
-      wrap: { type: TextWrappingType.NONE },
-      allowOverlap: true,
-    },
-  };
-  return [
-    new ImageRun({ ...basis, data: bildDatenLinks }),
-    new ImageRun({
-      ...basis,
-      data: bildDatenRechts,
-      floating: {
-        ...basis.floating,
-        horizontalPosition: { relative: HorizontalPositionRelativeFrom.MARGIN, align: HorizontalPositionAlign.RIGHT },
-      },
-    }),
-  ];
+function musterDivider(): Paragraph {
+  const bildBreite = 220;
+  const bildHoehe = Math.round(bildBreite / MUSTERSTREIFEN_SEITENVERHAELTNIS);
+  const bildDaten = fs.readFileSync(MUSTERSTREIFEN_BILD_PFAD);
+
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 80, after: 160 },
+    children: [
+      new ImageRun({
+        type: "png",
+        data: bildDaten,
+        transformation: { width: bildBreite, height: bildHoehe },
+      }),
+    ],
+  });
 }
 
 function iconPfadDocx(key: IconKey): string {
@@ -87,10 +68,6 @@ export async function buildWorksheetDocx(
   const baseSize = layout.schriftgroesse === "gross" ? 26 : 22; // halbe Punkte
 
   const children: Paragraph[] = [];
-
-  if (layout.zeigeMuster) {
-    children.push(new Paragraph({ children: eckOrnamente(), spacing: { after: 0 } }));
-  }
 
   if (layout.schulname) {
     children.push(
@@ -130,6 +107,10 @@ export async function buildWorksheetDocx(
       spacing: { after: 120 },
     }),
   );
+
+  if (layout.zeigeMuster) {
+    children.push(musterDivider());
+  }
 
   children.push(
     new Paragraph({
@@ -285,9 +266,6 @@ export async function buildWorksheetDocx(
 
   if (layout.loesungenSeparat) {
     const loesungChildren: Paragraph[] = [];
-    if (layout.zeigeMuster) {
-      loesungChildren.push(new Paragraph({ children: eckOrnamente(), spacing: { after: 0 } }));
-    }
     loesungChildren.push(
       new Paragraph({
         heading: HeadingLevel.HEADING_1,

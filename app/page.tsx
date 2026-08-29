@@ -4,7 +4,7 @@ import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle,
 import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
 import DeleteAllButton from "@/components/DeleteAllButton";
-import IslamicCornerOrnament from "@/components/IslamicCornerOrnament";
+import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 
 const STATUS_STYLE: Record<string, { text: string; className: string; icon: typeof CheckCircle2 }> = {
   geprueft: { text: "Geprüft", className: "bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200", icon: CheckCircle2 },
@@ -23,8 +23,8 @@ export default async function DashboardPage() {
 
   return (
     <main>
-      <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
-        <div className="max-w-2xl pl-12 pt-12">
+      <div className="overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
+        <div className="max-w-2xl">
           <h1 className="font-display text-3xl font-semibold text-white sm:text-4xl">
             Deine Arbeitsblätter
           </h1>
@@ -40,11 +40,8 @@ export default async function DashboardPage() {
             Neues Arbeitsblatt erstellen
           </Link>
         </div>
-        <div className="pointer-events-none">
-          <IslamicCornerOrnament ecke="oben-links" farbe="hell" size={56} className="m-4 opacity-70" />
-          <IslamicCornerOrnament ecke="oben-rechts" farbe="hell" size={56} className="m-4 opacity-70" />
-          <IslamicCornerOrnament ecke="unten-links" farbe="hell" size={56} className="m-4 opacity-70" />
-          <IslamicCornerOrnament ecke="unten-rechts" farbe="hell" size={56} className="m-4 opacity-70" />
+        <div className="mt-6 flex justify-center opacity-50">
+          <IslamicPatternStrip farbe="hell" hoehe={36} />
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
-import { IslamicCornerOrnamentPdf } from "./IslamicCornerOrnamentPdf";
+import { IslamicPatternStripPdf } from "./IslamicPatternStripPdf";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -46,10 +46,9 @@ function buildStyles(layout: LayoutConfig) {
       marginBottom: isKompakt ? 10 : 18,
       borderBottom: isModernFarbig ? undefined : "2px solid #111111",
       paddingBottom: isModernFarbig ? 12 : 8,
-      // Platz für die (deutlich dichteren) Eckornamente, damit Titeltext sie nicht überlappt.
-      paddingTop: layout.zeigeMuster ? (isModernFarbig ? 66 : 78) : isModernFarbig ? 12 : 0,
-      paddingLeft: layout.zeigeMuster ? (isModernFarbig ? 64 : 68) : isModernFarbig ? 12 : 0,
-      paddingRight: layout.zeigeMuster ? (isModernFarbig ? 64 : 68) : isModernFarbig ? 12 : 0,
+      paddingTop: isModernFarbig ? 12 : 0,
+      paddingLeft: isModernFarbig ? 12 : 0,
+      paddingRight: isModernFarbig ? 12 : 0,
     },
     schulname: {
       fontSize: baseFontSize - 1,
@@ -73,6 +72,12 @@ function buildStyles(layout: LayoutConfig) {
     seiteInhalt: {
       position: "relative",
       flexGrow: 1,
+    },
+    musterStreifen: {
+      marginTop: isModernFarbig ? 0 : 8,
+      marginBottom: isKompakt ? 8 : 14,
+      flexDirection: "row",
+      justifyContent: "center",
     },
     nameZeile: {
       marginTop: isKompakt ? 6 : 12,
@@ -181,19 +186,13 @@ function Header({
   );
 }
 
-function EckOrnamente({ layout }: { layout: LayoutConfig }) {
+function MusterStreifen({ layout }: { layout: LayoutConfig }) {
   if (!layout.zeigeMuster) return null;
-  const isModern = layout.template === "modern";
-  const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
-  const isModernFarbig = isModern && !istSchwarzweiss;
-  // Nur bei "modern" sitzt das Eckornament auf dem farbigen Kopfbereich und braucht dort die
-  // helle statt der dunklen Bildvariante.
-  const farbe = isModernFarbig ? "hell" : "schwarz";
+  const styles = buildStyles(layout);
   return (
-    <>
-      <IslamicCornerOrnamentPdf ecke="oben-links" farbe={farbe} />
-      <IslamicCornerOrnamentPdf ecke="oben-rechts" farbe={farbe} />
-    </>
+    <View style={styles.musterStreifen}>
+      <IslamicPatternStripPdf hoehe={30} />
+    </View>
   );
 }
 
@@ -334,9 +333,7 @@ export function WorksheetPdfDocument({
             themenbereichLabel={themenbereichLabel}
             erstelltAm={erstelltAm}
           />
-          {/* Nach dem Header im Baum, damit react-pdf sie über einem farbigen Kopfbereich zeichnet
-              (Zeichenreihenfolge statt echtem CSS-Stacking von position:absolute). */}
-          <EckOrnamente layout={layout} />
+          <MusterStreifen layout={layout} />
           <NameZeile layout={layout} />
           {layout.zeigeLernziel && (
             <>
@@ -354,15 +351,7 @@ export function WorksheetPdfDocument({
       {layout.loesungenSeparat && (
         <Page size="A4" style={styles.page}>
           <View style={styles.seiteInhalt}>
-            <Text
-              style={[
-                styles.titel,
-                layout.zeigeMuster ? { paddingTop: 78, paddingLeft: 68, paddingRight: 68 } : {},
-              ]}
-            >
-              {content.titel} — Lösungsblatt
-            </Text>
-            <EckOrnamente layout={layout} />
+            <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
             <LoesungenSeite content={content} layout={layout} />
           </View>
         </Page>

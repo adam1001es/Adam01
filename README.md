@@ -67,19 +67,16 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
-- **Eckornamente statt Streifen**: nur in den vier (bzw. oberen zwei) Ecken je Seite ein
-  L-förmiges Ornament, aus einer vom Nutzer bereitgestellten Referenzvorlage freigestellt
-  (`public/patterns/ecke-schwarz.png` + `ecke-hell.png`, transparenter Hintergrund) statt
-  handgezeichnet, da das dichte Kufi-Geflecht mit mehreren achtzackigen Sternen, verschachtelten
-  Rauten-/Zickzack-Bändern und zarten Arabesken-Ranken an den äußeren Enden zu detailreich für
-  eine Vektor-Nachbildung ist. Ohne Gottesname/Koran-Vers (gleiche Begründung wie zuvor:
-  Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). Das Quellbild ist für die Ecke
-  „oben-rechts" gezeichnet; alle anderen Ecken werden per CSS-/Style-Transform gespiegelt
-  (`lib/cornerOrnament.ts`) statt als eigene Datei gepflegt. In Web/PDF als Bild eingebunden (in
-  PDF pageweit über `floating`-Positionierung, bei der farbigen „Modern“-Vorlage die helle statt
-  der dunklen Variante); in Word über zwei serverseitig vorbereitete PNGs (Normal- und
-  Spiegel-Variante, `ecke-schwarz.png` + `ecke-schwarz-mirror.png`), an den Seitenrand-Ecken
-  verankert. Optional abschaltbar.
+- **Musterstreifen**: ein einfacher, zentrierter Zierstreifen unter dem Kopfbereich (nicht
+  großflächig über den Ecken, damit er nie mit Titel/Text kollidiert oder unverhältnismäßig viel
+  Platz einnimmt). Nur der obere horizontale Ausschnitt einer vom Nutzer bereitgestellten
+  Referenzvorlage (`public/patterns/leiste-schwarz.png` + `leiste-hell.png`, transparenter
+  Hintergrund) - Arabeske, zwei achtzackige Sterne, geometrisches Zickzack-/Rautenband -
+  freigestellt statt handgezeichnet, da das dichte Kufi-Geflecht zu detailreich für eine
+  Vektor-Nachbildung ist. Ohne Gottesname/Koran-Vers (gleiche Begründung wie zuvor:
+  Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). Fließt in Web/PDF/Word ganz
+  normal mit dem Text statt frei/absolut positioniert zu sein (`lib/patternStrip.ts`). Optional
+  abschaltbar.
 - **Druckfarbe (Farbe / Schwarz-Weiß)**: da die meisten Arbeitsblätter in der Schule ohnehin
   schwarzweiß ausgedruckt werden, lässt sich das pro Arbeitsblatt umschalten. Im Schwarz-Weiß-
   Modus wird der farbige Kopfbereich der „Modern“-Vorlage durch die schlichte, umrandete
