@@ -23,7 +23,7 @@ export default async function DashboardPage() {
 
   return (
     <main>
-      <div className="overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
+      <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
         <div className="max-w-2xl">
           <h1 className="font-display text-3xl font-semibold text-white sm:text-4xl">
             Deine Arbeitsblätter
@@ -40,8 +40,8 @@ export default async function DashboardPage() {
             Neues Arbeitsblatt erstellen
           </Link>
         </div>
-        <div className="mt-6 flex justify-center opacity-50">
-          <IslamicPatternStrip farbe="hell" hoehe={36} />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0">
+          <IslamicPatternStrip color="#f4ead1" opacity={0.6} hoehe={22} />
         </div>
       </div>
 

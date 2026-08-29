@@ -1,20 +1,21 @@
 import React from "react";
-import path from "path";
-import { Image } from "@react-pdf/renderer";
-import { MusterFarbe, MUSTERSTREIFEN_SEITENVERHAELTNIS } from "@/lib/patternStrip";
-
-function musterstreifenPfadPdf(farbe: MusterFarbe): string {
-  const datei = farbe === "hell" ? "leiste-hell.png" : "leiste-schwarz.png";
-  return path.join(process.cwd(), `public/patterns/${datei}`);
-}
+import { Svg, Path, G } from "@react-pdf/renderer";
+import { MUSTERSTREIFEN_VIEWBOX, MUSTERSTREIFEN_PFADE } from "@/lib/patternStrip";
 
 export function IslamicPatternStripPdf({
-  farbe = "schwarz",
-  hoehe = 42,
+  color = "#1a1a1a",
+  hoehe = 16,
 }: {
-  farbe?: MusterFarbe;
+  color?: string;
   hoehe?: number;
 }) {
-  const breite = hoehe * MUSTERSTREIFEN_SEITENVERHAELTNIS;
-  return <Image src={musterstreifenPfadPdf(farbe)} style={{ width: breite, height: hoehe, alignSelf: "center" }} />;
+  return (
+    <Svg viewBox={MUSTERSTREIFEN_VIEWBOX} preserveAspectRatio="none" style={{ width: "100%", height: hoehe }}>
+      <G stroke={color} fill="none" strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round">
+        {MUSTERSTREIFEN_PFADE.map((d, i) => (
+          <Path key={i} d={d} />
+        ))}
+      </G>
+    </Svg>
+  );
 }

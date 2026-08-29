@@ -67,22 +67,22 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
 - **Islamisches Datum**: zeigt im Kopfbereich zusätzlich zum gregorianischen das rechnerische
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
-- **Musterstreifen**: ein einfacher, zentrierter Zierstreifen unter dem Kopfbereich (nicht
-  großflächig über den Ecken, damit er nie mit Titel/Text kollidiert oder unverhältnismäßig viel
-  Platz einnimmt). Nur der obere horizontale Ausschnitt einer vom Nutzer bereitgestellten
-  Referenzvorlage (`public/patterns/leiste-schwarz.png` + `leiste-hell.png`, transparenter
-  Hintergrund) - Arabeske, zwei achtzackige Sterne, geometrisches Zickzack-/Rautenband -
-  freigestellt statt handgezeichnet, da das dichte Kufi-Geflecht zu detailreich für eine
-  Vektor-Nachbildung ist. Ohne Gottesname/Koran-Vers (gleiche Begründung wie zuvor:
-  Arbeitsblätter landen im Schulalltag auch mal auf dem Boden). Fließt in Web/PDF/Word ganz
-  normal mit dem Text statt frei/absolut positioniert zu sein (`lib/patternStrip.ts`). Optional
-  abschaltbar.
+- **Musterstreifen**: ein schlichter Zierstreifen, der horizontal über die volle Breite des
+  Arbeitsblatts verläuft und an beiden Enden spitz ausläuft, unter dem Kopfbereich, fließt ganz
+  normal mit dem Text statt frei/absolut positioniert zu sein - kollidiert daher nie mit Titel
+  oder Meta-Zeilen. Kein 1:1-Ausschnitt einer vom Nutzer bereitgestellten Referenzvorlage,
+  sondern eine eigene, schlanke Vektor-Neuzeichnung (`lib/patternStrip.ts`), die deren
+  Formensprache aufgreift: ein achtzackiger Stern in der Mitte, kleine und größere Rauten,
+  Zickzack-Verbindungslinien und eine doppelte, spitz zulaufende Linienführung an den Enden.
+  Ohne Gottesname/Koran-Vers (gleiche Begründung wie zuvor: Arbeitsblätter landen im
+  Schulalltag auch mal auf dem Boden). In Web/PDF als Vektor (skaliert verzerrungsfrei auf die
+  tatsächliche Breite); in Word als einmalig serverseitig gerenderte, auf die Satzspiegelbreite
+  zugeschnittene PNG (`public/patterns/leiste-schwarz.png`). Optional abschaltbar.
 - **Druckfarbe (Farbe / Schwarz-Weiß)**: da die meisten Arbeitsblätter in der Schule ohnehin
   schwarzweiß ausgedruckt werden, lässt sich das pro Arbeitsblatt umschalten. Im Schwarz-Weiß-
   Modus wird der farbige Kopfbereich der „Modern“-Vorlage durch die schlichte, umrandete
   Kopfzeile ersetzt und alle Akzentfarben (Muster, Überschriften) werden schwarz/dunkelgrau statt
-  grün/gold - in Web, PDF und Word konsistent (inkl. eigener schwarzer Eckornament-Bilder für
-  Word, `public/patterns/ecke-schwarz.png` + `ecke-schwarz-mirror.png`).
+  grün/gold - in Web, PDF und Word konsistent.
 
 ## Arbeitsblätter verwalten
 

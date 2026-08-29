@@ -76,8 +76,6 @@ function buildStyles(layout: LayoutConfig) {
     musterStreifen: {
       marginTop: isModernFarbig ? 0 : 8,
       marginBottom: isKompakt ? 8 : 14,
-      flexDirection: "row",
-      justifyContent: "center",
     },
     nameZeile: {
       marginTop: isKompakt ? 6 : 12,
@@ -191,7 +189,7 @@ function MusterStreifen({ layout }: { layout: LayoutConfig }) {
   const styles = buildStyles(layout);
   return (
     <View style={styles.musterStreifen}>
-      <IslamicPatternStripPdf hoehe={30} />
+      <IslamicPatternStripPdf hoehe={16} />
     </View>
   );
 }

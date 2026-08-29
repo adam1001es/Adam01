@@ -1,27 +1,29 @@
-import { MusterFarbe, musterstreifenPfadWeb, MUSTERSTREIFEN_SEITENVERHAELTNIS } from "@/lib/patternStrip";
+import { MUSTERSTREIFEN_VIEWBOX, MUSTERSTREIFEN_PFADE } from "@/lib/patternStrip";
 
 export default function IslamicPatternStrip({
-  farbe = "schwarz",
-  hoehe = 64,
+  color = "#1a1a1a",
+  hoehe = 28,
   opacity = 1,
   className,
 }: {
-  farbe?: MusterFarbe;
+  color?: string;
   hoehe?: number;
   opacity?: number;
   className?: string;
 }) {
-  const breite = Math.round(hoehe * MUSTERSTREIFEN_SEITENVERHAELTNIS);
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={musterstreifenPfadWeb(farbe)}
-      alt=""
+    <svg
+      viewBox={MUSTERSTREIFEN_VIEWBOX}
+      preserveAspectRatio="none"
       aria-hidden="true"
-      width={breite}
-      height={hoehe}
       className={className}
-      style={{ display: "block", width: breite, height: hoehe, opacity }}
-    />
+      style={{ display: "block", width: "100%", height: hoehe, opacity }}
+    >
+      <g stroke={color} fill="none" strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round">
+        {MUSTERSTREIFEN_PFADE.map((d, i) => (
+          <path key={i} d={d} />
+        ))}
+      </g>
+    </svg>
   );
 }

@@ -61,8 +61,8 @@ export default function WorksheetView({
       </div>
 
       {layout.zeigeMuster && (
-        <div className="mb-4 flex justify-center">
-          <IslamicPatternStrip hoehe={64} />
+        <div className="mb-4">
+          <IslamicPatternStrip hoehe={28} />
         </div>
       )}
 
