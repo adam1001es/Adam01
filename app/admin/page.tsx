@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Users, CreditCard, TrendingUp } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { getKontingent, TIER_LABEL } from "@/lib/quota";
-import AdminTierForm from "@/components/AdminTierForm";
+import { getKontingent, TIER_PREIS_EUR } from "@/lib/quota";
+import AdminUserTable, { AdminUserRow } from "@/components/AdminUserTable";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,36 @@ export default async function AdminPage() {
   if (admin.role !== "admin") redirect("/");
 
   const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
-  const kontingente = await Promise.all(users.map((u) => getKontingent(u)));
+
+  const rows: AdminUserRow[] = await Promise.all(
+    users.map(async (u) => {
+      const [kontingent, gesamtErstellt] = await Promise.all([
+        getKontingent(u),
+        prisma.worksheet.count({ where: { userId: u.id } }),
+      ]);
+      return {
+        id: u.id,
+        email: u.email,
+        role: u.role,
+        tier: u.tier,
+        createdAt: u.createdAt,
+        verbraucht: kontingent.verbraucht,
+        limit: kontingent.limit,
+        gesamtErstellt,
+        istSelbst: u.id === admin.id,
+      };
+    }),
+  );
+
+  const aktiveStarter = rows.filter((r) => r.tier === "starter").length;
+  const aktivePro = rows.filter((r) => r.tier === "pro").length;
+  const monatsumsatz = aktiveStarter * TIER_PREIS_EUR.starter + aktivePro * TIER_PREIS_EUR.pro;
+
+  const STATS = [
+    { icon: Users, label: "Konten gesamt", wert: String(rows.length) },
+    { icon: CreditCard, label: "Aktive Abos", wert: `${aktiveStarter + aktivePro} (${aktiveStarter} Starter · ${aktivePro} Pro)` },
+    { icon: TrendingUp, label: "Geschätzter Monatsumsatz", wert: `${monatsumsatz}€` },
+  ];
 
   return (
     <main>
@@ -22,54 +51,26 @@ export default async function AdminPage() {
           <ShieldCheck size={18} strokeWidth={2} />
         </span>
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Konten &amp; Abos</h1>
+          <h1 className="font-display text-2xl font-semibold text-slate-800">Konten verwalten</h1>
           <p className="text-sm text-slate-500">
-            Kontingent nach privat organisierter Bezahlung manuell zuweisen.
+            Kontingent nach privat organisierter Bezahlung zuweisen, Konten suchen und entfernen.
           </p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-100 bg-slate-50/60 text-xs uppercase tracking-wide text-slate-400">
-            <tr>
-              <th className="px-5 py-3 font-medium">E-Mail</th>
-              <th className="px-5 py-3 font-medium">Registriert am</th>
-              <th className="px-5 py-3 font-medium">Nutzung im Zyklus</th>
-              <th className="px-5 py-3 font-medium">Abo</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {users.map((u, i) => (
-              <tr key={u.id}>
-                <td className="px-5 py-3">
-                  {u.email}
-                  {u.role === "admin" && (
-                    <span className="ml-2 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
-                      Admin
-                    </span>
-                  )}
-                </td>
-                <td className="px-5 py-3 text-slate-500">
-                  {u.createdAt.toLocaleDateString("de-AT")}
-                </td>
-                <td className="px-5 py-3 text-slate-500">
-                  {kontingente[i].tier
-                    ? `${kontingente[i].verbraucht} / ${kontingente[i].limit}`
-                    : "–"}
-                </td>
-                <td className="px-5 py-3">
-                  <AdminTierForm userId={u.id} initialTier={u.tier} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+        {STATS.map(({ icon: Icon, label, wert }) => (
+          <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+              <Icon size={14} />
+              {label}
+            </div>
+            <div className="mt-1.5 font-display text-2xl font-semibold text-slate-800">{wert}</div>
+          </div>
+        ))}
       </div>
 
-      <p className="mt-4 text-xs text-slate-400">
-        Verfügbare Stufen: {TIER_LABEL.starter} · {TIER_LABEL.pro}
-      </p>
+      <AdminUserTable rows={rows} />
     </main>
   );
 }

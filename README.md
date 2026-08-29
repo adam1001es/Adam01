@@ -114,6 +114,13 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
 - Ist das Kontingent aufgebraucht oder kein Abo aktiv, wird das schon in `/new` sichtbar (Banner
   + deaktivierter „Arbeitsblatt erstellen"-Button) und serverseitig in `/api/generate` **vor**
   dem teuren Claude-Aufruf geprüft, damit ein blockiertes Konto keine API-Kosten verursacht.
+- **Nicht angemeldete Besucher** sehen auf `/` keine Login-Maske, sondern eine Produkt-/
+  Verkaufsseite (Funktionen, Starter-/Pro-Preise) mit Call-to-Action zu Registrierung/Login - kein
+  kostenloses Ausprobieren ohne Konto möglich, jedes Konto startet ohne Kontingent.
+- **`/admin`** ist auf Konten-Verwaltung ausgelegt: Kennzahlen (Konten gesamt, aktive Abos,
+  geschätzter Monatsumsatz), Suche nach E-Mail, Kontingent-Nutzung und Gesamtzahl erstellter
+  Arbeitsblätter je Konto, sowie Konten löschen (das eigene Admin-Konto ausgenommen - dessen
+  Arbeitsblätter bleiben beim Löschen eines Kontos erhalten, nur der Besitzer-Bezug entfällt).
 
 ## Arbeitsblätter verwalten
 

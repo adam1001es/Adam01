@@ -2,14 +2,19 @@ import { prisma } from "@/lib/prisma";
 
 /** Abo-Stufen: Kontingent wird privat bezahlt (kein Zahlungsanbieter im Code) und von einem
  * Admin manuell zugewiesen (siehe /admin). null = kein aktives Abo, 0 Arbeitsblätter erlaubt. */
-export const TIER_LABEL: Record<string, string> = {
-  starter: "Starter (3€ / 30 Arbeitsblätter im Monat)",
-  pro: "Pro (6€ / 80 Arbeitsblätter im Monat)",
-};
-
 export const TIER_QUOTA: Record<string, number> = {
   starter: 30,
   pro: 80,
+};
+
+export const TIER_PREIS_EUR: Record<string, number> = {
+  starter: 3,
+  pro: 6,
+};
+
+export const TIER_LABEL: Record<string, string> = {
+  starter: `Starter (${TIER_PREIS_EUR.starter}€ / ${TIER_QUOTA.starter} Arbeitsblätter im Monat)`,
+  pro: `Pro (${TIER_PREIS_EUR.pro}€ / ${TIER_QUOTA.pro} Arbeitsblätter im Monat)`,
 };
 
 const ZYKLUS_TAGE = 30;

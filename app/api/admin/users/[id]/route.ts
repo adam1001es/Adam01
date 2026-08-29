@@ -38,3 +38,31 @@ export async function PATCH(
 
   return NextResponse.json({ tier: updated.tier });
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const admin = await getSessionUser();
+  if (!admin || admin.role !== "admin") {
+    return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
+  }
+
+  if (params.id === admin.id) {
+    return NextResponse.json(
+      { error: "Du kannst dein eigenes Admin-Konto nicht löschen." },
+      { status: 400 },
+    );
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: params.id } });
+  if (!target) {
+    return NextResponse.json({ error: "Konto nicht gefunden." }, { status: 404 });
+  }
+
+  // Arbeitsblätter des Kontos bleiben erhalten (Worksheet.userId wird per Schema auf null
+  // gesetzt), nur das Konto und dessen Sessions verschwinden.
+  await prisma.user.delete({ where: { id: params.id } });
+
+  return NextResponse.json({ ok: true });
+}

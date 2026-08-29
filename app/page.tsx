@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
@@ -6,6 +5,7 @@ import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
 import DeleteAllButton from "@/components/DeleteAllButton";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
+import LandingPage from "@/components/LandingPage";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
 import KontingentBanner from "@/components/KontingentBanner";
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
-  if (!user) redirect("/login");
+  if (!user) return <LandingPage />;
 
   const [worksheets, kontingent] = await Promise.all([
     prisma.worksheet.findMany({
