@@ -1,41 +1,78 @@
 import Link from "next/link";
-import { Sparkles, ShieldCheck, FileDown, CalendarDays, CheckCircle2, Gift } from "lucide-react";
+import {
+  Sparkles,
+  ShieldCheck,
+  FileDown,
+  GraduationCap,
+  BookOpenCheck,
+  Baby,
+  CheckCircle2,
+  XCircle,
+  Gift,
+  ArrowRight,
+} from "lucide-react";
 import { TIER_QUOTA, TIER_PREIS_EUR, KOSTENLOS_LIMIT } from "@/lib/quota";
+import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 
 const FEATURES = [
   {
-    icon: Sparkles,
-    titel: "KI-generiert & geprüft",
-    text: "Claude erstellt jedes Arbeitsblatt und ein zweiter, unabhängiger Prüf-Durchlauf checkt Inhalt, Quellenangaben und Altersgerechtigkeit gegen.",
-  },
-  {
     icon: ShieldCheck,
-    titel: "Lehrplan-verankert",
-    text: "Orientiert an der Grobstruktur des österreichischen IGGÖ-Lehrplans (BGBl. II Nr. 234/2011), Hadithe nur aus anerkannten Sammlungen.",
+    titel: "Zweite, unabhängige Prüfung",
+    text: "Nicht nur generiert - ein separater KI-Durchlauf checkt jedes Arbeitsblatt gezielt gegen: Quellenangaben, Vollständigkeit, Altersgerechtigkeit, Kompetenzorientierung.",
   },
   {
-    icon: CalendarDays,
-    titel: "Islamisches Datum & Ornamentik",
-    text: "Optionales Hijri-Datum im Kopfbereich und dezente Girih-Musterstreifen im klassischen Stil.",
+    icon: GraduationCap,
+    titel: "Pädagogisch fundiert",
+    text: "Anforderungsbereiche (AFB I-III), anerkannte Kompetenzbereiche und kompetenzorientierte Lernziele sind fest eingebaut - bei jedem Arbeitsblatt, nicht nur wenn man daran denkt, es zu verlangen.",
+  },
+  {
+    icon: BookOpenCheck,
+    titel: "Für den österreichischen IGGÖ-Lehrplan",
+    text: "Orientiert an der Grobstruktur des Lehrplans für islamischen Religionsunterricht (BGBl. II Nr. 234/2011) - Themenbereich und Schulstufen-Cluster fließen direkt in Sprache und Inhalt ein.",
+  },
+  {
+    icon: Sparkles,
+    titel: "Sekundenschnell druckfertig",
+    text: "Kein Fließtext zum Selbst-Formatieren: fertiges, layoutetes PDF oder Word-Dokument, wahlweise mit islamischem Datum und Ornament-Musterstreifen.",
   },
   {
     icon: FileDown,
-    titel: "PDF- & Word-Export",
-    text: "Fertige Arbeitsblätter direkt als PDF oder .docx herunterladen und ausdrucken.",
+    titel: "Kontrollierte Quellendisziplin",
+    text: "Koran- und Hadith-Angaben werden bewusst konservativ generiert, Hadithe nur aus Sahih al-Bukhari/Muslim (bevorzugt), Unsicheres wird als „bitte prüfen” markiert statt erfunden.",
   },
+  {
+    icon: Baby,
+    titel: "Altersgerecht bis Klasse 1",
+    text: "Für noch nicht lese-/schreibkundige Kinder automatisch bildbasierte Aufgaben (Ausmalbild, Bildergeschichte zum Vorlesen) statt ungeeigneter Lesetext-Aufgaben.",
+  },
+];
+
+const VERGLEICH_CHAT = [
+  "Lehrplan, Kompetenzniveau und Quellenregeln musst du selbst formulieren - jedes Mal neu",
+  "Du bekommst Fließtext, den du selbst in ein druckfertiges Arbeitsblatt bringen musst",
+  "Niemand prüft die Antwort gegen - die fachliche Kontrolle bleibt komplett bei dir",
+  "Kein Verlauf, keine Bibliothek deiner bisherigen Arbeitsblätter",
+];
+
+const VERGLEICH_UNS = [
+  "IGGÖ-Lehrplan, Schulstufen-Cluster und Quellenregeln sind fest eingebaut",
+  "Fertiges, layoutetes PDF/Word - direkt zum Ausdrucken, in Sekunden",
+  "Ein zweiter, unabhängiger KI-Durchlauf prüft gezielt gegen, bevor du es siehst",
+  "Alle erstellten Arbeitsblätter gespeichert, favorisierbar, jederzeit wieder abrufbar",
 ];
 
 export default function LandingPage() {
   return (
-    <main className="space-y-14">
-      <section className="overflow-hidden rounded-3xl bg-brand-gradient px-6 py-14 text-center text-white shadow-card sm:px-12">
+    <main className="space-y-16">
+      <section className="relative overflow-hidden rounded-3xl bg-brand-gradient px-6 py-14 text-center text-white shadow-card sm:px-12">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">
-          Arbeitsblätter für den islamischen Religionsunterricht –
-          <br className="hidden sm:block" /> automatisch erstellt und geprüft
+          Geprüfte, lehrplankonforme Arbeitsblätter für den
+          <br className="hidden sm:block" /> islamischen Religionsunterricht - in Sekunden
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-brand-50">
-          Bereich, Thema, Schulstufe und Layout vorgeben – der Rest geht automatisch. In wenigen
-          Sekunden fertig zum Ausdrucken.
+          Nicht irgendein KI-Text: jedes Arbeitsblatt wird von einer zweiten, unabhängigen Prüfung
+          gegengecheckt, ist am österreichischen IGGÖ-Lehrplan ausgerichtet und pädagogisch
+          fundiert - fertig formatiert zum Ausdrucken.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
@@ -54,14 +91,14 @@ export default function LandingPage() {
         <p className="mt-3 text-xs text-brand-50/80">
           Nur E-Mail + Passwort, keine Kreditkarte nötig zum Ausprobieren.
         </p>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0">
+          <IslamicPatternStrip color="#f4ead1" opacity={0.55} hoehe={20} />
+        </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map(({ icon: Icon, titel, text }) => (
-          <div
-            key={titel}
-            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card"
-          >
+          <div key={titel} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
               <Icon size={20} strokeWidth={2} />
             </span>
@@ -73,11 +110,75 @@ export default function LandingPage() {
 
       <section>
         <h2 className="mb-1 text-center font-display text-2xl font-semibold text-slate-800">
+          "Kann ich nicht einfach meine KI-App fragen?"
+        </h2>
+        <p className="mb-8 text-center text-sm text-slate-500">
+          Kannst du - der Unterschied ist, was danach noch an dir hängen bleibt.
+        </p>
+        <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+            <h3 className="mb-4 font-display text-base font-semibold text-slate-500">
+              Normaler KI-Chat
+            </h3>
+            <ul className="space-y-3 text-sm text-slate-600">
+              {VERGLEICH_CHAT.map((punkt) => (
+                <li key={punkt} className="flex items-start gap-2.5">
+                  <XCircle size={16} className="mt-0.5 shrink-0 text-slate-400" />
+                  <span>{punkt}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-brand-300 bg-brand-50 p-6">
+            <h3 className="mb-4 font-display text-base font-semibold text-brand-800">
+              Dieser Arbeitsblätter-Generator
+            </h3>
+            <ul className="space-y-3 text-sm text-brand-900">
+              {VERGLEICH_UNS.map((punkt) => (
+                <li key={punkt} className="flex items-start gap-2.5">
+                  <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-600" />
+                  <span>{punkt}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-8 text-center font-display text-2xl font-semibold text-slate-800">
+          In drei Schritten fertig
+        </h2>
+        <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
+          {[
+            { schritt: "1", titel: "Vorgeben", text: "Bereich, Thema, Schulstufe und Layout auswählen." },
+            { schritt: "2", titel: "Prüfen lassen", text: "KI erstellt den Inhalt, eine zweite KI prüft ihn unabhängig gegen." },
+            { schritt: "3", titel: "Drucken", text: "Fertiges PDF oder Word direkt herunterladen und austeilen." },
+          ].map(({ schritt, titel, text }, i, arr) => (
+            <div key={schritt} className="relative flex flex-col items-center text-center">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-gradient font-display text-lg font-semibold text-white shadow-card">
+                {schritt}
+              </span>
+              <h3 className="mt-3 font-display text-base font-semibold text-slate-800">{titel}</h3>
+              <p className="mt-1 text-sm text-slate-500">{text}</p>
+              {i < arr.length - 1 && (
+                <ArrowRight
+                  size={18}
+                  className="absolute -right-2 top-3 hidden text-slate-300 sm:block"
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-1 text-center font-display text-2xl font-semibold text-slate-800">
           Zugang
         </h2>
         <p className="mb-6 text-center text-sm text-slate-500">
           Jedes registrierte Konto bekommt automatisch {KOSTENLOS_LIMIT} Arbeitsblätter/Monat
-          kostenlos. Für regelmäßige Nutzung danach eine bezahlte Stufe anfragen – die
+          kostenlos. Für regelmäßige Nutzung danach eine bezahlte Stufe anfragen - die
           Freischaltung erfolgt manuell nach privat organisierter Bezahlung.
         </p>
         <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
@@ -103,7 +204,7 @@ export default function LandingPage() {
         </div>
         <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
           <CheckCircle2 size={14} className="text-brand-500" />
-          Bezahlung wird privat organisiert – kein Kartendaten-Formular in der App.
+          Bezahlung wird privat organisiert - kein Kartendaten-Formular in der App.
         </p>
       </section>
     </main>
