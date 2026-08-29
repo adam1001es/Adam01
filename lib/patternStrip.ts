@@ -1,7 +1,7 @@
 import { MusterVariante } from "@/lib/types";
 
 /**
- * Islamische Musterelemente: vier auswählbare, horizontal durchlaufende Zierstreifen im
+ * Islamische Musterelemente: drei auswählbare, horizontal durchlaufende Zierstreifen im
  * Girih-Stil (wie klassische maurische/Alhambra-Randmuster). Jede Variante ist ein echtes
  * Kachelmuster - eine Kachel wird so oft nebeneinandergesetzt, wie in die verfügbare Breite
  * passt, ohne Verzerrung.
@@ -25,8 +25,7 @@ export interface MusterDefinition {
 export const MUSTER_LABEL: Record<MusterVariante, string> = {
   sterne: "Sterne",
   halbmond: "Halbmond",
-  kalligrafie: "Kalligrafie",
-  kette: "Kette",
+  stern12: "Stern",
 };
 
 export const MUSTER_DEFINITIONEN: Record<MusterVariante, MusterDefinition> = {
@@ -70,9 +69,11 @@ export const MUSTER_DEFINITIONEN: Record<MusterVariante, MusterDefinition> = {
       },
     ],
   },
-  // Zwei Halbmonde flankieren eine Raute - der Halbmond ist als ein einziger, geschlossener
-  // Pfad aus zwei gegenläufigen Bögen gezeichnet (nicht als zwei sich überlappende Kreise -
-  // das würde bei fill="none" nur zwei offene Ringe statt einer Mondsichel ergeben).
+  // Zwei Halbmonde flankieren eine Raute, beide zur Mitte hin geöffnet ("(" links, ")" rechts).
+  // Der Halbmond ist als ein einziger, geschlossener Pfad aus zwei gegenläufigen Bögen
+  // gezeichnet (nicht als zwei sich überlappende Kreise - das würde bei fill="none" nur zwei
+  // offene Ringe statt einer Mondsichel ergeben). Die beiden Halbmonde sind zueinander
+  // gespiegelt (Bogenrichtungen vertauscht), sonst würden beide in dieselbe Richtung zeigen.
   halbmond: {
     kachelBreite: 100,
     kachelHoehe: 52,
@@ -83,7 +84,7 @@ export const MUSTER_DEFINITIONEN: Record<MusterVariante, MusterDefinition> = {
         strichstaerke: 1.3,
         pfade: [
           "M22,14 A13,13 0 1,0 22,38 A9,9 0 1,1 22,14 Z",
-          "M78,14 A13,13 0 1,0 78,38 A9,9 0 1,1 78,14 Z",
+          "M78,14 A13,13 0 1,1 78,38 A9,9 0 1,0 78,14 Z",
         ],
       },
       {
@@ -97,8 +98,9 @@ export const MUSTER_DEFINITIONEN: Record<MusterVariante, MusterDefinition> = {
       },
     ],
   },
-  // Stilisiertes arabisches و (waw) im Kern eines zwölfzackigen Sterns, flankiert von Rauten.
-  kalligrafie: {
+  // Zwölfzackiger Stern, flankiert von Rauten - rein geometrisch, ohne Schriftzeichen o.ä. im
+  // Zentrum.
+  stern12: {
     kachelBreite: 120,
     kachelHoehe: 60,
     rahmenY: [1.5, 58.5],
@@ -111,44 +113,12 @@ export const MUSTER_DEFINITIONEN: Record<MusterVariante, MusterDefinition> = {
         ],
       },
       {
-        strichstaerke: 1.4,
-        pfade: ["M56,25 Q60,21 65,24 L65,36 Q61,40 56,37 M65,31 H70"],
-      },
-      {
-        strichstaerke: 1.0,
-        pfade: ["M51,30 A9,9 0 1,0 69,30 A9,9 0 1,0 51,30 Z"],
-      },
-      {
         strichstaerke: 1.15,
         pfade: ["M12,30 L20,22 L28,30 L20,38 Z", "M92,30 L100,22 L108,30 L100,38 Z"],
       },
       {
         strichstaerke: 1.1,
         pfade: ["M28,30 H38", "M82,30 H92"],
-      },
-    ],
-  },
-  // Halbmond (korrekt als ein Pfad aus zwei gegenläufigen Bögen), Rauten-Kette und kleine
-  // Rauten-Akzente, verbunden durch dünne Linien.
-  kette: {
-    kachelBreite: 100,
-    kachelHoehe: 52,
-    rahmenY: [1.5, 50.5],
-    rahmenStrichstaerke: 1.5,
-    gruppen: [
-      {
-        strichstaerke: 1.25,
-        pfade: ["M20,15 A11,11 0 1,0 20,37 A7.5,7.5 0 1,1 20,15 Z", "M38,26 L48,16 L58,26 L48,36 Z"],
-      },
-      {
-        strichstaerke: 1.1,
-        pfade: [
-          "M48,21 L53,26 L48,31 L43,26 Z",
-          "M68,18 L74,12 L80,18 L74,24 Z",
-          "M68,34 L74,28 L80,34 L74,40 Z",
-          "M30,26 H38",
-          "M58,26 H66",
-        ],
       },
     ],
   },

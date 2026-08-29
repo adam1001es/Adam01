@@ -18,12 +18,11 @@ import { ICONS, IconKey } from "@/lib/icons";
 // Jede public/patterns/leiste-*.png ist eine einmalig serverseitig gerenderte Ansicht des
 // jeweiligen Vektor-Streifens (lib/patternStrip.ts) - fix auf die bekannte Satzspiegelbreite
 // (A4, Standard-Ränder) zugeschnitten, da Word (anders als Web/PDF) nicht responsiv auf
-// Vektor-Ebene skaliert. Alle vier auf dasselbe Seitenverhältnis gerendert.
+// Vektor-Ebene skaliert. Alle auf dasselbe Seitenverhältnis gerendert.
 const MUSTERSTREIFEN_BILD_PFADE: Record<MusterVariante, string> = {
   sterne: path.join(process.cwd(), "public/patterns/leiste-sterne.png"),
   halbmond: path.join(process.cwd(), "public/patterns/leiste-halbmond.png"),
-  kalligrafie: path.join(process.cwd(), "public/patterns/leiste-kalligrafie.png"),
-  kette: path.join(process.cwd(), "public/patterns/leiste-kette.png"),
+  stern12: path.join(process.cwd(), "public/patterns/leiste-stern12.png"),
 };
 const MUSTERSTREIFEN_BILD_SEITENVERHAELTNIS = 1740 / 84;
 
