@@ -3,9 +3,14 @@ import { Svg, Path, G, View } from "@react-pdf/renderer";
 import {
   MUSTERSTREIFEN_KACHEL_BREITE,
   MUSTERSTREIFEN_KACHEL_HOEHE,
-  MUSTERSTREIFEN_STERN_PFAD,
-  MUSTERSTREIFEN_HEXAGON_PFAD,
   MUSTERSTREIFEN_RAHMEN_Y,
+  MUSTERSTREIFEN_RAHMEN_STRICHSTAERKE,
+  MUSTERSTREIFEN_HAUPT_PFADE,
+  MUSTERSTREIFEN_HAUPT_STRICHSTAERKE,
+  MUSTERSTREIFEN_INNEN_PFADE,
+  MUSTERSTREIFEN_INNEN_STRICHSTAERKE,
+  MUSTERSTREIFEN_FEIN_PFADE,
+  MUSTERSTREIFEN_FEIN_STRICHSTAERKE,
 } from "@/lib/patternStrip";
 
 /**
@@ -26,7 +31,7 @@ export function IslamicPatternStripPdf({
   const kachelBreitePt = MUSTERSTREIFEN_KACHEL_BREITE * skalierung;
   const anzahl = Math.ceil(breite / kachelBreitePt) + 1;
   const gesamtBreite = anzahl * MUSTERSTREIFEN_KACHEL_BREITE;
-  const [rahmenO1, rahmenO2, rahmenU1, rahmenU2] = MUSTERSTREIFEN_RAHMEN_Y;
+  const [rahmenOben, rahmenUnten] = MUSTERSTREIFEN_RAHMEN_Y;
 
   return (
     <View style={{ width: breite, height: hoehe, overflow: "hidden" }}>
@@ -34,17 +39,30 @@ export function IslamicPatternStripPdf({
         viewBox={`0 0 ${gesamtBreite} ${MUSTERSTREIFEN_KACHEL_HOEHE}`}
         style={{ width: anzahl * kachelBreitePt, height: hoehe }}
       >
-        <G stroke={color} fill="none" strokeWidth={1.4} strokeLinejoin="round" strokeLinecap="round">
+        <G fill="none" stroke={color} strokeLinejoin="miter" strokeLinecap="round">
           {Array.from({ length: anzahl }).map((_, k) => (
             <G key={k} transform={`translate(${k * MUSTERSTREIFEN_KACHEL_BREITE},0)`}>
-              <Path d={MUSTERSTREIFEN_STERN_PFAD} />
-              <Path d={MUSTERSTREIFEN_HEXAGON_PFAD} />
+              <G strokeWidth={MUSTERSTREIFEN_HAUPT_STRICHSTAERKE}>
+                {MUSTERSTREIFEN_HAUPT_PFADE.map((d, i) => (
+                  <Path key={i} d={d} />
+                ))}
+              </G>
+              <G strokeWidth={MUSTERSTREIFEN_INNEN_STRICHSTAERKE}>
+                {MUSTERSTREIFEN_INNEN_PFADE.map((d, i) => (
+                  <Path key={i} d={d} />
+                ))}
+              </G>
+              <G strokeWidth={MUSTERSTREIFEN_FEIN_STRICHSTAERKE}>
+                {MUSTERSTREIFEN_FEIN_PFADE.map((d, i) => (
+                  <Path key={i} d={d} />
+                ))}
+              </G>
             </G>
           ))}
-          <Path d={`M 0,${rahmenO1} L ${gesamtBreite},${rahmenO1}`} />
-          <Path d={`M 0,${rahmenO2} L ${gesamtBreite},${rahmenO2}`} />
-          <Path d={`M 0,${rahmenU1} L ${gesamtBreite},${rahmenU1}`} />
-          <Path d={`M 0,${rahmenU2} L ${gesamtBreite},${rahmenU2}`} />
+          <G strokeWidth={MUSTERSTREIFEN_RAHMEN_STRICHSTAERKE}>
+            <Path d={`M 0,${rahmenOben} L ${gesamtBreite},${rahmenOben}`} />
+            <Path d={`M 0,${rahmenUnten} L ${gesamtBreite},${rahmenUnten}`} />
+          </G>
         </G>
       </Svg>
     </View>

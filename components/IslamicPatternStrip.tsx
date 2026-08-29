@@ -2,9 +2,14 @@ import { useId } from "react";
 import {
   MUSTERSTREIFEN_KACHEL_BREITE,
   MUSTERSTREIFEN_KACHEL_HOEHE,
-  MUSTERSTREIFEN_STERN_PFAD,
-  MUSTERSTREIFEN_HEXAGON_PFAD,
   MUSTERSTREIFEN_RAHMEN_Y,
+  MUSTERSTREIFEN_RAHMEN_STRICHSTAERKE,
+  MUSTERSTREIFEN_HAUPT_PFADE,
+  MUSTERSTREIFEN_HAUPT_STRICHSTAERKE,
+  MUSTERSTREIFEN_INNEN_PFADE,
+  MUSTERSTREIFEN_INNEN_STRICHSTAERKE,
+  MUSTERSTREIFEN_FEIN_PFADE,
+  MUSTERSTREIFEN_FEIN_STRICHSTAERKE,
 } from "@/lib/patternStrip";
 
 export default function IslamicPatternStrip({
@@ -21,7 +26,7 @@ export default function IslamicPatternStrip({
   const patternId = `musterstreifen-kachel-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const skalierung = hoehe / MUSTERSTREIFEN_KACHEL_HOEHE;
   const kachelBreitePx = MUSTERSTREIFEN_KACHEL_BREITE * skalierung;
-  const [rahmenO1, rahmenO2, rahmenU1, rahmenU2] = MUSTERSTREIFEN_RAHMEN_Y.map((y) => y * skalierung);
+  const [rahmenOben, rahmenUnten] = MUSTERSTREIFEN_RAHMEN_Y.map((y) => y * skalierung);
 
   return (
     <svg
@@ -41,18 +46,29 @@ export default function IslamicPatternStrip({
           height={hoehe}
           viewBox={`0 0 ${MUSTERSTREIFEN_KACHEL_BREITE} ${MUSTERSTREIFEN_KACHEL_HOEHE}`}
         >
-          <g stroke={color} fill="none" strokeWidth={1.4} strokeLinejoin="round" strokeLinecap="round">
-            <path d={MUSTERSTREIFEN_STERN_PFAD} />
-            <path d={MUSTERSTREIFEN_HEXAGON_PFAD} />
+          <g fill="none" stroke={color} strokeLinejoin="miter" strokeLinecap="round">
+            <g strokeWidth={MUSTERSTREIFEN_HAUPT_STRICHSTAERKE}>
+              {MUSTERSTREIFEN_HAUPT_PFADE.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
+            <g strokeWidth={MUSTERSTREIFEN_INNEN_STRICHSTAERKE}>
+              {MUSTERSTREIFEN_INNEN_PFADE.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
+            <g strokeWidth={MUSTERSTREIFEN_FEIN_STRICHSTAERKE}>
+              {MUSTERSTREIFEN_FEIN_PFADE.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
           </g>
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill={`url(#${patternId})`} />
-      <g stroke={color} strokeWidth={1.4}>
-        <line x1="0" y1={rahmenO1} x2="100%" y2={rahmenO1} />
-        <line x1="0" y1={rahmenO2} x2="100%" y2={rahmenO2} />
-        <line x1="0" y1={rahmenU1} x2="100%" y2={rahmenU1} />
-        <line x1="0" y1={rahmenU2} x2="100%" y2={rahmenU2} />
+      <g stroke={color} strokeWidth={MUSTERSTREIFEN_RAHMEN_STRICHSTAERKE * skalierung}>
+        <line x1="0" y1={rahmenOben} x2="100%" y2={rahmenOben} />
+        <line x1="0" y1={rahmenUnten} x2="100%" y2={rahmenUnten} />
       </g>
     </svg>
   );

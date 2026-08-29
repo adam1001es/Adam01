@@ -68,9 +68,10 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
   Hijri-Datum (tabellarischer Kalender) an, inkl. Hinweis auf mögliche ±1-Tag-Abweichung durch
   Mondsichtung (`lib/hijri.ts`). Optional abschaltbar.
 - **Musterstreifen**: ein echtes Kachel-Bordürenmuster im Girih-Stil (wie klassische
-  maurische/Alhambra-Randmuster) - ein achtzackiger Stern abwechselnd mit einer länglichen
-  Sechseck-Form, eingefasst von einer doppelten Rahmenlinie, wiederholt sich beliebig oft
-  nebeneinander über die volle Breite des Arbeitsblatts, ohne verzerrt zu werden. Fließt unter
+  maurische/Alhambra-Randmuster) - ein dichtes Geflecht aus achtzackigem Stern, innerem Kern und
+  ineinandergreifenden Rauten-/Vieleck-Formen, eingefasst von einer Rahmenlinie, wiederholt sich
+  beliebig oft nebeneinander über die volle Breite des Arbeitsblatts, ohne verzerrt zu werden.
+  Fließt unter
   dem Kopfbereich ganz normal mit dem Text statt frei/absolut positioniert zu sein - kollidiert
   daher nie mit Titel oder Meta-Zeilen. Eine eigene Vektor-Kachel (`lib/patternStrip.ts`), kein
   1:1-Ausschnitt einer vom Nutzer bereitgestellten Referenzvorlage. Ohne Gottesname/Koran-Vers
