@@ -139,7 +139,10 @@ Verfügung steht – deshalb Postgres statt SQLite.
 
 - Next.js (App Router) + TypeScript + Tailwind CSS
 - Prisma + PostgreSQL (Verlauf aller generierten Arbeitsblätter)
-- `@anthropic-ai/sdk` (Modell: `claude-opus-5`) für Generierung + Verifikation
+- `@anthropic-ai/sdk` (Modell: `claude-opus-5`) für Generierung + Verifikation - die statischen
+  System-Prompts (Rolle/Regeln/JSON-Schema) sind je Aufruf per `cache_control` (1h-TTL) gecacht,
+  da sie bei jeder Anfrage byte-identisch sind; nur der kleine, pro Anfrage variierende
+  Lehrplan-Kontext (Themenbereich/Schulstufe) steht ungecacht danach
 - `@react-pdf/renderer` für PDF-Export, `docx` für Word-Export
 - Drei Layout-Vorlagen (Klassisch / Modern / Kompakt), je mit Schulname, Schriftgröße,
   „Lösungen separat“, islamischem Datum und Musterstreifen konfigurierbar

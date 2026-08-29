@@ -93,7 +93,18 @@ export async function generateAndVerifyWorksheet(
   const genResponse = await client.messages.create({
     model: GENERATION_MODEL,
     max_tokens: 8000,
-    system: `${GENERATION_SYSTEM_PROMPT_BASE}\n\n${curriculumContext}`,
+    // GENERATION_SYSTEM_PROMPT_BASE ist bei jeder Anfrage byte-identisch (großer, statischer
+    // Block) - als eigener, gecachter Prefix-Block ausgelagert. curriculumContext variiert pro
+    // Anfrage (Themenbereich/Schulstufe) und steht daher NACH dem Cache-Breakpoint, damit er den
+    // Cache-Treffer auf den statischen Block nicht zunichtemacht (Cache = Prefix-Match).
+    system: [
+      {
+        type: "text",
+        text: GENERATION_SYSTEM_PROMPT_BASE,
+        cache_control: { type: "ephemeral", ttl: "1h" },
+      },
+      { type: "text", text: curriculumContext },
+    ],
     messages: [{ role: "user", content: buildUserPrompt(req) }],
   });
 
@@ -103,7 +114,14 @@ export async function generateAndVerifyWorksheet(
   const verifyResponse = await client.messages.create({
     model: VERIFICATION_MODEL,
     max_tokens: 4000,
-    system: `${VERIFICATION_SYSTEM_PROMPT_BASE}\n\n${curriculumContext}`,
+    system: [
+      {
+        type: "text",
+        text: VERIFICATION_SYSTEM_PROMPT_BASE,
+        cache_control: { type: "ephemeral", ttl: "1h" },
+      },
+      { type: "text", text: curriculumContext },
+    ],
     messages: [
       {
         role: "user",
