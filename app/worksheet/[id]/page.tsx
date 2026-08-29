@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Pencil, FileText, FileType2, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -6,6 +6,7 @@ import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema, Verifi
 import WorksheetView from "@/components/WorksheetView";
 import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
+import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +32,11 @@ const VERIFICATION_STYLE: Record<
 };
 
 export default async function WorksheetPage({ params }: { params: { id: string } }) {
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+
   const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!worksheet) notFound();
+  if (!worksheet || worksheet.userId !== user.id) notFound();
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));

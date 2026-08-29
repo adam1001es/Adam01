@@ -97,6 +97,24 @@ Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt is
   Kopfzeile ersetzt und alle Akzentfarben (Muster, Überschriften) werden schwarz/dunkelgrau statt
   grün/gold - in Web, PDF und Word konsistent.
 
+## Konten &amp; Abo-Kontingent
+
+Die App hat ein einfaches Login-System (E-Mail + Passwort, Selbst-Registrierung unter
+`/register`) - jedes Konto sieht ausschließlich seine eigenen Arbeitsblätter. Es gibt **keine
+Zahlungsanbieter-Integration**: Abos werden privat organisiert (z.B. Überweisung), ein Admin
+schaltet danach manuell unter `/admin` das Kontingent frei.
+
+- **Erster registrierter Account wird automatisch Admin** (es gibt noch keinen anderen Weg,
+  Admin-Rechte zu vergeben) - dieser Account sollte also der/die Betreiber:in sein.
+- **Abo-Stufen** (siehe `lib/quota.ts`): „Starter" (30 Arbeitsblätter/Monat) und „Pro" (80/Monat).
+  Ein frisch registriertes Konto hat kein Abo (0 Arbeitsblätter erlaubt), bis ein Admin unter
+  `/admin` eine Stufe zuweist.
+- **Rollierender 30-Tage-Zyklus** ab dem individuellen Konto-Erstellungsdatum (nicht ab dem
+  Kalendermonat) - jedes Konto hat also seinen eigenen Rhythmus.
+- Ist das Kontingent aufgebraucht oder kein Abo aktiv, wird das schon in `/new` sichtbar (Banner
+  + deaktivierter „Arbeitsblatt erstellen"-Button) und serverseitig in `/api/generate` **vor**
+  dem teuren Claude-Aufruf geprüft, damit ein blockiertes Konto keine API-Kosten verursacht.
+
 ## Arbeitsblätter verwalten
 
 Auf der Übersichtsseite lässt sich jedes Arbeitsblatt einzeln löschen (Papierkorb-Symbol) oder
@@ -124,6 +142,9 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
   (Storage-Tab) gesetzt.
 - `ANTHROPIC_API_KEY` – dein Anthropic API-Key
 
+Kein separates Auth-Secret nötig: Sessions sind DB-gestützt (Tabelle `Session`), das Cookie
+enthält nur ein zufälliges Token, keinen signierten/verschlüsselten Wert.
+
 ## Deployment (Vercel)
 
 1. Projekt in Vercel aus diesem GitHub-Repo importieren.
@@ -134,6 +155,10 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 
 SQLite (lokale Datei) funktioniert nicht auf Vercel, da dort keine dauerhafte Festplatte zur
 Verfügung steht – deshalb Postgres statt SQLite.
+
+Sobald die App gegen Bezahlung an andere angeboten wird (auch wenn die Bezahlung privat/außerhalb
+der App abgewickelt wird), ist das kommerzielle Nutzung im Sinne der Vercel-Nutzungsbedingungen –
+dafür ist ein bezahlter Vercel-Tarif (Pro) nötig, der kostenlose Hobby-Tarif reicht dann nicht.
 
 ## Tech-Stack
 

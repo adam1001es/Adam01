@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
@@ -5,6 +6,9 @@ import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
 import DeleteAllButton from "@/components/DeleteAllButton";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
+import { getSessionUser } from "@/lib/auth";
+import { getKontingent } from "@/lib/quota";
+import KontingentBanner from "@/components/KontingentBanner";
 
 const STATUS_STYLE: Record<string, { text: string; className: string; icon: typeof CheckCircle2 }> = {
   geprueft: { text: "Geprüft", className: "bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200", icon: CheckCircle2 },
@@ -16,13 +20,23 @@ const STATUS_STYLE: Record<string, { text: string; className: string; icon: type
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const worksheets = await prisma.worksheet.findMany({
-    orderBy: [{ favorit: "desc" }, { createdAt: "desc" }],
-    take: 50,
-  });
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+
+  const [worksheets, kontingent] = await Promise.all([
+    prisma.worksheet.findMany({
+      where: { userId: user.id },
+      orderBy: [{ favorit: "desc" }, { createdAt: "desc" }],
+      take: 50,
+    }),
+    getKontingent(user),
+  ]);
 
   return (
     <main>
+      <div className="mb-6">
+        <KontingentBanner kontingent={kontingent} />
+      </div>
       <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
         <div className="max-w-2xl">
           <h1 className="font-display text-3xl font-semibold text-white sm:text-4xl">

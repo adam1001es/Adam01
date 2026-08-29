@@ -1,6 +1,17 @@
+import { redirect } from "next/navigation";
 import NewWorksheetForm from "./NewWorksheetForm";
+import { getSessionUser } from "@/lib/auth";
+import { getKontingent } from "@/lib/quota";
+import KontingentBanner from "@/components/KontingentBanner";
 
-export default function NewWorksheetPage() {
+export const dynamic = "force-dynamic";
+
+export default async function NewWorksheetPage() {
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+
+  const kontingent = await getKontingent(user);
+
   return (
     <main>
       <div className="mb-6">
@@ -11,7 +22,10 @@ export default function NewWorksheetPage() {
           Alles auswählen und einstellen – Claude generiert und prüft den Inhalt automatisch.
         </p>
       </div>
-      <NewWorksheetForm />
+      <div className="mb-6">
+        <KontingentBanner kontingent={kontingent} />
+      </div>
+      <NewWorksheetForm kannErstellen={kontingent.verbleibend > 0} />
     </main>
   );
 }

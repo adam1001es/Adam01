@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { GenerateRequestSchema } from "@/lib/types";
 import { generateAndVerifyWorksheet } from "@/lib/generateWorksheet";
+import { getSessionUser } from "@/lib/auth";
+import { getKontingent } from "@/lib/quota";
 
 export async function POST(request: NextRequest) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -20,6 +27,16 @@ export async function POST(request: NextRequest) {
   }
   const req = parsed.data;
 
+  // Kontingent VOR dem teuren Claude-Aufruf prüfen, damit ein blockiertes Konto keine
+  // API-Kosten verursacht.
+  const kontingent = await getKontingent(user);
+  if (kontingent.verbleibend <= 0) {
+    const grund = kontingent.tier
+      ? `Dein Kontingent für diesen Zyklus (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
+      : "Dein Konto hat noch kein aktives Abo. Wende dich an die Person, die den Zugang verwaltet.";
+    return NextResponse.json({ error: grund }, { status: 403 });
+  }
+
   try {
     const { content, verification } = await generateAndVerifyWorksheet(req);
 
@@ -34,6 +51,7 @@ export async function POST(request: NextRequest) {
         contentJson: JSON.stringify(content),
         verification: JSON.stringify(verification),
         status: verification.status === "fehler" ? "verworfen" : "geprueft",
+        userId: user.id,
       },
     });
 

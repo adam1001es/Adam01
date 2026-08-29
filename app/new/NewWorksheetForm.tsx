@@ -94,7 +94,7 @@ const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch:
   kompakt: { label: "Kompakt", swatch: "#64748b" },
 };
 
-export default function NewWorksheetForm() {
+export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -478,11 +478,15 @@ export default function NewWorksheetForm() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !kannErstellen}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-3.5 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
         >
           <Wand2 size={18} strokeWidth={2.25} />
-          {loading ? "Wird erstellt und geprüft …" : "Arbeitsblatt erstellen"}
+          {loading
+            ? "Wird erstellt und geprüft …"
+            : kannErstellen
+              ? "Arbeitsblatt erstellen"
+              : "Kontingent aufgebraucht"}
         </button>
       </form>
 

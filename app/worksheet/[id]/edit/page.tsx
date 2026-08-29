@@ -1,15 +1,19 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema } from "@/lib/types";
 import EditWorksheetForm from "@/components/EditWorksheetForm";
+import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditWorksheetPage({ params }: { params: { id: string } }) {
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+
   const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!worksheet) notFound();
+  if (!worksheet || worksheet.userId !== user.id) notFound();
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
 

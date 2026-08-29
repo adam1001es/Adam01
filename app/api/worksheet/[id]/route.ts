@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema } from "@/lib/types";
+import { getSessionUser } from "@/lib/auth";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -22,7 +28,7 @@ export async function PATCH(
   }
 
   const existing = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!existing) {
+  if (!existing || existing.userId !== user.id) {
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 
@@ -38,8 +44,13 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
+  }
+
   const existing = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!existing) {
+  if (!existing || existing.userId !== user.id) {
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 

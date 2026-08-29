@@ -21,4 +21,30 @@ model Worksheet {
   status      String   @default("entwurf") // entwurf | geprueft | verworfen
   favorit     Boolean  @default(false)
   createdAt   DateTime @default(now())
+  // Optional, damit ältere Arbeitsblätter aus der Zeit vor dem Login-System gültig bleiben -
+  // neue Arbeitsblätter bekommen immer einen Besitzer zugewiesen (siehe app/api/generate).
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+// Ein Nutzerkonto (Kolleg:in). Selbst-Registrierung; das Abo-Kontingent (tier) wird nach
+// privater Bezahlung von einem Admin manuell zugewiesen - kein Zahlungsanbieter im Code.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("user") // "user" | "admin" - der erste registrierte Account wird automatisch Admin
+  tier         String?  // null (kein Abo) | "starter" (30/Monat) | "pro" (80/Monat)
+  createdAt    DateTime @default(now()) // Anker für den rollierenden 30-Tage-Kontingent-Zyklus
+  sessions     Session[]
+  worksheets   Worksheet[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

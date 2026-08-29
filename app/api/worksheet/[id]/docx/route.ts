@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema } from "@/lib/types";
 import { THEMENBEREICHE } from "@/lib/curriculum";
 import { buildWorksheetDocx } from "@/lib/docx/buildWorksheetDocx";
+import { getSessionUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -10,8 +11,13 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const user = await getSessionUser();
+  if (!user) {
+    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
+  }
+
   const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!worksheet) {
+  if (!worksheet || worksheet.userId !== user.id) {
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 

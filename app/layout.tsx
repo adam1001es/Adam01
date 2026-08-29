@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
+import { getSessionUser } from "@/lib/auth";
 
 const display = Newsreader({
   subsets: ["latin"],
@@ -19,15 +20,17 @@ export const metadata: Metadata = {
   description: "Automatische Erstellung und Prüfung von Arbeitsblättern",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getSessionUser();
+
   return (
     <html lang="de" className={`${display.variable} ${sans.variable}`}>
       <body className="min-h-screen bg-canvas font-sans text-slate-900">
-        <SiteHeader />
+        <SiteHeader user={user ? { email: user.email, role: user.role } : null} />
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
       </body>
     </html>

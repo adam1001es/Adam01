@@ -3,15 +3,15 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
-const BodySchema = z.object({ favorit: z.boolean() });
+const BodySchema = z.object({ tier: z.enum(["starter", "pro"]).nullable() });
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
-  const user = await getSessionUser();
-  if (!user) {
-    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
+  const admin = await getSessionUser();
+  if (!admin || admin.role !== "admin") {
+    return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 
   let body: unknown;
@@ -26,15 +26,15 @@ export async function PATCH(
     return NextResponse.json({ error: "Ungültiger Body." }, { status: 400 });
   }
 
-  const existing = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!existing || existing.userId !== user.id) {
-    return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
+  const target = await prisma.user.findUnique({ where: { id: params.id } });
+  if (!target) {
+    return NextResponse.json({ error: "Konto nicht gefunden." }, { status: 404 });
   }
 
-  const updated = await prisma.worksheet.update({
+  const updated = await prisma.user.update({
     where: { id: params.id },
-    data: { favorit: parsed.data.favorit },
+    data: { tier: parsed.data.tier },
   });
 
-  return NextResponse.json({ favorit: updated.favorit });
+  return NextResponse.json({ tier: updated.tier });
 }
