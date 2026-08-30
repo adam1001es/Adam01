@@ -3,6 +3,7 @@ import { THEMENBEREICHE, ThemenbereichKey, ANFORDERUNGSBEREICHE } from "@/lib/cu
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
+import { reihenfolgeAnzeige } from "@/lib/reihenfolge";
 import IslamicPatternStrip from "./IslamicPatternStrip";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
@@ -13,6 +14,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   wahr_falsch: "Wahr oder Falsch",
   ausmalbild: "Ausmalbild",
   bildergeschichte: "Bildergeschichte",
+  reihenfolge: "Reihenfolge",
+  lesetext: "Lesetext",
 };
 
 /** Zeigt entweder ein festes Icon aus der kuratierten Bibliothek oder ein live per Bild-KI
@@ -123,6 +126,11 @@ export default function WorksheetView({
                   {TYP_LABEL[a.typ]}
                   {a.anforderungsbereich && ` · ${ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}`}
                 </div>
+                {a.typ === "lesetext" && a.lesetext && (
+                  <div className="mb-1.5 rounded-lg border border-slate-200 bg-slate-50/60 p-3 text-sm italic leading-relaxed text-slate-600">
+                    {a.lesetext}
+                  </div>
+                )}
                 <div className="font-medium">
                   {a.nr}. {a.frage}
                 </div>
@@ -153,6 +161,18 @@ export default function WorksheetView({
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+                {a.typ === "reihenfolge" && reihenfolgeAnzeige(a) && (
+                  <div className="ml-5 mt-1.5 space-y-1">
+                    {reihenfolgeAnzeige(a)!.map((text, i) => (
+                      <div key={i} className="flex items-baseline gap-2">
+                        <span className="w-6 shrink-0 rounded border border-slate-300 text-center text-xs">
+                          &nbsp;
+                        </span>
+                        <span>{text}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
                 {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (

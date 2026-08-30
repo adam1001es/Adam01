@@ -206,9 +206,10 @@ export function buildCurriculumSystemContext(themenbereich: ThemenbereichKey, sc
 
 WICHTIG - noch nicht lese-/schreibkundige Kinder (1./2. Schulstufe Volksschule):
 Diese Schüler:innen können noch nicht (oder kaum) lesen und schreiben. Textlastige Aufgabentypen
-(Lückentext, offene Frage, Multiple Choice mit viel Lesetext, Wahr/Falsch als Lesetext) sind für
-sie NICHT geeignet und sollen vermieden bzw. nur ganz vereinzelt und mit sehr wenigen, sehr
-kurzen Wörtern eingesetzt werden. Verwende stattdessen überwiegend die bildbasierten Aufgabentypen:
+(Lückentext, offene Frage, Multiple Choice mit viel Lesetext, Wahr/Falsch als Lesetext,
+Reihenfolge, Lesetext) sind für sie NICHT geeignet und sollen vermieden bzw. nur ganz vereinzelt
+und mit sehr wenigen, sehr kurzen Wörtern eingesetzt werden. Verwende stattdessen überwiegend die
+bildbasierten Aufgabentypen:
 - "ausmalbild": ein Bild-Symbol zum Ausmalen. Feld "frage" ist eine ganz kurze, einfache Anweisung, die die Lehrkraft vorliest (z.B. "Male die Moschee bunt aus.").
 - "bildergeschichte": eine kleine Bildergeschichte aus 3-5 Schritten. Feld "bildergeschichteSchritte" ist ein Array von Objekten { ..., "vorlesetext": <ein kurzer, einfacher Satz, den die Lehrkraft laut vorliest> }. Feld "frage" ist eine kurze Überschrift/Rahmenanweisung (z.B. "Hört gut zu und schaut euch die Bilder an.").
 Bei "bild" bzw. den "bild"-Feldern in "bildergeschichteSchritte" GENAU EINES von zwei Feldern setzen (siehe Hauptanweisung): entweder "bild" mit einem dieser Schlüssel: ${iconListe} - ODER "bildBeschreibung" mit einer kurzen NEUEN, vollständig eigenständigen und kontextfreien Objekt-Beschreibung (nur Gegenstände/Tiere/Natur/Gebäude, niemals Menschen/Gesichter/religiöse Figuren, und niemals Namen oder Titel von Propheten wie "Yunus"/"Musa"/"Prophet" - auch dann nicht, wenn die Aufgabe selbst von einem Propheten handelt; z.B. "ein großer Fisch im Meer" statt "der Fisch von Prophet Yunus"). Bevorzuge die feste Liste, wenn ein Schlüssel gut passt; nutze "bildBeschreibung" nur für zusätzliche Abwechslung. Setze "anforderungsbereich" bei diesen Aufgaben auf "afb1" (Wahrnehmen/Wiedererkennen). Ein Arbeitsblatt für diese Stufe soll überwiegend aus "ausmalbild"- und "bildergeschichte"-Aufgaben bestehen.`

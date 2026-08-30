@@ -17,6 +17,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   wahr_falsch: "Wahr oder Falsch",
   ausmalbild: "Ausmalbild",
   bildergeschichte: "Bildergeschichte",
+  reihenfolge: "Reihenfolge",
+  lesetext: "Lesetext",
 };
 
 function IconSelect({
@@ -329,6 +331,40 @@ export default function EditWorksheetForm({
                         .filter((w) => w.length > 0);
                       updateAufgabe(a.nr, { wortliste });
                     }}
+                  />
+                </label>
+              )}
+
+              {a.typ === "reihenfolge" && (
+                <label className="mb-3 block">
+                  <span className={labelClass}>Elemente in der richtigen Reihenfolge (eine Zeile pro Element)</span>
+                  <p className="mb-1 text-xs text-slate-400">
+                    Auf dem gedruckten Blatt wird die Reihenfolge automatisch gemischt - hier die
+                    tatsächlich richtige Abfolge eintragen.
+                  </p>
+                  <textarea
+                    className={inputClass}
+                    rows={Math.max(3, (a.reihenfolgeElemente ?? []).length)}
+                    value={(a.reihenfolgeElemente ?? []).join("\n")}
+                    onChange={(e) => {
+                      const reihenfolgeElemente = e.target.value
+                        .split("\n")
+                        .map((w) => w.trim())
+                        .filter((w) => w.length > 0);
+                      updateAufgabe(a.nr, { reihenfolgeElemente });
+                    }}
+                  />
+                </label>
+              )}
+
+              {a.typ === "lesetext" && (
+                <label className="mb-3 block">
+                  <span className={labelClass}>Lesetext</span>
+                  <textarea
+                    className={inputClass}
+                    rows={4}
+                    value={a.lesetext ?? ""}
+                    onChange={(e) => updateAufgabe(a.nr, { lesetext: e.target.value })}
                   />
                 </label>
               )}

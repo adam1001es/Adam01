@@ -10,6 +10,8 @@ export const AUFGABEN_TYPEN = [
   "wahr_falsch",
   "ausmalbild",
   "bildergeschichte",
+  "reihenfolge",
+  "lesetext",
 ] as const;
 
 export const BildergeschichteSchrittSchema = z.object({
@@ -32,6 +34,8 @@ export const AufgabeSchema = z.object({
   bildBeschreibung: z.string().optional(), // ODER: neues Motiv, per Bild-KI erzeugt - nur Gegenstände/Tiere/Natur/Gebäude, nie Personen
   bildGeneriertId: z.string().optional(), // wird NICHT von Claude gesetzt, sondern nachträglich vom Server gesetzt
   bildergeschichteSchritte: z.array(BildergeschichteSchrittSchema).optional(), // bei "bildergeschichte"
+  reihenfolgeElemente: z.array(z.string()).optional(), // bei "reihenfolge", in der RICHTIGEN Reihenfolge (wird beim Druck gemischt angezeigt)
+  lesetext: z.string().optional(), // kurzer Lesetext bei "lesetext", auf den sich "frage" bezieht
   anforderungsbereich: z.enum(ANFORDERUNGSBEREICHE_KEYS).optional(),
 });
 export type Aufgabe = z.infer<typeof AufgabeSchema>;

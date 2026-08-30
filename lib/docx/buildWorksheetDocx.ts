@@ -15,6 +15,7 @@ import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
+import { reihenfolgeAnzeige } from "@/lib/reihenfolge";
 
 // Jede public/patterns/leiste-*.png ist eine einmalig serverseitig gerenderte Ansicht des
 // jeweiligen Vektor-Streifens (lib/patternStrip.ts) - fix auf die bekannte Satzspiegelbreite
@@ -84,6 +85,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   wahr_falsch: "Wahr oder Falsch",
   ausmalbild: "Ausmalbild",
   bildergeschichte: "Bildergeschichte",
+  reihenfolge: "Reihenfolge",
+  lesetext: "Lesetext",
 };
 
 const ACCENT = "0f9d58";
@@ -184,6 +187,17 @@ export async function buildWorksheetDocx(
         ],
         spacing: { before: 160 },
       }),
+    );
+    if (a.typ === "lesetext" && a.lesetext) {
+      children.push(
+        new Paragraph({
+          indent: { left: 360 },
+          shading: { fill: "F8FAFC" },
+          children: [new TextRun({ text: a.lesetext, italics: true, size: baseSize, color: "475569" })],
+        }),
+      );
+    }
+    children.push(
       new Paragraph({
         children: [new TextRun({ text: `${a.nr}. ${a.frage}`, bold: true, size: baseSize })],
       }),
@@ -216,6 +230,20 @@ export async function buildWorksheetDocx(
           new Paragraph({
             indent: { left: 720 },
             children: [new TextRun({ text: `${r.buchstabe}) ${r.text}`, size: baseSize, color: "666666" })],
+          }),
+        );
+      });
+    }
+    const reihenfolge = a.typ === "reihenfolge" ? reihenfolgeAnzeige(a) : null;
+    if (reihenfolge) {
+      reihenfolge.forEach((text) => {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            children: [
+              new TextRun({ text: "[   ]  ", size: baseSize }),
+              new TextRun({ text, size: baseSize }),
+            ],
           }),
         );
       });

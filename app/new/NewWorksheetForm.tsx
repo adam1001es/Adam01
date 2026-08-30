@@ -15,6 +15,8 @@ import {
   Eye,
   Palette,
   Images,
+  ListOrdered,
+  BookOpenText,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN,
@@ -87,6 +89,8 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN)[number], { label: string; icon: t
   wahr_falsch: { label: "Wahr oder Falsch", icon: ToggleLeft },
   ausmalbild: { label: "Ausmalbild", icon: Palette },
   bildergeschichte: { label: "Bildergeschichte", icon: Images },
+  reihenfolge: { label: "Reihenfolge", icon: ListOrdered },
+  lesetext: { label: "Lesetext", icon: BookOpenText },
 };
 
 const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {

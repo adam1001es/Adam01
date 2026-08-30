@@ -6,6 +6,7 @@ import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
+import { reihenfolgeAnzeige } from "@/lib/reihenfolge";
 import { IslamicPatternStripPdf } from "./IslamicPatternStripPdf";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
@@ -16,6 +17,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   wahr_falsch: "Wahr oder Falsch",
   ausmalbild: "Ausmalbild",
   bildergeschichte: "Bildergeschichte",
+  reihenfolge: "Reihenfolge",
+  lesetext: "Lesetext",
 };
 
 function iconPfadPdf(key: IconKey): string {
@@ -165,6 +168,20 @@ function buildStyles(layout: LayoutConfig) {
     zuordnungOption: {
       marginBottom: 3,
     },
+    reihenfolgeListe: {
+      marginLeft: 12,
+      marginTop: 2,
+    },
+    lesetextBox: {
+      marginLeft: 12,
+      marginBottom: 4,
+      padding: 8,
+      fontStyle: "italic",
+      color: "#475569",
+      backgroundColor: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: 6,
+    },
     quelle: {
       marginBottom: 4,
       fontSize: baseFontSize - 1,
@@ -278,6 +295,9 @@ function AufgabenListe({
             {TYP_LABEL[a.typ]}
             {a.anforderungsbereich ? `  ·  ${ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}` : ""}
           </Text>
+          {a.typ === "lesetext" && a.lesetext && (
+            <Text style={styles.lesetextBox}>{a.lesetext}</Text>
+          )}
           <Text style={styles.aufgabeKopf}>
             {a.nr}. {a.frage}
           </Text>
@@ -306,6 +326,17 @@ function AufgabenListe({
                     </Text>
                   ))}
                 </View>
+              </View>
+            )}
+          {a.typ === "reihenfolge" &&
+            reihenfolgeAnzeige(a) && (
+              <View style={styles.reihenfolgeListe}>
+                {reihenfolgeAnzeige(a)!.map((text, i) => (
+                  <View key={i} style={styles.zuordnungZeile}>
+                    <View style={styles.zuordnungBox} />
+                    <Text>{text}</Text>
+                  </View>
+                ))}
               </View>
             )}
           {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (
