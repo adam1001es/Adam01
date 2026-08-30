@@ -54,7 +54,7 @@ export default async function WorksheetPage({ params }: { params: { id: string }
         >
           <ArrowLeft size={15} /> Zur Übersicht
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <FavoritButton worksheetId={worksheet.id} initialFavorit={worksheet.favorit} />
           <Link
             href={`/worksheet/${worksheet.id}/edit`}

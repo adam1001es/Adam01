@@ -41,19 +41,19 @@ export default function SiteHeader({
 
   return (
     <header className="no-print sticky top-0 z-10 border-b border-slate-200/80 bg-canvas/85 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-3">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-1.5 px-4 py-3 sm:px-6">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3">
           <LogoMark />
           <span className="flex flex-col leading-tight">
-            <span className="font-display text-lg font-semibold text-brand-800">
+            <span className="font-display text-base font-semibold text-brand-800 sm:text-lg">
               Arbeitsblatt-Generator
             </span>
-            <span className="text-xs text-slate-500">
+            <span className="hidden text-xs text-slate-500 sm:inline">
               Islamischer Religionsunterricht · Österreich
             </span>
           </span>
         </Link>
-        <nav className="flex items-center gap-1.5 sm:gap-2">
+        <nav className="flex items-center gap-0.5 sm:gap-2">
           {user &&
             NAV.map(({ href, label, icon: Icon }) => {
               const active = href === "/" ? pathname === "/" : pathname?.startsWith(href);
@@ -61,7 +61,7 @@ export default function SiteHeader({
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition ${
+                  className={`flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 transition ${
                     active
                       ? "bg-brand-gradient text-white shadow-card"
                       : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
@@ -75,7 +75,7 @@ export default function SiteHeader({
           {user?.role === "admin" && (
             <Link
               href="/admin"
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition ${
+              className={`flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 transition ${
                 pathname?.startsWith("/admin")
                   ? "bg-brand-gradient text-white shadow-card"
                   : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
@@ -91,7 +91,7 @@ export default function SiteHeader({
                 href="/account"
                 title="Mein Konto"
                 aria-label="Mein Konto"
-                className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition ${
+                className={`flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 transition ${
                   pathname?.startsWith("/account")
                     ? "bg-brand-gradient text-white shadow-card"
                     : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
@@ -105,7 +105,7 @@ export default function SiteHeader({
                 onClick={handleLogout}
                 title="Abmelden"
                 aria-label="Abmelden"
-                className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium text-slate-500 transition hover:bg-red-50 hover:text-red-600"
+                className="flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600"
               >
                 <LogOut size={16} strokeWidth={2.25} />
               </button>
