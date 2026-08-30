@@ -9,8 +9,9 @@ export default function RegisterPage() {
           Konto erstellen
         </h1>
         <p className="mb-6 text-sm text-slate-500">
-          Dein Konto ist nach der Registrierung zunächst ohne aktives Abo. Sobald die
-          (privat organisierte) Bezahlung eingegangen ist, wird dein Kontingent freigeschaltet.
+          Nach der Registrierung bekommst du eine Bestätigungs-Mail - erst danach kannst du dich
+          anmelden. Dein Konto ist zunächst ohne aktives Abo; sobald die (privat organisierte)
+          Bezahlung eingegangen ist, wird dein Kontingent freigeschaltet.
         </p>
         <AuthForm mode="register" />
         <p className="mt-6 text-center text-sm text-slate-500">

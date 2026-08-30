@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, createSession } from "@/lib/auth";
+import { hashPassword, erzeugeVerifizierungsToken } from "@/lib/auth";
+import { sendeVerifizierungsMail } from "@/lib/mailer";
 
 const RegisterSchema = z.object({
   email: z.string().email("Bitte eine gültige E-Mail-Adresse angeben."),
@@ -32,6 +33,7 @@ export async function POST(request: NextRequest) {
 
   const nutzerAnzahl = await prisma.user.count();
   const passwordHash = await hashPassword(parsed.data.passwort);
+  const { token, ablauf } = erzeugeVerifizierungsToken();
 
   const user = await prisma.user.create({
     data: {
@@ -40,10 +42,28 @@ export async function POST(request: NextRequest) {
       // Der erste registrierte Account (i.d.R. der/die Betreiber:in) wird automatisch Admin,
       // da es noch keinen anderen Weg gibt, den Admin-Status zu vergeben.
       role: nutzerAnzahl === 0 ? "admin" : "user",
+      verifizierungsToken: token,
+      verifizierungsTokenAblauf: ablauf,
     },
   });
 
-  await createSession(user.id);
+  const basisUrl = request.nextUrl.origin;
+  try {
+    await sendeVerifizierungsMail(email, `${basisUrl}/api/auth/verify?token=${token}`);
+  } catch (err) {
+    // Konto ohne funktionierenden Mailversand wäre nie verifizierbar (und würde die
+    // E-Mail-Adresse dauerhaft blockieren) - daher lieber zurückrollen und einen klaren Fehler
+    // zurückgeben, statt ein unbestätigbares Konto anzulegen.
+    console.error("Verifizierungs-Mail konnte nicht gesendet werden:", err);
+    await prisma.user.delete({ where: { id: user.id } });
+    return NextResponse.json(
+      {
+        error:
+          "Registrierung konnte nicht abgeschlossen werden - die Bestätigungs-Mail konnte nicht gesendet werden. Bitte später erneut versuchen oder die Person kontaktieren, die den Zugang verwaltet.",
+      },
+      { status: 502 },
+    );
+  }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, pending: true, email });
 }

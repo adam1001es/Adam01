@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle, MailCheck } from "lucide-react";
 import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
@@ -18,7 +18,11 @@ const STATUS_STYLE: Record<string, { text: string; className: string; icon: type
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: { verifizierung?: string };
+}) {
   const user = await getSessionUser();
   if (!user) return <LandingPage />;
 
@@ -33,6 +37,12 @@ export default async function DashboardPage() {
 
   return (
     <main>
+      {searchParams.verifizierung === "erfolgreich" && (
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 p-3.5 text-sm text-brand-800">
+          <MailCheck size={16} className="shrink-0" />
+          E-Mail-Adresse bestätigt - dein Konto ist jetzt aktiv.
+        </div>
+      )}
       <div className="mb-6">
         <KontingentBanner kontingent={kontingent} />
       </div>

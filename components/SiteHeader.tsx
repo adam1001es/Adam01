@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Plus, LayoutGrid, ShieldCheck, LogOut } from "lucide-react";
+import { Plus, LayoutGrid, ShieldCheck, LogOut, UserCircle } from "lucide-react";
 
 function LogoMark() {
   return (
@@ -28,7 +28,7 @@ const NAV = [
 export default function SiteHeader({
   user,
 }: {
-  user: { email: string; role: string } | null;
+  user: { email: string; username: string | null; role: string } | null;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -87,7 +87,19 @@ export default function SiteHeader({
           )}
           {user ? (
             <>
-              <span className="hidden pl-1 text-xs text-slate-400 md:inline">{user.email}</span>
+              <Link
+                href="/account"
+                title="Mein Konto"
+                aria-label="Mein Konto"
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-medium transition ${
+                  pathname?.startsWith("/account")
+                    ? "bg-brand-gradient text-white shadow-card"
+                    : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
+                }`}
+              >
+                <UserCircle size={16} strokeWidth={2.25} />
+                <span className="hidden md:inline">{user.username ?? user.email}</span>
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}

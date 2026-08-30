@@ -201,16 +201,38 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 - `REPLICATE_API_TOKEN` – für live per Bild-KI generierte Ausmalbild-Motive (siehe oben,
   kostenloser Account unter replicate.com, Bezahlung nur pro generiertem Bild). Ohne gesetzten
   Token fällt die Generierung automatisch auf ein festes Icon zurück - kein Setup-Zwang.
+- `GMAIL_USER` / `GMAIL_APP_PASSWORT` – für den Versand der Bestätigungs-Mail bei der
+  Registrierung (E-Mail-Verifizierung, siehe unten). Beide PFLICHT, sonst schlägt jede
+  Registrierung fehl.
 
 Kein separates Auth-Secret nötig: Sessions sind DB-gestützt (Tabelle `Session`), das Cookie
 enthält nur ein zufälliges Token, keinen signierten/verschlüsselten Wert.
+
+### E-Mail-Verifizierung
+
+Registrierung erfordert die Bestätigung der E-Mail-Adresse per Link, bevor ein Login möglich ist
+(verhindert Registrierungen mit falschen/erfundenen Adressen). Versand über ein privates
+Gmail-Konto (SMTP), kostenlos, ohne eigenen Domain-Zugriff:
+
+1. An einem Gmail-Konto (kann ein eigens dafür angelegtes sein) 2-Faktor-Authentifizierung
+   aktivieren, falls noch nicht geschehen: [myaccount.google.com/security](https://myaccount.google.com/security).
+2. Unter [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) ein neues
+   App-Passwort erzeugen (App-Name frei wählbar, z.B. "Arbeitsblatt-Generator"). Google zeigt ein
+   16-stelliges Passwort NUR einmal an.
+3. `GMAIL_USER` = die volle Gmail-Adresse, `GMAIL_APP_PASSWORT` = das 16-stellige App-Passwort
+   (ohne Leerzeichen) - lokal in `.env`, auf Vercel unter **Settings → Environment Variables**.
+
+Bestandskonten (vor Einführung dieses Features registriert) gelten automatisch als verifiziert -
+nur Neuregistrierungen müssen den Link bestätigen. Nach der ersten erfolgreichen Anmeldung kann
+unter „Mein Konto" ein Benutzername gesetzt werden, um sich künftig damit statt mit der vollen
+E-Mail-Adresse anzumelden.
 
 ## Deployment (Vercel)
 
 1. Projekt in Vercel aus diesem GitHub-Repo importieren.
 2. Im Tab **Storage** eine Postgres-Datenbank anlegen (setzt `DATABASE_URL` automatisch).
-3. Unter **Settings → Environment Variables** `ANTHROPIC_API_KEY` (und optional
-   `REPLICATE_API_TOKEN`) eintragen.
+3. Unter **Settings → Environment Variables** `ANTHROPIC_API_KEY`, `GMAIL_USER` und
+   `GMAIL_APP_PASSWORT` (und optional `REPLICATE_API_TOKEN`) eintragen.
 4. Deployen – der Build-Schritt (`prisma migrate deploy && next build`) legt das Datenbankschema
    automatisch an.
 

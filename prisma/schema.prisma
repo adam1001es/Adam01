@@ -32,8 +32,18 @@ model Worksheet {
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
+  // Optionaler Anmeldename als schnellere Alternative zur E-Mail beim Login (lib/auth.ts prüft
+  // beim Login beides) - selbst gewählt, erst NACH der ersten erfolgreichen Anmeldung setzbar
+  // (siehe app/account), daher optional und anfangs leer.
+  username     String?  @unique
   passwordHash String
   role         String   @default("user") // "user" | "admin" - der erste registrierte Account wird automatisch Admin
+  // War die Registrierung schon vor Einführung der E-Mail-Verifizierung, gilt das Konto per
+  // Migration als bereits verifiziert (siehe migration.sql) - nur neue Registrierungen müssen
+  // den Link aus der Mail bestätigen, bevor ein Login möglich ist (siehe lib/mailer.ts).
+  emailVerifiziert Boolean @default(false)
+  verifizierungsToken String? @unique
+  verifizierungsTokenAblauf DateTime?
   tier         String?  // null (kein Abo) | "starter" (30/Monat) | "pro" (80/Monat)
   // Optionaler Gültigkeitszeitraum für "tier" (z.B. Schuljahr/Semester, nach dem privat bezahlt
   // wird) - beide optional, vom Admin gesetzt. Außerhalb dieses Zeitraums (falls gesetzt) gilt

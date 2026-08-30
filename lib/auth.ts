@@ -9,11 +9,22 @@ const SESSION_DAUER_TAGE = 30;
 export interface SessionUser {
   id: string;
   email: string;
+  username: string | null;
   role: string;
   tier: string | null;
   tierGueltigVon: Date | null;
   tierGueltigBis: Date | null;
   createdAt: Date;
+}
+
+const VERIFIZIERUNG_GUELTIG_STUNDEN = 24;
+
+/** Erzeugt einen neuen Verifizierungs-Token (24h gültig) für die Bestätigungs-Mail. */
+export function erzeugeVerifizierungsToken(): { token: string; ablauf: Date } {
+  return {
+    token: randomBytes(32).toString("hex"),
+    ablauf: new Date(Date.now() + VERIFIZIERUNG_GUELTIG_STUNDEN * 60 * 60 * 1000),
+  };
 }
 
 export async function hashPassword(passwort: string): Promise<string> {
@@ -57,6 +68,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   return {
     id: session.user.id,
     email: session.user.email,
+    username: session.user.username,
     role: session.user.role,
     tier: session.user.tier,
     tierGueltigVon: session.user.tierGueltigVon,

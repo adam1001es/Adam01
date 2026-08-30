@@ -30,7 +30,9 @@ export default async function RootLayout({
   return (
     <html lang="de" className={`${display.variable} ${sans.variable}`}>
       <body className="min-h-screen bg-canvas font-sans text-slate-900">
-        <SiteHeader user={user ? { email: user.email, role: user.role } : null} />
+        <SiteHeader
+          user={user ? { email: user.email, username: user.username, role: user.role } : null}
+        />
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
       </body>
     </html>
