@@ -61,3 +61,13 @@ model TrialUsage {
 
   @@unique([ip, monat])
 }
+
+// Ein live per Bild-KI generiertes, sicherheitsgeprüftes Ausmalbild-Motiv (siehe
+// lib/imageGen.ts + lib/imageSafety.ts) - referenziert über Aufgabe.bildGeneriertId /
+// BildergeschichteSchritt.bildGeneriertId im contentJson eines Worksheet. Wird über
+// app/api/generated-image/[id] ausgeliefert.
+model GeneratedImage {
+  id        String   @id @default(cuid())
+  data      Bytes
+  createdAt DateTime @default(now())
+}

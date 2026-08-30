@@ -6,6 +6,7 @@ import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema } from 
 import { THEMENBEREICHE } from "@/lib/curriculum";
 import { WorksheetPdfDocument } from "@/lib/pdf/WorksheetPdf";
 import { getSessionUser } from "@/lib/auth";
+import { sammleBildGeneriertIds } from "@/lib/generiertesBildHelfer";
 
 export const runtime = "nodejs";
 
@@ -27,11 +28,20 @@ export async function GET(
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
   const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
 
+  const bildIds = sammleBildGeneriertIds(content);
+  const generierteBildRows = bildIds.length
+    ? await prisma.generatedImage.findMany({ where: { id: { in: bildIds } } })
+    : [];
+  const generierteBilder = Object.fromEntries(
+    generierteBildRows.map((b) => [b.id, `data:image/png;base64,${b.data.toString("base64")}`]),
+  );
+
   const element = React.createElement(WorksheetPdfDocument, {
     content,
     layout,
     themenbereichLabel: THEMENBEREICHE[themenbereich].label,
     erstelltAm: worksheet.createdAt,
+    generierteBilder,
   });
   const buffer = await renderToBuffer(
     element as unknown as Parameters<typeof renderToBuffer>[0],

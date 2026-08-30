@@ -13,7 +13,9 @@ export const AUFGABEN_TYPEN = [
 ] as const;
 
 export const BildergeschichteSchrittSchema = z.object({
-  bild: z.enum(ICON_KEYS),
+  bild: z.enum(ICON_KEYS).optional(), // festes Icon aus der kuratierten Bibliothek
+  bildBeschreibung: z.string().optional(), // ODER: neues Motiv, per Bild-KI erzeugt (siehe lib/imageGen.ts) - nur Gegenstände/Tiere/Natur/Gebäude, nie Personen
+  bildGeneriertId: z.string().optional(), // wird NICHT von Claude gesetzt, sondern nachträglich vom Server nach erfolgreicher, sicherheitsgeprüfter Generierung
   vorlesetext: z.string(), // Satz, den die Lehrkraft laut vorliest - für noch nicht lesekundige Kinder
 });
 export type BildergeschichteSchritt = z.infer<typeof BildergeschichteSchrittSchema>;
@@ -26,7 +28,9 @@ export const AufgabeSchema = z.object({
   zuordnungLinks: z.array(z.string()).optional(),
   zuordnungRechts: z.array(z.string()).optional(),
   wortliste: z.array(z.string()).optional(), // Wortliste zur Auswahl bei Lückentext-Aufgaben
-  bild: z.enum(ICON_KEYS).optional(), // Symbol bei "ausmalbild"
+  bild: z.enum(ICON_KEYS).optional(), // festes Icon aus der kuratierten Bibliothek, bei "ausmalbild"
+  bildBeschreibung: z.string().optional(), // ODER: neues Motiv, per Bild-KI erzeugt - nur Gegenstände/Tiere/Natur/Gebäude, nie Personen
+  bildGeneriertId: z.string().optional(), // wird NICHT von Claude gesetzt, sondern nachträglich vom Server gesetzt
   bildergeschichteSchritte: z.array(BildergeschichteSchrittSchema).optional(), // bei "bildergeschichte"
   anforderungsbereich: z.enum(ANFORDERUNGSBEREICHE_KEYS).optional(),
 });

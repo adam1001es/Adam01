@@ -13,6 +13,14 @@ import {
   VerificationSchema,
 } from "./types";
 import { buildCurriculumSystemContext } from "./curriculum";
+import { prisma } from "./prisma";
+import { beschaffeSicheresAusmalbild } from "./imageGen";
+import { IconKey } from "./icons";
+
+/** Neutrales, garantiert unbedenkliches Icon, auf das zurückgefallen wird, wenn ein per
+ * Bild-KI generiertes Motiv die Sicherheitsprüfung nicht besteht oder die Generierung
+ * technisch fehlschlägt - das Arbeitsblatt bekommt dann trotzdem ein Bild, nur eben dieses. */
+const FALLBACK_ICON: IconKey = "stern";
 
 const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, Lehrpläne der IGGÖ gem. BGBl. II Nr. 234/2011). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
 
@@ -33,14 +41,14 @@ Das JSON-Objekt muss exakt diese Struktur haben:
   "lernziel": string,
   "einleitung": string,
   "aufgaben": [
-    { "nr": number, "typ": "multiple_choice"|"lueckentext"|"zuordnung"|"offene_frage"|"wahr_falsch"|"ausmalbild"|"bildergeschichte", "frage": string, "optionen"?: string[], "zuordnungLinks"?: string[], "zuordnungRechts"?: string[], "wortliste"?: string[], "bild"?: string, "bildergeschichteSchritte"?: [{ "bild": string, "vorlesetext": string }], "anforderungsbereich": "afb1"|"afb2"|"afb3" }
+    { "nr": number, "typ": "multiple_choice"|"lueckentext"|"zuordnung"|"offene_frage"|"wahr_falsch"|"ausmalbild"|"bildergeschichte", "frage": string, "optionen"?: string[], "zuordnungLinks"?: string[], "zuordnungRechts"?: string[], "wortliste"?: string[], "bild"?: string, "bildBeschreibung"?: string, "bildergeschichteSchritte"?: [{ "bild"?: string, "bildBeschreibung"?: string, "vorlesetext": string }], "anforderungsbereich": "afb1"|"afb2"|"afb3" }
   ],
   "loesungen": [ { "nr": number, "loesung": string } ],
   "quellen": [ { "bezeichnung": string, "text"?: string, "sicherheit": "gesichert"|"bitte_pruefen" } ]
 }
 Jede Aufgabe braucht eine passende Lösung mit gleicher "nr" UND ein Feld "anforderungsbereich" (siehe pädagogische Standards unten). Bei "zuordnung" müssen zuordnungLinks und zuordnungRechts gleich lang sein.
 Bei "lueckentext" MUSS "wortliste" gesetzt sein: eine durcheinandergewürfelte Liste aus allen richtigen Lücken-Wörtern plus 1-2 plausiblen, aber falschen Ablenker-Wörtern, damit die Schüler:innen aus einer Wortliste auswählen können.
-Die Typen "ausmalbild" und "bildergeschichte" sind bildbasierte Aufgaben für noch nicht lese-/schreibkundige Kinder (siehe Hinweis unten, falls zutreffend) - "bild" bzw. die "bild"-Felder in "bildergeschichteSchritte" MÜSSEN einer der vorgegebenen Bild-Schlüssel sein. Bei diesen beiden Typen kann "loesung" ein kurzer Hinweis für die Lehrkraft sein (z.B. "Kein Lösungswort - Kind malt frei aus.").
+Die Typen "ausmalbild" und "bildergeschichte" sind bildbasierte Aufgaben für noch nicht lese-/schreibkundige Kinder (siehe Hinweis unten, falls zutreffend). Bei "bild"/"bildergeschichteSchritte" IMMER GENAU EINES von zwei Feldern setzen, nie beide: entweder "bild" mit einem der vorgegebenen Bild-Schlüssel, ODER "bildBeschreibung" mit einer kurzen deutschen Beschreibung eines neuen Motivs (wird per Bild-KI erzeugt) - dabei AUSSCHLIESSLICH Gegenstände, Tiere, Pflanzen, Natur oder Gebäude beschreiben, NIEMALS Menschen, Gesichter, Personen-Silhouetten, den Propheten, Allah oder religiöse Symbole, die als Personendarstellung gelesen werden könnten (solche Beschreibungen werden automatisch verworfen). Bei diesen beiden Typen kann "loesung" ein kurzer Hinweis für die Lehrkraft sein (z.B. "Kein Lösungswort - Kind malt frei aus.").
 Jede verwendete Hadith-Quellenangabe MUSS die Sammlung im Feld "bezeichnung" nennen (z.B. "Sahih al-Bukhari, ...").`;
 
 const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
@@ -110,6 +118,7 @@ export async function generateAndVerifyWorksheet(
 
   const rawContent = extractJson(getTextFromMessage(genResponse));
   const content = WorksheetContentSchema.parse(rawContent);
+  await loeseGenerierteBilderAuf(content);
 
   const verifyResponse = await client.messages.create({
     model: VERIFICATION_MODEL,
@@ -134,4 +143,41 @@ export async function generateAndVerifyWorksheet(
   const verification = VerificationSchema.parse(rawVerification);
 
   return { content, verification };
+}
+
+/**
+ * Löst jedes von Claude vorgeschlagene "bildBeschreibung"-Motiv live auf: generiert ein Bild,
+ * lässt es sicherheitsprüfen (siehe lib/imageGen.ts) und speichert es bei Erfolg persistent
+ * (GeneratedImage) - bei Fehlschlag oder nicht bestandener Prüfung wird stattdessen ein festes,
+ * garantiert unbedenkliches Icon aus der kuratierten Bibliothek verwendet. Mutiert `content`.
+ */
+async function loeseGenerierteBilderAuf(content: WorksheetContent): Promise<void> {
+  for (const aufgabe of content.aufgaben) {
+    if (aufgabe.bildBeschreibung && !aufgabe.bild) {
+      await loeseBildFeldAuf(aufgabe, aufgabe.bildBeschreibung);
+    }
+    if (aufgabe.bildergeschichteSchritte) {
+      for (const schritt of aufgabe.bildergeschichteSchritte) {
+        if (schritt.bildBeschreibung && !schritt.bild) {
+          await loeseBildFeldAuf(schritt, schritt.bildBeschreibung);
+        }
+      }
+    }
+  }
+}
+
+/** Mutiert `ziel` (eine Aufgabe oder ein Bildergeschichte-Schritt): bei erfolgreicher,
+ * sicherheitsgeprüfter Generierung wird "bildGeneriertId" gesetzt, sonst fällt "bild" auf ein
+ * festes, garantiert unbedenkliches Icon zurück. */
+async function loeseBildFeldAuf(
+  ziel: { bild?: IconKey; bildGeneriertId?: string },
+  motivBeschreibung: string,
+): Promise<void> {
+  const bild = await beschaffeSicheresAusmalbild(motivBeschreibung);
+  if (bild) {
+    const gespeichert = await prisma.generatedImage.create({ data: { data: bild } });
+    ziel.bildGeneriertId = gespeichert.id;
+  } else {
+    ziel.bild = FALLBACK_ICON;
+  }
 }

@@ -1,7 +1,7 @@
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { THEMENBEREICHE, ThemenbereichKey, ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { formatDoppelDatum } from "@/lib/hijri";
-import { ICONS, iconPfadWeb } from "@/lib/icons";
+import { ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
 import IslamicPatternStrip from "./IslamicPatternStrip";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
@@ -13,6 +13,37 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   ausmalbild: "Ausmalbild",
   bildergeschichte: "Bildergeschichte",
 };
+
+/** Zeigt entweder ein festes Icon aus der kuratierten Bibliothek oder ein live per Bild-KI
+ * generiertes, sicherheitsgeprüftes Motiv (siehe lib/imageGen.ts) - genau eines der beiden ist
+ * gesetzt. */
+function AufgabenBild({
+  bild,
+  bildGeneriertId,
+  hoehe,
+}: {
+  bild?: IconKey;
+  bildGeneriertId?: string;
+  hoehe: number;
+}) {
+  if (bildGeneriertId) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={generiertesBildPfadWeb(bildGeneriertId)}
+        alt="Ausmalbild-Motiv"
+        style={{ height: hoehe, width: "auto" }}
+      />
+    );
+  }
+  if (bild) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={iconPfadWeb(bild)} alt={ICONS[bild].label} style={{ height: hoehe, width: "auto" }} />
+    );
+  }
+  return null;
+}
 
 export default function WorksheetView({
   content,
@@ -118,15 +149,10 @@ export default function WorksheetView({
                     {a.wortliste.join(" · ")}
                   </div>
                 )}
-                {a.typ === "ausmalbild" && a.bild && (
+                {a.typ === "ausmalbild" && (a.bild || a.bildGeneriertId) && (
                   <div className="mt-2 flex justify-center">
                     <div className="rounded-2xl border-2 border-dashed border-slate-300 p-6">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={iconPfadWeb(a.bild)}
-                        alt={ICONS[a.bild].label}
-                        style={{ height: 140, width: "auto" }}
-                      />
+                      <AufgabenBild bild={a.bild} bildGeneriertId={a.bildGeneriertId} hoehe={140} />
                     </div>
                   </div>
                 )}
@@ -135,12 +161,7 @@ export default function WorksheetView({
                     {a.bildergeschichteSchritte.map((schritt, i) => (
                       <div key={i} className="flex w-28 flex-col items-center text-center">
                         <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-slate-200 bg-slate-50">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={iconPfadWeb(schritt.bild)}
-                            alt={ICONS[schritt.bild].label}
-                            style={{ height: 60, width: "auto" }}
-                          />
+                          <AufgabenBild bild={schritt.bild} bildGeneriertId={schritt.bildGeneriertId} hoehe={60} />
                         </div>
                         <p className="mt-1 text-xs italic text-slate-500">{schritt.vorlesetext}</p>
                       </div>

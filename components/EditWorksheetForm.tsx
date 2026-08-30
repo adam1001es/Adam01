@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { FileEdit, ListChecks, BookMarked, Plus, Trash2, Save } from "lucide-react";
 import { WorksheetContent, Aufgabe, Quelle, BildergeschichteSchritt } from "@/lib/types";
 import { ANFORDERUNGSBEREICHE, ANFORDERUNGSBEREICHE_KEYS, AnforderungsbereichKey } from "@/lib/curriculum";
-import { ICON_KEYS, ICONS, IconKey, iconPfadWeb } from "@/lib/icons";
+import { ICON_KEYS, ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
 import SectionCard from "@/components/SectionCard";
 import { inputClass, labelClass } from "@/lib/formStyles";
 
@@ -334,12 +334,22 @@ export default function EditWorksheetForm({
                     <span className={labelClass}>Bild</span>
                     <IconSelect
                       value={a.bild}
-                      onChange={(bild) => updateAufgabe(a.nr, { bild })}
+                      onChange={(bild) => updateAufgabe(a.nr, { bild, bildGeneriertId: undefined })}
                     />
+                    {a.bildGeneriertId && (
+                      <span className="mt-1 block text-xs text-slate-400">
+                        Aktuell ein per KI generiertes Motiv - hier ein festes Bild auswählen, um es zu ersetzen.
+                      </span>
+                    )}
                   </label>
-                  {a.bild && (
+                  {a.bildGeneriertId ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={iconPfadWeb(a.bild)} alt="" className="h-14 w-auto" />
+                    <img src={generiertesBildPfadWeb(a.bildGeneriertId)} alt="" className="h-14 w-auto" />
+                  ) : (
+                    a.bild && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={iconPfadWeb(a.bild)} alt="" className="h-14 w-auto" />
+                    )
                   )}
                 </div>
               )}
@@ -349,16 +359,25 @@ export default function EditWorksheetForm({
                   <span className={labelClass}>Bildschritte</span>
                   {(a.bildergeschichteSchritte ?? []).map((schritt, i) => (
                     <div key={i} className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
-                      {schritt.bild && (
+                      {schritt.bildGeneriertId ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={iconPfadWeb(schritt.bild)} alt="" className="mt-1 h-10 w-auto shrink-0" />
+                        <img
+                          src={generiertesBildPfadWeb(schritt.bildGeneriertId)}
+                          alt=""
+                          className="mt-1 h-10 w-auto shrink-0"
+                        />
+                      ) : (
+                        schritt.bild && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={iconPfadWeb(schritt.bild)} alt="" className="mt-1 h-10 w-auto shrink-0" />
+                        )
                       )}
                       <div className="flex-1 space-y-1.5">
                         <IconSelect
                           value={schritt.bild}
                           onChange={(bild) => {
                             const schritte: BildergeschichteSchritt[] = [...(a.bildergeschichteSchritte ?? [])];
-                            schritte[i] = { ...schritte[i], bild };
+                            schritte[i] = { ...schritte[i], bild, bildGeneriertId: undefined };
                             updateAufgabe(a.nr, { bildergeschichteSchritte: schritte });
                           }}
                         />

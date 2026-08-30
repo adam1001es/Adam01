@@ -21,6 +21,35 @@ function iconPfadPdf(key: IconKey): string {
   return path.join(process.cwd(), `public/icons/${key}.png`);
 }
 
+/** Zeigt entweder ein festes Icon aus der kuratierten Bibliothek oder ein live per Bild-KI
+ * generiertes, sicherheitsgeprüftes Motiv - genau eines der beiden ist gesetzt.
+ * `generierteBilder` bildet bildGeneriertId auf einen fertigen base64-Data-URI ab (react-pdf
+ * kann in Node nicht selbst aus der DB lesen, muss also vorab aufgelöst werden). */
+function AufgabenBildPdf({
+  bild,
+  bildGeneriertId,
+  generierteBilder,
+  groesse,
+}: {
+  bild?: IconKey;
+  bildGeneriertId?: string;
+  generierteBilder: Record<string, string>;
+  groesse: number;
+}) {
+  if (bildGeneriertId && generierteBilder[bildGeneriertId]) {
+    return <Image src={generierteBilder[bildGeneriertId]} style={{ width: groesse, height: groesse }} />;
+  }
+  if (bild) {
+    return (
+      <Image
+        src={iconPfadPdf(bild)}
+        style={{ width: groesse * ICONS[bild].seitenverhaeltnis, height: groesse }}
+      />
+    );
+  }
+  return null;
+}
+
 function buildStyles(layout: LayoutConfig) {
   const baseFontSize = layout.schriftgroesse === "gross" ? 13 : 11;
   const isKompakt = layout.template === "kompakt";
@@ -211,9 +240,11 @@ function NameZeile({ layout }: { layout: LayoutConfig }) {
 function AufgabenListe({
   content,
   layout,
+  generierteBilder,
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
+  generierteBilder: Record<string, string>;
 }) {
   const styles = buildStyles(layout);
   return (
@@ -244,11 +275,13 @@ function AufgabenListe({
           {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (
             <Text style={styles.option}>Wortliste: {a.wortliste.join(" · ")}</Text>
           )}
-          {a.typ === "ausmalbild" && a.bild && (
+          {a.typ === "ausmalbild" && (a.bild || a.bildGeneriertId) && (
             <View style={styles.ausmalRahmen}>
-              <Image
-                src={iconPfadPdf(a.bild)}
-                style={{ width: 110 * ICONS[a.bild].seitenverhaeltnis, height: 110 }}
+              <AufgabenBildPdf
+                bild={a.bild}
+                bildGeneriertId={a.bildGeneriertId}
+                generierteBilder={generierteBilder}
+                groesse={110}
               />
             </View>
           )}
@@ -257,12 +290,11 @@ function AufgabenListe({
               {a.bildergeschichteSchritte.map((schritt, i) => (
                 <View key={i} style={styles.bildergeschichteSchritt}>
                   <View style={styles.bildergeschichteBildRahmen}>
-                    <Image
-                      src={iconPfadPdf(schritt.bild)}
-                      style={{
-                        width: 50 * ICONS[schritt.bild].seitenverhaeltnis,
-                        height: 50,
-                      }}
+                    <AufgabenBildPdf
+                      bild={schritt.bild}
+                      bildGeneriertId={schritt.bildGeneriertId}
+                      generierteBilder={generierteBilder}
+                      groesse={50}
                     />
                   </View>
                   <Text style={styles.bildergeschichteText}>{schritt.vorlesetext}</Text>
@@ -323,11 +355,14 @@ export function WorksheetPdfDocument({
   layout,
   themenbereichLabel,
   erstelltAm,
+  generierteBilder = {},
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
   themenbereichLabel: string;
   erstelltAm: Date;
+  /** bildGeneriertId -> base64-Data-URI, vorab von der aufrufenden Route aufgelöst. */
+  generierteBilder?: Record<string, string>;
 }) {
   const styles = buildStyles(layout);
   return (
@@ -350,7 +385,7 @@ export function WorksheetPdfDocument({
           )}
           <Text style={styles.sectionTitel}>Einleitung</Text>
           <Text style={styles.einleitung}>{content.einleitung}</Text>
-          <AufgabenListe content={content} layout={layout} />
+          <AufgabenListe content={content} layout={layout} generierteBilder={generierteBilder} />
           {!layout.loesungenSeparat && <LoesungenSeite content={content} layout={layout} />}
           <QuellenListe content={content} layout={layout} />
         </View>

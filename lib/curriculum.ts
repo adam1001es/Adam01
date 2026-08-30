@@ -209,9 +209,9 @@ Diese Schüler:innen können noch nicht (oder kaum) lesen und schreiben. Textlas
 (Lückentext, offene Frage, Multiple Choice mit viel Lesetext, Wahr/Falsch als Lesetext) sind für
 sie NICHT geeignet und sollen vermieden bzw. nur ganz vereinzelt und mit sehr wenigen, sehr
 kurzen Wörtern eingesetzt werden. Verwende stattdessen überwiegend die bildbasierten Aufgabentypen:
-- "ausmalbild": ein Bild-Symbol zum Ausmalen. Feld "bild" MUSS einer dieser Schlüssel sein: ${iconListe}. Feld "frage" ist eine ganz kurze, einfache Anweisung, die die Lehrkraft vorliest (z.B. "Male die Moschee bunt aus.").
-- "bildergeschichte": eine kleine Bildergeschichte aus 3-5 Schritten. Feld "bildergeschichteSchritte" ist ein Array von Objekten { "bild": <Schlüssel aus der Liste oben>, "vorlesetext": <ein kurzer, einfacher Satz, den die Lehrkraft laut vorliest> }. Feld "frage" ist eine kurze Überschrift/Rahmenanweisung (z.B. "Hört gut zu und schaut euch die Bilder an.").
-Nutze bei diesen beiden Typen AUSSCHLIESSLICH die oben aufgelisteten Bild-Schlüssel, erfinde keine neuen. Setze "anforderungsbereich" bei diesen Aufgaben auf "afb1" (Wahrnehmen/Wiedererkennen). Ein Arbeitsblatt für diese Stufe soll überwiegend aus "ausmalbild"- und "bildergeschichte"-Aufgaben bestehen.`
+- "ausmalbild": ein Bild-Symbol zum Ausmalen. Feld "frage" ist eine ganz kurze, einfache Anweisung, die die Lehrkraft vorliest (z.B. "Male die Moschee bunt aus.").
+- "bildergeschichte": eine kleine Bildergeschichte aus 3-5 Schritten. Feld "bildergeschichteSchritte" ist ein Array von Objekten { ..., "vorlesetext": <ein kurzer, einfacher Satz, den die Lehrkraft laut vorliest> }. Feld "frage" ist eine kurze Überschrift/Rahmenanweisung (z.B. "Hört gut zu und schaut euch die Bilder an.").
+Bei "bild" bzw. den "bild"-Feldern in "bildergeschichteSchritte" GENAU EINES von zwei Feldern setzen (siehe Hauptanweisung): entweder "bild" mit einem dieser Schlüssel: ${iconListe} - ODER "bildBeschreibung" mit einer kurzen NEUEN Motiv-Beschreibung (nur Gegenstände/Tiere/Natur/Gebäude, niemals Menschen/Gesichter/religiöse Figuren). Bevorzuge die feste Liste, wenn ein Schlüssel gut passt; nutze "bildBeschreibung" nur für zusätzliche Abwechslung. Setze "anforderungsbereich" bei diesen Aufgaben auf "afb1" (Wahrnehmen/Wiedererkennen). Ein Arbeitsblatt für diese Stufe soll überwiegend aus "ausmalbild"- und "bildergeschichte"-Aufgaben bestehen.`
     : "";
 
   const afbSpanne =

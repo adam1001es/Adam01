@@ -37,3 +37,9 @@ export const ICONS: Record<IconKey, { label: string; seitenverhaeltnis: number }
 export function iconPfadWeb(key: IconKey): string {
   return `/icons/${key}.png`;
 }
+
+/** Pfad für ein live per Bild-KI generiertes, sicherheitsgeprüftes Motiv (siehe
+ * lib/imageGen.ts) - ausgeliefert über app/api/generated-image/[id]. */
+export function generiertesBildPfadWeb(id: string): string {
+  return `/api/generated-image/${id}`;
+}

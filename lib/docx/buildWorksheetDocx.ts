@@ -54,6 +54,27 @@ function iconPfadDocx(key: IconKey): string {
   return path.join(process.cwd(), `public/icons/${key}.png`);
 }
 
+/** Liefert die Bilddaten + passende Breite für ein festes Icon oder ein live per Bild-KI
+ * generiertes, sicherheitsgeprüftes Motiv (genau eines der beiden ist gesetzt). Generierte
+ * Bilder sind quadratisch (768x768), brauchen also kein Seitenverhältnis. */
+function bildFuerDocx(
+  bild: IconKey | undefined,
+  bildGeneriertId: string | undefined,
+  generierteBilder: Record<string, Buffer>,
+  bildHoehe: number,
+): { data: Buffer; breite: number } | null {
+  if (bildGeneriertId && generierteBilder[bildGeneriertId]) {
+    return { data: generierteBilder[bildGeneriertId], breite: bildHoehe };
+  }
+  if (bild) {
+    return {
+      data: fs.readFileSync(iconPfadDocx(bild)),
+      breite: Math.round(bildHoehe * ICONS[bild].seitenverhaeltnis),
+    };
+  }
+  return null;
+}
+
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
   lueckentext: "Lückentext",
@@ -71,6 +92,7 @@ export async function buildWorksheetDocx(
   layout: LayoutConfig,
   themenbereichLabel: string,
   erstelltAm: Date,
+  generierteBilder: Record<string, Buffer> = {},
 ): Promise<Buffer> {
   const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
   const accentColor = layout.template === "modern" && !istSchwarzweiss ? ACCENT : "111111";
@@ -201,44 +223,50 @@ export async function buildWorksheetDocx(
         }),
       );
     }
-    if (a.typ === "ausmalbild" && a.bild) {
+    if (a.typ === "ausmalbild" && (a.bild || a.bildGeneriertId)) {
       const bildHoehe = 130;
-      const bildBreite = Math.round(bildHoehe * ICONS[a.bild].seitenverhaeltnis);
-      children.push(
-        new Paragraph({
-          indent: { left: 360 },
-          border: {
-            top: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
-            bottom: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
-            left: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
-            right: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
-          },
-          children: [
-            new ImageRun({
-              type: "png",
-              data: fs.readFileSync(iconPfadDocx(a.bild)),
-              transformation: { width: bildBreite, height: bildHoehe },
-            }),
-          ],
-          spacing: { before: 80 },
-        }),
-      );
+      const bild = bildFuerDocx(a.bild, a.bildGeneriertId, generierteBilder, bildHoehe);
+      if (bild) {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            border: {
+              top: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+              bottom: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+              left: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+              right: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+            },
+            children: [
+              new ImageRun({
+                type: "png",
+                data: bild.data,
+                transformation: { width: bild.breite, height: bildHoehe },
+              }),
+            ],
+            spacing: { before: 80 },
+          }),
+        );
+      }
     }
     if (a.typ === "bildergeschichte" && a.bildergeschichteSchritte) {
       a.bildergeschichteSchritte.forEach((schritt, i) => {
         const bildHoehe = 60;
-        const bildBreite = Math.round(bildHoehe * ICONS[schritt.bild].seitenverhaeltnis);
+        const bild = bildFuerDocx(schritt.bild, schritt.bildGeneriertId, generierteBilder, bildHoehe);
         children.push(
           new Paragraph({
             indent: { left: 360 },
             spacing: { before: i === 0 ? 100 : 160 },
             children: [
               new TextRun({ text: `${i + 1}. `, bold: true, size: baseSize - 2 }),
-              new ImageRun({
-                type: "png",
-                data: fs.readFileSync(iconPfadDocx(schritt.bild)),
-                transformation: { width: bildBreite, height: bildHoehe },
-              }),
+              ...(bild
+                ? [
+                    new ImageRun({
+                      type: "png",
+                      data: bild.data,
+                      transformation: { width: bild.breite, height: bildHoehe },
+                    }),
+                  ]
+                : []),
             ],
           }),
           new Paragraph({

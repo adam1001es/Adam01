@@ -57,10 +57,34 @@ zwei zusätzliche, bildbasierte Aufgabentypen statt Lesetext-Aufgaben:
 
 Die Symbol-Bibliothek umfasst neutrale, altersgerechte Motive (Halbmond, Stern, Moschee, Laterne,
 Herz, Buch, Sonne, Wassertropfen, Familie, Gebetsteppich) – bewusst ohne Gottesname/Koran-Text,
-aus demselben Grund wie beim Musterwort. Die KI wählt bei der Generierung ausschließlich aus dieser
-festen Liste, wird bei dieser Schulstufe zu überwiegend bildbasierten Aufgaben angeleitet und die
-Verifikation prüft das gegen. Im Erstellen-Formular gibt es dafür eine Empfehlung samt
-Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe gewählt ist.
+aus demselben Grund wie beim Musterwort. Die KI wählt entweder aus dieser festen Liste ODER lässt
+bei Bedarf ein neues Motiv live per Bild-KI erzeugen (siehe unten) - wird bei dieser Schulstufe zu
+überwiegend bildbasierten Aufgaben angeleitet und die Verifikation prüft das gegen. Im
+Erstellen-Formular gibt es dafür eine Empfehlung samt Schnellauswahl, sobald „1./2. Klasse
+Volksschule“ als Schulstufe gewählt ist.
+
+### Zusätzliche, live per Bild-KI generierte Motive
+
+Passt kein Icon aus der festen Liste, kann Claude statt eines Icon-Schlüssels eine kurze
+Motiv-Beschreibung liefern (Feld `bildBeschreibung`) - z.B. „Laterne mit Sternmuster“. Diese wird
+live über Replicate (Stable Diffusion XL, `lib/imageGen.ts`) als einfaches Schwarz-Weiß-Ausmalbild
+gerendert. Weil hier - anders als bei der festen Icon-Liste - niemand das Ergebnis vorab von Hand
+prüft, gilt eine harte, doppelte Sicherheitsschranke:
+
+1. **Prompt-Ebene**: Claude darf ausschließlich Gegenstände, Tiere, Natur oder Gebäude
+   beschreiben - niemals Menschen, Gesichter, den Propheten, Allah oder religiöse Symbole (siehe
+   Systemprompt in `lib/generateWorksheet.ts`). Der Bild-Prompt selbst enthält zusätzlich einen
+   festen Negativ-Prompt mit denselben Ausschlüssen.
+2. **Automatische Nachprüfung** (`lib/imageSafety.ts`): Claude sieht sich das erzeugte Bild direkt
+   an und prüft gezielt, ob doch eine Person/ein Gesicht oder ein religiöses Symbol zu erkennen
+   ist. Bei Verdacht wird einmal neu generiert; bleibt es auffällig oder schlägt die Generierung
+   technisch fehl, fällt das Arbeitsblatt automatisch auf ein festes, garantiert unbedenkliches
+   Icon zurück (aktuell „Stern“) - es wird nie ein ungeprüftes Bild ausgeliefert.
+
+Generierte Bilder werden dauerhaft in der Datenbank gespeichert (Tabelle `GeneratedImage`, siehe
+`app/api/generated-image/[id]`) und in Web/PDF/Word wie ein normales Icon eingebunden. Braucht
+einen `REPLICATE_API_TOKEN` (siehe Umgebungsvariablen unten) - ohne gesetzten Token schlägt die
+Generierung fehl und es greift automatisch derselbe Fallback auf ein festes Icon.
 
 ## Layout-Extras
 
@@ -171,6 +195,9 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 - `DATABASE_URL` – Postgres-Verbindung. Auf Vercel automatisch durch die Postgres-Integration
   (Storage-Tab) gesetzt.
 - `ANTHROPIC_API_KEY` – dein Anthropic API-Key
+- `REPLICATE_API_TOKEN` – für live per Bild-KI generierte Ausmalbild-Motive (siehe oben,
+  kostenloser Account unter replicate.com, Bezahlung nur pro generiertem Bild). Ohne gesetzten
+  Token fällt die Generierung automatisch auf ein festes Icon zurück - kein Setup-Zwang.
 
 Kein separates Auth-Secret nötig: Sessions sind DB-gestützt (Tabelle `Session`), das Cookie
 enthält nur ein zufälliges Token, keinen signierten/verschlüsselten Wert.
@@ -179,7 +206,8 @@ enthält nur ein zufälliges Token, keinen signierten/verschlüsselten Wert.
 
 1. Projekt in Vercel aus diesem GitHub-Repo importieren.
 2. Im Tab **Storage** eine Postgres-Datenbank anlegen (setzt `DATABASE_URL` automatisch).
-3. Unter **Settings → Environment Variables** `ANTHROPIC_API_KEY` eintragen.
+3. Unter **Settings → Environment Variables** `ANTHROPIC_API_KEY` (und optional
+   `REPLICATE_API_TOKEN`) eintragen.
 4. Deployen – der Build-Schritt (`prisma migrate deploy && next build`) legt das Datenbankschema
    automatisch an.
 

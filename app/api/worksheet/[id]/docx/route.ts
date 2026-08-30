@@ -4,6 +4,7 @@ import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema } from 
 import { THEMENBEREICHE } from "@/lib/curriculum";
 import { buildWorksheetDocx } from "@/lib/docx/buildWorksheetDocx";
 import { getSessionUser } from "@/lib/auth";
+import { sammleBildGeneriertIds } from "@/lib/generiertesBildHelfer";
 
 export const runtime = "nodejs";
 
@@ -25,11 +26,18 @@ export async function GET(
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
   const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
 
+  const bildIds = sammleBildGeneriertIds(content);
+  const generierteBildRows = bildIds.length
+    ? await prisma.generatedImage.findMany({ where: { id: { in: bildIds } } })
+    : [];
+  const generierteBilder = Object.fromEntries(generierteBildRows.map((b) => [b.id, b.data]));
+
   const buffer = await buildWorksheetDocx(
     content,
     layout,
     THEMENBEREICHE[themenbereich].label,
     worksheet.createdAt,
+    generierteBilder,
   );
 
   return new NextResponse(new Uint8Array(buffer), {
