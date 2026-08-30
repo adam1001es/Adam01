@@ -58,11 +58,61 @@ const VERBOTENE_BEGRIFFE = [
   "figur",
   "silhouette",
   "körper",
+  // Namen der im Islam bekannten Propheten - falls Claude sich trotz Systemprompt auf die
+  // Geschichte statt nur das Objekt bezieht (z.B. "der Fisch von Yunus").
+  "yunus",
+  "jonah",
+  "musa",
+  "moses",
+  "isa",
+  "jesus",
+  "ibrahim",
+  "abraham",
+  "adam",
+  "nuh",
+  "noah",
+  "yusuf",
+  "josef",
+  "joseph",
+  "dawud",
+  "david",
+  "sulaiman",
+  "salomo",
+  "solomon",
+  "idris",
+  "ismail",
+  "ishaq",
+  "isaak",
+  "yaqub",
+  "jakob",
+  "harun",
+  "aaron",
+  "hud",
+  "salih",
+  "lut",
+  "lot",
+  "shuayb",
+  "ayyub",
+  "hiob",
+  "job",
+  "yahya",
+  "johannes",
+  "zakariya",
+  "zacharias",
+  "ilyas",
+  "elias",
+  "alyasa",
+  "elisa",
+  "dhul-kifl",
 ];
 
+/** Wortgrenzen-Abgleich statt reinem Teilstring-Vergleich, damit kurze Namen wie "lot" oder
+ * "isa" nicht schon in harmlosen Wörtern wie "Lotus" oder "Praxis" anschlagen. */
 function findeVerbotenenBegriff(text: string): string | null {
   const lower = text.toLowerCase();
-  return VERBOTENE_BEGRIFFE.find((begriff) => lower.includes(begriff)) ?? null;
+  return (
+    VERBOTENE_BEGRIFFE.find((begriff) => new RegExp(`(?<![\\p{L}])${begriff}(?![\\p{L}])`, "u").test(lower)) ?? null
+  );
 }
 
 let client: Replicate | null = null;
