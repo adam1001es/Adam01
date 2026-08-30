@@ -14,13 +14,13 @@ import { pruefeBildSicherheit } from "./imageSafety";
  * 3. Claude-Bildprüfung NACH der Generierung (siehe lib/imageSafety.ts) - erkennt auch, was
  *    Ebene 1+2 nicht abfangen (das Bildmodell hält sich nicht an den Negativ-Prompt).
  *
- * Modell-Version ist ein Verweis auf einen zum Zeitpunkt der Implementierung öffentlich
- * bekannten, langlebigen SDXL-Stand auf Replicate - kann sich ändern. Falls der Aufruf mit
- * "version does not exist" fehlschlägt: aktuelle Version auf replicate.com/stability-ai/sdxl
- * nachschlagen und hier eintragen.
+ * Bewusst OHNE angehängten Versions-Hash (":abc123...") - Replicate löst "owner/modell" dann
+ * über den modellbasierten Endpunkt auf, der IMMER die aktuell auf Replicate hinterlegte
+ * Version verwendet. Ein früher hier fest eingetragener Versions-Hash wurde von Replicate
+ * inzwischen entfernt/ersetzt und führte zu "422 Invalid version or not permitted" bei JEDER
+ * Generierung - mit der versionslosen Referenz kann das nicht mehr passieren.
  */
-const SDXL_MODELL =
-  "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08";
+const SDXL_MODELL = "stability-ai/sdxl";
 
 const STIL_PROMPT_PREFIX =
   "simple black and white coloring book page for children, clean bold outlines only, no shading, no color, no text, no watermark, white background, single centered object";
