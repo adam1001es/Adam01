@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
+import { inputClass, labelClass } from "@/lib/formStyles";
 
 /** Formatiert ein Date als "YYYY-MM-DD" für ein <input type="date"> (lokale Zeitzone, nicht UTC
  * - toISOString() würde bei Zeiten nahe Mitternacht auf den falschen Tag verschieben). */
@@ -33,6 +34,8 @@ export default function AdminTierForm({
   const [gespeichert, setGespeichert] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
 
+  const keinPaket = tier === "";
+
   async function handleSave() {
     setIsPending(true);
     setGespeichert(false);
@@ -42,8 +45,8 @@ export default function AdminTierForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tier: tier || null,
-        tierGueltigVon: gueltigVon || null,
-        tierGueltigBis: gueltigBis || null,
+        tierGueltigVon: keinPaket ? null : gueltigVon || null,
+        tierGueltigBis: keinPaket ? null : gueltigBis || null,
       }),
     });
     setIsPending(false);
@@ -57,59 +60,71 @@ export default function AdminTierForm({
   }
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-2">
+    <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-end">
+      <label className="block">
+        <span className={labelClass}>Paket</span>
         <select
           value={tier}
           onChange={(e) => {
             setTier(e.target.value);
             setGespeichert(false);
           }}
-          className="rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
+          className={inputClass}
         >
           <option value="">Kostenlos (3/Monat)</option>
           <option value="starter">Starter (30/Monat)</option>
           <option value="pro">Pro (80/Monat)</option>
         </select>
+      </label>
+
+      <label className="block">
+        <span className={labelClass}>Gültig von</span>
+        <input
+          type="date"
+          disabled={keinPaket}
+          value={gueltigVon}
+          onChange={(e) => {
+            setGueltigVon(e.target.value);
+            setGespeichert(false);
+          }}
+          className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-300`}
+        />
+      </label>
+
+      <label className="block">
+        <span className={labelClass}>Gültig bis</span>
+        <input
+          type="date"
+          disabled={keinPaket}
+          value={gueltigBis}
+          onChange={(e) => {
+            setGueltigBis(e.target.value);
+            setGespeichert(false);
+          }}
+          className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-300`}
+        />
+      </label>
+
+      <div className="sm:col-span-3 flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={handleSave}
           disabled={isPending}
-          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
         >
-          {gespeichert ? <Check size={14} className="text-brand-600" /> : null}
+          {gespeichert && <Check size={14} className="text-brand-600" />}
           {isPending ? "…" : "Speichern"}
         </button>
+        {keinPaket ? (
+          <p className="text-xs text-slate-400">
+            Erst ein Paket auswählen, um optional einen Zeitraum festzulegen - ohne Zeitraum gilt
+            das Paket unbefristet.
+          </p>
+        ) : (
+          <p className="text-xs text-slate-400">Leer lassen = unbefristet in diese Richtung.</p>
+        )}
+        {fehler && <p className="w-full text-xs text-red-600">{fehler}</p>}
       </div>
-      {tier && (
-        <div className="flex items-center gap-1.5 text-xs text-slate-500">
-          <label className="flex items-center gap-1">
-            von
-            <input
-              type="date"
-              value={gueltigVon}
-              onChange={(e) => {
-                setGueltigVon(e.target.value);
-                setGespeichert(false);
-              }}
-              className="rounded border border-slate-300 bg-white px-1.5 py-1 text-xs"
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            bis
-            <input
-              type="date"
-              value={gueltigBis}
-              onChange={(e) => {
-                setGueltigBis(e.target.value);
-                setGespeichert(false);
-              }}
-              className="rounded border border-slate-300 bg-white px-1.5 py-1 text-xs"
-            />
-          </label>
-        </div>
-      )}
-      {fehler && <p className="text-xs text-red-600">{fehler}</p>}
     </div>
   );
 }
