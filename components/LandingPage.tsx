@@ -109,7 +109,7 @@ export default function LandingPage() {
           </Link>
         </div>
         <p className="mt-3 text-xs text-brand-50/80">
-          Nur E-Mail + Passwort, keine Kreditkarte nötig zum Ausprobieren.
+          Nur E-Mail + Passwort - in wenigen Minuten startklar.
         </p>
         <div className="pointer-events-none absolute inset-x-0 bottom-0">
           <IslamicPatternStrip color="#f4ead1" opacity={0.55} hoehe={20} />
@@ -245,8 +245,7 @@ export default function LandingPage() {
         </div>
         <p className="mt-4 text-center text-xs text-slate-400">
           Die Freischaltung einer bezahlten Stufe erfolgt manuell - kontaktiere dazu einfach die
-          Person, die den Zugang für deine Schule/Einrichtung verwaltet. Kein
-          Kartendaten-Formular in der App.
+          Person, die den Zugang für deine Schule/Einrichtung verwaltet.
         </p>
       </section>
     </main>
