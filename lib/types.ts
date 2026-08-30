@@ -12,6 +12,9 @@ export const AUFGABEN_TYPEN = [
   "bildergeschichte",
   "reihenfolge",
   "lesetext",
+  "diskussion",
+  "wortsuche",
+  "kreuzwortraetsel",
 ] as const;
 
 export const BildergeschichteSchrittSchema = z.object({
@@ -21,6 +24,25 @@ export const BildergeschichteSchrittSchema = z.object({
   vorlesetext: z.string(), // Satz, den die Lehrkraft laut vorliest - für noch nicht lesekundige Kinder
 });
 export type BildergeschichteSchritt = z.infer<typeof BildergeschichteSchrittSchema>;
+
+export const WortsucheGitterSchema = z.array(z.array(z.string()));
+
+export const KreuzwortZelleSchema = z.object({
+  buchstabe: z.string(),
+  nummer: z.number().nullable(),
+});
+export const KreuzwortGitterSchema = z.array(z.array(KreuzwortZelleSchema.nullable()));
+
+export const KreuzwortHinweisSchema = z.object({
+  nummer: z.number(),
+  hinweis: z.string(),
+  antwort: z.string(),
+});
+
+export const KreuzwortEintragSchema = z.object({
+  frage: z.string(),
+  antwort: z.string(),
+});
 
 export const AufgabeSchema = z.object({
   nr: z.number(),
@@ -36,6 +58,12 @@ export const AufgabeSchema = z.object({
   bildergeschichteSchritte: z.array(BildergeschichteSchrittSchema).optional(), // bei "bildergeschichte"
   reihenfolgeElemente: z.array(z.string()).optional(), // bei "reihenfolge", in der RICHTIGEN Reihenfolge (wird beim Druck gemischt angezeigt)
   lesetext: z.string().optional(), // kurzer Lesetext bei "lesetext", auf den sich "frage" bezieht
+  wortsucheWoerter: z.array(z.string()).optional(), // bei "wortsuche": von Claude vorgeschlagene Wörter: nach Auflösung nur noch die tatsächlich im Gitter platzierten
+  wortsucheGitter: WortsucheGitterSchema.optional(), // wird NICHT von Claude gesetzt, sondern nachträglich vom Server erzeugt (siehe lib/wortsuche.ts)
+  kreuzwortEintraege: z.array(KreuzwortEintragSchema).optional(), // bei "kreuzwortraetsel": von Claude vorgeschlagene Hinweis/Antwort-Paare
+  kreuzwortGitter: KreuzwortGitterSchema.optional(), // wird NICHT von Claude gesetzt, sondern nachträglich vom Server erzeugt (siehe lib/kreuzwortraetsel.ts)
+  kreuzwortWaagerecht: z.array(KreuzwortHinweisSchema).optional(), // wird NICHT von Claude gesetzt
+  kreuzwortSenkrecht: z.array(KreuzwortHinweisSchema).optional(), // wird NICHT von Claude gesetzt
   anforderungsbereich: z.enum(ANFORDERUNGSBEREICHE_KEYS).optional(),
 });
 export type Aufgabe = z.infer<typeof AufgabeSchema>;

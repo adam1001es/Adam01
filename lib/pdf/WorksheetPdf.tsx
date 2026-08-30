@@ -19,6 +19,9 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   bildergeschichte: "Bildergeschichte",
   reihenfolge: "Reihenfolge",
   lesetext: "Lesetext",
+  diskussion: "Diskussionsimpuls",
+  wortsuche: "Wortsuche",
+  kreuzwortraetsel: "Kreuzworträtsel",
 };
 
 function iconPfadPdf(key: IconKey): string {
@@ -182,6 +185,63 @@ function buildStyles(layout: LayoutConfig) {
       border: "1px solid #e2e8f0",
       borderRadius: 6,
     },
+    diskussionHinweis: {
+      marginLeft: 12,
+      fontSize: baseFontSize - 2,
+      fontStyle: "italic",
+      color: "#94a3b8",
+    },
+    raetselWrapper: {
+      marginLeft: 12,
+      marginTop: 4,
+    },
+    raetselZeile: {
+      flexDirection: "row",
+    },
+    wortsucheZelle: {
+      width: 13,
+      height: 13,
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: baseFontSize - 2,
+    },
+    kreuzwortZelleLeer: {
+      width: 15,
+      height: 15,
+    },
+    kreuzwortZelle: {
+      width: 15,
+      height: 15,
+      border: "0.75px solid #94a3b8",
+      position: "relative",
+    },
+    kreuzwortNummer: {
+      position: "absolute",
+      top: 0,
+      left: 1,
+      fontSize: 5,
+      color: "#64748b",
+    },
+    raetselWortliste: {
+      marginTop: 4,
+      fontSize: baseFontSize - 1,
+    },
+    raetselHinweisSpalten: {
+      flexDirection: "row",
+      marginTop: 6,
+      gap: 16,
+    },
+    raetselHinweisSpalte: {
+      flex: 1,
+    },
+    raetselHinweisTitel: {
+      fontWeight: 700,
+      marginBottom: 2,
+    },
+    raetselHinweisZeile: {
+      fontSize: baseFontSize - 1,
+      marginBottom: 1,
+    },
     quelle: {
       marginBottom: 4,
       fontSize: baseFontSize - 1,
@@ -341,6 +401,70 @@ function AufgabenListe({
             )}
           {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (
             <Text style={styles.option}>Wortliste: {a.wortliste.join(" · ")}</Text>
+          )}
+          {a.typ === "diskussion" && (
+            <Text style={styles.diskussionHinweis}>
+              Mündliche Diskussion in der Klasse - kein schriftliches Ergebnis nötig.
+            </Text>
+          )}
+          {a.typ === "wortsuche" && a.wortsucheGitter && (
+            <View style={styles.raetselWrapper}>
+              {a.wortsucheGitter.map((zeile, r) => (
+                <View key={r} style={styles.raetselZeile}>
+                  {zeile.map((buchstabe, c) => (
+                    <Text key={c} style={styles.wortsucheZelle}>
+                      {buchstabe}
+                    </Text>
+                  ))}
+                </View>
+              ))}
+              {a.wortsucheWoerter && a.wortsucheWoerter.length > 0 && (
+                <Text style={styles.raetselWortliste}>
+                  Gesuchte Wörter: {a.wortsucheWoerter.join(" · ")}
+                </Text>
+              )}
+            </View>
+          )}
+          {a.typ === "kreuzwortraetsel" && a.kreuzwortGitter && (
+            <View style={styles.raetselWrapper}>
+              {a.kreuzwortGitter.map((zeile, r) => (
+                <View key={r} style={styles.raetselZeile}>
+                  {zeile.map((zelle, c) =>
+                    zelle ? (
+                      <View key={c} style={styles.kreuzwortZelle}>
+                        {zelle.nummer !== null && (
+                          <Text style={styles.kreuzwortNummer}>{zelle.nummer}</Text>
+                        )}
+                      </View>
+                    ) : (
+                      <View key={c} style={styles.kreuzwortZelleLeer} />
+                    ),
+                  )}
+                </View>
+              ))}
+              <View style={styles.raetselHinweisSpalten}>
+                {a.kreuzwortWaagerecht && a.kreuzwortWaagerecht.length > 0 && (
+                  <View style={styles.raetselHinweisSpalte}>
+                    <Text style={styles.raetselHinweisTitel}>Waagerecht</Text>
+                    {a.kreuzwortWaagerecht.map((w) => (
+                      <Text key={w.nummer} style={styles.raetselHinweisZeile}>
+                        {w.nummer}. {w.hinweis}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+                {a.kreuzwortSenkrecht && a.kreuzwortSenkrecht.length > 0 && (
+                  <View style={styles.raetselHinweisSpalte}>
+                    <Text style={styles.raetselHinweisTitel}>Senkrecht</Text>
+                    {a.kreuzwortSenkrecht.map((w) => (
+                      <Text key={w.nummer} style={styles.raetselHinweisZeile}>
+                        {w.nummer}. {w.hinweis}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </View>
           )}
           {a.typ === "ausmalbild" && (a.bild || a.bildGeneriertId) && (
             <View style={styles.ausmalRahmen}>

@@ -6,6 +6,8 @@ import { FileEdit, ListChecks, BookMarked, Plus, Trash2, Save } from "lucide-rea
 import { WorksheetContent, Aufgabe, Quelle, BildergeschichteSchritt } from "@/lib/types";
 import { ANFORDERUNGSBEREICHE, ANFORDERUNGSBEREICHE_KEYS, AnforderungsbereichKey } from "@/lib/curriculum";
 import { ICON_KEYS, ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
+import { erzeugeWortsucheGitter } from "@/lib/wortsuche";
+import { erzeugeKreuzwortraetsel } from "@/lib/kreuzwortraetsel";
 import SectionCard from "@/components/SectionCard";
 import { inputClass, labelClass } from "@/lib/formStyles";
 
@@ -19,6 +21,9 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   bildergeschichte: "Bildergeschichte",
   reihenfolge: "Reihenfolge",
   lesetext: "Lesetext",
+  diskussion: "Diskussionsimpuls",
+  wortsuche: "Wortsuche",
+  kreuzwortraetsel: "Kreuzworträtsel",
 };
 
 function IconSelect({
@@ -367,6 +372,76 @@ export default function EditWorksheetForm({
                     onChange={(e) => updateAufgabe(a.nr, { lesetext: e.target.value })}
                   />
                 </label>
+              )}
+
+              {a.typ === "wortsuche" && (
+                <label className="mb-3 block">
+                  <span className={labelClass}>Gesuchte Wörter (durch Komma getrennt)</span>
+                  <input
+                    className={inputClass}
+                    defaultValue={(a.wortsucheWoerter ?? []).join(", ")}
+                    onBlur={(e) => {
+                      const eingabe = e.target.value
+                        .split(",")
+                        .map((w) => w.trim())
+                        .filter((w) => w.length > 0);
+                      const ergebnis = erzeugeWortsucheGitter(eingabe);
+                      updateAufgabe(a.nr, {
+                        wortsucheWoerter: ergebnis ? ergebnis.platzierteWoerter : eingabe,
+                        wortsucheGitter: ergebnis?.gitter,
+                      });
+                    }}
+                  />
+                  <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                    Beim Verlassen des Felds wird das Buchstabengitter automatisch neu erzeugt.
+                  </span>
+                </label>
+              )}
+
+              {a.typ === "kreuzwortraetsel" && (
+                <div className="mb-3 space-y-1.5">
+                  <span className={labelClass}>Hinweise &amp; Antworten</span>
+                  <p className="mb-1 text-xs text-slate-400">
+                    Antworten bitte in Großbuchstaben ohne Umlaute/Leerzeichen. Beim Verlassen
+                    eines Felds wird das Gitter automatisch neu erzeugt.
+                  </p>
+                  {(a.kreuzwortEintraege ?? []).map((eintrag, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input
+                        className={`${inputClass} w-2/3`}
+                        placeholder="Hinweis"
+                        defaultValue={eintrag.frage}
+                        onBlur={(e) => {
+                          const kreuzwortEintraege = [...(a.kreuzwortEintraege ?? [])];
+                          kreuzwortEintraege[i] = { ...kreuzwortEintraege[i], frage: e.target.value };
+                          const ergebnis = erzeugeKreuzwortraetsel(kreuzwortEintraege);
+                          updateAufgabe(a.nr, {
+                            kreuzwortEintraege,
+                            kreuzwortGitter: ergebnis?.gitter,
+                            kreuzwortWaagerecht: ergebnis?.waagerecht,
+                            kreuzwortSenkrecht: ergebnis?.senkrecht,
+                          });
+                        }}
+                      />
+                      <input
+                        className={`${inputClass} w-1/3`}
+                        placeholder="Antwort"
+                        defaultValue={eintrag.antwort}
+                        onBlur={(e) => {
+                          const kreuzwortEintraege = [...(a.kreuzwortEintraege ?? [])];
+                          kreuzwortEintraege[i] = { ...kreuzwortEintraege[i], antwort: e.target.value };
+                          const ergebnis = erzeugeKreuzwortraetsel(kreuzwortEintraege);
+                          updateAufgabe(a.nr, {
+                            kreuzwortEintraege,
+                            kreuzwortGitter: ergebnis?.gitter,
+                            kreuzwortWaagerecht: ergebnis?.waagerecht,
+                            kreuzwortSenkrecht: ergebnis?.senkrecht,
+                          });
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
               )}
 
               {a.typ === "ausmalbild" && (

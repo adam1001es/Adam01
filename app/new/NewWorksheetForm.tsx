@@ -17,6 +17,9 @@ import {
   Images,
   ListOrdered,
   BookOpenText,
+  MessagesSquare,
+  Grid3x3,
+  Hash,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN,
@@ -91,6 +94,9 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN)[number], { label: string; icon: t
   bildergeschichte: { label: "Bildergeschichte", icon: Images },
   reihenfolge: { label: "Reihenfolge", icon: ListOrdered },
   lesetext: { label: "Lesetext", icon: BookOpenText },
+  diskussion: { label: "Diskussionsimpuls", icon: MessagesSquare },
+  wortsuche: { label: "Wortsuche", icon: Grid3x3 },
+  kreuzwortraetsel: { label: "Kreuzworträtsel", icon: Hash },
 };
 
 const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {

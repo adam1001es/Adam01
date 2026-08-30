@@ -16,6 +16,9 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   bildergeschichte: "Bildergeschichte",
   reihenfolge: "Reihenfolge",
   lesetext: "Lesetext",
+  diskussion: "Diskussionsimpuls",
+  wortsuche: "Wortsuche",
+  kreuzwortraetsel: "Kreuzworträtsel",
 };
 
 /** Zeigt entweder ein festes Icon aus der kuratierten Bibliothek oder ein live per Bild-KI
@@ -179,6 +182,91 @@ export default function WorksheetView({
                   <div className="ml-5 mt-1 text-sm text-slate-600">
                     <span className="font-medium">Wortliste: </span>
                     {a.wortliste.join(" · ")}
+                  </div>
+                )}
+                {a.typ === "diskussion" && (
+                  <p className="ml-5 mt-1 text-xs italic text-slate-400">
+                    Mündliche Diskussion in der Klasse - kein schriftliches Ergebnis nötig.
+                  </p>
+                )}
+                {a.typ === "wortsuche" && a.wortsucheGitter && (
+                  <div className="mt-2">
+                    <div className="inline-block overflow-x-auto rounded-lg border border-slate-200 bg-white p-2">
+                      <div
+                        className="grid font-mono text-xs"
+                        style={{ gridTemplateColumns: `repeat(${a.wortsucheGitter[0].length}, 1.5em)` }}
+                      >
+                        {a.wortsucheGitter.map((zeile, r) =>
+                          zeile.map((buchstabe, c) => (
+                            <span
+                              key={`${r}-${c}`}
+                              className="flex h-[1.5em] w-[1.5em] items-center justify-center"
+                            >
+                              {buchstabe}
+                            </span>
+                          )),
+                        )}
+                      </div>
+                    </div>
+                    {a.wortsucheWoerter && a.wortsucheWoerter.length > 0 && (
+                      <p className="mt-2 text-sm text-slate-600">
+                        <span className="font-medium">Gesuchte Wörter: </span>
+                        {a.wortsucheWoerter.join(" · ")}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {a.typ === "kreuzwortraetsel" && a.kreuzwortGitter && (
+                  <div className="mt-2 space-y-3">
+                    <div className="inline-block overflow-x-auto rounded-lg border border-slate-200 bg-white p-1">
+                      <div
+                        className="grid"
+                        style={{ gridTemplateColumns: `repeat(${a.kreuzwortGitter[0].length}, 1.8em)` }}
+                      >
+                        {a.kreuzwortGitter.map((zeile, r) =>
+                          zeile.map((zelle, c) => (
+                            <div
+                              key={`${r}-${c}`}
+                              className={`relative h-[1.8em] w-[1.8em] ${
+                                zelle ? "border border-slate-300 bg-white" : ""
+                              }`}
+                            >
+                              {zelle?.nummer && (
+                                <span className="absolute left-0.5 top-0 text-[0.55em] leading-none text-slate-500">
+                                  {zelle.nummer}
+                                </span>
+                              )}
+                            </div>
+                          )),
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid gap-4 text-sm sm:grid-cols-2">
+                      {a.kreuzwortWaagerecht && a.kreuzwortWaagerecht.length > 0 && (
+                        <div>
+                          <span className="font-medium">Waagerecht</span>
+                          <ol className="mt-1 space-y-0.5">
+                            {a.kreuzwortWaagerecht.map((w) => (
+                              <li key={w.nummer}>
+                                {w.nummer}. {w.hinweis}
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+                      {a.kreuzwortSenkrecht && a.kreuzwortSenkrecht.length > 0 && (
+                        <div>
+                          <span className="font-medium">Senkrecht</span>
+                          <ol className="mt-1 space-y-0.5">
+                            {a.kreuzwortSenkrecht.map((w) => (
+                              <li key={w.nummer}>
+                                {w.nummer}. {w.hinweis}
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 {a.typ === "ausmalbild" && (a.bild || a.bildGeneriertId) && (

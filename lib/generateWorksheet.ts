@@ -16,6 +16,8 @@ import { buildCurriculumSystemContext } from "./curriculum";
 import { prisma } from "./prisma";
 import { beschaffeSicheresAusmalbild } from "./imageGen";
 import { IconKey, ICON_KEYS } from "./icons";
+import { erzeugeWortsucheGitter } from "./wortsuche";
+import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 
 /** Reihenfolge, in der auf feste Icons zurückgefallen wird, wenn ein per Bild-KI generiertes
  * Motiv die Sicherheitsprüfung nicht besteht oder die Generierung technisch fehlschlägt.
@@ -83,7 +85,7 @@ Das JSON-Objekt muss exakt diese Struktur haben:
   "lernziel": string,
   "einleitung": string,
   "aufgaben": [
-    { "nr": number, "typ": "multiple_choice"|"lueckentext"|"zuordnung"|"offene_frage"|"wahr_falsch"|"ausmalbild"|"bildergeschichte"|"reihenfolge"|"lesetext", "frage": string, "optionen"?: string[], "zuordnungLinks"?: string[], "zuordnungRechts"?: string[], "wortliste"?: string[], "bild"?: string, "bildBeschreibung"?: string, "bildergeschichteSchritte"?: [{ "bild"?: string, "bildBeschreibung"?: string, "vorlesetext": string }], "reihenfolgeElemente"?: string[], "lesetext"?: string, "anforderungsbereich": "afb1"|"afb2"|"afb3" }
+    { "nr": number, "typ": "multiple_choice"|"lueckentext"|"zuordnung"|"offene_frage"|"wahr_falsch"|"ausmalbild"|"bildergeschichte"|"reihenfolge"|"lesetext"|"diskussion"|"wortsuche"|"kreuzwortraetsel", "frage": string, "optionen"?: string[], "zuordnungLinks"?: string[], "zuordnungRechts"?: string[], "wortliste"?: string[], "bild"?: string, "bildBeschreibung"?: string, "bildergeschichteSchritte"?: [{ "bild"?: string, "bildBeschreibung"?: string, "vorlesetext": string }], "reihenfolgeElemente"?: string[], "lesetext"?: string, "wortsucheWoerter"?: string[], "kreuzwortEintraege"?: [{ "frage": string, "antwort": string }], "anforderungsbereich": "afb1"|"afb2"|"afb3" }
   ],
   "loesungen": [ { "nr": number, "loesung": string } ],
   "quellen": [ { "bezeichnung": string, "text"?: string, "sicherheit": "gesichert"|"bitte_pruefen" } ]
@@ -93,6 +95,9 @@ Bei "lueckentext" MUSS "wortliste" gesetzt sein: eine durcheinandergewürfelte L
 Die Typen "ausmalbild" und "bildergeschichte" sind bildbasierte Aufgaben für noch nicht lese-/schreibkundige Kinder (siehe Hinweis unten, falls zutreffend). Bei "bild"/"bildergeschichteSchritte" IMMER GENAU EINES von zwei Feldern setzen, nie beide: entweder "bild" mit einem der vorgegebenen Bild-Schlüssel, ODER "bildBeschreibung" mit einer kurzen deutschen Beschreibung eines neuen Motivs (wird per Bild-KI erzeugt). Diese Beschreibung MUSS eine vollständig eigenständige, kontextfreie Objekt-Beschreibung sein - so, als würde sie ohne jeden Bezug zum restlichen Arbeitsblatt an eine Bild-KI geschickt (z.B. "ein großer Fisch im Meer", NICHT "der Fisch, der den Propheten Yunus verschluckte"). Beschreibe AUSSCHLIESSLICH Gegenstände, Tiere, Pflanzen, Natur oder Gebäude. Erwähne in "bildBeschreibung" NIEMALS Menschen, Gesichter, Personen-Silhouetten, Namen oder Titel von Propheten (auch nicht implizit über die Geschichte, z.B. "Yunus", "Musa", "Prophet", "Gesandte"), Allah, Koran/Quran oder religiöse Symbole, die als Personendarstellung gelesen werden könnten - selbst wenn die eigentliche Aufgabe ("frage"/"vorlesetext") sich auf einen Propheten bezieht, bleibt "bildBeschreibung" rein objektbezogen und namenlos/kontextlos (solche Beschreibungen mit verbotenen Begriffen werden automatisch verworfen und die Aufgabe bekommt dann nur ein generisches Ersatzbild). Bei diesen beiden Typen kann "loesung" ein kurzer Hinweis für die Lehrkraft sein (z.B. "Kein Lösungswort - Kind malt frei aus.").
 Bei "reihenfolge" MUSS "reihenfolgeElemente" gesetzt sein: 3-6 kurze Ereignisse/Schritte in der RICHTIGEN chronologischen bzw. logischen Reihenfolge (das System mischt sie selbst für den Druck - du musst dich nicht um eine "zufällige" Anordnung kümmern, liefere sie einfach korrekt geordnet). "frage" ist die Arbeitsanweisung (z.B. "Bringe die Ereignisse in die richtige Reihenfolge, indem du die Zahlen 1-4 daneben einträgst."). "loesung" nennt die korrekte Reihenfolge in Klartext (z.B. "1. ..., 2. ..., 3. ...").
 Bei "lesetext" MUSS "lesetext" gesetzt sein: ein kurzer, altersgerechter Lesetext (ca. 3-6 Sätze) zum Thema; "frage" ist eine Verständnisfrage, die sich konkret auf diesen Text bezieht (nicht auf Allgemeinwissen). Nur für Schulstufen einsetzen, die schon selbstständig lesen können (nicht bei 1./2. Klasse Volksschule, siehe Hinweis unten, falls zutreffend).
+Bei "diskussion" ist "frage" der Diskussionsimpuls für ein mündliches Unterrichtsgespräch (kein schriftliches Ergebnis erwartet); "loesung" ist ein kurzer Hinweis für die Lehrkraft mit möglichen Gesprächsaspekten (z.B. "Mögliche Aspekte: ..., ...").
+Bei "wortsuche" MUSS "wortsucheWoerter" gesetzt sein: 4-8 kurze, thematisch passende Wörter in GROSSBUCHSTABEN (nur A-Z, keine Umlaute/ß/Leerzeichen/Bindestriche - schreibe z.B. "MOSCHEE" statt "Gebetsstätte", "SCHAHADA" statt "Schahāda"). Das System erzeugt daraus automatisch ein Buchstabengitter zum Suchen - liefere KEIN Gitter, nur die Wortliste. "frage" ist die Arbeitsanweisung (z.B. "Finde die folgenden Wörter im Buchstabengitter.").
+Bei "kreuzwortraetsel" MUSS "kreuzwortEintraege" gesetzt sein: 5-8 Objekte { "frage": kurze Umschreibung/Hinweis, "antwort": Lösungswort in GROSSBUCHSTABEN (nur A-Z, keine Umlaute/ß/Leerzeichen, z.B. "MOSCHEE" statt "Gebetsstätte") }. Wähle nach Möglichkeit Wörter mit gemeinsamen Buchstaben, damit sich ein zusammenhängendes Rätsel ergibt. Das System erzeugt daraus automatisch das nummerierte Gitter - liefere KEIN Gitter. Das Top-Level-Feld "frage" der Aufgabe ist die allgemeine Arbeitsanweisung (z.B. "Löse das Kreuzworträtsel mithilfe der Hinweise.").
 Jede verwendete Hadith-Quellenangabe MUSS die Sammlung im Feld "bezeichnung" nennen (z.B. "Sahih al-Bukhari, ...").`;
 
 const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
@@ -100,7 +105,7 @@ const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und
 1. Fachliche/theologische Plausibilität - wirken Koran-/Hadith-Angaben erfunden oder unsicher? Passt die Darstellung zu einer mehrheitsfähigen, für den staatlichen Unterricht geeigneten Position (Sunnah)?
 2. Hadith-Quellen: stammen alle genannten Hadithe erkennbar aus Sahih al-Bukhari, Sahih Muslim oder einer anderen allgemein als sahih geltenden Sammlung? Wenn eine Quelle fehlt, unklar oder zweifelhaft ist, IMMER als Hinweis aufnehmen.
 3. Lehrplan-/Altersgerechtigkeit: passt Thema, Komplexität und Themenbereich zum mitgelieferten Schulstufen-Cluster und Themenbereich?
-4. Vollständigkeit: hat jede Aufgabe eine Lösung? Sind Zuordnungen konsistent (gleiche Länge links/rechts)? Hat jede Lückentext-Aufgabe eine passende Wortliste (enthält das richtige Lösungswort plus 1-2 Ablenker)? Hat jede "reihenfolge"-Aufgabe mindestens 3 Elemente in einer nachvollziehbar korrekten Reihenfolge? Bezieht sich bei "lesetext" die Frage tatsächlich auf den mitgelieferten Text?
+4. Vollständigkeit: hat jede Aufgabe eine Lösung? Sind Zuordnungen konsistent (gleiche Länge links/rechts)? Hat jede Lückentext-Aufgabe eine passende Wortliste (enthält das richtige Lösungswort plus 1-2 Ablenker)? Hat jede "reihenfolge"-Aufgabe mindestens 3 Elemente in einer nachvollziehbar korrekten Reihenfolge? Bezieht sich bei "lesetext" die Frage tatsächlich auf den mitgelieferten Text? Hat "wortsuche" mindestens 4 thematisch passende, in GROSSBUCHSTABEN ohne Umlaute/ß geschriebene Wörter? Hat "kreuzwortraetsel" mindestens 4 Einträge mit passenden Hinweisen und Antworten in GROSSBUCHSTABEN ohne Umlaute/ß?
 5. Sprachliche Korrektheit (Deutsch) und Sprachsensibilität (klare, altersgerechte Sätze, Fachbegriffe erklärt statt vorausgesetzt).
 6. Neutralität/Eignung für konfessionellen Unterricht (keine kontroversen politischen Aussagen, keine Herabsetzung anderer Religionen/Gruppen).
 6b. Terminologie: Wird durchgehend "Allah" statt "Gott" verwendet, grammatikalisch korrekt? Falls "Gott" irrtümlich vorkommt, als Hinweis aufnehmen.
@@ -163,6 +168,7 @@ export async function generateAndVerifyWorksheet(
   const rawContent = extractJson(getTextFromMessage(genResponse));
   const content = WorksheetContentSchema.parse(rawContent);
   await loeseGenerierteBilderAuf(content);
+  loeseRaetselAuf(content);
 
   const verifyResponse = await client.messages.create({
     model: VERIFICATION_MODEL,
@@ -206,6 +212,43 @@ async function loeseGenerierteBilderAuf(content: WorksheetContent): Promise<void
         if (schritt.bildBeschreibung && !schritt.bild) {
           await loeseBildFeldAuf(schritt, schritt.bildBeschreibung, verwendeteFallbackIcons);
         }
+      }
+    }
+  }
+}
+
+/**
+ * Löst "wortsuche"- und "kreuzwortraetsel"-Aufgaben auf: Claude liefert nur die Wörter bzw.
+ * Hinweis/Antwort-Paare, das eigentliche Gitter-Layout wird deterministisch serverseitig
+ * berechnet (siehe lib/wortsuche.ts, lib/kreuzwortraetsel.ts - ein Sprachmodell kann kein
+ * überschneidungsfreies Gitter zuverlässig von Hand layouten). Mutiert `content`.
+ *
+ * Bei "kreuzwortraetsel" wird zusätzlich die zugehörige "loesung" (in content.loesungen) mit
+ * einem programmatisch erzeugten Text überschrieben: Claude kennt beim Schreiben der Lösung die
+ * endgültige Nummerierung des Gitters noch nicht (die erst hier entsteht), eine von Claude selbst
+ * geschriebene nummerierte Lösung wäre also potenziell falsch.
+ */
+function loeseRaetselAuf(content: WorksheetContent): void {
+  for (const aufgabe of content.aufgaben) {
+    if (aufgabe.typ === "wortsuche" && aufgabe.wortsucheWoerter) {
+      const ergebnis = erzeugeWortsucheGitter(aufgabe.wortsucheWoerter);
+      if (ergebnis) {
+        aufgabe.wortsucheGitter = ergebnis.gitter;
+        aufgabe.wortsucheWoerter = ergebnis.platzierteWoerter;
+      }
+    }
+    if (aufgabe.typ === "kreuzwortraetsel" && aufgabe.kreuzwortEintraege) {
+      const ergebnis = erzeugeKreuzwortraetsel(aufgabe.kreuzwortEintraege);
+      if (ergebnis) {
+        aufgabe.kreuzwortGitter = ergebnis.gitter;
+        aufgabe.kreuzwortWaagerecht = ergebnis.waagerecht;
+        aufgabe.kreuzwortSenkrecht = ergebnis.senkrecht;
+        const loesungText = [
+          ...ergebnis.waagerecht.map((w) => `${w.nummer}. Waagerecht: ${w.antwort}`),
+          ...ergebnis.senkrecht.map((w) => `${w.nummer}. Senkrecht: ${w.antwort}`),
+        ].join(", ");
+        const loesungEintrag = content.loesungen.find((l) => l.nr === aufgabe.nr);
+        if (loesungEintrag) loesungEintrag.loesung = loesungText;
       }
     }
   }

@@ -9,6 +9,11 @@ import {
   HeadingLevel,
   AlignmentType,
   BorderStyle,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  VerticalAlign,
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
@@ -77,6 +82,87 @@ function bildFuerDocx(
   return null;
 }
 
+const RAETSEL_ZELLE_DXA = 340;
+const OHNE_RAHMEN = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+
+type KreuzwortZelle = NonNullable<NonNullable<Aufgabe["kreuzwortGitter"]>[number][number]>;
+
+/** Baut eine Word-Tabelle aus einem Buchstabengitter (Wortsuche) - ohne sichtbare Rahmen, nur
+ * gleichmäßig breite Zellen mit je einem zentrierten Buchstaben. */
+function baueWortsucheTabelle(gitter: string[][], baseSize: number): Table {
+  return new Table({
+    width: { size: 0, type: WidthType.AUTO },
+    borders: {
+      top: OHNE_RAHMEN,
+      bottom: OHNE_RAHMEN,
+      left: OHNE_RAHMEN,
+      right: OHNE_RAHMEN,
+      insideHorizontal: OHNE_RAHMEN,
+      insideVertical: OHNE_RAHMEN,
+    },
+    rows: gitter.map(
+      (zeile) =>
+        new TableRow({
+          children: zeile.map(
+            (buchstabe) =>
+              new TableCell({
+                width: { size: RAETSEL_ZELLE_DXA, type: WidthType.DXA },
+                verticalAlign: VerticalAlign.CENTER,
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: buchstabe, size: baseSize })],
+                  }),
+                ],
+              }),
+          ),
+        }),
+    ),
+  });
+}
+
+/** Baut eine Word-Tabelle aus dem Kreuzworträtsel-Gitter: Zellen mit Buchstabe bekommen einen
+ * Rahmen und - falls Startpunkt eines Worts - eine kleine Nummer; Zellen ohne Buchstabe bleiben
+ * randlos und dunkel eingefärbt (klassische "gesperrte Felder" eines Kreuzworträtsels). Der
+ * gespeicherte Lösungsbuchstabe selbst wird NIE gedruckt - die Zelle bleibt zum Ausfüllen leer. */
+function baueKreuzwortTabelle(gitter: (KreuzwortZelle | null)[][]): Table {
+  const rahmen = { style: BorderStyle.SINGLE, size: 4, color: "94A3B8" };
+  return new Table({
+    width: { size: 0, type: WidthType.AUTO },
+    borders: {
+      top: OHNE_RAHMEN,
+      bottom: OHNE_RAHMEN,
+      left: OHNE_RAHMEN,
+      right: OHNE_RAHMEN,
+      insideHorizontal: OHNE_RAHMEN,
+      insideVertical: OHNE_RAHMEN,
+    },
+    rows: gitter.map(
+      (zeile) =>
+        new TableRow({
+          children: zeile.map(
+            (zelle) =>
+              new TableCell({
+                width: { size: RAETSEL_ZELLE_DXA, type: WidthType.DXA },
+                shading: zelle ? undefined : { fill: "334155" },
+                borders: zelle
+                  ? { top: rahmen, bottom: rahmen, left: rahmen, right: rahmen }
+                  : { top: OHNE_RAHMEN, bottom: OHNE_RAHMEN, left: OHNE_RAHMEN, right: OHNE_RAHMEN },
+                children: [
+                  new Paragraph({
+                    children:
+                      zelle?.nummer != null
+                        ? [new TextRun({ text: String(zelle.nummer), size: 10 })]
+                        : [],
+                  }),
+                ],
+              }),
+          ),
+        }),
+    ),
+  });
+}
+
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
   lueckentext: "Lückentext",
@@ -87,6 +173,9 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   bildergeschichte: "Bildergeschichte",
   reihenfolge: "Reihenfolge",
   lesetext: "Lesetext",
+  diskussion: "Diskussionsimpuls",
+  wortsuche: "Wortsuche",
+  kreuzwortraetsel: "Kreuzworträtsel",
 };
 
 const ACCENT = "0f9d58";
@@ -102,7 +191,7 @@ export async function buildWorksheetDocx(
   const accentColor = layout.template === "modern" && !istSchwarzweiss ? ACCENT : "111111";
   const baseSize = layout.schriftgroesse === "gross" ? 26 : 22; // halbe Punkte
 
-  const children: Paragraph[] = [];
+  const children: (Paragraph | Table)[] = [];
 
   if (layout.schulname) {
     children.push(
@@ -262,6 +351,81 @@ export async function buildWorksheetDocx(
         }),
       );
     }
+    if (a.typ === "diskussion") {
+      children.push(
+        new Paragraph({
+          indent: { left: 360 },
+          children: [
+            new TextRun({
+              text: "Mündliche Diskussion in der Klasse - kein schriftliches Ergebnis nötig.",
+              size: baseSize - 2,
+              italics: true,
+              color: "94A3B8",
+            }),
+          ],
+        }),
+      );
+    }
+    if (a.typ === "wortsuche" && a.wortsucheGitter) {
+      children.push(
+        new Paragraph({ indent: { left: 360 }, children: [], spacing: { after: 60 } }),
+        baueWortsucheTabelle(a.wortsucheGitter, baseSize),
+      );
+      if (a.wortsucheWoerter && a.wortsucheWoerter.length > 0) {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: 120 },
+            children: [
+              new TextRun({
+                text: `Gesuchte Wörter: ${a.wortsucheWoerter.join(" · ")}`,
+                size: baseSize,
+              }),
+            ],
+          }),
+        );
+      }
+    }
+    if (a.typ === "kreuzwortraetsel" && a.kreuzwortGitter) {
+      children.push(
+        new Paragraph({ indent: { left: 360 }, children: [], spacing: { after: 60 } }),
+        baueKreuzwortTabelle(a.kreuzwortGitter),
+      );
+      if (a.kreuzwortWaagerecht && a.kreuzwortWaagerecht.length > 0) {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: 160 },
+            children: [new TextRun({ text: "Waagerecht", bold: true, size: baseSize })],
+          }),
+        );
+        a.kreuzwortWaagerecht.forEach((w) => {
+          children.push(
+            new Paragraph({
+              indent: { left: 360 },
+              children: [new TextRun({ text: `${w.nummer}. ${w.hinweis}`, size: baseSize })],
+            }),
+          );
+        });
+      }
+      if (a.kreuzwortSenkrecht && a.kreuzwortSenkrecht.length > 0) {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: 120 },
+            children: [new TextRun({ text: "Senkrecht", bold: true, size: baseSize })],
+          }),
+        );
+        a.kreuzwortSenkrecht.forEach((w) => {
+          children.push(
+            new Paragraph({
+              indent: { left: 360 },
+              children: [new TextRun({ text: `${w.nummer}. ${w.hinweis}`, size: baseSize })],
+            }),
+          );
+        });
+      }
+    }
     if (a.typ === "ausmalbild" && (a.bild || a.bildGeneriertId)) {
       const bildHoehe = 130;
       const bild = bildFuerDocx(a.bild, a.bildGeneriertId, generierteBilder, bildHoehe);
@@ -343,7 +507,7 @@ export async function buildWorksheetDocx(
   const sections = [{ children }];
 
   if (layout.loesungenSeparat) {
-    const loesungChildren: Paragraph[] = [];
+    const loesungChildren: (Paragraph | Table)[] = [];
     loesungChildren.push(
       new Paragraph({
         heading: HeadingLevel.HEADING_1,
@@ -367,7 +531,7 @@ function sectionHeading(text: string, color: string, baseSize: number): Paragrap
   });
 }
 
-function pushLoesungen(children: Paragraph[], content: WorksheetContent, baseSize: number) {
+function pushLoesungen(children: (Paragraph | Table)[], content: WorksheetContent, baseSize: number) {
   for (const l of content.loesungen) {
     children.push(
       new Paragraph({
