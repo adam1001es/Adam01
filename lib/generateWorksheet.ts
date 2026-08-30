@@ -11,6 +11,7 @@ import {
   WorksheetContentSchema,
   Verification,
   VerificationSchema,
+  AUFGABEN_TYP_MAXIMUM,
 } from "./types";
 import { buildCurriculumSystemContext } from "./curriculum";
 import { prisma } from "./prisma";
@@ -98,6 +99,7 @@ Bei "lesetext" MUSS "lesetext" gesetzt sein: ein kurzer, altersgerechter Lesetex
 Bei "diskussion" ist "frage" der Diskussionsimpuls für ein mündliches Unterrichtsgespräch (kein schriftliches Ergebnis erwartet); "loesung" ist ein kurzer Hinweis für die Lehrkraft mit möglichen Gesprächsaspekten (z.B. "Mögliche Aspekte: ..., ...").
 Bei "wortsuche" MUSS "wortsucheWoerter" gesetzt sein: 4-8 kurze, thematisch passende Wörter in GROSSBUCHSTABEN (nur A-Z, keine Umlaute/ß/Leerzeichen/Bindestriche - schreibe z.B. "MOSCHEE" statt "Gebetsstätte", "SCHAHADA" statt "Schahāda"). Das System erzeugt daraus automatisch ein Buchstabengitter zum Suchen - liefere KEIN Gitter, nur die Wortliste. "frage" ist die Arbeitsanweisung (z.B. "Finde die folgenden Wörter im Buchstabengitter.").
 Bei "kreuzwortraetsel" MUSS "kreuzwortEintraege" gesetzt sein: 5-8 Objekte { "frage": kurze Umschreibung/Hinweis, "antwort": Lösungswort in GROSSBUCHSTABEN (nur A-Z, keine Umlaute/ß/Leerzeichen, z.B. "MOSCHEE" statt "Gebetsstätte") }. Wähle nach Möglichkeit Wörter mit gemeinsamen Buchstaben, damit sich ein zusammenhängendes Rätsel ergibt. Das System erzeugt daraus automatisch das nummerierte Gitter - liefere KEIN Gitter. Das Top-Level-Feld "frage" der Aufgabe ist die allgemeine Arbeitsanweisung (z.B. "Löse das Kreuzworträtsel mithilfe der Hinweise.").
+Wichtige Ausnahme bei der "Anzahl Aufgaben": "bildergeschichte", "kreuzwortraetsel" und "wortsuche" sind für sich genommen schon umfangreich (mehrere Bild-Schritte bzw. 4-8 Wörter samt Gitter) - erstelle von JEDEM dieser drei Typen HÖCHSTENS 1 Aufgabe pro Arbeitsblatt, egal wie hoch "Anzahl Aufgaben" ist oder ob nur ein solcher Typ erlaubt ist. Ist die angeforderte Gesamtzahl mit den erlaubten Typen unter dieser Grenze nicht erreichbar (z.B. nur "kreuzwortraetsel" erlaubt und Anzahl Aufgaben > 1), erstelle trotzdem nur die eine sinnvolle Aufgabe dieses Typs - ein Arbeitsblatt mit weniger Aufgaben als angefordert ist hier ausdrücklich in Ordnung, mehrere vollständige Bildergeschichten/Kreuzworträtsel/Wortsuchen auf einem Blatt NICHT.
 Jede verwendete Hadith-Quellenangabe MUSS die Sammlung im Feld "bezeichnung" nennen (z.B. "Sahih al-Bukhari, ...").`;
 
 const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
@@ -124,6 +126,33 @@ Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock:
 - "warnung": nutzbar, aber es gibt Punkte, die eine Lehrkraft vor Einsatz prüfen sollte (z.B. Quellenangaben gegenchecken).
 - "fehler": das Arbeitsblatt sollte vor Verwendung überarbeitet werden (z.B. offensichtlich falsche/erfundene Zitate, Hadithe aus unbekannter/zweifelhafter Quelle, fehlende Lösungen, unpassende Altersstufe).
 Liste in "hinweise" konkrete, konstruktive Punkte auf (auch bei "ok" ruhig ein bis zwei Hinweise, z.B. "Sure X vor Verwendung gegenchecken").`;
+
+/** Erzwingt AUFGABEN_TYP_MAXIMUM serverseitig, unabhängig davon, ob sich Claude an die
+ * entsprechende Anweisung im System-Prompt gehalten hat: entfernt überzählige Aufgaben der
+ * gedeckelten Typen (behält die jeweils ersten) und nummeriert Aufgaben/Lösungen danach lückenlos
+ * neu durch. */
+function begrenzeAufgabenProTyp(content: WorksheetContent): void {
+  const anzahlProTyp = new Map<string, number>();
+  const behalteneAufgaben = content.aufgaben.filter((aufgabe) => {
+    const maximum = AUFGABEN_TYP_MAXIMUM[aufgabe.typ];
+    if (maximum === undefined) return true;
+    const bisher = anzahlProTyp.get(aufgabe.typ) ?? 0;
+    if (bisher >= maximum) return false;
+    anzahlProTyp.set(aufgabe.typ, bisher + 1);
+    return true;
+  });
+
+  const alteZuNeueNr = new Map<number, number>();
+  behalteneAufgaben.forEach((aufgabe, i) => {
+    alteZuNeueNr.set(aufgabe.nr, i + 1);
+    aufgabe.nr = i + 1;
+  });
+
+  content.aufgaben = behalteneAufgaben;
+  content.loesungen = content.loesungen
+    .filter((loesung) => alteZuNeueNr.has(loesung.nr))
+    .map((loesung) => ({ ...loesung, nr: alteZuNeueNr.get(loesung.nr)! }));
+}
 
 function buildUserPrompt(req: GenerateRequest): string {
   return `Erstelle ein Arbeitsblatt mit folgenden Vorgaben:
@@ -175,6 +204,7 @@ export async function generateAndVerifyWorksheet(
   }
   const rawContent = extractJson(getTextFromMessage(genResponse));
   const content = WorksheetContentSchema.parse(rawContent);
+  begrenzeAufgabenProTyp(content);
   await loeseGenerierteBilderAuf(content);
   loeseRaetselAuf(content);
 

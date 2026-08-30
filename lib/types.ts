@@ -17,6 +17,17 @@ export const AUFGABEN_TYPEN = [
   "kreuzwortraetsel",
 ] as const;
 
+/** Manche Aufgabentypen sind inhaltlich für sich schon umfangreich (Bildergeschichte: mehrere
+ * Bild-Schritte; Kreuzworträtsel/Wortsuche: 4-8 Wörter samt Gitter) - davon macht daher pro
+ * Arbeitsblatt höchstens diese Anzahl Sinn, unabhängig von der insgesamt gewählten "Anzahl
+ * Aufgaben". Wird sowohl beim Prompt-Bau als auch als harte serverseitige Grenze verwendet
+ * (siehe begrenzeAufgabenProTyp in lib/generateWorksheet.ts). */
+export const AUFGABEN_TYP_MAXIMUM: Partial<Record<(typeof AUFGABEN_TYPEN)[number], number>> = {
+  bildergeschichte: 1,
+  kreuzwortraetsel: 1,
+  wortsuche: 1,
+};
+
 export const BildergeschichteSchrittSchema = z.object({
   bild: z.enum(ICON_KEYS).optional(), // festes Icon aus der kuratierten Bibliothek
   bildBeschreibung: z.string().optional(), // ODER: neues Motiv, per Bild-KI erzeugt (siehe lib/imageGen.ts) - nur Gegenstände/Tiere/Natur/Gebäude, nie Personen

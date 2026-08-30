@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN,
+  AUFGABEN_TYP_MAXIMUM,
   TEMPLATES,
   FARBMODI,
   Farbmodus,
@@ -349,6 +350,14 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               );
             })}
           </div>
+          {aufgabentypen.some((typ) => typ in AUFGABEN_TYP_MAXIMUM) && (
+            <p className="mt-3 text-xs leading-relaxed text-slate-400">
+              Hinweis: „Bildergeschichte", „Kreuzworträtsel" und „Wortsuche" sind für sich schon
+              umfangreich - davon wird höchstens 1 Aufgabe pro Arbeitsblatt erstellt, auch wenn
+              oben eine höhere Anzahl gewählt ist. Das fertige Blatt kann dadurch weniger Aufgaben
+              enthalten als hier eingestellt.
+            </p>
+          )}
           {istFrueheVolksschulstufe(schulstufe) && (
             <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
               <p className="text-xs leading-relaxed text-gold-700">
