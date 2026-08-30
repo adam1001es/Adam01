@@ -149,7 +149,10 @@ export async function generateAndVerifyWorksheet(
 
   const genResponse = await client.messages.create({
     model: GENERATION_MODEL,
-    max_tokens: 8000,
+    // 16000 statt 8000: bei mehreren inhaltsreichen Aufgaben (zb 3x Kreuzworträtsel mit je
+    // 5-8 Hinweis/Antwort-Paaren) reichte das alte Limit nicht, die Antwort wurde mitten im
+    // JSON abgeschnitten ("Keine JSON-Struktur in der Modellantwort gefunden").
+    max_tokens: 16000,
     // GENERATION_SYSTEM_PROMPT_BASE ist bei jeder Anfrage byte-identisch (großer, statischer
     // Block) - als eigener, gecachter Prefix-Block ausgelagert. curriculumContext variiert pro
     // Anfrage (Themenbereich/Schulstufe) und steht daher NACH dem Cache-Breakpoint, damit er den
@@ -165,6 +168,11 @@ export async function generateAndVerifyWorksheet(
     messages: [{ role: "user", content: buildUserPrompt(req) }],
   });
 
+  if (genResponse.stop_reason === "max_tokens") {
+    throw new Error(
+      "Die Antwort des Modells wurde wegen zu vieler Aufgaben/Inhalte abgeschnitten. Bitte weniger Aufgaben oder weniger Aufgabentypen gleichzeitig anfordern.",
+    );
+  }
   const rawContent = extractJson(getTextFromMessage(genResponse));
   const content = WorksheetContentSchema.parse(rawContent);
   await loeseGenerierteBilderAuf(content);
@@ -172,7 +180,9 @@ export async function generateAndVerifyWorksheet(
 
   const verifyResponse = await client.messages.create({
     model: VERIFICATION_MODEL,
-    max_tokens: 4000,
+    // Ebenfalls angehoben (war 4000): die Prüfantwort muss zum vollständigen, ggf. sehr
+    // umfangreichen Arbeitsblatt-JSON passen und darf dabei nicht abgeschnitten werden.
+    max_tokens: 8000,
     system: [
       {
         type: "text",
