@@ -2,6 +2,7 @@ import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { THEMENBEREICHE, ThemenbereichKey, ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
+import { zuordnungAnzeige } from "@/lib/zuordnung";
 import IslamicPatternStrip from "./IslamicPatternStrip";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
@@ -132,15 +133,26 @@ export default function WorksheetView({
                     ))}
                   </ul>
                 )}
-                {a.typ === "zuordnung" && a.zuordnungLinks && (
-                  <div className="ml-5 mt-1 space-y-0.5">
-                    {a.zuordnungLinks.map((left, i) => (
-                      <div key={i} className="flex justify-between gap-4 sm:w-1/2">
-                        <span>{left}</span>
-                        <span className="text-slate-400">↔</span>
-                        <span>{a.zuordnungRechts?.[i]}</span>
-                      </div>
-                    ))}
+                {a.typ === "zuordnung" && zuordnungAnzeige(a) && (
+                  <div className="ml-5 mt-1.5 grid gap-x-6 gap-y-1 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      {zuordnungAnzeige(a)!.links.map((l) => (
+                        <div key={l.nummer} className="flex items-baseline gap-2">
+                          <span className="w-6 shrink-0 rounded border border-slate-300 text-center text-xs">
+                            &nbsp;
+                          </span>
+                          <span className="w-5 shrink-0">{l.nummer}.</span>
+                          <span>{l.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-1 text-slate-600">
+                      {zuordnungAnzeige(a)!.rechts.map((r) => (
+                        <div key={r.buchstabe}>
+                          <span className="font-medium">{r.buchstabe})</span> {r.text}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (

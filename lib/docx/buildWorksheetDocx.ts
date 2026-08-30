@@ -14,6 +14,7 @@ import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante } from "@/lib/t
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
+import { zuordnungAnzeige } from "@/lib/zuordnung";
 
 // Jede public/patterns/leiste-*.png ist eine einmalig serverseitig gerenderte Ansicht des
 // jeweiligen Vektor-Streifens (lib/patternStrip.ts) - fix auf die bekannte Satzspiegelbreite
@@ -197,14 +198,24 @@ export async function buildWorksheetDocx(
         );
       });
     }
-    if (a.typ === "zuordnung" && a.zuordnungLinks) {
-      a.zuordnungLinks.forEach((left, i) => {
+    const zuordnung = a.typ === "zuordnung" ? zuordnungAnzeige(a) : null;
+    if (zuordnung) {
+      zuordnung.links.forEach((l) => {
         children.push(
           new Paragraph({
             indent: { left: 360 },
             children: [
-              new TextRun({ text: `${left}   —   ${a.zuordnungRechts?.[i] ?? ""}`, size: baseSize }),
+              new TextRun({ text: "[   ]  ", size: baseSize }),
+              new TextRun({ text: `${l.nummer}. ${l.text}`, size: baseSize }),
             ],
+          }),
+        );
+      });
+      zuordnung.rechts.forEach((r) => {
+        children.push(
+          new Paragraph({
+            indent: { left: 720 },
+            children: [new TextRun({ text: `${r.buchstabe}) ${r.text}`, size: baseSize, color: "666666" })],
           }),
         );
       });

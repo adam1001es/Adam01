@@ -5,6 +5,7 @@ import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
+import { zuordnungAnzeige } from "@/lib/zuordnung";
 import { IslamicPatternStripPdf } from "./IslamicPatternStripPdf";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
@@ -137,11 +138,32 @@ function buildStyles(layout: LayoutConfig) {
       marginLeft: 12,
       marginBottom: 2,
     },
-    zuordnungRow: {
+    zuordnungWrapper: {
       flexDirection: "row",
-      justifyContent: "space-between",
       marginLeft: 12,
-      marginBottom: 2,
+      marginTop: 2,
+    },
+    zuordnungSpalte: {
+      flex: 1,
+      paddingRight: 8,
+    },
+    zuordnungZeile: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 3,
+    },
+    zuordnungBox: {
+      width: 12,
+      height: 12,
+      border: "1px solid #94a3b8",
+      borderRadius: 2,
+      marginRight: 5,
+    },
+    zuordnungNummer: {
+      width: 16,
+    },
+    zuordnungOption: {
+      marginBottom: 3,
     },
     quelle: {
       marginBottom: 4,
@@ -266,12 +288,26 @@ function AufgabenListe({
               </Text>
             ))}
           {a.typ === "zuordnung" &&
-            a.zuordnungLinks?.map((left, i) => (
-              <View key={i} style={styles.zuordnungRow}>
-                <Text>{left}</Text>
-                <Text>{a.zuordnungRechts?.[i] ?? ""}</Text>
+            zuordnungAnzeige(a) && (
+              <View style={styles.zuordnungWrapper}>
+                <View style={styles.zuordnungSpalte}>
+                  {zuordnungAnzeige(a)!.links.map((l) => (
+                    <View key={l.nummer} style={styles.zuordnungZeile}>
+                      <View style={styles.zuordnungBox} />
+                      <Text style={styles.zuordnungNummer}>{l.nummer}.</Text>
+                      <Text>{l.text}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.zuordnungSpalte}>
+                  {zuordnungAnzeige(a)!.rechts.map((r) => (
+                    <Text key={r.buchstabe} style={styles.zuordnungOption}>
+                      {r.buchstabe}) {r.text}
+                    </Text>
+                  ))}
+                </View>
               </View>
-            ))}
+            )}
           {a.typ === "lueckentext" && a.wortliste && a.wortliste.length > 0 && (
             <Text style={styles.option}>Wortliste: {a.wortliste.join(" · ")}</Text>
           )}

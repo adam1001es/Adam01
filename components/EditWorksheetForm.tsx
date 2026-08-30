@@ -285,7 +285,12 @@ export default function EditWorksheetForm({
 
               {a.typ === "zuordnung" && (
                 <div className="mb-3 space-y-1.5">
-                  <span className={labelClass}>Zuordnungspaare</span>
+                  <span className={labelClass}>Zuordnungspaare (jeweils richtiges Paar)</span>
+                  <p className="mb-1 text-xs text-slate-400">
+                    Auf dem gedruckten Blatt wird die rechte Spalte automatisch gemischt und mit
+                    Buchstaben versehen (a, b, c, ...) - die hier eingegebene Reihenfolge ist nur
+                    die richtige Zuordnung, keine Druck-Reihenfolge.
+                  </p>
                   {(a.zuordnungLinks ?? []).map((left, i) => (
                     <div key={i} className="flex gap-2">
                       <input
