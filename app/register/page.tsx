@@ -10,8 +10,9 @@ export default function RegisterPage() {
         </h1>
         <p className="mb-6 text-sm text-slate-500">
           Nach der Registrierung bekommst du eine Bestätigungs-Mail - erst danach kannst du dich
-          anmelden. Dein Konto ist zunächst ohne aktives Abo; sobald die (privat organisierte)
-          Bezahlung eingegangen ist, wird dein Kontingent freigeschaltet.
+          anmelden. Dein Konto startet automatisch mit der kostenlosen Stufe; für mehr
+          Arbeitsblätter pro Monat kontaktiere die Person, die den Zugang für deine
+          Schule/Einrichtung verwaltet.
         </p>
         <AuthForm mode="register" />
         <p className="mt-6 text-center text-sm text-slate-500">

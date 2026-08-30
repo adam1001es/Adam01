@@ -72,6 +72,15 @@ const VERGLEICH_UNS = [
   "Alle erstellten Arbeitsblätter gespeichert, favorisierbar, jederzeit wieder abrufbar",
 ];
 
+const WAS_ENTHALTEN = [
+  "Über 10 Aufgabentypen: Multiple Choice, Lückentext, Zuordnung, Reihenfolge, Kreuzworträtsel, Wortsuche, Diskussionsimpulse u.v.m.",
+  "Speziell für die Kleinsten: Ausmalbilder und Bildergeschichten zum Vorlesen, für Kinder, die noch nicht lesen/schreiben können",
+  "Fertiges, druckreifes PDF oder Word-Dokument - direkt zum Ausdrucken",
+  "Eine zweite, unabhängige KI-Prüfung für jedes einzelne Arbeitsblatt",
+  "Eigene Bibliothek: alle bisher erstellten Arbeitsblätter jederzeit wieder abrufbar",
+  "Wahlweise mit islamischem Datum und dezentem Ornament-Musterstreifen im Kopfbereich",
+];
+
 export default function LandingPage() {
   return (
     <main className="space-y-16">
@@ -189,37 +198,55 @@ export default function LandingPage() {
 
       <section>
         <h2 className="mb-1 text-center font-display text-2xl font-semibold text-slate-800">
-          Zugang
+          Was du bekommst
         </h2>
         <p className="mb-6 text-center text-sm text-slate-500">
-          Jedes registrierte Konto bekommt automatisch {KOSTENLOS_LIMIT} Arbeitsblätter/Monat
-          kostenlos. Für regelmäßige Nutzung danach eine bezahlte Stufe anfragen - die
-          Freischaltung erfolgt manuell nach privat organisierter Bezahlung.
+          Der Funktionsumfang ist bei jeder Stufe derselbe - nur die Anzahl der Arbeitsblätter pro
+          Monat unterscheidet sich.
         </p>
-        <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-card">
-            <div className="font-display text-lg font-semibold text-slate-800">Kostenlos</div>
-            <div className="mt-1 text-3xl font-semibold text-brand-700">0€</div>
-            <p className="mt-2 text-sm text-slate-500">{KOSTENLOS_LIMIT} Arbeitsblätter im Monat</p>
-          </div>
-          <div className="rounded-2xl border border-gold-300 bg-gold-50/60 p-6 text-center shadow-card">
-            <div className="font-display text-lg font-semibold text-slate-800">Starter</div>
-            <div className="mt-1 text-3xl font-semibold text-gold-700">
-              {TIER_PREIS_EUR.starter}€<span className="text-sm font-normal text-slate-400"> / Monat</span>
+        <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
+          {WAS_ENTHALTEN.map((punkt) => (
+            <div
+              key={punkt}
+              className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-card"
+            >
+              <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-500" />
+              <span>{punkt}</span>
             </div>
-            <p className="mt-2 text-sm text-slate-500">{TIER_QUOTA.starter} Arbeitsblätter im Monat</p>
+          ))}
+        </div>
+
+        <div className="mx-auto mt-8 max-w-2xl rounded-2xl border border-slate-200 bg-slate-50/70 p-5 text-center">
+          <p className="text-sm leading-relaxed text-slate-500">
+            <span className="font-medium text-slate-700">Wofür wird bezahlt? </span>
+            Jedes erstellte und geprüfte Arbeitsblatt braucht echte KI-Rechenleistung - das Abo
+            deckt genau diese Kosten sowie den laufenden Betrieb der Plattform, damit sie für die
+            Lehrer:innen-Community dauerhaft kostendeckend weiterbestehen kann.
+          </p>
+        </div>
+
+        <div className="mx-auto mt-6 grid max-w-2xl gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+            <div className="text-sm font-semibold text-slate-700">Kostenlos</div>
+            <div className="mt-1 text-xs text-slate-400">{KOSTENLOS_LIMIT} Arbeitsblätter/Monat</div>
           </div>
-          <div className="rounded-2xl border border-brand-300 bg-brand-50 p-6 text-center shadow-card">
-            <div className="font-display text-lg font-semibold text-slate-800">Pro</div>
-            <div className="mt-1 text-3xl font-semibold text-brand-700">
-              {TIER_PREIS_EUR.pro}€<span className="text-sm font-normal text-slate-400"> / Monat</span>
+          <div className="rounded-xl border border-gold-200 bg-gold-50/40 p-4 text-center">
+            <div className="text-sm font-semibold text-slate-700">
+              Starter <span className="font-normal text-slate-400">· {TIER_PREIS_EUR.starter}€/Monat</span>
             </div>
-            <p className="mt-2 text-sm text-slate-500">{TIER_QUOTA.pro} Arbeitsblätter im Monat</p>
+            <div className="mt-1 text-xs text-slate-400">{TIER_QUOTA.starter} Arbeitsblätter/Monat</div>
+          </div>
+          <div className="rounded-xl border border-brand-200 bg-brand-50/40 p-4 text-center">
+            <div className="text-sm font-semibold text-slate-700">
+              Pro <span className="font-normal text-slate-400">· {TIER_PREIS_EUR.pro}€/Monat</span>
+            </div>
+            <div className="mt-1 text-xs text-slate-400">{TIER_QUOTA.pro} Arbeitsblätter/Monat</div>
           </div>
         </div>
-        <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
-          <CheckCircle2 size={14} className="text-brand-500" />
-          Bezahlung wird privat organisiert - kein Kartendaten-Formular in der App.
+        <p className="mt-4 text-center text-xs text-slate-400">
+          Die Freischaltung einer bezahlten Stufe erfolgt manuell - kontaktiere dazu einfach die
+          Person, die den Zugang für deine Schule/Einrichtung verwaltet. Kein
+          Kartendaten-Formular in der App.
         </p>
       </section>
     </main>

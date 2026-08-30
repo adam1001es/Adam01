@@ -81,13 +81,12 @@ export default function AdminTierForm({
         <span className={labelClass}>Gültig von</span>
         <input
           type="date"
-          disabled={keinPaket}
           value={gueltigVon}
           onChange={(e) => {
             setGueltigVon(e.target.value);
             setGespeichert(false);
           }}
-          className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-300`}
+          className={inputClass}
         />
       </label>
 
@@ -95,13 +94,12 @@ export default function AdminTierForm({
         <span className={labelClass}>Gültig bis</span>
         <input
           type="date"
-          disabled={keinPaket}
           value={gueltigBis}
           onChange={(e) => {
             setGueltigBis(e.target.value);
             setGespeichert(false);
           }}
-          className={`${inputClass} disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-300`}
+          className={inputClass}
         />
       </label>
 
@@ -117,8 +115,7 @@ export default function AdminTierForm({
         </button>
         {keinPaket ? (
           <p className="text-xs text-slate-400">
-            Erst ein Paket auswählen, um optional einen Zeitraum festzulegen - ohne Zeitraum gilt
-            das Paket unbefristet.
+            Der Zeitraum wirkt nur, wenn oben Starter oder Pro ausgewählt ist.
           </p>
         ) : (
           <p className="text-xs text-slate-400">Leer lassen = unbefristet in diese Richtung.</p>

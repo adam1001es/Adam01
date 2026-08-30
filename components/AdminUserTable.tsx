@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, GraduationCap } from "lucide-react";
+import { Search, GraduationCap, ChevronDown } from "lucide-react";
 import AdminTierForm from "@/components/AdminTierForm";
 import AdminDeleteUserButton from "@/components/AdminDeleteUserButton";
 
@@ -51,6 +51,62 @@ function GueltigkeitsBadge({ r }: { r: AdminUserRow }) {
   );
 }
 
+const PAKET_LABEL: Record<string, string> = { starter: "Starter", pro: "Pro" };
+
+function AdminKontoZeile({ r }: { r: AdminUserRow }) {
+  const [offen, setOffen] = useState(false);
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-card">
+      <button
+        type="button"
+        onClick={() => setOffen((v) => !v)}
+        className="flex w-full flex-wrap items-center justify-between gap-2 p-3.5 text-left sm:p-4"
+      >
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className="truncate font-medium text-slate-800">{r.email}</span>
+          {r.role === "admin" && (
+            <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+              Admin
+            </span>
+          )}
+          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+            {r.tier ? PAKET_LABEL[r.tier] : "Kostenlos"}
+          </span>
+          <GueltigkeitsBadge r={r} />
+        </div>
+        <div className="flex shrink-0 items-center gap-2 text-xs text-slate-400">
+          <span>{r.limit === null ? `${r.verbraucht} / unbegrenzt` : `${r.verbraucht} / ${r.limit}`}</span>
+          <ChevronDown
+            size={16}
+            className={`shrink-0 text-slate-400 transition-transform ${offen ? "rotate-180" : ""}`}
+          />
+        </div>
+      </button>
+
+      {offen && (
+        <div className="border-t border-slate-100 p-3.5 sm:p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
+              <span className="inline-flex items-center gap-1">
+                <GraduationCap size={13} /> registriert am {r.createdAt.toLocaleDateString("de-AT")}
+              </span>
+              <span>{r.gesamtErstellt} insgesamt erstellt</span>
+            </div>
+            {!r.istSelbst && <AdminDeleteUserButton userId={r.id} email={r.email} />}
+          </div>
+          <AdminTierForm
+            userId={r.id}
+            initialTier={r.tier}
+            initialGueltigVon={r.tierGueltigVon}
+            initialGueltigBis={r.tierGueltigBis}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
   const [suche, setSuche] = useState("");
   const gefiltert = rows.filter((r) =>
@@ -69,43 +125,9 @@ export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
         />
       </label>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {gefiltert.map((r) => (
-          <div key={r.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card sm:p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="flex flex-wrap items-center gap-2 font-medium text-slate-800">
-                  {r.email}
-                  {r.role === "admin" && (
-                    <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
-                      Admin
-                    </span>
-                  )}
-                  <GueltigkeitsBadge r={r} />
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-                  <span className="inline-flex items-center gap-1">
-                    <GraduationCap size={13} /> registriert am {r.createdAt.toLocaleDateString("de-AT")}
-                  </span>
-                  <span>
-                    {r.limit === null ? `${r.verbraucht} / unbegrenzt` : `${r.verbraucht} / ${r.limit}`} in
-                    diesem Zyklus
-                  </span>
-                  <span>{r.gesamtErstellt} insgesamt erstellt</span>
-                </div>
-              </div>
-              {!r.istSelbst && <AdminDeleteUserButton userId={r.id} email={r.email} />}
-            </div>
-
-            <div className="mt-4 border-t border-slate-100 pt-4">
-              <AdminTierForm
-                userId={r.id}
-                initialTier={r.tier}
-                initialGueltigVon={r.tierGueltigVon}
-                initialGueltigBis={r.tierGueltigBis}
-              />
-            </div>
-          </div>
+          <AdminKontoZeile key={r.id} r={r} />
         ))}
         {gefiltert.length === 0 && (
           <p className="rounded-2xl border border-dashed border-slate-200 py-8 text-center text-slate-400">
