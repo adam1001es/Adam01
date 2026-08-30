@@ -8,13 +8,7 @@ function LogoMark() {
   return (
     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gradient shadow-card">
       <svg width={18} height={18} viewBox="0 0 24 24" aria-hidden="true">
-        <path
-          d="M12,4 C16.5,8 16.5,16 12,20 C7.5,16 7.5,8 12,4 Z M12,4 V20"
-          fill="none"
-          stroke="#f4ead1"
-          strokeWidth={1.4}
-          strokeLinecap="round"
-        />
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="#f4ead1" />
       </svg>
     </span>
   );
