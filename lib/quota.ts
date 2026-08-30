@@ -49,9 +49,26 @@ export interface Kontingent {
   unbegrenzt: boolean;
 }
 
+/** Ist das zugewiesene "tier" gerade im (optionalen) Gültigkeitszeitraum aktiv? Ohne gesetzte
+ * Grenze gilt die jeweilige Seite als offen (kein "von" = schon immer aktiv, kein "bis" =
+ * unbefristet aktiv). */
+export function istTierAktiv(
+  tier: string | null,
+  tierGueltigVon: Date | null,
+  tierGueltigBis: Date | null,
+  jetzt: Date = new Date(),
+): boolean {
+  if (!tier) return false;
+  if (tierGueltigVon && jetzt < tierGueltigVon) return false;
+  if (tierGueltigBis && jetzt > tierGueltigBis) return false;
+  return true;
+}
+
 export async function getKontingent(user: {
   id: string;
   tier: string | null;
+  tierGueltigVon?: Date | null;
+  tierGueltigBis?: Date | null;
   createdAt: Date;
   role: string;
 }): Promise<Kontingent> {
@@ -61,9 +78,21 @@ export async function getKontingent(user: {
     where: { userId: user.id, createdAt: { gte: zyklusStart } },
   });
 
+  // Außerhalb des zugewiesenen Gültigkeitszeitraums (falls gesetzt) zählt das Konto für die
+  // Kontingent-Berechnung automatisch wieder als "kostenlos" - ohne dass ein Admin manuell
+  // zurückstellen muss. Der rohe "tier"-Wert bleibt in der Verwaltung sichtbar, siehe
+  // app/admin/page.tsx.
+  const effektiverTier = istTierAktiv(
+    user.tier,
+    user.tierGueltigVon ?? null,
+    user.tierGueltigBis ?? null,
+  )
+    ? user.tier
+    : null;
+
   if (user.role === "admin") {
     return {
-      tier: user.tier,
+      tier: effektiverTier,
       limit: Infinity,
       verbraucht,
       verbleibend: Infinity,
@@ -73,9 +102,9 @@ export async function getKontingent(user: {
     };
   }
 
-  const limit = user.tier ? TIER_QUOTA[user.tier] ?? 0 : KOSTENLOS_LIMIT;
+  const limit = effektiverTier ? TIER_QUOTA[effektiverTier] ?? 0 : KOSTENLOS_LIMIT;
   return {
-    tier: user.tier,
+    tier: effektiverTier,
     limit,
     verbraucht,
     verbleibend: Math.max(0, limit - verbraucht),

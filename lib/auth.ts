@@ -11,6 +11,8 @@ export interface SessionUser {
   email: string;
   role: string;
   tier: string | null;
+  tierGueltigVon: Date | null;
+  tierGueltigBis: Date | null;
   createdAt: Date;
 }
 
@@ -57,6 +59,8 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     email: session.user.email,
     role: session.user.role,
     tier: session.user.tier,
+    tierGueltigVon: session.user.tierGueltigVon,
+    tierGueltigBis: session.user.tierGueltigBis,
     createdAt: session.user.createdAt,
   };
 }

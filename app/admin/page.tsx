@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { ShieldCheck, Users, CreditCard, TrendingUp } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { getKontingent, TIER_PREIS_EUR } from "@/lib/quota";
+import { getKontingent, istTierAktiv, TIER_PREIS_EUR } from "@/lib/quota";
 import AdminUserTable, { AdminUserRow } from "@/components/AdminUserTable";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,8 @@ export default async function AdminPage() {
         email: u.email,
         role: u.role,
         tier: u.tier,
+        tierGueltigVon: u.tierGueltigVon,
+        tierGueltigBis: u.tierGueltigBis,
         createdAt: u.createdAt,
         verbraucht: kontingent.verbraucht,
         limit: kontingent.unbegrenzt ? null : kontingent.limit,
@@ -34,8 +36,10 @@ export default async function AdminPage() {
     }),
   );
 
-  const aktiveStarter = rows.filter((r) => r.tier === "starter").length;
-  const aktivePro = rows.filter((r) => r.tier === "pro").length;
+  const istAktuellAktiv = (r: AdminUserRow) =>
+    istTierAktiv(r.tier, r.tierGueltigVon, r.tierGueltigBis);
+  const aktiveStarter = rows.filter((r) => r.tier === "starter" && istAktuellAktiv(r)).length;
+  const aktivePro = rows.filter((r) => r.tier === "pro" && istAktuellAktiv(r)).length;
   const monatsumsatz = aktiveStarter * TIER_PREIS_EUR.starter + aktivePro * TIER_PREIS_EUR.pro;
 
   const STATS = [

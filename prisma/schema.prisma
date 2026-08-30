@@ -35,6 +35,13 @@ model User {
   passwordHash String
   role         String   @default("user") // "user" | "admin" - der erste registrierte Account wird automatisch Admin
   tier         String?  // null (kein Abo) | "starter" (30/Monat) | "pro" (80/Monat)
+  // Optionaler Gültigkeitszeitraum für "tier" (z.B. Schuljahr/Semester, nach dem privat bezahlt
+  // wird) - beide optional, vom Admin gesetzt. Außerhalb dieses Zeitraums (falls gesetzt) gilt
+  // das Konto für die Kontingent-Berechnung automatisch wieder als "kostenlos" (siehe
+  // lib/quota.ts), ohne dass ein Admin manuell zurückstellen muss. tier selbst bleibt dabei
+  // gespeichert, damit die Zuweisung in der Verwaltung sichtbar bleibt.
+  tierGueltigVon DateTime?
+  tierGueltigBis DateTime?
   createdAt    DateTime @default(now()) // Anker für den rollierenden 30-Tage-Kontingent-Zyklus
   sessions     Session[]
   worksheets   Worksheet[]

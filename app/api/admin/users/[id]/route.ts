@@ -3,7 +3,23 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
-const BodySchema = z.object({ tier: z.enum(["starter", "pro"]).nullable() });
+// Datumsfelder kommen als "YYYY-MM-DD" (HTML <input type="date">) oder null (Feld geleert).
+const DatumFeld = z
+  .string()
+  .nullable()
+  .transform((v) => (v ? new Date(v) : null))
+  .refine((d) => d === null || !Number.isNaN(d.getTime()), "Ungültiges Datum.");
+
+const BodySchema = z
+  .object({
+    tier: z.enum(["starter", "pro"]).nullable(),
+    tierGueltigVon: DatumFeld.optional(),
+    tierGueltigBis: DatumFeld.optional(),
+  })
+  .refine(
+    (b) => !b.tierGueltigVon || !b.tierGueltigBis || b.tierGueltigVon <= b.tierGueltigBis,
+    { message: "„Gültig von“ darf nicht nach „Gültig bis“ liegen." },
+  );
 
 export async function PATCH(
   request: NextRequest,
@@ -23,7 +39,10 @@ export async function PATCH(
 
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Ungültiger Body." }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.errors[0]?.message ?? "Ungültiger Body." },
+      { status: 400 },
+    );
   }
 
   const target = await prisma.user.findUnique({ where: { id: params.id } });
@@ -31,12 +50,21 @@ export async function PATCH(
     return NextResponse.json({ error: "Konto nicht gefunden." }, { status: 404 });
   }
 
+  const { tier, tierGueltigVon, tierGueltigBis } = parsed.data;
   const updated = await prisma.user.update({
     where: { id: params.id },
-    data: { tier: parsed.data.tier },
+    data: {
+      tier,
+      ...(tierGueltigVon !== undefined && { tierGueltigVon }),
+      ...(tierGueltigBis !== undefined && { tierGueltigBis }),
+    },
   });
 
-  return NextResponse.json({ tier: updated.tier });
+  return NextResponse.json({
+    tier: updated.tier,
+    tierGueltigVon: updated.tierGueltigVon,
+    tierGueltigBis: updated.tierGueltigBis,
+  });
 }
 
 export async function DELETE(

@@ -10,12 +10,41 @@ export interface AdminUserRow {
   email: string;
   role: string;
   tier: string | null;
+  tierGueltigVon: Date | null;
+  tierGueltigBis: Date | null;
   createdAt: Date;
   verbraucht: number;
   /** null = unbegrenztes Kontingent (Admin-Konto). */
   limit: number | null;
   gesamtErstellt: number;
   istSelbst: boolean;
+}
+
+function GueltigkeitsBadge({ r }: { r: AdminUserRow }) {
+  if (!r.tier) return null;
+  const jetzt = new Date();
+  if (r.tierGueltigVon && jetzt < r.tierGueltigVon) {
+    return (
+      <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+        geplant ab {r.tierGueltigVon.toLocaleDateString("de-AT")}
+      </span>
+    );
+  }
+  if (r.tierGueltigBis && jetzt > r.tierGueltigBis) {
+    return (
+      <span className="ml-2 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
+        abgelaufen am {r.tierGueltigBis.toLocaleDateString("de-AT")}
+      </span>
+    );
+  }
+  if (r.tierGueltigBis) {
+    return (
+      <span className="ml-2 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+        aktiv bis {r.tierGueltigBis.toLocaleDateString("de-AT")}
+      </span>
+    );
+  }
+  return null;
 }
 
 export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
@@ -68,7 +97,13 @@ export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
                 </td>
                 <td className="px-5 py-3 text-slate-500">{r.gesamtErstellt}</td>
                 <td className="px-5 py-3">
-                  <AdminTierForm userId={r.id} initialTier={r.tier} />
+                  <AdminTierForm
+                    userId={r.id}
+                    initialTier={r.tier}
+                    initialGueltigVon={r.tierGueltigVon}
+                    initialGueltigBis={r.tierGueltigBis}
+                  />
+                  <GueltigkeitsBadge r={r} />
                 </td>
                 <td className="px-5 py-3 text-right">
                   {!r.istSelbst && <AdminDeleteUserButton userId={r.id} email={r.email} />}
