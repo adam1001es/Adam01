@@ -193,9 +193,16 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
     <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="rounded-2xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white p-5 shadow-card">
-          <span className="mb-3 block text-xs font-semibold uppercase tracking-wide text-brand-600">
+          <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-brand-600">
             Thema &amp; Schulstufe
           </span>
+          <p className="mb-3 text-xs leading-relaxed text-slate-500">
+            So entsteht der Inhalt: <strong className="text-slate-700">Thema</strong> bestimmt,
+            worum es geht, <strong className="text-slate-700">Schulstufe</strong> steuert
+            Sprachniveau und Aufgabenlänge, und weiter unten ordnet{" "}
+            <strong className="text-slate-700">Themenbereich</strong> das Ganze fachlich dem
+            Lehrplan zu. Je genauer diese drei Angaben, desto treffsicherer das Ergebnis.
+          </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className="mb-1.5 block text-sm font-semibold text-slate-700">Thema</span>
@@ -206,6 +213,10 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
                 placeholder="z.B. Die 5 Säulen des Islam"
                 required
               />
+              <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                Das konkrete Unterrichtsthema - je spezifischer (z.B. „Die 5 Säulen des Islam"
+                statt nur „Islam"), desto besser passen die Aufgaben.
+              </span>
             </label>
             <label className="block">
               <span className="mb-1.5 block text-sm font-semibold text-slate-700">Schulstufe</span>
@@ -230,6 +241,10 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
                   required
                 />
               )}
+              <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                Steuert Sprachniveau und Komplexität - bei 1./2. Klasse Volksschule werden
+                automatisch bildbasierte Aufgaben empfohlen.
+              </span>
             </label>
           </div>
         </div>
@@ -254,7 +269,12 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
             />
           </label>
           <label className="mt-4 block">
-            <span className={labelClass}>Themenbereich (laut Lehrplan)</span>
+            <span className={labelClass}>Themenbereich (fachliche Einordnung laut Lehrplan)</span>
+            <p className="mb-1.5 text-xs leading-relaxed text-slate-400">
+              Ordnet das oben angegebene Thema fachlich einer der vier Lehrplan-Kategorien zu -
+              beeinflusst, welcher fachliche Schwerpunkt und welche Quellenarten bei der Prüfung
+              erwartet werden. Unsicher? Einfach „Themenbereich passend zum Thema wählen" lassen.
+            </p>
             <select
               className={inputClass}
               value={themenbereich}
