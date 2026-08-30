@@ -173,10 +173,11 @@ dafür nur mit Monat + Zähler gespeichert, nicht mit weiteren Daten verknüpft.
 
 ## Arbeitsblätter verwalten
 
-Auf der Übersichtsseite lässt sich jedes Arbeitsblatt einzeln löschen (Papierkorb-Symbol) oder
-über „Alle löschen" der komplette Bestand auf einmal entfernen - jeweils mit Sicherheitsabfrage,
-da das Löschen unwiderruflich ist. Auch auf der Detailseite eines Arbeitsblatts gibt es einen
-„Löschen"-Button.
+Auf der Übersichtsseite lässt sich jedes Arbeitsblatt einzeln löschen (Papierkorb-Symbol), ebenso
+auf der Detailseite eines Arbeitsblatts über den „Löschen"-Button - jeweils mit
+Sicherheitsabfrage, da das Löschen unwiderruflich ist. Bewusst kein „Alle löschen" auf einmal
+(auch nicht als API-Route) - jede kritische Löschaktion auf der Seite verlangt eine explizite
+Bestätigung und betrifft immer nur ein einzelnes Arbeitsblatt bzw. Konto.
 
 ## Setup
 

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
-import DeleteAllButton from "@/components/DeleteAllButton";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import LandingPage from "@/components/LandingPage";
 import { getSessionUser } from "@/lib/auth";
@@ -72,12 +71,9 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <>
-          <div className="mt-8 flex items-center justify-between">
-            <p className="text-sm text-slate-500">
-              {worksheets.length} {worksheets.length === 1 ? "Arbeitsblatt" : "Arbeitsblätter"}
-            </p>
-            <DeleteAllButton anzahl={worksheets.length} />
-          </div>
+          <p className="mt-8 text-sm text-slate-500">
+            {worksheets.length} {worksheets.length === 1 ? "Arbeitsblatt" : "Arbeitsblätter"}
+          </p>
           <ul className="mt-3 space-y-3">
             {worksheets.map((w) => {
               const status = STATUS_STYLE[w.status] ?? STATUS_STYLE.entwurf;
