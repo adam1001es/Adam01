@@ -15,12 +15,54 @@ import {
 import { buildCurriculumSystemContext } from "./curriculum";
 import { prisma } from "./prisma";
 import { beschaffeSicheresAusmalbild } from "./imageGen";
-import { IconKey } from "./icons";
+import { IconKey, ICON_KEYS } from "./icons";
 
-/** Neutrales, garantiert unbedenkliches Icon, auf das zurückgefallen wird, wenn ein per
- * Bild-KI generiertes Motiv die Sicherheitsprüfung nicht besteht oder die Generierung
- * technisch fehlschlägt - das Arbeitsblatt bekommt dann trotzdem ein Bild, nur eben dieses. */
-const FALLBACK_ICON: IconKey = "stern";
+/** Reihenfolge, in der auf feste Icons zurückgefallen wird, wenn ein per Bild-KI generiertes
+ * Motiv die Sicherheitsprüfung nicht besteht oder die Generierung technisch fehlschlägt.
+ * Bewusst KEIN einzelnes festes Icon mehr (früher immer "stern") - bei mehreren Bild-Aufgaben
+ * auf demselben Arbeitsblatt (z.B. wenn Bildgenerierung insgesamt gerade nicht funktioniert)
+ * sah es sonst so aus, als wäre exakt dasselbe Bild vervielfacht worden. */
+const FALLBACK_ICON_REIHENFOLGE: IconKey[] = [
+  "stern",
+  "halbmond",
+  "sonne",
+  "laterne",
+  "moschee",
+  "wassertropfen",
+  "teppich",
+  "herz",
+  "buch",
+  "familie",
+];
+
+/** Grobe Stichwort-Zuordnung, damit der Fallback bei einer inhaltlich passenden Motiv-
+ * Beschreibung (z.B. "Sterne am Nachthimmel" bei Ibrahim) nicht rein zufällig, sondern
+ * thematisch treffend gewählt wird, bevor auf die generische Reihenfolge zurückgefallen wird. */
+const FALLBACK_ICON_STICHWORTE: [RegExp, IconKey][] = [
+  [/mond/i, "halbmond"],
+  [/stern/i, "stern"],
+  [/moschee/i, "moschee"],
+  [/(laterne|lampe|licht)/i, "laterne"],
+  [/herz/i, "herz"],
+  [/(buch|schrift)/i, "buch"],
+  [/sonne/i, "sonne"],
+  [/(wasser|tropfen|meer|fluss|regen|see)/i, "wassertropfen"],
+  [/(familie|eltern|kinder)/i, "familie"],
+  [/(teppich|gebet)/i, "teppich"],
+];
+
+/** Wählt ein Fallback-Icon: zuerst thematisch passend zur Motiv-Beschreibung (falls noch nicht
+ * auf diesem Arbeitsblatt verwendet), sonst das nächste noch unbenutzte Icon aus der festen
+ * Reihenfolge, damit mehrere Fallback-Bilder auf demselben Blatt möglichst unterschiedlich
+ * ausfallen statt alle identisch zu sein. */
+function waehleFallbackIcon(motivBeschreibung: string, bereitsVerwendet: Set<IconKey>): IconKey {
+  for (const [muster, icon] of FALLBACK_ICON_STICHWORTE) {
+    if (muster.test(motivBeschreibung) && !bereitsVerwendet.has(icon)) return icon;
+  }
+  const unbenutzt = FALLBACK_ICON_REIHENFOLGE.find((icon) => !bereitsVerwendet.has(icon));
+  if (unbenutzt) return unbenutzt;
+  return ICON_KEYS[bereitsVerwendet.size % ICON_KEYS.length];
+}
 
 const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, Lehrpläne der IGGÖ gem. BGBl. II Nr. 234/2011). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
 
@@ -152,14 +194,15 @@ export async function generateAndVerifyWorksheet(
  * garantiert unbedenkliches Icon aus der kuratierten Bibliothek verwendet. Mutiert `content`.
  */
 async function loeseGenerierteBilderAuf(content: WorksheetContent): Promise<void> {
+  const verwendeteFallbackIcons = new Set<IconKey>();
   for (const aufgabe of content.aufgaben) {
     if (aufgabe.bildBeschreibung && !aufgabe.bild) {
-      await loeseBildFeldAuf(aufgabe, aufgabe.bildBeschreibung);
+      await loeseBildFeldAuf(aufgabe, aufgabe.bildBeschreibung, verwendeteFallbackIcons);
     }
     if (aufgabe.bildergeschichteSchritte) {
       for (const schritt of aufgabe.bildergeschichteSchritte) {
         if (schritt.bildBeschreibung && !schritt.bild) {
-          await loeseBildFeldAuf(schritt, schritt.bildBeschreibung);
+          await loeseBildFeldAuf(schritt, schritt.bildBeschreibung, verwendeteFallbackIcons);
         }
       }
     }
@@ -168,16 +211,20 @@ async function loeseGenerierteBilderAuf(content: WorksheetContent): Promise<void
 
 /** Mutiert `ziel` (eine Aufgabe oder ein Bildergeschichte-Schritt): bei erfolgreicher,
  * sicherheitsgeprüfter Generierung wird "bildGeneriertId" gesetzt, sonst fällt "bild" auf ein
- * festes, garantiert unbedenkliches Icon zurück. */
+ * festes, garantiert unbedenkliches Icon zurück - möglichst eines, das auf diesem Arbeitsblatt
+ * noch nicht als Fallback verwendet wurde (siehe waehleFallbackIcon). */
 async function loeseBildFeldAuf(
   ziel: { bild?: IconKey; bildGeneriertId?: string },
   motivBeschreibung: string,
+  verwendeteFallbackIcons: Set<IconKey>,
 ): Promise<void> {
   const bild = await beschaffeSicheresAusmalbild(motivBeschreibung);
   if (bild) {
     const gespeichert = await prisma.generatedImage.create({ data: { data: bild } });
     ziel.bildGeneriertId = gespeichert.id;
   } else {
-    ziel.bild = FALLBACK_ICON;
+    const fallbackIcon = waehleFallbackIcon(motivBeschreibung, verwendeteFallbackIcons);
+    ziel.bild = fallbackIcon;
+    verwendeteFallbackIcons.add(fallbackIcon);
   }
 }
