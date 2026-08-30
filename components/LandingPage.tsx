@@ -19,33 +19,44 @@ const FEATURES = [
     icon: ShieldCheck,
     titel: "Zweite, unabhängige Prüfung",
     text: "Nicht nur generiert - ein separater KI-Durchlauf checkt jedes Arbeitsblatt gezielt gegen: Quellenangaben, Vollständigkeit, Altersgerechtigkeit, Kompetenzorientierung.",
+    akzent: "brand",
   },
   {
     icon: GraduationCap,
     titel: "Pädagogisch fundiert",
     text: "Anforderungsbereiche (AFB I-III), anerkannte Kompetenzbereiche und kompetenzorientierte Lernziele sind fest eingebaut - bei jedem Arbeitsblatt, nicht nur wenn man daran denkt, es zu verlangen.",
+    akzent: "gold",
   },
   {
     icon: BookOpenCheck,
     titel: "Für den österreichischen IGGÖ-Lehrplan",
     text: "Orientiert an der Grobstruktur des Lehrplans für islamischen Religionsunterricht (BGBl. II Nr. 234/2011) - Themenbereich und Schulstufen-Cluster fließen direkt in Sprache und Inhalt ein.",
+    akzent: "brand",
   },
   {
     icon: Sparkles,
     titel: "Sekundenschnell druckfertig",
     text: "Kein Fließtext zum Selbst-Formatieren: fertiges, layoutetes PDF oder Word-Dokument, wahlweise mit islamischem Datum und Ornament-Musterstreifen.",
+    akzent: "brand",
   },
   {
     icon: FileDown,
     titel: "Kontrollierte Quellendisziplin",
     text: "Koran- und Hadith-Angaben werden bewusst konservativ generiert, Hadithe nur aus Sahih al-Bukhari/Muslim (bevorzugt), Unsicheres wird als „bitte prüfen” markiert statt erfunden.",
+    akzent: "gold",
   },
   {
     icon: Baby,
     titel: "Altersgerecht bis Klasse 1",
     text: "Für noch nicht lese-/schreibkundige Kinder automatisch bildbasierte Aufgaben (Ausmalbild, Bildergeschichte zum Vorlesen) statt ungeeigneter Lesetext-Aufgaben.",
+    akzent: "brand",
   },
-];
+] as const;
+
+const FEATURE_BADGE = {
+  brand: "bg-brand-50 text-brand-600",
+  gold: "bg-gold-100 text-gold-700",
+} as const;
 
 const VERGLEICH_CHAT = [
   "Lehrplan, Kompetenzniveau und Quellenregeln musst du selbst formulieren - jedes Mal neu",
@@ -97,9 +108,9 @@ export default function LandingPage() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {FEATURES.map(({ icon: Icon, titel, text }) => (
+        {FEATURES.map(({ icon: Icon, titel, text, akzent }) => (
           <div key={titel} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+            <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${FEATURE_BADGE[akzent]}`}>
               <Icon size={20} strokeWidth={2} />
             </span>
             <h2 className="mt-3 font-display text-lg font-semibold text-slate-800">{titel}</h2>
@@ -151,12 +162,16 @@ export default function LandingPage() {
         </h2>
         <div className="mx-auto grid max-w-3xl gap-4 sm:grid-cols-3">
           {[
-            { schritt: "1", titel: "Vorgeben", text: "Bereich, Thema, Schulstufe und Layout auswählen." },
-            { schritt: "2", titel: "Prüfen lassen", text: "KI erstellt den Inhalt, eine zweite KI prüft ihn unabhängig gegen." },
-            { schritt: "3", titel: "Drucken", text: "Fertiges PDF oder Word direkt herunterladen und austeilen." },
-          ].map(({ schritt, titel, text }, i, arr) => (
+            { schritt: "1", titel: "Vorgeben", text: "Bereich, Thema, Schulstufe und Layout auswählen.", gold: false },
+            { schritt: "2", titel: "Prüfen lassen", text: "KI erstellt den Inhalt, eine zweite KI prüft ihn unabhängig gegen.", gold: true },
+            { schritt: "3", titel: "Drucken", text: "Fertiges PDF oder Word direkt herunterladen und austeilen.", gold: false },
+          ].map(({ schritt, titel, text, gold }, i, arr) => (
             <div key={schritt} className="relative flex flex-col items-center text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-gradient font-display text-lg font-semibold text-white shadow-card">
+              <span
+                className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-lg font-semibold shadow-card ${
+                  gold ? "bg-gold-400 text-gold-700" : "bg-brand-gradient text-white"
+                }`}
+              >
                 {schritt}
               </span>
               <h3 className="mt-3 font-display text-base font-semibold text-slate-800">{titel}</h3>
@@ -187,9 +202,9 @@ export default function LandingPage() {
             <div className="mt-1 text-3xl font-semibold text-brand-700">0€</div>
             <p className="mt-2 text-sm text-slate-500">{KOSTENLOS_LIMIT} Arbeitsblätter im Monat</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-card">
+          <div className="rounded-2xl border border-gold-300 bg-gold-50/60 p-6 text-center shadow-card">
             <div className="font-display text-lg font-semibold text-slate-800">Starter</div>
-            <div className="mt-1 text-3xl font-semibold text-brand-700">
+            <div className="mt-1 text-3xl font-semibold text-gold-700">
               {TIER_PREIS_EUR.starter}€<span className="text-sm font-normal text-slate-400"> / Monat</span>
             </div>
             <p className="mt-2 text-sm text-slate-500">{TIER_QUOTA.starter} Arbeitsblätter im Monat</p>
