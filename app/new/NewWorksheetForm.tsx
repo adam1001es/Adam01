@@ -249,14 +249,6 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               </label>
             </div>
           </div>
-          <div className="mb-4 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
-            <ToggleSwitch
-              checked={zeigeLernziel}
-              onChange={setZeigeLernziel}
-              label="Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen"
-              description="Standardmäßig aus – nur einblenden, wenn gewünscht"
-            />
-          </div>
           <label className="block">
             <span className={labelClass}>Bereich / Fach</span>
             <input
@@ -473,6 +465,12 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               onChange={setZeigeMuster}
               label="Islamisches Ornament-Muster anzeigen"
               description="Dezenter Zierstreifen im Kopfbereich"
+            />
+            <ToggleSwitch
+              checked={zeigeLernziel}
+              onChange={setZeigeLernziel}
+              label="Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen"
+              description="Standardmäßig aus – nur einblenden, wenn gewünscht"
             />
           </div>
           {zeigeMuster && (
