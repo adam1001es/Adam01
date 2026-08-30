@@ -192,64 +192,63 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="rounded-2xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white p-5 shadow-card">
-          <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-brand-600">
-            Thema &amp; Schulstufe
-          </span>
-          <p className="mb-3 text-xs leading-relaxed text-slate-500">
-            So entsteht der Inhalt: <strong className="text-slate-700">Thema</strong> bestimmt,
-            worum es geht, <strong className="text-slate-700">Schulstufe</strong> steuert
-            Sprachniveau und Aufgabenlänge, und weiter unten ordnet{" "}
-            <strong className="text-slate-700">Themenbereich</strong> das Ganze fachlich dem
-            Lehrplan zu. Je genauer diese drei Angaben, desto treffsicherer das Ergebnis.
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-slate-700">Thema</span>
-              <input
-                className="w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
-                value={thema}
-                onChange={(e) => setThema(e.target.value)}
-                placeholder="z.B. Die 5 Säulen des Islam"
-                required
-              />
-              <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-                Das konkrete Unterrichtsthema - je spezifischer (z.B. „Die 5 Säulen des Islam"
-                statt nur „Islam"), desto besser passen die Aufgaben.
-              </span>
-            </label>
-            <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-slate-700">Schulstufe</span>
-              <select
-                className="w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
-                value={schulstufeAuswahl}
-                onChange={(e) => setSchulstufeAuswahl(e.target.value)}
-              >
-                {SCHULSTUFEN_OPTIONEN.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-                <option value={ANDERE_SCHULSTUFE}>Andere (frei eingeben) …</option>
-              </select>
-              {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
+        <SectionCard icon={BookOpen} title="Inhalt" subtitle="Bereich, Thema, Schulstufe & Themenbereich" akzent="blau">
+          <div className="mb-4 rounded-xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white p-4">
+            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-brand-600">
+              Thema &amp; Schulstufe
+            </span>
+            <p className="mb-3 text-xs leading-relaxed text-slate-500">
+              So entsteht der Inhalt: <strong className="text-slate-700">Thema</strong> bestimmt,
+              worum es geht, <strong className="text-slate-700">Schulstufe</strong> steuert
+              Sprachniveau und Aufgabenlänge, und weiter unten ordnet{" "}
+              <strong className="text-slate-700">Themenbereich</strong> das Ganze fachlich dem
+              Lehrplan zu. Je genauer diese drei Angaben, desto treffsicherer das Ergebnis.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold text-slate-700">Thema</span>
                 <input
-                  className="mt-2 w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
-                  value={schulstufeFrei}
-                  onChange={(e) => setSchulstufeFrei(e.target.value)}
-                  placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
+                  className="w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  value={thema}
+                  onChange={(e) => setThema(e.target.value)}
+                  placeholder="z.B. Die 5 Säulen des Islam"
                   required
                 />
-              )}
-              <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-                Steuert Sprachniveau und Komplexität - bei 1./2. Klasse Volksschule werden
-                automatisch bildbasierte Aufgaben empfohlen.
-              </span>
-            </label>
+                <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                  Das konkrete Unterrichtsthema - je spezifischer (z.B. „Die 5 Säulen des Islam"
+                  statt nur „Islam"), desto besser passen die Aufgaben.
+                </span>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-semibold text-slate-700">Schulstufe</span>
+                <select
+                  className="w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  value={schulstufeAuswahl}
+                  onChange={(e) => setSchulstufeAuswahl(e.target.value)}
+                >
+                  {SCHULSTUFEN_OPTIONEN.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                  <option value={ANDERE_SCHULSTUFE}>Andere (frei eingeben) …</option>
+                </select>
+                {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
+                  <input
+                    className="mt-2 w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                    value={schulstufeFrei}
+                    onChange={(e) => setSchulstufeFrei(e.target.value)}
+                    placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
+                    required
+                  />
+                )}
+                <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                  Steuert Sprachniveau und Komplexität - bei 1./2. Klasse Volksschule werden
+                  automatisch bildbasierte Aufgaben empfohlen.
+                </span>
+              </label>
+            </div>
           </div>
-        </div>
-
-        <SectionCard icon={BookOpen} title="Inhalt" subtitle="Bereich, Themenbereich & Hinweise" akzent="blau">
           <div className="mb-4 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
             <ToggleSwitch
               checked={zeigeLernziel}
