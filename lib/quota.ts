@@ -45,17 +45,35 @@ export interface Kontingent {
   verbleibend: number;
   zyklusStart: Date;
   zyklusEnde: Date;
+  /** Admin-Konten haben kein Kontingent-Limit - siehe app/api/generate, KontingentBanner. */
+  unbegrenzt: boolean;
 }
 
-export async function getKontingent(user: { id: string; tier: string | null; createdAt: Date }): Promise<Kontingent> {
-  const limit = user.tier ? TIER_QUOTA[user.tier] ?? 0 : KOSTENLOS_LIMIT;
+export async function getKontingent(user: {
+  id: string;
+  tier: string | null;
+  createdAt: Date;
+  role: string;
+}): Promise<Kontingent> {
   const zyklusStart = aktuellerZyklusStart(user.createdAt);
   const zyklusEnde = new Date(zyklusStart.getTime() + ZYKLUS_MS);
-
   const verbraucht = await prisma.worksheet.count({
     where: { userId: user.id, createdAt: { gte: zyklusStart } },
   });
 
+  if (user.role === "admin") {
+    return {
+      tier: user.tier,
+      limit: Infinity,
+      verbraucht,
+      verbleibend: Infinity,
+      zyklusStart,
+      zyklusEnde,
+      unbegrenzt: true,
+    };
+  }
+
+  const limit = user.tier ? TIER_QUOTA[user.tier] ?? 0 : KOSTENLOS_LIMIT;
   return {
     tier: user.tier,
     limit,
@@ -63,5 +81,6 @@ export async function getKontingent(user: { id: string; tier: string | null; cre
     verbleibend: Math.max(0, limit - verbraucht),
     zyklusStart,
     zyklusEnde,
+    unbegrenzt: false,
   };
 }

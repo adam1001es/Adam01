@@ -129,7 +129,9 @@ Zahlungsanbieter-Integration**: Abos werden privat organisiert (z.B. Überweisun
 schaltet danach manuell unter `/admin` das Kontingent frei.
 
 - **Erster registrierter Account wird automatisch Admin** (es gibt noch keinen anderen Weg,
-  Admin-Rechte zu vergeben) - dieser Account sollte also der/die Betreiber:in sein.
+  Admin-Rechte zu vergeben) - dieser Account sollte also der/die Betreiber:in sein. **Admin-Konten
+  haben kein Kontingent-Limit** (weder persönlich noch über die Browser-/IP-Sperre) - `/new` und
+  das Dashboard zeigen dafür ein eigenes „unbegrenztes Kontingent"-Banner statt einer Zahl.
 - **Abo-Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 3
   Arbeitsblätter/Monat - automatisch, ohne Admin-Freischaltung), „Starter" (30/Monat) und „Pro"
   (80/Monat). Jedes frisch registrierte Konto startet automatisch auf „Kostenlos"; ein Admin

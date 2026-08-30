@@ -43,9 +43,9 @@ export async function POST(request: NextRequest) {
 
   // Nur Konten OHNE bezahltes Abo unterliegen zusätzlich der Browser-/IP-Sperre - sie
   // verhindert, dass sich jemand mehrere Konten anlegt, um das Gratis-Kontingent zu
-  // vervielfachen. Bezahlte Abos wurden von einem Admin manuell freigeschaltet und sind
-  // davon ausgenommen.
-  if (!kontingent.tier && (await getTrialStatus()).verbleibend <= 0) {
+  // vervielfachen. Bezahlte Abos wurden von einem Admin manuell freigeschaltet und Admin-Konten
+  // selbst (unbegrenztes Kontingent) sind davon ausgenommen.
+  if (!kontingent.unbegrenzt && !kontingent.tier && (await getTrialStatus()).verbleibend <= 0) {
     return NextResponse.json(
       {
         error:
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    if (!kontingent.tier) await incrementTrialUsage();
+    if (!kontingent.unbegrenzt && !kontingent.tier) await incrementTrialUsage();
 
     return NextResponse.json({ id: worksheet.id });
   } catch (err) {

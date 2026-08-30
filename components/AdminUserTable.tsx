@@ -12,7 +12,8 @@ export interface AdminUserRow {
   tier: string | null;
   createdAt: Date;
   verbraucht: number;
-  limit: number;
+  /** null = unbegrenztes Kontingent (Admin-Konto). */
+  limit: number | null;
   gesamtErstellt: number;
   istSelbst: boolean;
 }
@@ -63,7 +64,7 @@ export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
                   {r.createdAt.toLocaleDateString("de-AT")}
                 </td>
                 <td className="px-5 py-3 text-slate-500">
-                  {r.verbraucht} / {r.limit}
+                  {r.limit === null ? `${r.verbraucht} / unbegrenzt` : `${r.verbraucht} / ${r.limit}`}
                 </td>
                 <td className="px-5 py-3 text-slate-500">{r.gesamtErstellt}</td>
                 <td className="px-5 py-3">

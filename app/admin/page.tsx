@@ -27,7 +27,7 @@ export default async function AdminPage() {
         tier: u.tier,
         createdAt: u.createdAt,
         verbraucht: kontingent.verbraucht,
-        limit: kontingent.limit,
+        limit: kontingent.unbegrenzt ? null : kontingent.limit,
         gesamtErstellt,
         istSelbst: u.id === admin.id,
       };

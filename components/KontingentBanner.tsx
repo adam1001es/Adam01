@@ -1,8 +1,22 @@
-import { Gauge } from "lucide-react";
+import { Gauge, ShieldCheck } from "lucide-react";
 import type { Kontingent } from "@/lib/quota";
 import { tierLabel } from "@/lib/quota";
 
 export default function KontingentBanner({ kontingent }: { kontingent: Kontingent }) {
+  if (kontingent.unbegrenzt) {
+    return (
+      <div className="flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-brand-800 shadow-sm">
+        <ShieldCheck size={18} className="mt-0.5 shrink-0" />
+        <div>
+          <span className="font-medium">Admin-Konto – unbegrenztes Kontingent</span>
+          <p className="mt-0.5 opacity-80">
+            {kontingent.verbraucht} Arbeitsblätter in diesem Zyklus erstellt, kein Limit.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const prozent = Math.min(100, Math.round((kontingent.verbraucht / kontingent.limit) * 100));
   const knapp = kontingent.verbleibend === 0;
 

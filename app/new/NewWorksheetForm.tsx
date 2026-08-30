@@ -192,30 +192,25 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <SectionCard icon={BookOpen} title="Inhalt" subtitle="Worum geht es und für wen?">
-          <div className="mb-4 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
-            <ToggleSwitch
-              checked={zeigeLernziel}
-              onChange={setZeigeLernziel}
-              label="Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen"
-              description="Standardmäßig aus – nur einblenden, wenn gewünscht"
-            />
-          </div>
+        <div className="rounded-2xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white p-5 shadow-card">
+          <span className="mb-3 block text-xs font-semibold uppercase tracking-wide text-brand-600">
+            Thema &amp; Schulstufe
+          </span>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
-              <span className={labelClass}>Bereich / Fach</span>
+              <span className="mb-1.5 block text-sm font-semibold text-slate-700">Thema</span>
               <input
-                className={inputClass}
-                value={bereich}
-                onChange={(e) => setBereich(e.target.value)}
-                placeholder="z.B. Islamischer Religionsunterricht"
+                className="w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                value={thema}
+                onChange={(e) => setThema(e.target.value)}
+                placeholder="z.B. Die 5 Säulen des Islam"
                 required
               />
             </label>
             <label className="block">
-              <span className={labelClass}>Schulstufe</span>
+              <span className="mb-1.5 block text-sm font-semibold text-slate-700">Schulstufe</span>
               <select
-                className={inputClass}
+                className="w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
                 value={schulstufeAuswahl}
                 onChange={(e) => setSchulstufeAuswahl(e.target.value)}
               >
@@ -228,7 +223,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               </select>
               {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
                 <input
-                  className={`${inputClass} mt-2`}
+                  className="mt-2 w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
                   value={schulstufeFrei}
                   onChange={(e) => setSchulstufeFrei(e.target.value)}
                   placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
@@ -237,6 +232,27 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               )}
             </label>
           </div>
+        </div>
+
+        <SectionCard icon={BookOpen} title="Inhalt" subtitle="Bereich, Themenbereich & Hinweise" akzent="blau">
+          <div className="mb-4 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
+            <ToggleSwitch
+              checked={zeigeLernziel}
+              onChange={setZeigeLernziel}
+              label="Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen"
+              description="Standardmäßig aus – nur einblenden, wenn gewünscht"
+            />
+          </div>
+          <label className="block">
+            <span className={labelClass}>Bereich / Fach</span>
+            <input
+              className={inputClass}
+              value={bereich}
+              onChange={(e) => setBereich(e.target.value)}
+              placeholder="z.B. Islamischer Religionsunterricht"
+              required
+            />
+          </label>
           <label className="mt-4 block">
             <span className={labelClass}>Themenbereich (laut Lehrplan)</span>
             <select
@@ -255,16 +271,6 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
             </span>
           </label>
           <label className="mt-4 block">
-            <span className={labelClass}>Thema</span>
-            <input
-              className={inputClass}
-              value={thema}
-              onChange={(e) => setThema(e.target.value)}
-              placeholder="z.B. Die 5 Säulen des Islam"
-              required
-            />
-          </label>
-          <label className="mt-4 block">
             <span className={labelClass}>Zusätzliche Hinweise (optional)</span>
             <textarea
               className={inputClass}
@@ -276,7 +282,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
           </label>
         </SectionCard>
 
-        <SectionCard icon={ListChecks} title="Aufgaben" subtitle="Umfang und Aufgabentypen">
+        <SectionCard icon={ListChecks} title="Aufgaben" subtitle="Umfang und Aufgabentypen" akzent="gold">
           <div className="mb-5">
             <span className={labelClass}>Anzahl Aufgaben</span>
             <div className="flex flex-wrap gap-2">

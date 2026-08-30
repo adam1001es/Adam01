@@ -16,7 +16,8 @@ export default async function NewWorksheetPage() {
   // Die Browser-/IP-Sperre (siehe lib/trial.ts) gilt zusätzlich zum persönlichen Kontingent,
   // aber nur für Konten ohne bezahltes Abo - sie verhindert, dass sich jemand mehrere
   // Gratis-Konten anlegt, um ein Vielfaches von KOSTENLOS_LIMIT zu bekommen.
-  const netzwerkBlockiert = !kontingent.tier && (await getTrialStatus()).verbleibend <= 0;
+  const netzwerkBlockiert =
+    !kontingent.unbegrenzt && !kontingent.tier && (await getTrialStatus()).verbleibend <= 0;
 
   return (
     <main>
