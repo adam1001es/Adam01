@@ -73,7 +73,7 @@ export default function SiteHeader({
           {hijriDatum}
         </span>
       </div>
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-1.5 px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-y-1.5 sm:px-6">
         <Link href="/" className="flex items-center gap-2 transition active:scale-95 sm:gap-3">
           <LogoMark />
           <span className="flex flex-col leading-tight">
@@ -85,7 +85,11 @@ export default function SiteHeader({
             </span>
           </span>
         </Link>
-        <nav className="flex items-center gap-0.5 sm:gap-2">
+        {/* Auf Mobile eine klar abgetrennte eigene Zeile (Trennlinie + Abstand) statt einfach
+            per flex-wrap unter das Logo zu rutschen, ohne dass die beiden Bereiche optisch
+            ineinander verschwimmen - auf sm: und größer wieder ganz normal in derselben Zeile
+            wie das Logo. */}
+        <nav className="mt-2 flex flex-wrap items-center gap-0.5 border-t border-slate-200/80 pt-2 sm:mt-0 sm:gap-2 sm:border-t-0 sm:pt-0">
           {user &&
             NAV.map(({ href, label, icon: Icon }) => {
               const active = href === "/" ? pathname === "/" : pathname?.startsWith(href);
