@@ -8,8 +8,10 @@ import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 
 // Generierung + Verifikation + ggf. mehrere Bild-Generierungen können zusammen deutlich länger
 // als das Standard-Zeitlimit dauern - ohne diese Erhöhung bricht Vercel die Funktion vorzeitig
-// ab und der Browser zeigt einen generischen Netzwerkfehler ("Load failed" in Safari).
-export const maxDuration = 60;
+// ab und der Browser zeigt statt der Arbeitsblatt-Seite nur einen generischen Fehler. 180s als
+// großzügiger Puffer - mit Fluid Compute (seit 2026 Standard, auch auf dem kostenlosen
+// Hobby-Plan) sind bis zu 300s möglich, ohne dass ein Deploy fehlschlägt.
+export const maxDuration = 180;
 
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
