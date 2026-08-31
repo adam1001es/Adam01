@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { MELDUNG_KATEGORIE_LABEL, MeldungKategorie } from "@/lib/types";
 import MeldungStatusButton from "@/components/MeldungStatusButton";
+import MeldungErstattenButton from "@/components/MeldungErstattenButton";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function AdminMeldungenPage() {
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],
     include: {
       user: { select: { email: true, username: true } },
-      worksheet: { select: { id: true, thema: true, contentJson: true } },
+      worksheet: { select: { id: true, thema: true, contentJson: true, erstattet: true } },
     },
   });
 
@@ -86,7 +87,15 @@ export default async function AdminMeldungenPage() {
                       {m.createdAt.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
-                  <MeldungStatusButton meldungId={m.id} initialStatus={m.status} />
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {m.worksheet && (
+                      <MeldungErstattenButton
+                        meldungId={m.id}
+                        initialErstattet={m.worksheet.erstattet}
+                      />
+                    )}
+                    <MeldungStatusButton meldungId={m.id} initialStatus={m.status} />
+                  </div>
                 </div>
                 {m.beschreibung && (
                   <p className="mt-2.5 rounded-lg bg-white/70 px-3 py-2 text-sm text-slate-600">

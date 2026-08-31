@@ -161,12 +161,14 @@ export async function getKontingent(user: {
 }): Promise<Kontingent> {
   const zyklusStart = aktuellerZyklusStart(user.createdAt);
   const zyklusEnde = new Date(zyklusStart.getTime() + ZYKLUS_MS);
+  // "erstattet: false" schließt vom Admin zurückerstattete Arbeitsblätter aus (siehe
+  // Prisma-Modell Worksheet.erstattet) - eine Lehrkraft bekommt ihr Kontingent für ein
+  // nachweislich fehlerhaftes Arbeitsblatt zurück, ohne dass das Arbeitsblatt selbst gelöscht
+  // werden muss.
+  const kontingentFilter = { userId: user.id, createdAt: { gte: zyklusStart }, erstattet: false };
   const [verbraucht, zyklusWorksheets] = await Promise.all([
-    prisma.worksheet.count({ where: { userId: user.id, createdAt: { gte: zyklusStart } } }),
-    prisma.worksheet.findMany({
-      where: { userId: user.id, createdAt: { gte: zyklusStart } },
-      select: { contentJson: true },
-    }),
+    prisma.worksheet.count({ where: kontingentFilter }),
+    prisma.worksheet.findMany({ where: kontingentFilter, select: { contentJson: true } }),
   ]);
   const bildVerbraucht = zyklusWorksheets.filter((w) => enthaeltBildAufgabe(w.contentJson)).length;
 

@@ -20,6 +20,12 @@ model Worksheet {
   verification String  // JSON: Verifikationsergebnis (Status, Hinweise)
   status      String   @default("entwurf") // entwurf | geprueft | verworfen
   favorit     Boolean  @default(false)
+  // Vom Admin gesetzt, nachdem eine Meldung (siehe Meldung) geprüft und als berechtigt
+  // eingestuft wurde - das Arbeitsblatt bleibt erhalten, zählt aber nicht mehr gegen das
+  // monatliche Kontingent der Lehrkraft (siehe getKontingent in lib/quota.ts). Das ist die
+  // eigentliche "Erstattung": kein Zahlungsanbieter im Code, aber das verbrauchte Kontingent
+  // wird der Lehrkraft zurückgebucht.
+  erstattet   Boolean  @default(false)
   createdAt   DateTime @default(now())
   // Optional, damit ältere Arbeitsblätter aus der Zeit vor dem Login-System gültig bleiben -
   // neue Arbeitsblätter bekommen immer einen Besitzer zugewiesen (siehe app/api/generate).
