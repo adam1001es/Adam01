@@ -42,6 +42,7 @@ import {
   ThemenbereichKey,
   SCHULSTUFEN_OPTIONEN,
   istFrueheVolksschulstufe,
+  holeSchulstufenThemen,
 } from "@/lib/curriculum";
 import WorksheetView from "@/components/WorksheetView";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
@@ -137,6 +138,7 @@ export default function NewWorksheetForm({
   const [schulstufeAuswahl, setSchulstufeAuswahl] = useState(SCHULSTUFEN_OPTIONEN[0]);
   const [schulstufeFrei, setSchulstufeFrei] = useState("");
   const schulstufe = schulstufeAuswahl === ANDERE_SCHULSTUFE ? schulstufeFrei : schulstufeAuswahl;
+  const schulstufenThemen = holeSchulstufenThemen(schulstufe);
   const [zieldauerMinuten, setZieldauerMinuten] = useState<(typeof ZIELDAUER_OPTIONEN_MINUTEN)[number]>(35);
   const [komplexitaet, setKomplexitaet] = useState<Komplexitaet>("mittel");
   const [aufgabentypen, setAufgabentypen] = useState<string[]>([
@@ -285,12 +287,34 @@ export default function NewWorksheetForm({
               </span>
             </label>
           </div>
+          {schulstufenThemen && (
+            <div className="mt-3">
+              <span className="mb-1.5 block text-xs font-medium text-slate-500">
+                Themenvorschläge laut Lehrplan IRU NEU für diese Schulstufe
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {schulstufenThemen.map((vorschlag) => (
+                  <button
+                    type="button"
+                    key={vorschlag}
+                    onClick={() => setThema(vorschlag)}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      thema === vorschlag ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                    }`}
+                  >
+                    {vorschlag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <label className="mt-4 block">
-            <span className={labelClass}>Themenbereich (fachliche Einordnung laut Lehrplan)</span>
+            <span className={labelClass}>Themenbereich (Grundkompetenz laut Lehrplan IRU NEU)</span>
             <p className="mb-1.5 text-xs leading-relaxed text-slate-400">
-              Ordnet das oben angegebene Thema fachlich einer der vier Lehrplan-Kategorien zu -
-              beeinflusst, welcher fachliche Schwerpunkt und welche Quellenarten bei der Prüfung
-              erwartet werden. Unsicher? Einfach „Themenbereich passend zum Thema wählen" lassen.
+              Ordnet das oben angegebene Thema einer der sieben Grundkompetenzen des aktuellen
+              Lehrplans zu - beeinflusst, welcher fachliche Schwerpunkt und welche Quellenarten
+              bei der Prüfung erwartet werden. Unsicher? Einfach „Grundkompetenz passend zum
+              Thema wählen" lassen.
             </p>
             <select
               className={inputClass}
