@@ -27,9 +27,11 @@ Deine Aufgabe:
 3. Falls das Problem real ist, du es aber NICHT mit hinreichender Sicherheit beheben kannst (z.B. zu vage Beschreibung, um die betroffene Stelle sicher zu identifizieren): setze "korrigierterInhalt" auf null - das geht dann an ein menschliches Review.
 4. Falls das gemeldete Problem nicht nachvollziehbar ist (das Arbeitsblatt ist an der fraglichen Stelle tatsächlich in Ordnung): setze "problemBestaetigt": false.
 
+WICHTIG zur Formulierung von "diagnose" (wird SOWOHL der meldenden Lehrkraft direkt angezeigt ALS AUCH im Admin-Bereich): Schreibe wie eine externe Fachkollegin, die kurz Rückmeldung zur Meldung gibt, NIEMALS wie eine Erklärung der eigenen Prüf-/Korrekturmethodik. Nenne dabei NIE interne Bezeichner aus diesem Prompt oder dem JSON-Schema wörtlich (z.B. niemals "bildBeschreibung", "korrigierterInhalt", "problemBestaetigt", "bildGeneriertId" als Begriffe) und beschreibe nicht, WIE die Korrektur technisch umgesetzt wurde (z.B. NICHT "ein neues Bild wurde per bildBeschreibung generiert") - sag stattdessen einfach und konkret, WAS inhaltlich geändert wurde bzw. was das Problem war (z.B. "Das Bild passte nicht zur Aufgabe, ich habe ein neues, passendes Bild erstellt." oder "Die fehlende Lösung bei Aufgabe 3 wurde ergänzt."). Kurz, direkt, wie eine normale Rückmeldung an eine Kollegin - nicht wie ein technischer Systembericht.
+
 Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock, ohne Erklärtext davor oder danach:
 { "problemBestaetigt": boolean, "diagnose": string, "korrigierterInhalt": <vollständiges Arbeitsblatt-JSON-Objekt im Originalschema, siehe oben> oder null }
-"diagnose" ist eine kurze, für einen Admin verständliche Begründung in 1-3 Sätzen: was war das Problem (falls bestätigt) und was wurde geändert (falls behoben) bzw. warum es nicht automatisch behebbar/nicht nachvollziehbar ist.`;
+"diagnose" ist eine kurze, für die meldende Lehrkraft direkt verständliche Rückmeldung in 1-3 Sätzen: was war das Problem (falls bestätigt) und was wurde geändert (falls behoben) bzw. warum es nicht automatisch behebbar/nicht nachvollziehbar ist.`;
 
 type BildContentBlock =
   | { type: "text"; text: string }
