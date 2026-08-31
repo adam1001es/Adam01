@@ -71,7 +71,7 @@ export default async function AdminPage() {
     bilderDiesenMonat * GESCHAETZTE_KOSTEN_PRO_BILD_EUR;
   const geschaetzterGewinn = monatsumsatz - geschaetzteKosten;
 
-  const offeneMeldungen = await prisma.meldung.count({ where: { status: "offen" } });
+  const offeneMeldungen = await prisma.meldung.count({ where: { bearbeitet: false } });
 
   const STATS = [
     { icon: Users, label: "Konten gesamt", wert: String(rows.length) },
@@ -114,7 +114,7 @@ export default async function AdminPage() {
           }`}
         >
           <Flag size={15} />
-          Meldungen{offeneMeldungen > 0 && ` (${offeneMeldungen} offen)`}
+          Meldungen{offeneMeldungen > 0 && ` (${offeneMeldungen} ungesichtet)`}
         </Link>
       </div>
 

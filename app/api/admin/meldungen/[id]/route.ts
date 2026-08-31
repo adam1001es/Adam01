@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
-const BodySchema = z.object({ status: z.enum(["offen", "bearbeitet"]) });
+const BodySchema = z.object({ bearbeitet: z.boolean() });
 
 export async function PATCH(
   request: NextRequest,
@@ -33,8 +33,8 @@ export async function PATCH(
 
   const updated = await prisma.meldung.update({
     where: { id: params.id },
-    data: { status: parsed.data.status },
+    data: { bearbeitet: parsed.data.bearbeitet },
   });
 
-  return NextResponse.json({ status: updated.status });
+  return NextResponse.json({ bearbeitet: updated.bearbeitet });
 }

@@ -98,9 +98,13 @@ model GeneratedImage {
 }
 
 // Meldung einer Lehrkraft zu einem konkreten Arbeitsblatt (z.B. Aufgabe fehlt, Bild
-// fehlerhaft, Text falsch) - Grundlage dafür, dass ein Admin manuell erstatten/nachbessern
-// kann (kein automatischer Erstattungsprozess, kein Zahlungsanbieter im Code, siehe
-// User.tier). Wird über app/worksheet/[id] erstellt und unter /admin/meldungen bearbeitet.
+// fehlerhaft, Text falsch). Wird beim Anlegen SOFORT automatisch analysiert (siehe
+// lib/meldungFix.ts): Claude prüft, ob das Problem real ist, und schreibt bei Erfolg direkt
+// eine korrigierte Version in Worksheet.contentJson zurück - kein manueller Zwischenschritt
+// nötig. "status" hält das Ergebnis dieser Analyse fest; "bearbeitet" ist davon unabhängig und
+// wird ausschließlich vom Admin gesetzt (z.B. nachdem eine "nicht_behebbar"-Meldung manuell
+// nachbearbeitet wurde). Erstattung bleibt separat und manuell (siehe Worksheet.erstattet) -
+// eine automatische Korrektur ist kein automatischer Erstattungsgrund.
 model Meldung {
   id           String   @id @default(cuid())
   worksheetId  String
@@ -109,6 +113,12 @@ model Meldung {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   kategorie    String // "aufgabe_fehlt" | "bild_fehlerhaft" | "text_fehlerhaft" | "sonstiges"
   beschreibung String? // freiwillige, genauere Beschreibung durch die Lehrkraft
-  status       String   @default("offen") // "offen" | "bearbeitet"
+  // "offen" (Analyse noch nicht abgeschlossen - sollte nur extrem kurz/im Fehlerfall bestehen
+  // bleiben) | "automatisch_behoben" | "nicht_behebbar" (Problem real, KI konnte es nicht sicher
+  // beheben) | "kein_fehler_gefunden" (KI hält die Meldung für nicht zutreffend) | "fehler"
+  // (Analyse selbst technisch fehlgeschlagen)
+  status       String   @default("offen")
+  diagnose     String? // kurze, für den Admin verständliche Begründung/Diagnose der KI-Analyse
+  bearbeitet   Boolean  @default(false) // vom Admin manuell als gesichtet/erledigt markiert
   createdAt    DateTime @default(now())
 }

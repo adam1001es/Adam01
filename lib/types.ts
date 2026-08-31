@@ -176,3 +176,23 @@ export const MeldungRequestSchema = z.object({
   beschreibung: z.string().max(2000).optional(),
 });
 export type MeldungRequest = z.infer<typeof MeldungRequestSchema>;
+
+/** Ergebnis-Status der automatischen Meldungs-Analyse (siehe lib/meldungFix.ts), auch für die
+ * Anzeige unter /admin/meldungen und im MeldungButton nach dem Absenden. */
+export const MELDUNG_STATUS_LABEL: Record<string, string> = {
+  offen: "Wird noch analysiert …",
+  automatisch_behoben: "Automatisch behoben",
+  nicht_behebbar: "Bestätigt, nicht automatisch behebbar",
+  kein_fehler_gefunden: "Kein Fehler gefunden",
+  fehler: "Analyse fehlgeschlagen",
+};
+
+/** Antwortschema der KI-Analyse einer Meldung (lib/meldungFix.ts): entscheidet, ob das
+ * gemeldete Problem real ist, und liefert bei Erfolg gleich den vollständigen korrigierten
+ * Arbeitsblatt-Inhalt im selben Schema wie die normale Generierung zurück. */
+export const MeldungAnalyseSchema = z.object({
+  problemBestaetigt: z.boolean(),
+  diagnose: z.string(),
+  korrigierterInhalt: WorksheetContentSchema.nullable().optional(),
+});
+export type MeldungAnalyse = z.infer<typeof MeldungAnalyseSchema>;

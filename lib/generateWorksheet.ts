@@ -132,7 +132,7 @@ Liste in "hinweise" konkrete, konstruktive Punkte auf (auch bei "ok" ruhig ein b
  * entsprechende Anweisung im System-Prompt gehalten hat: entfernt überzählige Aufgaben der
  * gedeckelten Typen (behält die jeweils ersten) und nummeriert Aufgaben/Lösungen danach lückenlos
  * neu durch. */
-function begrenzeAufgabenProTyp(content: WorksheetContent): void {
+export function begrenzeAufgabenProTyp(content: WorksheetContent): void {
   const anzahlProTyp = new Map<string, number>();
   const behalteneAufgaben = content.aufgaben.filter((aufgabe) => {
     const maximum = AUFGABEN_TYP_MAXIMUM[aufgabe.typ];
@@ -159,7 +159,7 @@ function begrenzeAufgabenProTyp(content: WorksheetContent): void {
  * "3-5 Schritte" ist nur eine Empfehlung, kein hartes Zod-Limit (ein hartes Zod-Limit hätte
  * die ganze Antwort als ungültig verworfen statt nur überzählige Schritte zu kappen). Schneidet
  * überzählige Schritte einfach ab, statt die Generierung abzubrechen. */
-function begrenzeBildergeschichteSchritte(content: WorksheetContent): void {
+export function begrenzeBildergeschichteSchritte(content: WorksheetContent): void {
   for (const aufgabe of content.aufgaben) {
     if (
       aufgabe.bildergeschichteSchritte &&
@@ -269,7 +269,7 @@ export async function generateAndVerifyWorksheet(
  * (GeneratedImage) - bei Fehlschlag oder nicht bestandener Prüfung wird stattdessen ein festes,
  * garantiert unbedenkliches Icon aus der kuratierten Bibliothek verwendet. Mutiert `content`.
  */
-async function loeseGenerierteBilderAuf(content: WorksheetContent): Promise<void> {
+export async function loeseGenerierteBilderAuf(content: WorksheetContent): Promise<void> {
   const verwendeteFallbackIcons = new Set<IconKey>();
   // Alle Bild-Aufrufe parallel statt nacheinander: jede Generierung + Sicherheitsprüfung dauert
   // mehrere Sekunden, bei z.B. 4-6 Bildern in einer Bildergeschichte summierte sich das
@@ -305,7 +305,7 @@ async function loeseGenerierteBilderAuf(content: WorksheetContent): Promise<void
  * endgültige Nummerierung des Gitters noch nicht (die erst hier entsteht), eine von Claude selbst
  * geschriebene nummerierte Lösung wäre also potenziell falsch.
  */
-function loeseRaetselAuf(content: WorksheetContent): void {
+export function loeseRaetselAuf(content: WorksheetContent): void {
   for (const aufgabe of content.aufgaben) {
     if (aufgabe.typ === "wortsuche" && aufgabe.wortsucheWoerter) {
       const ergebnis = erzeugeWortsucheGitter(aufgabe.wortsucheWoerter);
