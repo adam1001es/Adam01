@@ -42,6 +42,7 @@ import WorksheetView from "@/components/WorksheetView";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import ToggleSwitch from "@/components/ToggleSwitch";
 import SectionCard from "@/components/SectionCard";
+import GenerierungLoading from "@/components/GenerierungLoading";
 import { inputClass, labelClass } from "@/lib/formStyles";
 import { MUSTER_LABEL } from "@/lib/patternStrip";
 
@@ -221,6 +222,13 @@ export default function NewWorksheetForm({
 
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
+      {loading && (
+        <GenerierungLoading
+          mitBildern={aufgabentypen.some(
+            (typ) => typ === "ausmalbild" || typ === "bildergeschichte",
+          )}
+        />
+      )}
       <form onSubmit={handleSubmit} className="space-y-6">
         <SectionCard icon={BookOpen} title="Inhalt" subtitle="Bereich, Thema, Schulstufe & Themenbereich" akzent="blau">
           <div className="mb-4 rounded-xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white p-4">
