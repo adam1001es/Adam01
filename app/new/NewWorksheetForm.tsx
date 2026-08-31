@@ -451,14 +451,16 @@ export default function NewWorksheetForm({
             <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
               <p className="text-xs leading-relaxed text-gold-700">
                 Kinder der 1./2. Klasse Volksschule können meist noch nicht lesen/schreiben.
-                Empfehlung: überwiegend „Ausmalbild" und „Bildergeschichte" statt Lesetext-Aufgaben.
+                Empfehlung: „Ausmalbild" statt Lesetext-Aufgaben - passt zu jedem Thema. Erzählt
+                sich das Thema als kleine Geschichte (z.B. eine Propheten-Erzählung), ergänze
+                zusätzlich „Bildergeschichte" von Hand.
               </p>
               <button
                 type="button"
-                onClick={() => setAufgabentypen(["ausmalbild", "bildergeschichte"])}
+                onClick={() => setAufgabentypen(["ausmalbild"])}
                 className="shrink-0 whitespace-nowrap rounded-full border border-gold-300 bg-white px-3 py-1.5 text-xs font-medium text-gold-700 transition hover:bg-gold-100"
               >
-                Empfehlung übernehmen
+                Ausmalbild übernehmen
               </button>
             </div>
           )}
