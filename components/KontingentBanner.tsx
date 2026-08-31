@@ -53,7 +53,7 @@ export default function KontingentBanner({ kontingent }: { kontingent: Kontingen
         </p>
         <p className={`mt-1 text-xs ${bildKnapp ? "text-red-700" : "opacity-60"}`}>
           {kontingent.bildLimit === 0 ? (
-            <>Ausmalbild/Bildergeschichte sind nur in einem zahlenden Abo verfügbar.</>
+            <>Ausmalbild/Bildergeschichte sind nur in einem Starter-/Pro-Abo verfügbar.</>
           ) : (
             <>
               Davon {kontingent.bildVerbraucht} / {kontingent.bildLimit} mit Ausmalbild/Bildergeschichte

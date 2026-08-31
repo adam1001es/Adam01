@@ -523,7 +523,7 @@ export default function NewWorksheetForm({
                 {bildFeatureNurAbo ? (
                   <>
                     „Ausmalbild"/„Bildergeschichte" mit KI-generierten Bildern sind nur in einem
-                    zahlenden Abo verfügbar - die Erstellung mit diesen Aufgabentypen wird
+                    Starter-/Pro-Abo verfügbar - die Erstellung mit diesen Aufgabentypen wird
                     fehlschlagen. Wähle stattdessen andere Aufgabentypen.
                   </>
                 ) : (

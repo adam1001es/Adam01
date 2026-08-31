@@ -12,7 +12,7 @@ import CommunityFavoritButton from "@/components/CommunityFavoritButton";
 export const dynamic = "force-dynamic";
 
 /** Übersicht "Geteilte Arbeitsblätter": alle von Lehrkräften freigegebenen Arbeitsblätter (siehe
- * Worksheet.geteilt, app/api/worksheet/[id]/teilen) - bewusst nur unter zahlenden Konten
+ * Worksheet.geteilt, app/api/worksheet/[id]/teilen) - bewusst nur unter Starter-/Pro-Konten
  * gegenseitig (istZahlendesKonto), sofort sichtbar ohne Freigabe-Workflow. Enthält auch die
  * EIGENEN geteilten Arbeitsblätter (klar als "Von dir" markiert statt Autorenname), damit man
  * hier auf einen Blick sieht, was man selbst freigegeben hat - nicht nur, was andere geteilt
@@ -27,11 +27,12 @@ export default async function CommunityPage() {
         <div className="rounded-2xl border border-dashed border-brand-200 bg-white p-10 text-center shadow-card sm:p-14">
           <Lock className="mx-auto mb-3 text-brand-300" size={32} strokeWidth={1.5} />
           <h1 className="font-display text-xl font-semibold text-slate-800">
-            Geteilte Arbeitsblätter nur für zahlende Konten
+            Geteilte Arbeitsblätter für Starter- und Pro-Konten
           </h1>
           <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
             Lehrkräfte mit einem Starter- oder Pro-Abo können hier gegenseitig ihre
-            freigegebenen Arbeitsblätter teilen und favorisieren. Für mehr: ein Abo anfragen.
+            freigegebenen Arbeitsblätter teilen und favorisieren. Mehr dazu bei der Person, die
+            den Zugang verwaltet.
           </p>
         </div>
       </main>
@@ -61,7 +62,7 @@ export default async function CommunityPage() {
             <Users size={28} strokeWidth={2} /> Arbeitsblätter von anderen Lehrkräften
           </h1>
           <p className="mt-2 text-sm text-brand-50/90 sm:text-base">
-            Von anderen zahlenden Konten freigegebene Arbeitsblätter - als eigene Vorlage
+            Von anderen Starter-/Pro-Konten freigegebene Arbeitsblätter - als eigene Vorlage
             herunterladen oder favorisieren.
           </p>
         </div>

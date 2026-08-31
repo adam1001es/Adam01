@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
   if (istBildAnfrage && !kontingent.unbegrenzt && kontingent.bildVerbleibend <= 0) {
     const grund = kontingent.tier
       ? `Dein Kontingent für bildbasierte Arbeitsblätter (Ausmalbild/Bildergeschichte) ist für diesen Zyklus aufgebraucht (${kontingent.bildLimit}/Monat). Andere Aufgabentypen kannst du weiterhin nutzen. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
-      : "Ausmalbild/Bildergeschichte mit KI-generierten Bildern sind nur in einem zahlenden Abo (Starter/Pro) verfügbar. Andere Aufgabentypen kannst du im kostenlosen Kontingent weiterhin nutzen. Für ein Abo: die Person anfragen, die den Zugang verwaltet.";
+      : "Ausmalbild/Bildergeschichte mit KI-generierten Bildern sind nur in einem Starter-/Pro-Abo verfügbar. Andere Aufgabentypen kannst du im kostenlosen Kontingent weiterhin nutzen. Für ein Abo: die Person anfragen, die den Zugang verwaltet.";
     return NextResponse.json({ error: grund }, { status: 403 });
   }
 

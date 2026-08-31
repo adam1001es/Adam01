@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Share2, Users } from "lucide-react";
 
-/** Nur für die Besitzerin/den Besitzer eines Arbeitsblatts (zahlendes Konto, siehe
+/** Nur für die Besitzerin/den Besitzer eines Arbeitsblatts (Starter-/Pro-Konto, siehe
  * istZahlendesKonto) - gibt das Arbeitsblatt sofort für andere Lehrkräfte frei bzw. zieht die
  * Freigabe zurück (siehe app/community, app/api/worksheet/[id]/teilen). */
 export default function TeilenButton({
@@ -53,7 +53,7 @@ export default function TeilenButton({
       type="button"
       onClick={toggle}
       disabled={isPending}
-      title="Mit anderen zahlenden Konten teilen"
+      title="Mit anderen Starter-/Pro-Konten teilen"
       className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
     >
       <Share2 size={15} /> Arbeitsblatt teilen
