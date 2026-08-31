@@ -76,7 +76,7 @@ export default function SiteHeader({
               }`}
             >
               <Users size={16} strokeWidth={2.25} />
-              <span className="hidden sm:inline">Community</span>
+              <span className="hidden sm:inline">Geteilte Arbeitsblätter</span>
             </Link>
           )}
           {user?.role === "admin" && (

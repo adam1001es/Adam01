@@ -11,7 +11,7 @@ import CommunityFavoritButton from "@/components/CommunityFavoritButton";
 
 export const dynamic = "force-dynamic";
 
-/** Community-Übersicht: alle für die Community freigegebenen Arbeitsblätter (siehe
+/** Übersicht "Geteilte Arbeitsblätter": alle von Lehrkräften freigegebenen Arbeitsblätter (siehe
  * Worksheet.geteilt, app/api/worksheet/[id]/teilen) - bewusst nur unter zahlenden Konten
  * gegenseitig (istZahlendesKonto), sofort sichtbar ohne Freigabe-Workflow. Enthält auch die
  * EIGENEN geteilten Arbeitsblätter (klar als "Von dir" markiert statt Autorenname), damit man
@@ -27,7 +27,7 @@ export default async function CommunityPage() {
         <div className="rounded-2xl border border-dashed border-brand-200 bg-white p-10 text-center shadow-card sm:p-14">
           <Lock className="mx-auto mb-3 text-brand-300" size={32} strokeWidth={1.5} />
           <h1 className="font-display text-xl font-semibold text-slate-800">
-            Community-Bereich für zahlende Konten
+            Geteilte Arbeitsblätter nur für zahlende Konten
           </h1>
           <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
             Lehrkräfte mit einem Starter- oder Pro-Abo können hier gegenseitig ihre
@@ -58,7 +58,7 @@ export default async function CommunityPage() {
       <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
         <div className="max-w-2xl">
           <h1 className="flex items-center gap-2.5 font-display text-3xl font-semibold text-white sm:text-4xl">
-            <Users size={28} strokeWidth={2} /> Community
+            <Users size={28} strokeWidth={2} /> Arbeitsblätter von anderen Lehrkräften
           </h1>
           <p className="mt-2 text-sm text-brand-50/90 sm:text-base">
             Von anderen zahlenden Konten freigegebene Arbeitsblätter - als eigene Vorlage
@@ -71,9 +71,8 @@ export default async function CommunityPage() {
         <div className="mt-8 rounded-2xl border border-dashed border-brand-200 bg-white p-12 text-center shadow-card">
           <Users className="mx-auto mb-3 text-brand-300" size={32} strokeWidth={1.5} />
           <p className="text-slate-600">
-            Noch keine Arbeitsblätter geteilt. Gib eines deiner eigenen frei (Button „Mit
-            Community teilen" auf der Detailseite eines Arbeitsblatts), um die Community zu
-            starten.
+            Noch keine Arbeitsblätter geteilt. Gib eines deiner eigenen frei (Button „Arbeitsblatt
+            teilen" auf der Detailseite eines Arbeitsblatts), um den Anfang zu machen.
           </p>
         </div>
       ) : (
