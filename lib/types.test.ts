@@ -50,39 +50,19 @@ function baseRequest(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
-describe("GenerateRequestSchema - Schulstufen-Gating für malaufgabe/recherche_auftrag", () => {
-  // Regressionstest: "malaufgabe" (Schüler:innen zeichnen selbst, siehe generateWorksheet.ts)
-  // ist bewusst nur für 1./2. Klasse Volksschule vorgesehen, "recherche_auftrag" (eigenständige
-  // Recherche) umgekehrt nur ab Sekundarstufe I - beide schließen sich schulstufenbedingt aus.
-  it("lehnt 'malaufgabe' außerhalb der 1./2. Klasse Volksschule ab", () => {
-    const req = baseRequest({
-      schulstufe: "4. Klasse Volksschule",
-      aufgabentypen: ["malaufgabe"],
-    });
-    expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
-  });
-
-  it("akzeptiert 'malaufgabe' für die 1. Klasse Volksschule", () => {
-    const req = baseRequest({
-      schulstufe: "1. Klasse Volksschule",
-      aufgabentypen: ["malaufgabe"],
-    });
+describe("GenerateRequestSchema - malaufgabe/recherche_auftrag sind für jede Schulstufe wählbar", () => {
+  // "malaufgabe" (Schüler:innen zeichnen selbst) und "recherche_auftrag" (eigenständige
+  // Recherche) sind zwar in erster Linie für 1./2. Klasse Volksschule bzw. ab Sekundarstufe I
+  // gedacht (siehe Empfehlungs-Hinweise im Erstellen-Formular), es gibt dafür aber bewusst KEINE
+  // harte serverseitige Sperre - die Lehrkraft soll frei wählen können, statt am Absenden mit
+  // einem Validierungsfehler auszusteigen (siehe Kommentar bei GenerateRequestSchema).
+  it("akzeptiert 'malaufgabe' unabhängig von der Schulstufe", () => {
+    const req = baseRequest({ schulstufe: "4. Klasse Volksschule", aufgabentypen: ["malaufgabe"] });
     expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
   });
 
-  it("lehnt 'recherche_auftrag' für die 1./2. Klasse Volksschule ab", () => {
-    const req = baseRequest({
-      schulstufe: "2. Klasse Volksschule",
-      aufgabentypen: ["recherche_auftrag"],
-    });
-    expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
-  });
-
-  it("akzeptiert 'recherche_auftrag' ab Sekundarstufe I", () => {
-    const req = baseRequest({
-      schulstufe: "1. Klasse Mittelschule/AHS-Unterstufe (5. Schulstufe)",
-      aufgabentypen: ["recherche_auftrag"],
-    });
+  it("akzeptiert 'recherche_auftrag' unabhängig von der Schulstufe", () => {
+    const req = baseRequest({ schulstufe: "2. Klasse Volksschule", aufgabentypen: ["recherche_auftrag"] });
     expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
   });
 });

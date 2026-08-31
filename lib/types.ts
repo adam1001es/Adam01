@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { THEMENBEREICH_KEYS, ANFORDERUNGSBEREICHE_KEYS, istFrueheVolksschulstufe } from "./curriculum";
+import { THEMENBEREICH_KEYS, ANFORDERUNGSBEREICHE_KEYS } from "./curriculum";
 import { ICON_KEYS } from "./icons";
 
 // "ausmalbild"/"bildergeschichte" (KI-generierte Bilder) bleiben Teil dieser Liste, obwohl sie
@@ -28,14 +28,15 @@ export const AUFGABEN_TYPEN = [
 ] as const;
 
 /** Aktuell im Formular anbietbare und für NEUE Arbeitsblätter generierbare Aufgabentypen -
- * schließt nur die Bild-KI-Typen aus (siehe Kommentar bei AUFGABEN_TYPEN). Zehn Typen sind für
- * alle Schulstufen gedacht; "malaufgabe" ist NUR für die 1./2. Klasse Volksschule (siehe
- * istFrueheVolksschulstufe) und "recherche_auftrag" NUR ab Sekundarstufe I sinnvoll - beide
- * werden im Erstellen-Formular entsprechend ein-/ausgeblendet und serverseitig per
- * GenerateRequestSchema-Validierung erzwungen (siehe unten). Wird für
- * GenerateRequestSchema.aufgabentypen sowie im Erstellen-Formular verwendet. Bewusst als eigenes
- * Array-Literal statt per .filter() von AUFGABEN_TYPEN abgeleitet, damit z.enum() weiterhin ein
- * literales Tupel (statt eines generischen string[]) zur Typprüfung bekommt. */
+ * schließt nur die Bild-KI-Typen aus (siehe Kommentar bei AUFGABEN_TYPEN). Alle Typen sind immer
+ * im Erstellen-Formular sichtbar und wählbar, unabhängig von der gewählten Schulstufe - "malaufgabe"
+ * und "recherche_auftrag" bekommen dort zwar eine Empfehlung für 1./2. Klasse Volksschule bzw.
+ * ab Sekundarstufe I (siehe istFrueheVolksschulstufe in lib/curriculum.ts), das ist aber bewusst
+ * nur eine Empfehlung, keine harte Sperre: die Lehrkraft kennt ihre Klasse besser als eine grobe
+ * Schulstufen-Heuristik. Wird für GenerateRequestSchema.aufgabentypen sowie im
+ * Erstellen-Formular verwendet. Bewusst als eigenes Array-Literal statt per .filter() von
+ * AUFGABEN_TYPEN abgeleitet, damit z.enum() weiterhin ein literales Tupel (statt eines
+ * generischen string[]) zur Typprüfung bekommt. */
 export const AUFGABEN_TYPEN_AKTIV = [
   "multiple_choice",
   "lueckentext",
@@ -262,41 +263,33 @@ export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
 
 export const ThemenbereichSchema = z.enum(THEMENBEREICH_KEYS);
 
-export const GenerateRequestSchema = z
-  .object({
-    bereich: z.string().min(1),
-    thema: z.string().min(1),
-    schulstufe: z.string().min(1),
-    themenbereich: ThemenbereichSchema.default("gemischt"),
-    // Ersetzt eine direkte "Anzahl Aufgaben"-Eingabe: die tatsächliche Aufgabenanzahl wird daraus
-    // serverseitig abgeleitet (siehe schaetzeAufgabenAnzahl), weil eine reine Stückzahl nichts
-    // über die tatsächliche Bearbeitungszeit im Unterricht aussagt.
-    zieldauerMinuten: z
-      .number()
-      .int()
-      .refine((v) => (ZIELDAUER_OPTIONEN_MINUTEN as readonly number[]).includes(v), {
-        message: "Ungültige Zieldauer.",
-      })
-      .default(35),
-    komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
-    aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN_AKTIV)).min(1),
-    zusatzhinweise: z.string().optional(),
-    layout: LayoutConfigSchema,
-  })
-  // "malaufgabe" und "recherche_auftrag" sind bewusst gegensätzlich schulstufengebunden (siehe
-  // AUFGABEN_TYPEN_AKTIV) - das Formular blendet sie entsprechend ein/aus, diese serverseitige
-  // Prüfung verhindert zusätzlich einen inkonsistenten Zustand bei direktem API-Zugriff.
-  .refine((req) => !req.aufgabentypen.includes("malaufgabe") || istFrueheVolksschulstufe(req.schulstufe), {
-    message: "\"Malaufgabe\" ist nur für die 1./2. Klasse Volksschule vorgesehen.",
-    path: ["aufgabentypen"],
-  })
-  .refine(
-    (req) => !req.aufgabentypen.includes("recherche_auftrag") || !istFrueheVolksschulstufe(req.schulstufe),
-    {
-      message: "\"Recherche-/Referat-Auftrag\" ist erst ab der Sekundarstufe I sinnvoll.",
-      path: ["aufgabentypen"],
-    },
-  );
+export const GenerateRequestSchema = z.object({
+  bereich: z.string().min(1),
+  thema: z.string().min(1),
+  schulstufe: z.string().min(1),
+  themenbereich: ThemenbereichSchema.default("gemischt"),
+  // Ersetzt eine direkte "Anzahl Aufgaben"-Eingabe: die tatsächliche Aufgabenanzahl wird daraus
+  // serverseitig abgeleitet (siehe schaetzeAufgabenAnzahl), weil eine reine Stückzahl nichts über
+  // die tatsächliche Bearbeitungszeit im Unterricht aussagt.
+  zieldauerMinuten: z
+    .number()
+    .int()
+    .refine((v) => (ZIELDAUER_OPTIONEN_MINUTEN as readonly number[]).includes(v), {
+      message: "Ungültige Zieldauer.",
+    })
+    .default(35),
+  komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
+  // "malaufgabe" und "recherche_auftrag" sind zwar in erster Linie für 1./2. Klasse Volksschule
+  // bzw. ab Sekundarstufe I gedacht (siehe die entsprechenden Empfehlungs-Hinweise im
+  // Erstellen-Formular sowie die Anleitung an Claude in generateWorksheet.ts/curriculum.ts) -
+  // eine harte serverseitige Sperre dafür gibt es aber bewusst NICHT (mehr): die Lehrkraft kennt
+  // ihre Klasse besser als eine grobe Schulstufen-Heuristik (z.B. eine leistungsstarke 3. Klasse
+  // Volksschule oder eine jahrgangsgemischte Gruppe) und soll frei wählen können, statt am
+  // Absenden mit einem Validierungsfehler auszusteigen.
+  aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN_AKTIV)).min(1),
+  zusatzhinweise: z.string().optional(),
+  layout: LayoutConfigSchema,
+});
 export type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
 
 /** Kategorien für eine Lehrkraft-Meldung zu einem Arbeitsblatt (siehe Prisma-Modell Meldung) -

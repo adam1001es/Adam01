@@ -80,7 +80,7 @@ const VERGLEICH_UNS = [
 ];
 
 const WAS_ENTHALTEN = [
-  "Bewusst wenige, dafür didaktisch bewährte Aufgabentypen: Multiple Choice, Zuordnung, Offene Frage/Diskussion, Wahr/Falsch mit Begründung, Reihenfolge, Lesetext, Kreuzworträtsel, Wortsuche",
+  "Bewusst didaktisch bewährte Aufgabentypen statt Nonsens-Vielfalt: Multiple Choice, Lückentext, Zuordnung, Offene Frage, Wahr/Falsch mit Begründung, Reihenfolge, Lesetext, Diskussionsimpuls, Kreuzworträtsel, Wortsuche",
   "Speziell für die Kleinsten: die Malaufgabe (Schüler:innen zeichnen selbst) sowie besonders einfache, mündlich vorlesbare Aufgaben für Kinder, die noch nicht lesen/schreiben können",
   "Ab Sekundarstufe I: Recherche-/Referatsaufträge mit Leitfaden, Bewertungskriterien und Quellenhinweis",
   "Fertiges, druckreifes PDF oder Word-Dokument - direkt zum Ausdrucken",

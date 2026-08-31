@@ -48,16 +48,19 @@ Unterricht und Lebensweltbezug. Details in `lib/curriculum.ts`.
 ### Aufgabentypen
 
 Bewusst wenige, aber didaktisch bewährte Aufgabentypen statt einer breiten, beliebigen Auswahl -
-"lieber 4-5 gute Methoden als 8-10 Nonsenses". Acht Typen stehen für alle Schulstufen zur
-Verfügung: Multiple Choice, Zuordnung, Offene Frage/Diskussion, Wahr oder Falsch (MIT
+"lieber gute Methoden als Nonsens-Vielfalt". Zehn Typen stehen für alle Schulstufen zur
+Verfügung: Multiple Choice, Lückentext (mit inhaltlichem Satzkontext statt isolierter
+Ein-Wort-Lücke), Zuordnung, Offene Frage (schriftliche Reflexion), Wahr oder Falsch (MIT
 Pflicht-Begründung statt reinem Raten), Reihenfolge, Lesetext mit Verständnisfrage,
-Kreuzworträtsel, Wortsuche. Zwei weitere Typen sind schulstufengebunden und schließen sich
-gegenseitig aus (siehe `GenerateRequestSchema` in `lib/types.ts`):
+Diskussionsimpuls (echtes Dilemma/mehrere Perspektiven statt einer Frage mit offensichtlicher
+Antwort), Kreuzworträtsel, Wortsuche. Zwei weitere Typen sind IMMER wählbar, bekommen aber je nach
+Schulstufe nur eine Empfehlung im Erstellen-Formular statt einer harten Sperre - die Lehrkraft
+kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik:
 
-- **Malaufgabe** (nur 1./2. Klasse Volksschule): eine kurze, mündlich vorlesbare Zeichenanweisung
-  zum Thema - die Schüler:innen zeichnen selbst auf dem ausgedruckten Blatt (kein KI-generiertes
-  Bild, siehe Hinweis unten).
-- **Recherche-/Referatsauftrag** (nur ab Sekundarstufe I): eine längerfristige Projekt-/
+- **Malaufgabe** (empfohlen für 1./2. Klasse Volksschule): eine kurze, mündlich vorlesbare
+  Zeichenanweisung zum Thema - die Schüler:innen zeichnen selbst auf dem ausgedruckten Blatt
+  (kein KI-generiertes Bild, siehe Hinweis unten).
+- **Recherche-/Referatsauftrag** (empfohlen ab Sekundarstufe I): eine längerfristige Projekt-/
   Hausaufgabe zu einer Person, einem Ort, Gegenstand oder Konzept aus dem Thema, mit von Claude
   generiertem Leitfaden (konkrete Recherchefragen), Bewertungskriterien und einem Hinweis zu
   vertrauenswürdigen Quellenarten (oder einem kurzen Sachtext als Basis ohne Internetzugang) -

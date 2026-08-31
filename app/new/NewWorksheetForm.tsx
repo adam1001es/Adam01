@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
@@ -114,13 +114,6 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; i
   recherche_auftrag: { label: "Recherche-/Referat-Auftrag", icon: FileSearch },
 };
 
-/** Für alle Schulstufen anbietbar - "malaufgabe" (nur 1./2. Klasse Volksschule) und
- * "recherche_auftrag" (nur ab Sekundarstufe I) werden je nach gewählter Schulstufe separat
- * ein-/ausgeblendet (siehe sichtbareTypen unten), da beide sich gegenseitig ausschließen. */
-const AUFGABEN_TYPEN_ALLGEMEIN = AUFGABEN_TYPEN_AKTIV.filter(
-  (typ) => typ !== "malaufgabe" && typ !== "recherche_auftrag",
-);
-
 const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {
   klassisch: { label: "Klassisch", swatch: "#9c7a2c" },
   modern: { label: "Modern", swatch: "#12704c" },
@@ -148,25 +141,10 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
     "zuordnung",
     "offene_frage",
   ]);
+  // Nur für die Empfehlungs-Hinweise unten (z.B. "Malaufgabe empfohlen") - blockiert keine
+  // Auswahl mehr; alle Aufgabentypen bleiben unabhängig von der Schulstufe wählbar, die
+  // Lehrkraft kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik.
   const fruehStufe = istFrueheVolksschulstufe(schulstufe);
-  // "malaufgabe" und "recherche_auftrag" schließen sich schulstufenbedingt gegenseitig aus
-  // (siehe GenerateRequestSchema in lib/types.ts) - wechselt die Schulstufe, wird eine dadurch
-  // ungültig gewordene Auswahl automatisch entfernt, statt beim Absenden mit einem serverseitigen
-  // Validierungsfehler zu enden.
-  useEffect(() => {
-    setAufgabentypen((prev) =>
-      prev.filter((t) => {
-        if (t === "malaufgabe") return fruehStufe;
-        if (t === "recherche_auftrag") return !fruehStufe;
-        return true;
-      }),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fruehStufe]);
-  const sichtbareTypen: (typeof AUFGABEN_TYPEN_AKTIV)[number][] = [
-    ...AUFGABEN_TYPEN_ALLGEMEIN,
-    fruehStufe ? "malaufgabe" : "recherche_auftrag",
-  ];
   const [zusatzhinweise, setZusatzhinweise] = useState("");
   const [themenbereich, setThemenbereich] = useState<ThemenbereichKey>("gemischt");
   const [themenvorschlaegeOffen, setThemenvorschlaegeOffen] = useState(false);
@@ -449,7 +427,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
         >
           <span className={labelClass}>Aufgabentypen</span>
           <div className="flex flex-wrap gap-2">
-            {sichtbareTypen.map((typ) => {
+            {AUFGABEN_TYPEN_AKTIV.map((typ) => {
               const meta = TYP_META[typ];
               const active = aufgabentypen.includes(typ);
               return (
