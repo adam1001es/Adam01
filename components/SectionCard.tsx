@@ -1,10 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-
-const AKZENTE = {
-  brand: { badge: "bg-brand-50 text-brand-600", kante: "before:bg-brand-400" },
-  blau: { badge: "bg-sky-50 text-sky-600", kante: "before:bg-sky-400" },
-  gold: { badge: "bg-gold-100 text-gold-700", kante: "before:bg-gold-400" },
-} as const;
+import { SEKTION_FARBEN, SektionAkzent } from "@/lib/sectionFarben";
 
 export default function SectionCard({
   icon: Icon,
@@ -13,20 +8,25 @@ export default function SectionCard({
   action,
   children,
   akzent = "brand",
+  schritt,
 }: {
   icon: LucideIcon;
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
   children: React.ReactNode;
-  /** Färbt Icon-Badge und obere Kante ein, damit mehrere SectionCards auf einer Seite (z.B.
-   * Inhalt/Aufgaben/Layout im Erstellen-Formular) auf einen Blick unterscheidbar bleiben. */
-  akzent?: keyof typeof AKZENTE;
+  /** Färbt Badge, linke Kante und alle auswählbaren Chips/Buttons innerhalb der Karte ein, damit
+   * mehrere SectionCards auf einer Seite (z.B. Inhalt/Aufgaben/Layout im Erstellen-Formular) auf
+   * einen Blick unterscheidbar bleiben - siehe lib/sectionFarben.ts für die Chip-Farben selbst. */
+  akzent?: SektionAkzent;
+  /** Optionale Schritt-Nummer (z.B. 1 von 3) - macht bei einer mehrteiligen Abfolge wie
+   * Inhalt→Aufgaben→Layout die Reihenfolge auf einen Blick klar. */
+  schritt?: { nr: number; von: number };
 }) {
-  const stil = AKZENTE[akzent];
+  const stil = SEKTION_FARBEN[akzent];
   return (
     <section
-      className={`relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-card before:absolute before:inset-x-0 before:top-0 before:h-1.5 ${stil.kante}`}
+      className={`rounded-2xl border border-slate-200 border-l-4 bg-white p-6 shadow-card ${stil.kante}`}
     >
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
@@ -34,6 +34,11 @@ export default function SectionCard({
             <Icon size={18} strokeWidth={2} />
           </span>
           <div>
+            {schritt && (
+              <span className={`block text-[11px] font-semibold uppercase tracking-wide ${stil.boxLabel}`}>
+                Schritt {schritt.nr} von {schritt.von}
+              </span>
+            )}
             <h2 className="font-display text-lg font-semibold text-slate-800">{title}</h2>
             {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
           </div>

@@ -50,6 +50,11 @@ import SectionCard from "@/components/SectionCard";
 import GenerierungLoading from "@/components/GenerierungLoading";
 import { inputClass, labelClass } from "@/lib/formStyles";
 import { MUSTER_LABEL } from "@/lib/patternStrip";
+import { SEKTION_FARBEN } from "@/lib/sectionFarben";
+
+/** Neutraler Grundstil für auswählbare Chips/Pills - Farbe kommt erst im aktiven Zustand dazu
+ * (siehe SEKTION_FARBEN), damit nicht der ganze Screen bunt wirkt. */
+const CHIP_BASIS = "border-slate-200 text-slate-500 hover:border-slate-300";
 
 const ANDERE_SCHULSTUFE = "__andere__";
 
@@ -226,9 +231,17 @@ export default function NewWorksheetForm({
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <SectionCard icon={BookOpen} title="Inhalt" subtitle="Bereich, Thema, Schulstufe & Themenbereich" akzent="blau">
-          <div className="mb-4 rounded-xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white p-4">
-            <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-brand-600">
+        <SectionCard
+          icon={BookOpen}
+          title="Inhalt"
+          subtitle="Worum geht es, für wen"
+          akzent="blau"
+          schritt={{ nr: 1, von: 3 }}
+        >
+          <div
+            className={`mb-4 rounded-xl border-2 p-4 ${SEKTION_FARBEN.blau.boxBorder} ${SEKTION_FARBEN.blau.boxBg}`}
+          >
+            <span className={`mb-1 block text-xs font-semibold uppercase tracking-wide ${SEKTION_FARBEN.blau.boxLabel}`}>
               Thema &amp; Schulstufe
             </span>
             <p className="mb-3 text-xs leading-relaxed text-slate-500">
@@ -242,7 +255,7 @@ export default function NewWorksheetForm({
               <label className="block">
                 <span className="mb-1.5 block text-sm font-semibold text-slate-700">Thema</span>
                 <input
-                  className="w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  className="w-full rounded-lg border border-sky-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
                   value={thema}
                   onChange={(e) => setThema(e.target.value)}
                   placeholder="z.B. Die 5 Säulen des Islam"
@@ -256,7 +269,7 @@ export default function NewWorksheetForm({
               <label className="block">
                 <span className="mb-1.5 block text-sm font-semibold text-slate-700">Schulstufe</span>
                 <select
-                  className="w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                  className="w-full rounded-lg border border-sky-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
                   value={schulstufeAuswahl}
                   onChange={(e) => setSchulstufeAuswahl(e.target.value)}
                 >
@@ -269,7 +282,7 @@ export default function NewWorksheetForm({
                 </select>
                 {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
                   <input
-                    className="mt-2 w-full rounded-lg border border-brand-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+                    className="mt-2 w-full rounded-lg border border-sky-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
                     value={schulstufeFrei}
                     onChange={(e) => setSchulstufeFrei(e.target.value)}
                     placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
@@ -284,16 +297,6 @@ export default function NewWorksheetForm({
             </div>
           </div>
           <label className="block">
-            <span className={labelClass}>Bereich / Fach</span>
-            <input
-              className={inputClass}
-              value={bereich}
-              onChange={(e) => setBereich(e.target.value)}
-              placeholder="z.B. Islamischer Religionsunterricht"
-              required
-            />
-          </label>
-          <label className="mt-4 block">
             <span className={labelClass}>Themenbereich (fachliche Einordnung laut Lehrplan)</span>
             <p className="mb-1.5 text-xs leading-relaxed text-slate-400">
               Ordnet das oben angegebene Thema fachlich einer der vier Lehrplan-Kategorien zu -
@@ -316,6 +319,16 @@ export default function NewWorksheetForm({
             </span>
           </label>
           <label className="mt-4 block">
+            <span className={labelClass}>Bereich / Fach</span>
+            <input
+              className={inputClass}
+              value={bereich}
+              onChange={(e) => setBereich(e.target.value)}
+              placeholder="z.B. Islamischer Religionsunterricht"
+              required
+            />
+          </label>
+          <label className="mt-4 block">
             <span className={labelClass}>Zusätzliche Hinweise (optional)</span>
             <textarea
               className={inputClass}
@@ -327,8 +340,34 @@ export default function NewWorksheetForm({
           </label>
         </SectionCard>
 
-        <SectionCard icon={ListChecks} title="Aufgaben" subtitle="Umfang und Aufgabentypen" akzent="gold">
-          <div className="mb-5 grid gap-4 sm:grid-cols-2">
+        <SectionCard
+          icon={ListChecks}
+          title="Aufgaben"
+          subtitle="Aufgabentypen, Umfang und Anspruch"
+          akzent="gold"
+          schritt={{ nr: 2, von: 3 }}
+        >
+          <span className={labelClass}>Aufgabentypen</span>
+          <div className="flex flex-wrap gap-2">
+            {AUFGABEN_TYPEN.map((typ) => {
+              const meta = TYP_META[typ];
+              const active = aufgabentypen.includes(typ);
+              return (
+                <button
+                  type="button"
+                  key={typ}
+                  onClick={() => toggleTyp(typ)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                    active ? SEKTION_FARBEN.gold.aktiv : CHIP_BASIS
+                  }`}
+                >
+                  <meta.icon size={14} strokeWidth={2.25} />
+                  {meta.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mb-5 mt-5 grid gap-4 sm:grid-cols-2">
             <div>
               <span className={labelClass}>Zieldauer im Unterricht</span>
               <div className="flex flex-wrap gap-2">
@@ -338,9 +377,7 @@ export default function NewWorksheetForm({
                     key={minuten}
                     onClick={() => setZieldauerMinuten(minuten)}
                     className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-                      zieldauerMinuten === minuten
-                        ? "border-brand-600 bg-brand-50 text-brand-700"
-                        : "border-slate-200 text-slate-500 hover:border-slate-300"
+                      zieldauerMinuten === minuten ? SEKTION_FARBEN.gold.aktiv : CHIP_BASIS
                     }`}
                   >
                     {minuten} Min
@@ -357,9 +394,7 @@ export default function NewWorksheetForm({
                     key={stufe}
                     onClick={() => setKomplexitaet(stufe)}
                     className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-                      komplexitaet === stufe
-                        ? "border-brand-600 bg-brand-50 text-brand-700"
-                        : "border-slate-200 text-slate-500 hover:border-slate-300"
+                      komplexitaet === stufe ? SEKTION_FARBEN.gold.aktiv : CHIP_BASIS
                     }`}
                   >
                     {KOMPLEXITAET_LABEL[stufe]}
@@ -368,49 +403,31 @@ export default function NewWorksheetForm({
               </div>
             </div>
           </div>
-          <p className="-mt-2 mb-5 text-xs leading-relaxed text-slate-400">
+          <p className={`-mt-2 mb-1 text-xs leading-relaxed ${SEKTION_FARBEN.gold.boxLabel}`}>
             {aufgabentypen.length > 0 ? (
               <>
                 → ca.{" "}
-                <strong className="text-slate-600">
+                <strong>
                   {schaetzeAufgabenAnzahl(
                     zieldauerMinuten,
                     aufgabentypen as (typeof AUFGABEN_TYPEN)[number][],
                     komplexitaet,
                   )}{" "}
                   Aufgaben
-                </strong>{" "}
-                (Richtwert für {zieldauerMinuten} Minuten - Aufgabenzahl statt fixer Stückzahl
-                wählen ist hier bewusst nicht möglich, weil einzelne Typen sehr unterschiedlich
-                lange dauern; Genauigkeit auf die Minute ist dabei nicht erreichbar, besonders bei
-                "Offene Frage"/"Diskussion").
+                </strong>
               </>
             ) : (
-              "Wähle unten mindestens einen Aufgabentyp, um eine Richtwert-Anzahl zu sehen."
+              "Wähle oben mindestens einen Aufgabentyp, um eine Richtwert-Anzahl zu sehen."
             )}
           </p>
-          <span className={labelClass}>Aufgabentypen</span>
-          <div className="flex flex-wrap gap-2">
-            {AUFGABEN_TYPEN.map((typ) => {
-              const meta = TYP_META[typ];
-              const active = aufgabentypen.includes(typ);
-              return (
-                <button
-                  type="button"
-                  key={typ}
-                  onClick={() => toggleTyp(typ)}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-                    active
-                      ? "border-brand-600 bg-brand-50 text-brand-700"
-                      : "border-slate-200 text-slate-500 hover:border-slate-300"
-                  }`}
-                >
-                  <meta.icon size={14} strokeWidth={2.25} />
-                  {meta.label}
-                </button>
-              );
-            })}
-          </div>
+          {aufgabentypen.length > 0 && (
+            <p className="mb-3 text-xs leading-relaxed text-slate-400">
+              Richtwert für {zieldauerMinuten} Minuten - Aufgabenzahl statt fixer Stückzahl wählen
+              ist hier bewusst nicht möglich, weil einzelne Typen sehr unterschiedlich lange
+              dauern; Genauigkeit auf die Minute ist dabei nicht erreichbar, besonders bei "Offene
+              Frage"/"Diskussion".
+            </p>
+          )}
           {aufgabentypen.some((typ) => typ in AUFGABEN_TYP_MAXIMUM) && (
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
               Hinweis: „Bildergeschichte", „Kreuzworträtsel" und „Wortsuche" sind für sich schon
@@ -454,7 +471,13 @@ export default function NewWorksheetForm({
           )}
         </SectionCard>
 
-        <SectionCard icon={LayoutTemplate} title="Layout" subtitle="So sieht das fertige Blatt aus">
+        <SectionCard
+          icon={LayoutTemplate}
+          title="Layout"
+          subtitle="So sieht das fertige Blatt aus"
+          akzent="brand"
+          schritt={{ nr: 3, von: 3 }}
+        >
           <div className="mb-5 overflow-hidden rounded-xl border border-slate-200">
             <div className="h-[110px] overflow-hidden bg-slate-50">
               <div className="origin-top-left scale-[0.42]" style={{ width: "238%" }}>
@@ -482,9 +505,7 @@ export default function NewWorksheetForm({
                   key={t}
                   onClick={() => setTemplate(t)}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
-                    active
-                      ? "border-brand-600 bg-brand-50 text-brand-700"
-                      : "border-slate-200 text-slate-500 hover:border-slate-300"
+                    active ? SEKTION_FARBEN.brand.aktiv : CHIP_BASIS
                   }`}
                 >
                   <span
@@ -506,9 +527,7 @@ export default function NewWorksheetForm({
                   key={f}
                   onClick={() => setFarbmodus(f)}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
-                    active
-                      ? "border-brand-600 bg-brand-50 text-brand-700"
-                      : "border-slate-200 text-slate-500 hover:border-slate-300"
+                    active ? SEKTION_FARBEN.brand.aktiv : CHIP_BASIS
                   }`}
                 >
                   <span
@@ -582,9 +601,7 @@ export default function NewWorksheetForm({
                       key={v}
                       onClick={() => setMusterVariante(v)}
                       className={`flex flex-col items-center gap-1.5 rounded-lg border px-3 py-2.5 transition ${
-                        active
-                          ? "border-brand-600 bg-brand-50"
-                          : "border-slate-200 hover:border-slate-300"
+                        active ? "border-brand-600 bg-brand-50" : CHIP_BASIS
                       }`}
                     >
                       <div className="flex h-5 w-full items-center justify-center overflow-hidden">

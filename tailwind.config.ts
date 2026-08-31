@@ -1,7 +1,10 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  // "./lib/**" dazu: einige Tailwind-Klassen (z.B. die Sektions-Akzentfarben in
+  // lib/sectionFarben.ts) stehen nur dort als Literal - ohne diesen Pfad im Content-Scan würde
+  // der JIT-Compiler sie beim Build als "ungenutzt" verwerfen.
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
