@@ -46,9 +46,11 @@ export default async function AdminPage() {
 
   const istAktuellAktiv = (r: AdminUserRow) =>
     istTierAktiv(r.tier, r.tierGueltigVon, r.tierGueltigBis);
-  const aktiveStarter = rows.filter((r) => r.tier === "starter" && istAktuellAktiv(r)).length;
-  const aktivePro = rows.filter((r) => r.tier === "pro" && istAktuellAktiv(r)).length;
-  const monatsumsatz = aktiveStarter * TIER_PREIS_EUR.starter + aktivePro * TIER_PREIS_EUR.pro;
+  // "starter" bleibt als Alias auf dasselbe (einzige) Abo bestehen - reine Abwärtskompatibilität
+  // für Konten, die vor der Umstellung auf ein Ein-Tarif-Modell noch "starter" zugewiesen
+  // bekamen (siehe lib/quota.ts) - daher hier zusammengezählt statt separat ausgewiesen.
+  const aktiveAbos = rows.filter((r) => r.tier && istAktuellAktiv(r)).length;
+  const monatsumsatz = aktiveAbos * TIER_PREIS_EUR.pro;
 
   // Geschätzte KI-Kosten seit Monatsbeginn (Kalendermonat, nicht der individuelle 30-Tage-
   // Abo-Zyklus pro Konto - für eine grobe monatliche Kostenübersicht ausreichend genau). Bilder
@@ -75,7 +77,7 @@ export default async function AdminPage() {
 
   const STATS = [
     { icon: Users, label: "Konten gesamt", wert: String(rows.length) },
-    { icon: CreditCard, label: "Aktive Abos", wert: `${aktiveStarter + aktivePro} (${aktiveStarter} Starter · ${aktivePro} Pro)` },
+    { icon: CreditCard, label: "Aktive Abos", wert: String(aktiveAbos) },
     { icon: TrendingUp, label: "Geschätzter Monatsumsatz", wert: `${monatsumsatz.toFixed(2)}€` },
     {
       icon: Coins,

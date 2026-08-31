@@ -51,7 +51,9 @@ function GueltigkeitsBadge({ r }: { r: AdminUserRow }) {
   );
 }
 
-const PAKET_LABEL: Record<string, string> = { starter: "Starter", pro: "Pro" };
+// "starter" bleibt als Anzeige-Alias bestehen - reine Abwärtskompatibilität für Konten, die vor
+// der Umstellung auf ein einziges Abo noch "starter" zugewiesen bekamen (siehe lib/quota.ts).
+const PAKET_LABEL: Record<string, string> = { starter: "Abo", pro: "Abo" };
 
 function AdminKontoZeile({ r }: { r: AdminUserRow }) {
   const [offen, setOffen] = useState(false);

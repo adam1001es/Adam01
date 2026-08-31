@@ -197,6 +197,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   diskussion: "Diskussionsimpuls",
   wortsuche: "Wortsuche",
   kreuzwortraetsel: "Kreuzworträtsel",
+  malaufgabe: "Malaufgabe",
+  recherche_auftrag: "Recherche-/Referat-Auftrag",
 };
 
 const ACCENT = "0f9d58";
@@ -468,6 +470,78 @@ export async function buildWorksheetDocx(
               }),
             ],
             spacing: { before: 80 },
+          }),
+        );
+      }
+    }
+    if (a.typ === "malaufgabe") {
+      children.push(
+        new Paragraph({
+          indent: { left: 360 },
+          border: {
+            top: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+            bottom: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+            left: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+            right: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
+          },
+          spacing: { before: 80, after: 80 },
+          children: [new TextRun({ text: " ", size: baseSize })],
+        }),
+        // Leere Zeilen statt eines festen Bild-Platzhalters, damit im Rahmen sichtbar Platz zum
+        // Zeichnen bleibt (Word kennt keine feste Rahmenhöhe wie PDF/Web).
+        new Paragraph({ children: [], spacing: { after: 80 } }),
+        new Paragraph({ children: [], spacing: { after: 80 } }),
+        new Paragraph({ children: [], spacing: { after: 80 } }),
+      );
+    }
+    if (a.typ === "recherche_auftrag") {
+      if (a.leitfaden && a.leitfaden.length > 0) {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: 80 },
+            children: [new TextRun({ text: "Leitfaden", bold: true, size: baseSize })],
+          }),
+        );
+        a.leitfaden.forEach((punkt, i) => {
+          children.push(
+            new Paragraph({
+              indent: { left: 360 },
+              children: [new TextRun({ text: `${i + 1}. ${punkt}`, size: baseSize })],
+            }),
+          );
+        });
+      }
+      if (a.bewertungskriterien && a.bewertungskriterien.length > 0) {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: 120 },
+            children: [new TextRun({ text: "Darauf wird geachtet", bold: true, size: baseSize })],
+          }),
+        );
+        a.bewertungskriterien.forEach((kriterium) => {
+          children.push(
+            new Paragraph({
+              indent: { left: 360 },
+              children: [new TextRun({ text: `• ${kriterium}`, size: baseSize })],
+            }),
+          );
+        });
+      }
+      if (a.quellenhinweis) {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: 80 },
+            children: [
+              new TextRun({
+                text: `Hinweis zu Quellen: ${a.quellenhinweis}`,
+                italics: true,
+                size: baseSize,
+                color: "475569",
+              }),
+            ],
           }),
         );
       }

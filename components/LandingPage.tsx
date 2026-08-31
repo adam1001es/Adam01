@@ -6,6 +6,7 @@ import {
   GraduationCap,
   BookOpenCheck,
   Baby,
+  FileSearch,
   CheckCircle2,
   XCircle,
   Gift,
@@ -48,8 +49,14 @@ const FEATURES = [
   {
     icon: Baby,
     titel: "Altersgerecht bis Klasse 1",
-    text: "Für noch nicht lese-/schreibkundige Kinder automatisch besonders einfache, mündlich vorlesbare Aufgaben statt ungeeigneter Lesetext-Aufgaben.",
+    text: "Für noch nicht lese-/schreibkundige Kinder automatisch die Malaufgabe (Schüler:innen zeichnen selbst) sowie besonders einfache, mündlich vorlesbare Aufgaben statt ungeeigneter Lesetext-Aufgaben.",
     akzent: "brand",
+  },
+  {
+    icon: FileSearch,
+    titel: "Recherche- und Referatsaufträge",
+    text: "Ab der Sekundarstufe I: eigenständige Recherche-/Präsentationsaufgaben zu Personen, Orten oder Themen - mit Leitfaden, Bewertungskriterien und Quellenhinweis statt vager Freitext-Anweisung.",
+    akzent: "gold",
   },
 ] as const;
 
@@ -73,8 +80,9 @@ const VERGLEICH_UNS = [
 ];
 
 const WAS_ENTHALTEN = [
-  "10 Aufgabentypen: Multiple Choice, Lückentext, Zuordnung, Reihenfolge, Kreuzworträtsel, Wortsuche, Diskussionsimpulse u.v.m.",
-  "Speziell für die Kleinsten: automatisch besonders einfache, mündlich vorlesbare Aufgaben für Kinder, die noch nicht lesen/schreiben können",
+  "Bewusst wenige, dafür didaktisch bewährte Aufgabentypen: Multiple Choice, Zuordnung, Offene Frage/Diskussion, Wahr/Falsch mit Begründung, Reihenfolge, Lesetext, Kreuzworträtsel, Wortsuche",
+  "Speziell für die Kleinsten: die Malaufgabe (Schüler:innen zeichnen selbst) sowie besonders einfache, mündlich vorlesbare Aufgaben für Kinder, die noch nicht lesen/schreiben können",
+  "Ab Sekundarstufe I: Recherche-/Referatsaufträge mit Leitfaden, Bewertungskriterien und Quellenhinweis",
   "Fertiges, druckreifes PDF oder Word-Dokument - direkt zum Ausdrucken",
   "Eine zweite, unabhängige KI-Prüfung für jedes einzelne Arbeitsblatt",
   "Eigene Bibliothek: alle bisher erstellten Arbeitsblätter jederzeit wieder abrufbar",
@@ -225,20 +233,14 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="mx-auto mt-6 grid max-w-2xl gap-3 sm:grid-cols-3">
+        <div className="mx-auto mt-6 grid max-w-md gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">Kostenlos</div>
             <div className="mt-1 text-xs text-slate-400">{KOSTENLOS_LIMIT} Arbeitsblätter/Monat</div>
           </div>
-          <div className="rounded-xl border border-gold-200 bg-gold-50/40 p-4 text-center">
-            <div className="text-sm font-semibold text-slate-700">
-              Starter <span className="font-normal text-slate-400">· {TIER_PREIS_EUR.starter}€/Monat</span>
-            </div>
-            <div className="mt-1 text-xs text-slate-400">{TIER_QUOTA.starter} Arbeitsblätter/Monat</div>
-          </div>
           <div className="rounded-xl border border-brand-200 bg-brand-50/40 p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">
-              Pro <span className="font-normal text-slate-400">· {TIER_PREIS_EUR.pro}€/Monat</span>
+              Abo <span className="font-normal text-slate-400">· {TIER_PREIS_EUR.pro.toFixed(2)}€/Monat</span>
             </div>
             <div className="mt-1 text-xs text-slate-400">{TIER_QUOTA.pro} Arbeitsblätter/Monat</div>
           </div>

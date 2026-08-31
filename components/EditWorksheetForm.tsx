@@ -24,6 +24,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   diskussion: "Diskussionsimpuls",
   wortsuche: "Wortsuche",
   kreuzwortraetsel: "Kreuzworträtsel",
+  malaufgabe: "Malaufgabe",
+  recherche_auftrag: "Recherche-/Referat-Auftrag",
 };
 
 function IconSelect({
@@ -531,6 +533,50 @@ export default function EditWorksheetForm({
                   >
                     Schritt hinzufügen
                   </AddButton>
+                </div>
+              )}
+
+              {a.typ === "recherche_auftrag" && (
+                <div className="mb-3 space-y-3">
+                  <label className="block">
+                    <span className={labelClass}>Leitfaden (eine Zeile pro Recherchefrage)</span>
+                    <textarea
+                      className={inputClass}
+                      rows={Math.max(3, (a.leitfaden ?? []).length)}
+                      value={(a.leitfaden ?? []).join("\n")}
+                      onChange={(e) => {
+                        const leitfaden = e.target.value
+                          .split("\n")
+                          .map((w) => w.trim())
+                          .filter((w) => w.length > 0);
+                        updateAufgabe(a.nr, { leitfaden });
+                      }}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className={labelClass}>Bewertungskriterien (eine Zeile pro Kriterium)</span>
+                    <textarea
+                      className={inputClass}
+                      rows={Math.max(3, (a.bewertungskriterien ?? []).length)}
+                      value={(a.bewertungskriterien ?? []).join("\n")}
+                      onChange={(e) => {
+                        const bewertungskriterien = e.target.value
+                          .split("\n")
+                          .map((w) => w.trim())
+                          .filter((w) => w.length > 0);
+                        updateAufgabe(a.nr, { bewertungskriterien });
+                      }}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className={labelClass}>Hinweis zu Quellen</span>
+                    <textarea
+                      className={inputClass}
+                      rows={2}
+                      value={a.quellenhinweis ?? ""}
+                      onChange={(e) => updateAufgabe(a.nr, { quellenhinweis: e.target.value })}
+                    />
+                  </label>
                 </div>
               )}
 

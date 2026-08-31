@@ -5,6 +5,9 @@ import {
   aktuellerZyklusStart,
   zaehleGenerierteBilder,
   tierLabel,
+  TIER_QUOTA,
+  TIER_PREIS_EUR,
+  GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR,
 } from "./quota";
 
 describe("istTierAktiv", () => {
@@ -99,13 +102,31 @@ describe("zaehleGenerierteBilder", () => {
   });
 });
 
+describe("Abo-Kalkulation - Mindestmarge bei voller Ausschöpfung", () => {
+  // Regressionstest für die Preis-/Kontingent-Entscheidung: bei voller Nutzung des monatlichen
+  // Kontingents (Worst Case) soll die Marge nie unter die vereinbarte Untergrenze fallen, sonst
+  // zahlt der Betreiber bei intensiv nutzenden Konten drauf.
+  const MINDESTMARGE = 0.25;
+
+  it("hält für das Abo mindestens 25% Marge im Worst Case", () => {
+    const kosten = TIER_QUOTA.pro * GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR;
+    const marge = (TIER_PREIS_EUR.pro - kosten) / TIER_PREIS_EUR.pro;
+    expect(marge).toBeGreaterThanOrEqual(MINDESTMARGE);
+  });
+
+  it("hält den Abwärtskompatibilitäts-Alias 'starter' auf identischen Werten wie 'pro'", () => {
+    expect(TIER_QUOTA.starter).toBe(TIER_QUOTA.pro);
+    expect(TIER_PREIS_EUR.starter).toBe(TIER_PREIS_EUR.pro);
+  });
+});
+
 describe("tierLabel", () => {
   it("liefert das Gratis-Label ohne tier", () => {
     expect(tierLabel(null)).toMatch(/Kostenlos/);
   });
 
-  it("liefert das jeweilige Tier-Label", () => {
-    expect(tierLabel("starter")).toMatch(/Starter/);
-    expect(tierLabel("pro")).toMatch(/Pro/);
+  it("liefert für 'pro' und den Abwärtskompatibilitäts-Alias 'starter' dasselbe Abo-Label", () => {
+    expect(tierLabel("pro")).toMatch(/Abo/);
+    expect(tierLabel("starter")).toBe(tierLabel("pro"));
   });
 });

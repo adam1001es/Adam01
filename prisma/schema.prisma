@@ -75,7 +75,7 @@ model User {
   // hier direkt vollen Kontozugriff verschafft.
   passwortResetToken String? @unique
   passwortResetTokenAblauf DateTime?
-  tier         String?  // null (kein Abo) | "starter" (30/Monat) | "pro" (80/Monat)
+  tier         String?  // null (kein Abo) | "pro" (das einzige Abo, 2,50€/18 Arbeitsblätter im Monat). "starter" bleibt als Wert weiterhin gültig (Abwärtskompatibilität für Konten von vor der Umstellung auf ein Ein-Tarif-Modell, siehe lib/quota.ts) - neu zuweisbar ist nur noch "pro".
   // Optionaler Gültigkeitszeitraum für "tier" (z.B. Schuljahr/Semester, nach dem privat bezahlt
   // wird) - beide optional, vom Admin gesetzt. Außerhalb dieses Zeitraums (falls gesetzt) gilt
   // das Konto für die Kontingent-Berechnung automatisch wieder als "kostenlos" (siehe

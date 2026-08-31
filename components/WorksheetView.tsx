@@ -19,6 +19,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   diskussion: "Diskussionsimpuls",
   wortsuche: "Wortsuche",
   kreuzwortraetsel: "Kreuzworträtsel",
+  malaufgabe: "Malaufgabe",
+  recherche_auftrag: "Recherche-/Referat-Auftrag",
 };
 
 /** Zeigt entweder ein festes Icon aus der kuratierten Bibliothek oder ein live per Bild-KI
@@ -286,6 +288,39 @@ export default function WorksheetView({
                         <p className="mt-1 text-xs italic text-slate-500">{schritt.vorlesetext}</p>
                       </div>
                     ))}
+                  </div>
+                )}
+                {a.typ === "malaufgabe" && (
+                  <div className="mt-2 h-40 rounded-2xl border-2 border-dashed border-slate-300" />
+                )}
+                {a.typ === "recherche_auftrag" && (
+                  <div className="ml-5 mt-1.5 space-y-2 text-sm">
+                    {a.leitfaden && a.leitfaden.length > 0 && (
+                      <div>
+                        <span className="font-medium">Leitfaden: </span>
+                        <ol className="ml-5 list-decimal space-y-0.5">
+                          {a.leitfaden.map((punkt, i) => (
+                            <li key={i}>{punkt}</li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                    {a.bewertungskriterien && a.bewertungskriterien.length > 0 && (
+                      <div>
+                        <span className="font-medium">Darauf wird geachtet: </span>
+                        <ul className="ml-5 list-disc space-y-0.5">
+                          {a.bewertungskriterien.map((kriterium, i) => (
+                            <li key={i}>{kriterium}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {a.quellenhinweis && (
+                      <p className="italic text-slate-600">
+                        <span className="font-medium not-italic">Hinweis zu Quellen: </span>
+                        {a.quellenhinweis}
+                      </p>
+                    )}
                   </div>
                 )}
               </li>

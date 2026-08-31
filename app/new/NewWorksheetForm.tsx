@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
@@ -18,6 +18,8 @@ import {
   MessagesSquare,
   Grid3x3,
   Hash,
+  Palette,
+  FileSearch,
   Sparkles,
   ChevronDown,
 } from "lucide-react";
@@ -76,9 +78,10 @@ const VORSCHAU_INHALT: WorksheetContent = {
     },
     {
       nr: 2,
-      typ: "lueckentext",
-      frage: "Das Fasten im Ramadan heißt auf Arabisch ______.",
-      wortliste: ["Sawm", "Zakat", "Hadsch"],
+      typ: "zuordnung",
+      frage: "Ordne die Begriffe ihrer Bedeutung zu.",
+      zuordnungLinks: ["Sawm", "Zakat"],
+      zuordnungRechts: ["Das Fasten", "Die Armenabgabe"],
       anforderungsbereich: "afb1",
     },
     {
@@ -90,7 +93,7 @@ const VORSCHAU_INHALT: WorksheetContent = {
   ],
   loesungen: [
     { nr: 1, loesung: "Das Fasten im Ramadan" },
-    { nr: 2, loesung: "Sawm" },
+    { nr: 2, loesung: "Sawm - Das Fasten, Zakat - Die Armenabgabe" },
     { nr: 3, loesung: "Individuelle Antwort" },
   ],
   quellen: [{ bezeichnung: "Beispiel-Quelle", sicherheit: "gesichert" }],
@@ -107,7 +110,16 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; i
   diskussion: { label: "Diskussionsimpuls", icon: MessagesSquare },
   wortsuche: { label: "Wortsuche", icon: Grid3x3 },
   kreuzwortraetsel: { label: "Kreuzworträtsel", icon: Hash },
+  malaufgabe: { label: "Malaufgabe", icon: Palette },
+  recherche_auftrag: { label: "Recherche-/Referat-Auftrag", icon: FileSearch },
 };
+
+/** Für alle Schulstufen anbietbar - "malaufgabe" (nur 1./2. Klasse Volksschule) und
+ * "recherche_auftrag" (nur ab Sekundarstufe I) werden je nach gewählter Schulstufe separat
+ * ein-/ausgeblendet (siehe sichtbareTypen unten), da beide sich gegenseitig ausschließen. */
+const AUFGABEN_TYPEN_ALLGEMEIN = AUFGABEN_TYPEN_AKTIV.filter(
+  (typ) => typ !== "malaufgabe" && typ !== "recherche_auftrag",
+);
 
 const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {
   klassisch: { label: "Klassisch", swatch: "#9c7a2c" },
@@ -133,9 +145,28 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
   const [komplexitaet, setKomplexitaet] = useState<Komplexitaet>("mittel");
   const [aufgabentypen, setAufgabentypen] = useState<string[]>([
     "multiple_choice",
-    "lueckentext",
+    "zuordnung",
     "offene_frage",
   ]);
+  const fruehStufe = istFrueheVolksschulstufe(schulstufe);
+  // "malaufgabe" und "recherche_auftrag" schließen sich schulstufenbedingt gegenseitig aus
+  // (siehe GenerateRequestSchema in lib/types.ts) - wechselt die Schulstufe, wird eine dadurch
+  // ungültig gewordene Auswahl automatisch entfernt, statt beim Absenden mit einem serverseitigen
+  // Validierungsfehler zu enden.
+  useEffect(() => {
+    setAufgabentypen((prev) =>
+      prev.filter((t) => {
+        if (t === "malaufgabe") return fruehStufe;
+        if (t === "recherche_auftrag") return !fruehStufe;
+        return true;
+      }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fruehStufe]);
+  const sichtbareTypen: (typeof AUFGABEN_TYPEN_AKTIV)[number][] = [
+    ...AUFGABEN_TYPEN_ALLGEMEIN,
+    fruehStufe ? "malaufgabe" : "recherche_auftrag",
+  ];
   const [zusatzhinweise, setZusatzhinweise] = useState("");
   const [themenbereich, setThemenbereich] = useState<ThemenbereichKey>("gemischt");
   const [themenvorschlaegeOffen, setThemenvorschlaegeOffen] = useState(false);
@@ -418,7 +449,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
         >
           <span className={labelClass}>Aufgabentypen</span>
           <div className="flex flex-wrap gap-2">
-            {AUFGABEN_TYPEN_AKTIV.map((typ) => {
+            {sichtbareTypen.map((typ) => {
               const meta = TYP_META[typ];
               const active = aufgabentypen.includes(typ);
               return (
@@ -493,28 +524,36 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
             <p className="mb-3 text-xs leading-relaxed text-slate-400">
               Richtwert für {zieldauerMinuten} Minuten - Aufgabenzahl statt fixer Stückzahl wählen
               ist hier bewusst nicht möglich, weil einzelne Typen sehr unterschiedlich lange
-              dauern; Genauigkeit auf die Minute ist dabei nicht erreichbar, besonders bei "Offene
-              Frage"/"Diskussion".
+              dauern; Genauigkeit auf die Minute ist dabei nicht erreichbar, besonders bei „Offene
+              Frage"/„Diskussion".
             </p>
           )}
           {aufgabentypen.some((typ) => typ in AUFGABEN_TYP_MAXIMUM) && (
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
-              Hinweis: „Kreuzworträtsel" und „Wortsuche" sind für sich schon umfangreich - davon
-              wird höchstens 1 Aufgabe pro Arbeitsblatt erstellt, auch wenn oben eine höhere
-              Anzahl gewählt ist. Das fertige Blatt kann dadurch weniger Aufgaben enthalten als
-              hier eingestellt.
+              Hinweis: „Kreuzworträtsel", „Wortsuche" und „Recherche-/Referat-Auftrag" sind für
+              sich schon umfangreich - davon wird höchstens 1 Aufgabe pro Arbeitsblatt erstellt,
+              auch wenn oben eine höhere Anzahl gewählt ist. Das fertige Blatt kann dadurch
+              weniger Aufgaben enthalten als hier eingestellt.
             </p>
           )}
-          {istFrueheVolksschulstufe(schulstufe) && (
+          {aufgabentypen.includes("recherche_auftrag") && (
+            <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs leading-relaxed text-slate-500">
+              „Recherche-/Referat-Auftrag" eignet sich als längerfristige Projekt-/Hausaufgabe -
+              nicht dafür gedacht, innerhalb einer einzelnen Unterrichtseinheit fertig zu werden.
+            </p>
+          )}
+          {fruehStufe && (
             <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
               <p className="text-xs leading-relaxed text-gold-700">
                 Kinder der 1./2. Klasse Volksschule können meist noch nicht lesen/schreiben.
-                Empfehlung: „Wahr oder Falsch", „Multiple Choice" und „Zuordnung" mit ganz kurzen,
-                mündlich vorlesbaren Aufgaben statt textlastiger Typen.
+                Empfehlung: „Malaufgabe" (Schüler:innen zeichnen selbst) sowie „Wahr oder Falsch",
+                „Multiple Choice" und „Zuordnung" mit ganz kurzen, mündlich vorlesbaren Aufgaben.
               </p>
               <button
                 type="button"
-                onClick={() => setAufgabentypen(["wahr_falsch", "multiple_choice", "zuordnung"])}
+                onClick={() =>
+                  setAufgabentypen(["malaufgabe", "wahr_falsch", "multiple_choice", "zuordnung"])
+                }
                 className="shrink-0 whitespace-nowrap rounded-full border border-gold-300 bg-white px-3 py-1.5 text-xs font-medium text-gold-700 transition hover:bg-gold-100"
               >
                 Übernehmen

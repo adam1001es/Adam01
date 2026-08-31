@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { schaetzeAufgabenAnzahl } from "./types";
+import { schaetzeAufgabenAnzahl, GenerateRequestSchema, AUFGABEN_TYP_MAXIMUM } from "./types";
 
 describe("schaetzeAufgabenAnzahl", () => {
   it("liefert 0 ohne ausgewählte Aufgabentypen", () => {
@@ -36,5 +36,59 @@ describe("schaetzeAufgabenAnzahl", () => {
 
   it("liefert nie mehr als 10 Aufgaben", () => {
     expect(schaetzeAufgabenAnzahl(500, ["wahr_falsch"], "einfach")).toBe(10);
+  });
+});
+
+function baseRequest(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    bereich: "Islamischer Religionsunterricht",
+    thema: "Die 5 Säulen des Islam",
+    schulstufe: "4. Klasse Volksschule",
+    aufgabentypen: ["multiple_choice"],
+    layout: {},
+    ...overrides,
+  };
+}
+
+describe("GenerateRequestSchema - Schulstufen-Gating für malaufgabe/recherche_auftrag", () => {
+  // Regressionstest: "malaufgabe" (Schüler:innen zeichnen selbst, siehe generateWorksheet.ts)
+  // ist bewusst nur für 1./2. Klasse Volksschule vorgesehen, "recherche_auftrag" (eigenständige
+  // Recherche) umgekehrt nur ab Sekundarstufe I - beide schließen sich schulstufenbedingt aus.
+  it("lehnt 'malaufgabe' außerhalb der 1./2. Klasse Volksschule ab", () => {
+    const req = baseRequest({
+      schulstufe: "4. Klasse Volksschule",
+      aufgabentypen: ["malaufgabe"],
+    });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
+  });
+
+  it("akzeptiert 'malaufgabe' für die 1. Klasse Volksschule", () => {
+    const req = baseRequest({
+      schulstufe: "1. Klasse Volksschule",
+      aufgabentypen: ["malaufgabe"],
+    });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
+  });
+
+  it("lehnt 'recherche_auftrag' für die 1./2. Klasse Volksschule ab", () => {
+    const req = baseRequest({
+      schulstufe: "2. Klasse Volksschule",
+      aufgabentypen: ["recherche_auftrag"],
+    });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
+  });
+
+  it("akzeptiert 'recherche_auftrag' ab Sekundarstufe I", () => {
+    const req = baseRequest({
+      schulstufe: "1. Klasse Mittelschule/AHS-Unterstufe (5. Schulstufe)",
+      aufgabentypen: ["recherche_auftrag"],
+    });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
+  });
+});
+
+describe("AUFGABEN_TYP_MAXIMUM", () => {
+  it("deckelt 'recherche_auftrag' wie Kreuzworträtsel/Wortsuche auf 1 pro Arbeitsblatt", () => {
+    expect(AUFGABEN_TYP_MAXIMUM.recherche_auftrag).toBe(1);
   });
 });

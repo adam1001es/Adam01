@@ -1,23 +1,32 @@
 import { prisma } from "@/lib/prisma";
 
-/** Abo-Stufen: Kontingent wird privat bezahlt (kein Zahlungsanbieter im Code) und von einem
- * Admin manuell zugewiesen (siehe /admin). null = kein bezahltes Abo, aber automatisch
- * KOSTENLOS_LIMIT Arbeitsblätter/Monat als Gratis-Basis (jedes Konto braucht einen Login -
- * siehe app/api/generate; zusätzlich pro IP/Browser begrenzt, siehe lib/trial.ts, damit sich
- * niemand durch mehrere Konten ein Vielfaches des Gratis-Kontingents verschafft). */
+/** Nur noch EIN bezahltes Abo (bewusst vereinfacht statt Starter/Pro-Staffelung) - Kontingent
+ * wird privat bezahlt (kein Zahlungsanbieter im Code) und von einem Admin manuell zugewiesen
+ * (siehe /admin, AdminTierForm bietet dafür nur noch "pro" als Paket an). null = kein bezahltes
+ * Abo, aber automatisch KOSTENLOS_LIMIT Arbeitsblätter/Monat als Gratis-Basis (jedes Konto
+ * braucht einen Login - siehe app/api/generate; zusätzlich pro IP/Browser begrenzt, siehe
+ * lib/trial.ts, damit sich niemand durch mehrere Konten ein Vielfaches des Gratis-Kontingents
+ * verschafft).
+ *
+ * Kalkulation (Worst Case bei voller Ausschöpfung, Ziel: mindestens ~25-30% Marge - siehe
+ * GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR): 18 × 0,10€ = 1,80€ Kosten bei 2,50€ Preis = 28% Marge.
+ * "starter" bleibt als Alias mit identischen Werten bestehen - reine Abwärtskompatibilität für
+ * Konten, die vor dieser Umstellung noch "starter" zugewiesen bekamen (sonst würden sie beim
+ * nächsten Zyklus plötzlich auf 0 Kontingent fallen); neu zuweisbar ist nur noch "pro". */
 export const TIER_QUOTA: Record<string, number> = {
   starter: 18,
-  pro: 36,
+  pro: 18,
 };
 
 export const TIER_PREIS_EUR: Record<string, number> = {
-  starter: 3,
-  pro: 6,
+  starter: 2.5,
+  pro: 2.5,
 };
 
+const ABO_LABEL = `Abo (${TIER_PREIS_EUR.pro.toFixed(2)}€ / ${TIER_QUOTA.pro} Arbeitsblätter im Monat)`;
 export const TIER_LABEL: Record<string, string> = {
-  starter: `Starter (${TIER_PREIS_EUR.starter}€ / ${TIER_QUOTA.starter} Arbeitsblätter im Monat)`,
-  pro: `Pro (${TIER_PREIS_EUR.pro}€ / ${TIER_QUOTA.pro} Arbeitsblätter im Monat)`,
+  starter: ABO_LABEL,
+  pro: ABO_LABEL,
 };
 
 export const KOSTENLOS_LIMIT = 3;

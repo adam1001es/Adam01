@@ -45,19 +45,43 @@ religiöse Sach-/Darstellungskompetenz, interkulturelle/interreligiöse Kompeten
 Deutungs-/Urteilskompetenz, lebensweltliche Anwendungskompetenz) sowie an sprachsensiblem
 Unterricht und Lebensweltbezug. Details in `lib/curriculum.ts`.
 
+### Aufgabentypen
+
+Bewusst wenige, aber didaktisch bewährte Aufgabentypen statt einer breiten, beliebigen Auswahl -
+"lieber 4-5 gute Methoden als 8-10 Nonsenses". Acht Typen stehen für alle Schulstufen zur
+Verfügung: Multiple Choice, Zuordnung, Offene Frage/Diskussion, Wahr oder Falsch (MIT
+Pflicht-Begründung statt reinem Raten), Reihenfolge, Lesetext mit Verständnisfrage,
+Kreuzworträtsel, Wortsuche. Zwei weitere Typen sind schulstufengebunden und schließen sich
+gegenseitig aus (siehe `GenerateRequestSchema` in `lib/types.ts`):
+
+- **Malaufgabe** (nur 1./2. Klasse Volksschule): eine kurze, mündlich vorlesbare Zeichenanweisung
+  zum Thema - die Schüler:innen zeichnen selbst auf dem ausgedruckten Blatt (kein KI-generiertes
+  Bild, siehe Hinweis unten).
+- **Recherche-/Referatsauftrag** (nur ab Sekundarstufe I): eine längerfristige Projekt-/
+  Hausaufgabe zu einer Person, einem Ort, Gegenstand oder Konzept aus dem Thema, mit von Claude
+  generiertem Leitfaden (konkrete Recherchefragen), Bewertungskriterien und einem Hinweis zu
+  vertrauenswürdigen Quellenarten (oder einem kurzen Sachtext als Basis ohne Internetzugang) -
+  nicht für eine einzelne Unterrichtseinheit gedacht.
+
+Kreuzworträtsel, Wortsuche und Recherche-/Referatsauftrag sind inhaltlich schon für sich
+umfangreich und werden serverseitig auf höchstens 1 Aufgabe pro Arbeitsblatt begrenzt, unabhängig
+von der insgesamt gewählten Aufgabenzahl.
+
 ### Aufgaben für noch nicht lese-/schreibkundige Kinder (1./2. Klasse Volksschule)
 
 Für die 1./2. Schulstufe (Kinder können zu Schulbeginn meist noch nicht lesen/schreiben) wird die
-Generierung zu besonders einfachen, mündlich vorlesbaren Aufgaben angeleitet - überwiegend
-„Wahr oder Falsch“, „Multiple Choice“ mit ganz wenigen, kurzen Antwortoptionen und „Zuordnung“ mit
-wenigen, sehr kurzen Begriffen, statt textlastiger Aufgabentypen. Im Erstellen-Formular gibt es
-dafür eine Empfehlung samt Schnellauswahl, sobald „1./2. Klasse Volksschule“ als Schulstufe
-gewählt ist.
+Generierung zu besonders einfachen, mündlich vorlesbaren Aufgaben angeleitet - überwiegend die
+„Malaufgabe“ sowie „Wahr oder Falsch“, „Multiple Choice“ mit ganz wenigen, kurzen Antwortoptionen
+und „Zuordnung“ mit wenigen, sehr kurzen Begriffen, statt textlastiger Aufgabentypen. Im
+Erstellen-Formular gibt es dafür eine Empfehlung samt Schnellauswahl, sobald „1./2. Klasse
+Volksschule“ als Schulstufe gewählt ist.
 
-> Frühere Versionen boten zusätzlich bildbasierte Aufgabentypen („Ausmalbild“,
+> Frühere Versionen boten stattdessen bildbasierte Aufgabentypen („Ausmalbild“,
 > „Bildergeschichte“) mit live per Bild-KI (Google Gemini) generierten Motiven an. Diese Funktion
-> wurde entfernt (zu kosten- und wartungsintensiv), bereits erstellte Arbeitsblätter mit solchen
-> Aufgaben bleiben aber unverändert ansehbar, druckbar und bearbeitbar.
+> wurde entfernt (zu kosten- und wartungsintensiv) und durch die reine Zeichen-Anweisung
+> „Malaufgabe“ ersetzt (kein KI-Bild, kein zusätzlicher Kostenfaktor). Bereits erstellte
+> Arbeitsblätter mit den alten Bild-Aufgaben bleiben aber unverändert ansehbar, druckbar und
+> bearbeitbar.
 
 ## Layout-Extras
 
@@ -105,18 +129,23 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
   Admin-Rechte zu vergeben) - dieser Account sollte also der/die Betreiber:in sein. **Admin-Konten
   haben kein Kontingent-Limit** (weder persönlich noch über die Browser-/IP-Sperre) - `/new` und
   das Dashboard zeigen dafür ein eigenes „unbegrenztes Kontingent"-Banner statt einer Zahl.
-- **Abo-Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 3
-  Arbeitsblätter/Monat - automatisch, ohne Admin-Freischaltung), „Starter" (30/Monat) und „Pro"
-  (80/Monat). Jedes frisch registrierte Konto startet automatisch auf „Kostenlos"; ein Admin
-  schaltet unter `/admin` bei Bedarf auf Starter/Pro hoch.
+- **Zwei Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 3
+  Arbeitsblätter/Monat - automatisch, ohne Admin-Freischaltung) und ein einziges bezahltes „Abo"
+  (2,50€ / 18 Arbeitsblätter im Monat, ~28% Marge bei voller Kontingent-Ausschöpfung, siehe
+  Kommentar bei `TIER_QUOTA`). Bewusst nur ein Bezahl-Tarif statt einer Staffelung - einfacher zu
+  kommunizieren, ohne dass Lehrkräfte zwischen mehreren Paketen abwägen müssen. Jedes frisch
+  registrierte Konto startet automatisch auf „Kostenlos"; ein Admin schaltet unter `/admin` bei
+  Bedarf auf das Abo hoch. Intern bleibt der Datenbankwert `"pro"` (historisch gewachsen aus einer
+  früheren Zwei-Tarif-Version; `"starter"` existiert nur noch als Abwärtskompatibilitäts-Alias für
+  Konten von davor).
 - **Rollierender 30-Tage-Zyklus** ab dem individuellen Konto-Erstellungsdatum (nicht ab dem
   Kalendermonat) - jedes Konto hat also seinen eigenen Rhythmus.
 - Ist das Kontingent aufgebraucht, wird das schon in `/new` sichtbar (Banner + deaktivierter
   „Arbeitsblatt erstellen"-Button) und serverseitig in `/api/generate` **vor** dem teuren
   Claude-Aufruf geprüft, damit ein blockiertes Konto keine API-Kosten verursacht.
 - **Ein Login ist für jede Generierung Pflicht** - nicht angemeldete Besucher sehen auf `/`
-  keine Login-Maske, sondern eine Produkt-/Verkaufsseite (Funktionen, Kostenlos-/Starter-/
-  Pro-Preise) mit Call-to-Action zur (kostenlosen) Registrierung.
+  keine Login-Maske, sondern eine Produkt-/Verkaufsseite (Funktionen, Kostenlos-/Abo-Preise) mit
+  Call-to-Action zur (kostenlosen) Registrierung.
 - **`/admin`** ist auf Konten-Verwaltung ausgelegt: Kennzahlen (Konten gesamt, aktive bezahlte
   Abos, geschätzter Monatsumsatz), Suche nach E-Mail, Kontingent-Nutzung und Gesamtzahl
   erstellter Arbeitsblätter je Konto, sowie Konten löschen (das eigene Admin-Konto ausgenommen -
@@ -127,8 +156,8 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
 
 Ein Konto zu registrieren ist selbst kostenlos (nur E-Mail + Passwort) - ohne weitere Sperre
 könnte sich also jemand beliebig viele Konten anlegen, um ein Vielfaches des Gratis-Kontingents
-zu bekommen. Deshalb wird die **kostenlose** Stufe (nicht Starter/Pro - die wurden von einem
-Admin manuell freigeschaltet) zusätzlich über zwei unabhängige, browser-/netzwerkbasierte Zähler
+zu bekommen. Deshalb wird die **kostenlose** Stufe (nicht das Abo - das wurde von einem Admin
+manuell freigeschaltet) zusätzlich über zwei unabhängige, browser-/netzwerkbasierte Zähler
 begrenzt (`lib/trial.ts`) - blockiert wird, sobald **einer** der beiden das Limit erreicht,
 unabhängig davon, welches Konto gerade eingeloggt ist:
 - **Cookie** (Browser, `trial_usage`) - verhindert das naive "neues Konto, gleicher Browser".

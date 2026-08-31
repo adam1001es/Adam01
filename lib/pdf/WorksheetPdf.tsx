@@ -23,6 +23,8 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   diskussion: "Diskussionsimpuls",
   wortsuche: "Wortsuche",
   kreuzwortraetsel: "Kreuzworträtsel",
+  malaufgabe: "Malaufgabe",
+  recherche_auftrag: "Recherche-/Referat-Auftrag",
 };
 
 /** Feste Icons als Base64-Data-URIs statt Dateipfad, beim Modul-Laden EINMAL eingelesen -
@@ -306,6 +308,29 @@ function buildStyles(layout: LayoutConfig) {
       textAlign: "center",
       marginTop: 3,
     },
+    malRahmen: {
+      marginTop: 6,
+      marginLeft: 12,
+      height: 150,
+      border: "1.5px dashed #94a3b8",
+      borderRadius: 10,
+    },
+    rechercheBlock: {
+      marginLeft: 12,
+      marginTop: 4,
+    },
+    rechercheLabel: {
+      fontWeight: 700,
+      marginBottom: 2,
+    },
+    rechercheZeile: {
+      marginBottom: 1,
+    },
+    rechercheHinweis: {
+      marginTop: 4,
+      fontStyle: "italic",
+      color: "#475569",
+    },
   });
 }
 
@@ -515,6 +540,34 @@ function AufgabenListe({
                   <Text style={styles.bildergeschichteText}>{schritt.vorlesetext}</Text>
                 </View>
               ))}
+            </View>
+          )}
+          {a.typ === "malaufgabe" && <View style={styles.malRahmen} />}
+          {a.typ === "recherche_auftrag" && (
+            <View style={styles.rechercheBlock}>
+              {a.leitfaden && a.leitfaden.length > 0 && (
+                <>
+                  <Text style={styles.rechercheLabel}>Leitfaden</Text>
+                  {a.leitfaden.map((punkt, i) => (
+                    <Text key={i} style={styles.rechercheZeile}>
+                      {i + 1}. {punkt}
+                    </Text>
+                  ))}
+                </>
+              )}
+              {a.bewertungskriterien && a.bewertungskriterien.length > 0 && (
+                <>
+                  <Text style={[styles.rechercheLabel, { marginTop: 6 }]}>Darauf wird geachtet</Text>
+                  {a.bewertungskriterien.map((kriterium, i) => (
+                    <Text key={i} style={styles.rechercheZeile}>
+                      • {kriterium}
+                    </Text>
+                  ))}
+                </>
+              )}
+              {a.quellenhinweis && (
+                <Text style={styles.rechercheHinweis}>Hinweis zu Quellen: {a.quellenhinweis}</Text>
+              )}
             </View>
           )}
         </View>

@@ -72,8 +72,7 @@ export default function AdminTierForm({
           className={inputClass}
         >
           <option value="">Kostenlos (3/Monat)</option>
-          <option value="starter">Starter (30/Monat)</option>
-          <option value="pro">Pro (80/Monat)</option>
+          <option value="pro">Abo (2,50€ / 18 im Monat)</option>
         </select>
       </label>
 
@@ -115,7 +114,7 @@ export default function AdminTierForm({
         </button>
         {keinPaket ? (
           <p className="text-xs text-slate-400">
-            Der Zeitraum wirkt nur, wenn oben Starter oder Pro ausgewählt ist.
+            Der Zeitraum wirkt nur, wenn oben das Abo ausgewählt ist.
           </p>
         ) : (
           <p className="text-xs text-slate-400">Leer lassen = unbefristet in diese Richtung.</p>
