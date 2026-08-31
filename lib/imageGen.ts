@@ -6,17 +6,18 @@ import { pruefeBildSicherheit } from "./imageSafety";
  * "gemini-2.5-flash-image", auch bekannt als "Nano Banana"), wenn kein passendes Icon aus der
  * kuratierten Bibliothek (lib/icons.ts) existiert. Wird NUR für Motive aufgerufen, die laut
  * Systemprompt (lib/generateWorksheet.ts) ausschließlich Gegenstände, Tiere, Natur oder Gebäude
- * beschreiben dürfen - nie Personen. Vier unabhängige Sicherheitsebenen, jede für sich
+ * beschreiben dürfen - nie Personen. Drei unabhängige Sicherheitsebenen, jede für sich
  * ausreichend, zusammen aber deutlich robuster:
  * 1. Text-Blockliste (unten) - bricht schon vor dem API-Aufruf ab, wenn die Beschreibung selbst
  *    verräterische Begriffe enthält (Claude hat sich nicht an den Systemprompt gehalten).
  * 2. Explizite Verbots-Anweisung im Prompt an das Bildmodell selbst (Gemini kennt keinen
  *    separaten "negative_prompt"-Parameter wie SDXL, sondern nimmt Verbote als Teil der
- *    normalen Anweisung entgegen).
- * 3. `imageConfig.personGeneration: "ALLOW_NONE"` - modellseitige Sperre gegen Personen-
- *    Darstellung, unabhängig vom Text-Prompt.
- * 4. Claude-Bildprüfung NACH der Generierung (siehe lib/imageSafety.ts) - erkennt auch, was
- *    Ebene 1-3 nicht abfangen (das Bildmodell hält sich nicht an die Anweisung/Sperre).
+ *    normalen Anweisung entgegen). HINWEIS: "imageConfig.personGeneration" gibt es zwar in der
+ *    SDK-Typdefinition, wird von der kostenlosen Gemini Developer API (Google AI Studio) aber
+ *    NICHT unterstützt (nur im Vertex-/Enterprise-Modus) - bewusst NICHT gesetzt, sonst schlägt
+ *    JEDE Bildgenerierung mit einem Laufzeitfehler fehl.
+ * 3. Claude-Bildprüfung NACH der Generierung (siehe lib/imageSafety.ts) - erkennt auch, was
+ *    Ebene 1+2 nicht abfangen (das Bildmodell hält sich nicht an die Anweisung).
  *
  * Bewusst über die Gemini API (Google AI Studio) statt Replicate: das kostenlose Kontingent
  * dort erfordert keine hinterlegte Zahlungsmethode/Kreditkarte, nur einen kostenlosen
@@ -147,10 +148,7 @@ export async function generiereAusmalbild(
     contents: `${STIL_PROMPT_PREFIX} Motif: ${motivBeschreibung}. ${verbotsAnweisung}`,
     config: {
       responseModalities: ["IMAGE"],
-      // "ALLOW_NONE": zusätzliche, modellseitige Sperre (unabhängig vom Text-Prompt) gegen
-      // die Darstellung von Personen - eine vierte Sicherheitsebene neben Blockliste,
-      // Prompt-Anweisung und der Claude-Nachprüfung in lib/imageSafety.ts.
-      imageConfig: { aspectRatio: "1:1", personGeneration: "ALLOW_NONE" },
+      imageConfig: { aspectRatio: "1:1" },
     },
   });
 
