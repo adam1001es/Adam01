@@ -205,29 +205,37 @@ export async function generateAndVerifyWorksheet(
   const rawContent = extractJson(getTextFromMessage(genResponse));
   const content = WorksheetContentSchema.parse(rawContent);
   begrenzeAufgabenProTyp(content);
-  await loeseGenerierteBilderAuf(content);
+  // Gitter-Auflösung (schnell, synchron, rein lokal) VOR der Verifikation, damit die
+  // Kreuzworträtsel-Lösung dort schon final/korrekt nummeriert vorliegt. Die Bildgenerierung
+  // dagegen (potenziell mehrere Sekunden pro Bild) läuft PARALLEL zum Verifikations-Aufruf statt
+  // danach - beides braucht nur den bereits vorliegenden Text-Inhalt, nicht das jeweils andere
+  // Ergebnis. Das verkürzt die Gesamtlaufzeit spürbar und hilft, das Zeitlimit der
+  // /api/generate-Route einzuhalten.
   loeseRaetselAuf(content);
 
-  const verifyResponse = await client.messages.create({
-    model: VERIFICATION_MODEL,
-    // Ebenfalls angehoben (war 4000): die Prüfantwort muss zum vollständigen, ggf. sehr
-    // umfangreichen Arbeitsblatt-JSON passen und darf dabei nicht abgeschnitten werden.
-    max_tokens: 8000,
-    system: [
-      {
-        type: "text",
-        text: VERIFICATION_SYSTEM_PROMPT_BASE,
-        cache_control: { type: "ephemeral", ttl: "1h" },
-      },
-      { type: "text", text: curriculumContext },
-    ],
-    messages: [
-      {
-        role: "user",
-        content: `Prüfe dieses Arbeitsblatt-JSON:\n\n${JSON.stringify(content, null, 2)}`,
-      },
-    ],
-  });
+  const [, verifyResponse] = await Promise.all([
+    loeseGenerierteBilderAuf(content),
+    client.messages.create({
+      model: VERIFICATION_MODEL,
+      // Ebenfalls angehoben (war 4000): die Prüfantwort muss zum vollständigen, ggf. sehr
+      // umfangreichen Arbeitsblatt-JSON passen und darf dabei nicht abgeschnitten werden.
+      max_tokens: 8000,
+      system: [
+        {
+          type: "text",
+          text: VERIFICATION_SYSTEM_PROMPT_BASE,
+          cache_control: { type: "ephemeral", ttl: "1h" },
+        },
+        { type: "text", text: curriculumContext },
+      ],
+      messages: [
+        {
+          role: "user",
+          content: `Prüfe dieses Arbeitsblatt-JSON:\n\n${JSON.stringify(content, null, 2)}`,
+        },
+      ],
+    }),
+  ]);
 
   const rawVerification = extractJson(getTextFromMessage(verifyResponse));
   const verification = VerificationSchema.parse(rawVerification);

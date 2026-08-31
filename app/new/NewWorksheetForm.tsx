@@ -177,8 +177,19 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
+      const rohtext = await res.text();
+      let data: { id?: string; error?: string };
+      try {
+        data = JSON.parse(rohtext);
+      } catch {
+        // Kein gültiges JSON (z.B. weil die Serverfunktion mitten in der Generierung wegen
+        // Zeitüberschreitung abgebrochen wurde und stattdessen eine Plattform-Fehlerseite
+        // zurückkam) - statt der kryptischen Browser-Fehlermeldung eine verständliche anzeigen.
+        throw new Error(
+          "Die Erstellung hat zu lange gedauert oder wurde serverseitig abgebrochen. Bitte erneut versuchen - ggf. mit weniger Aufgaben oder weniger bildbasierten Aufgabentypen gleichzeitig.",
+        );
+      }
+      if (!res.ok || !data.id) {
         throw new Error(data.error ?? "Generierung fehlgeschlagen.");
       }
       router.push(`/worksheet/${data.id}`);
