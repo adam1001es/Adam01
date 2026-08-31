@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { MailCheck } from "lucide-react";
 import { inputClass, labelClass } from "@/lib/formStyles";
 
@@ -101,6 +102,14 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
         />
         {mode === "register" && (
           <span className="mt-1 block text-xs text-slate-400">Mindestens 8 Zeichen.</span>
+        )}
+        {mode === "login" && (
+          <Link
+            href="/passwort-vergessen"
+            className="mt-1.5 inline-block text-xs font-medium text-brand-600 hover:underline"
+          >
+            Passwort vergessen?
+          </Link>
         )}
       </label>
 

@@ -27,6 +27,20 @@ export function erzeugeVerifizierungsToken(): { token: string; ablauf: Date } {
   };
 }
 
+// Kürzer als die E-Mail-Bestätigung: ein gültiger Passwort-Reset-Link verschafft sofort vollen
+// Kontozugriff (siehe app/api/auth/passwort-zuruecksetzen), daher hier bewusst enger befristet.
+const PASSWORT_RESET_GUELTIG_STUNDEN = 1;
+
+/** Erzeugt einen neuen Passwort-Reset-Token (1h gültig) für die Reset-Mail. Eigenes Tokenfeld
+ * (User.passwortResetToken) statt Wiederverwendung von erzeugeVerifizierungsToken - siehe
+ * Begründung im Prisma-Schema. */
+export function erzeugePasswortResetToken(): { token: string; ablauf: Date } {
+  return {
+    token: randomBytes(32).toString("hex"),
+    ablauf: new Date(Date.now() + PASSWORT_RESET_GUELTIG_STUNDEN * 60 * 60 * 1000),
+  };
+}
+
 export async function hashPassword(passwort: string): Promise<string> {
   return bcrypt.hash(passwort, 12);
 }

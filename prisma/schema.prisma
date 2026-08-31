@@ -67,6 +67,14 @@ model User {
   // schließen sich zeitlich aus (ein Konto hat nie beide gleichzeitig offen), daher genügt ein
   // gemeinsames Tokenfeld.
   pendingEmail String?
+  // Eigenes Tokenfeld statt Wiederverwendung von verifizierungsToken: ein Passwort-Reset kann
+  // zeitlich mit einer offenen E-Mail-Änderung zusammenfallen (z.B. Mail-Postfach kompromittiert
+  // -> Angreifer:in ändert E-Mail, echte Person will parallel das Passwort zurücksetzen) - beide
+  // Vorgänge dürfen sich nicht gegenseitig überschreiben. Kürzere Gültigkeit als die
+  // E-Mail-Bestätigung (siehe erzeugePasswortResetToken in lib/auth.ts), da ein gültiger Link
+  // hier direkt vollen Kontozugriff verschafft.
+  passwortResetToken String? @unique
+  passwortResetTokenAblauf DateTime?
   tier         String?  // null (kein Abo) | "starter" (30/Monat) | "pro" (80/Monat)
   // Optionaler Gültigkeitszeitraum für "tier" (z.B. Schuljahr/Semester, nach dem privat bezahlt
   // wird) - beide optional, vom Admin gesetzt. Außerhalb dieses Zeitraums (falls gesetzt) gilt

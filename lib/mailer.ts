@@ -75,3 +75,31 @@ export async function sendeEmailAenderungsMail(
     `,
   });
 }
+
+/** Mail zum Zurücksetzen eines vergessenen Passworts (siehe app/api/auth/passwort-vergessen) -
+ * bewusst kürzer gültig (1 Stunde) als die anderen Bestätigungsmails, da ein gültiger Link
+ * hier direkt vollen Kontozugriff verschafft. */
+export async function sendePasswortResetMail(
+  empfaenger: string,
+  resetUrl: string,
+): Promise<void> {
+  const t = getTransporter();
+  await t.sendMail({
+    from: `"Arbeitsblatt-Generator" <${process.env.GMAIL_USER}>`,
+    to: empfaenger,
+    subject: "Passwort zurücksetzen",
+    text: `Für dein Konto beim Arbeitsblatt-Generator wurde ein neues Passwort angefordert.\n\nÜber diesen Link (1 Stunde gültig) kannst du ein neues Passwort vergeben:\n${resetUrl}\n\nFalls du das nicht warst, kannst du diese Mail einfach ignorieren - dein Passwort bleibt dann unverändert.`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+        <h2 style="color:#12704c;">Passwort zurücksetzen</h2>
+        <p>Für dein Konto beim Arbeitsblatt-Generator wurde ein neues Passwort angefordert.</p>
+        <p>
+          <a href="${resetUrl}" style="display:inline-block;background:#12704c;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+            Neues Passwort vergeben
+          </a>
+        </p>
+        <p style="color:#64748b;font-size:13px;">Der Link ist 1 Stunde gültig. Falls du das nicht warst, kannst du diese Mail einfach ignorieren - dein Passwort bleibt dann unverändert.</p>
+      </div>
+    `,
+  });
+}
