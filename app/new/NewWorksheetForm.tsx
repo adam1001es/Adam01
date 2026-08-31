@@ -241,65 +241,51 @@ export default function NewWorksheetForm({
           akzent="blau"
           schritt={{ nr: 1, von: 3 }}
         >
-          <div
-            className={`mb-4 rounded-xl border-2 p-4 ${SEKTION_FARBEN.blau.boxBorder} ${SEKTION_FARBEN.blau.boxBg}`}
-          >
-            <span className={`mb-1 block text-xs font-semibold uppercase tracking-wide ${SEKTION_FARBEN.blau.boxLabel}`}>
-              Thema &amp; Schulstufe
-            </span>
-            <p className="mb-3 text-xs leading-relaxed text-slate-500">
-              So entsteht der Inhalt: <strong className="text-slate-700">Thema</strong> bestimmt,
-              worum es geht, <strong className="text-slate-700">Schulstufe</strong> steuert
-              Sprachniveau und Aufgabenlänge, und weiter unten ordnet{" "}
-              <strong className="text-slate-700">Themenbereich</strong> das Ganze fachlich dem
-              Lehrplan zu. Je genauer diese drei Angaben, desto treffsicherer das Ergebnis.
-            </p>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-semibold text-slate-700">Thema</span>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className={labelClass}>Thema</span>
+              <input
+                className={inputClass}
+                value={thema}
+                onChange={(e) => setThema(e.target.value)}
+                placeholder="z.B. Die 5 Säulen des Islam"
+                required
+              />
+              <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                Je spezifischer (z.B. „Die 5 Säulen des Islam" statt nur „Islam"), desto besser
+                passen die Aufgaben.
+              </span>
+            </label>
+            <label className="block">
+              <span className={labelClass}>Schulstufe</span>
+              <select
+                className={inputClass}
+                value={schulstufeAuswahl}
+                onChange={(e) => setSchulstufeAuswahl(e.target.value)}
+              >
+                {SCHULSTUFEN_OPTIONEN.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+                <option value={ANDERE_SCHULSTUFE}>Andere (frei eingeben) …</option>
+              </select>
+              {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
                 <input
-                  className="w-full rounded-lg border border-sky-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  value={thema}
-                  onChange={(e) => setThema(e.target.value)}
-                  placeholder="z.B. Die 5 Säulen des Islam"
+                  className={`${inputClass} mt-2`}
+                  value={schulstufeFrei}
+                  onChange={(e) => setSchulstufeFrei(e.target.value)}
+                  placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
                   required
                 />
-                <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-                  Das konkrete Unterrichtsthema - je spezifischer (z.B. „Die 5 Säulen des Islam"
-                  statt nur „Islam"), desto besser passen die Aufgaben.
-                </span>
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-sm font-semibold text-slate-700">Schulstufe</span>
-                <select
-                  className="w-full rounded-lg border border-sky-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                  value={schulstufeAuswahl}
-                  onChange={(e) => setSchulstufeAuswahl(e.target.value)}
-                >
-                  {SCHULSTUFEN_OPTIONEN.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                  <option value={ANDERE_SCHULSTUFE}>Andere (frei eingeben) …</option>
-                </select>
-                {schulstufeAuswahl === ANDERE_SCHULSTUFE && (
-                  <input
-                    className="mt-2 w-full rounded-lg border border-sky-300 bg-white px-4 py-3 text-base font-medium text-slate-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
-                    value={schulstufeFrei}
-                    onChange={(e) => setSchulstufeFrei(e.target.value)}
-                    placeholder="z.B. 5. Klasse Mittelschule, jahrgangsgemischte Gruppe"
-                    required
-                  />
-                )}
-                <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-                  Steuert Sprachniveau und Komplexität - bei 1./2. Klasse Volksschule werden
-                  automatisch bildbasierte Aufgaben empfohlen.
-                </span>
-              </label>
-            </div>
+              )}
+              <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                Steuert Sprachniveau - bei 1./2. Klasse Volksschule werden automatisch
+                bildbasierte Aufgaben empfohlen.
+              </span>
+            </label>
           </div>
-          <label className="block">
+          <label className="mt-4 block">
             <span className={labelClass}>Themenbereich (fachliche Einordnung laut Lehrplan)</span>
             <p className="mb-1.5 text-xs leading-relaxed text-slate-400">
               Ordnet das oben angegebene Thema fachlich einer der vier Lehrplan-Kategorien zu -
