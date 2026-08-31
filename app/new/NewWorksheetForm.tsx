@@ -21,6 +21,7 @@ import {
   Grid3x3,
   Hash,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN,
@@ -149,6 +150,7 @@ export default function NewWorksheetForm({
   ]);
   const [zusatzhinweise, setZusatzhinweise] = useState("");
   const [themenbereich, setThemenbereich] = useState<ThemenbereichKey>("gemischt");
+  const [themenvorschlaegeOffen, setThemenvorschlaegeOffen] = useState(false);
   const [themaIdeen, setThemaIdeen] = useState<string[] | null>(null);
   const [ideenLaden, setIdeenLaden] = useState(false);
   const [ideenFehler, setIdeenFehler] = useState<string | null>(null);
@@ -314,23 +316,33 @@ export default function NewWorksheetForm({
           </div>
           {schulstufenThemen && (
             <div className="mt-3">
-              <span className="mb-1.5 block text-xs font-medium text-slate-500">
-                Themenvorschläge laut Lehrplan IRU NEU für diese Schulstufe
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {schulstufenThemen.map((vorschlag) => (
-                  <button
-                    type="button"
-                    key={vorschlag}
-                    onClick={() => setThema(vorschlag)}
-                    className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                      thema === vorschlag ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
-                    }`}
-                  >
-                    {vorschlag}
-                  </button>
-                ))}
-              </div>
+              <button
+                type="button"
+                onClick={() => setThemenvorschlaegeOffen((v) => !v)}
+                className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-700"
+              >
+                <ChevronDown
+                  size={14}
+                  className={`shrink-0 transition-transform ${themenvorschlaegeOffen ? "rotate-180" : ""}`}
+                />
+                Themenvorschläge laut Lehrplan IRU NEU ({schulstufenThemen.length})
+              </button>
+              {themenvorschlaegeOffen && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {schulstufenThemen.map((vorschlag) => (
+                    <button
+                      type="button"
+                      key={vorschlag}
+                      onClick={() => setThema(vorschlag)}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        thema === vorschlag ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                      }`}
+                    >
+                      {vorschlag}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           <div className="mt-3">
