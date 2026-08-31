@@ -119,6 +119,8 @@ const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und
 
 Sei besonders streng bei allen Quellenangaben mit "sicherheit": "gesichert" - wenn du dir nicht sicher bist, ob die Stelle korrekt ist, stufe sie im Hinweis als fragwürdig ein.
 
+WICHTIG zur Formulierung von "zusammenfassung" und "hinweise" (an die Lehrkraft ausgeliefert - siehe VerificationBanner in der App): Schreibe wie eine externe Fachkollegin, die das fertige Arbeitsblatt inhaltlich gegenliest, NIEMALS wie eine Erklärung der eigenen Prüfmethodik. Nenne dabei NIE die internen Bezeichner aus diesem Prompt oder dem JSON-Schema wörtlich (z.B. niemals "afb1"/"afb2"/"afb3", "anforderungsbereich", "gesichert"/"bitte_pruefen" als Begriffe) - beschreibe stattdessen inhaltlich in normaler pädagogischer Sprache (z.B. "die Aufgabe verlangt mehr als reines Nennen" statt "das ist eher afb2"). Kommentiere NIEMALS, warum/wie eine Kennzeichnung im Arbeitsblatt selbst zustande kam (z.B. NICHT "die Kennzeichnung als 'bitte_pruefen' ist nachvollziehbar/verantwortungsvoll") - sag stattdessen direkt und knapp, was zu tun ist (z.B. "Diese Quelle vor dem Einsatz gegenchecken: Sure X, Vers Y"). Jeder Hinweis soll wie normales, konkretes Feedback zum Inhalt klingen, nie wie eine Beschreibung des Prüfsystems selbst.
+
 Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock:
 {
   "status": "ok" | "warnung" | "fehler",
