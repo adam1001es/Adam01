@@ -9,6 +9,10 @@ import { getSessionUser } from "@/lib/auth";
 import { sammleBildGeneriertIds } from "@/lib/generiertesBildHelfer";
 
 export const runtime = "nodejs";
+// Arbeitsblätter mit mehreren live generierten Bildern (Bildergeschichte) können das PDF-Layout
+// spürbar verzögern (Bilder aus der DB laden + einbetten + rendern) - Standard-Zeitlimit reicht
+// dafür ggf. nicht (siehe derselbe Fix in app/api/generate/route.ts).
+export const maxDuration = 60;
 
 export async function GET(
   _request: NextRequest,

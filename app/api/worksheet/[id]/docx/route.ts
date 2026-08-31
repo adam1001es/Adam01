@@ -7,6 +7,8 @@ import { getSessionUser } from "@/lib/auth";
 import { sammleBildGeneriertIds } from "@/lib/generiertesBildHelfer";
 
 export const runtime = "nodejs";
+// Siehe dieselbe Begründung in app/api/worksheet/[id]/pdf/route.ts.
+export const maxDuration = 60;
 
 export async function GET(
   _request: NextRequest,
