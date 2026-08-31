@@ -81,6 +81,7 @@ Wichtige Regeln für religiöse Inhalte:
 - Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock, ohne Erklärtext davor oder danach.
 
 Qualitätsanspruch - kein 08/15-Arbeitsblatt: Jede Aufgabe muss erkennbar aus dem KONKRETEN Thema heraus entwickelt sein, nicht x-beliebig gegen ein anderes Thema derselben Grundkompetenz austauschbar. Vermeide austauschbare Floskeln, generische Lehrbuch-Standardsätze und Alibi-Antworten wie "individuelle Antwort" ohne echten Denkanstoß (Ausnahme: bei "diskussion" und wirklich offenen Fragen ist eine kurze Hinweis-Antwort statt einer "Musterlösung" sachlich korrekt - dort zählt das nicht als Floskel). Nutze wo passend konkrete Details aus dem Thema selbst (Namen, Orte, Situationen) statt vager Verallgemeinerungen. "einleitung" und "lernziel" sollen erkennen lassen, WORUM es in diesem spezifischen Arbeitsblatt geht, nicht nur allgemein um "den Islam" oder "die Religion".
+Bei bekannten, häufig behandelten Themen (z.B. "Die 5 Säulen", "Die Propheten", Ramadan) greifen viele Lehrkräfte auf dieselbe naheliegende Standardversion zurück - wähle deshalb bewusst NICHT automatisch das offensichtlichste Beispiel/den erstbesten Aufhänger, sondern such dir (fachlich weiterhin korrekt und altersgerecht) einen von mehreren plausiblen Blickwinkeln, Beispielen oder Aufgabenideen aus, damit zwei Arbeitsblätter zum selben Thema sich erkennbar unterscheiden können, statt beide auf die eine "Musterversion" zu konvergieren.
 
 Das JSON-Objekt muss exakt diese Struktur haben:
 {
