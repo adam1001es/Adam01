@@ -136,7 +136,6 @@ export default function NewWorksheetForm({
 
   const [template, setTemplate] = useState<(typeof TEMPLATES)[number]>("klassisch");
   const [schulname, setSchulname] = useState("");
-  const [loesungenSeparat, setLoesungenSeparat] = useState(true);
   const [schriftgroesse, setSchriftgroesse] = useState<"normal" | "gross">("normal");
   const [zeigeIslamischesDatum, setZeigeIslamischesDatum] = useState(true);
   const [zeigeMuster, setZeigeMuster] = useState(true);
@@ -175,7 +174,6 @@ export default function NewWorksheetForm({
           layout: {
             template,
             schulname: schulname || undefined,
-            loesungenSeparat,
             schriftgroesse,
             zeigeIslamischesDatum,
             zeigeMuster,
@@ -211,7 +209,6 @@ export default function NewWorksheetForm({
   const vorschauLayout = {
     template,
     schulname: schulname || undefined,
-    loesungenSeparat,
     schriftgroesse,
     zeigeIslamischesDatum,
     zeigeMuster,
@@ -505,12 +502,11 @@ export default function NewWorksheetForm({
               </select>
             </label>
           </div>
-          <div className="mt-4 divide-y divide-slate-100 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
-            <ToggleSwitch
-              checked={loesungenSeparat}
-              onChange={setLoesungenSeparat}
-              label="Lösungen auf separatem Blatt/Seite ausgeben"
-            />
+          <p className="mt-4 text-xs leading-relaxed text-slate-400">
+            Lösungen erscheinen immer auf einem separaten Blatt bzw. Dokumentabschnitt, nie auf
+            dem Arbeitsblatt selbst.
+          </p>
+          <div className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
             <ToggleSwitch
               checked={zeigeIslamischesDatum}
               onChange={setZeigeIslamischesDatum}

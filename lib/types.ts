@@ -127,10 +127,13 @@ export type Farbmodus = (typeof FARBMODI)[number];
 export const MUSTER_VARIANTEN = ["sterne", "halbmond", "stern12"] as const;
 export type MusterVariante = (typeof MUSTER_VARIANTEN)[number];
 
+// Lösungen werden IMMER auf einem separaten Blatt/Seite/Dokumentabschnitt ausgegeben, nie auf
+// dem Arbeitsblatt selbst - dafür gibt es bewusst keine Layout-Option mehr (siehe WorksheetView,
+// WorksheetPdf, buildWorksheetDocx): eine Lehrkraft, die das Blatt direkt an Schüler:innen
+// weitergibt, darf nie versehentlich die Lösungen mitschicken.
 export const LayoutConfigSchema = z.object({
   template: z.enum(TEMPLATES).default("klassisch"),
   schulname: z.string().optional(),
-  loesungenSeparat: z.boolean().default(true),
   schriftgroesse: z.enum(["normal", "gross"]).default("normal"),
   zeigeIslamischesDatum: z.boolean().default(true),
   zeigeMuster: z.boolean().default(true),

@@ -293,8 +293,6 @@ export default function WorksheetView({
           </ol>
         </div>
 
-        {!layout.loesungenSeparat && <LoesungenBlock content={content} isModernFarbig={isModernFarbig} />}
-
         {content.quellen.length > 0 && (
           <div>
             <h2 className={`mb-2 font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>
@@ -322,14 +320,14 @@ export default function WorksheetView({
         Einsatz im Unterricht fachlich gegenprüfen.
       </p>
 
-      {layout.loesungenSeparat && (
-        <div className="mt-8 border-t-2 border-dashed border-slate-300 pt-6">
-          <h2 className={`mb-2 text-lg font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>
-            {content.titel} — Lösungsblatt
-          </h2>
-          <LoesungenBlock content={content} isModernFarbig={isModernFarbig} />
-        </div>
-      )}
+      {/* Lösungen erscheinen bewusst NIE auf dem eigentlichen Arbeitsblatt (siehe oben) - immer
+          erst hier, klar abgetrennt, damit sie nicht versehentlich mit an Schüler:innen geht. */}
+      <div className="mt-8 border-t-2 border-dashed border-slate-300 pt-6">
+        <h2 className={`mb-2 text-lg font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>
+          {content.titel} — Lösungsblatt
+        </h2>
+        <LoesungenBlock content={content} isModernFarbig={isModernFarbig} />
+      </div>
     </div>
   );
 }

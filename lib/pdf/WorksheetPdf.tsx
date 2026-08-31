@@ -601,18 +601,17 @@ export function WorksheetPdfDocument({
           <Text style={styles.sectionTitel}>Einleitung</Text>
           <Text style={styles.einleitung}>{content.einleitung}</Text>
           <AufgabenListe content={content} layout={layout} generierteBilder={generierteBilder} />
-          {!layout.loesungenSeparat && <LoesungenSeite content={content} layout={layout} />}
           <QuellenListe content={content} layout={layout} />
         </View>
       </Page>
-      {layout.loesungenSeparat && (
-        <Page size="A4" style={styles.page}>
-          <View style={styles.seiteInhalt}>
-            <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
-            <LoesungenSeite content={content} layout={layout} />
-          </View>
-        </Page>
-      )}
+      {/* Lösungen erscheinen bewusst NIE auf dem Arbeitsblatt selbst - immer auf einer eigenen,
+          separaten Seite, damit sie nicht versehentlich mit an Schüler:innen geht. */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.seiteInhalt}>
+          <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
+          <LoesungenSeite content={content} layout={layout} />
+        </View>
+      </Page>
     </Document>
   );
 }

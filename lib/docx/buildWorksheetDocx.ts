@@ -504,11 +504,6 @@ export async function buildWorksheetDocx(
     }
   }
 
-  if (!layout.loesungenSeparat) {
-    children.push(sectionHeading("Lösungen", accentColor, baseSize));
-    pushLoesungen(children, content, baseSize);
-  }
-
   if (content.quellen.length > 0) {
     children.push(sectionHeading("Quellenangaben", accentColor, baseSize));
     for (const q of content.quellen) {
@@ -527,19 +522,19 @@ export async function buildWorksheetDocx(
 
   const sections = [{ children }];
 
-  if (layout.loesungenSeparat) {
-    const loesungChildren: (Paragraph | Table)[] = [];
-    loesungChildren.push(
-      new Paragraph({
-        heading: HeadingLevel.HEADING_1,
-        alignment: AlignmentType.LEFT,
-        children: [new TextRun({ text: `${content.titel} — Lösungsblatt`, color: accentColor, bold: true })],
-        spacing: { after: 240 },
-      }),
-    );
-    pushLoesungen(loesungChildren, content, baseSize);
-    sections.push({ children: loesungChildren });
-  }
+  // Lösungen erscheinen bewusst NIE auf dem Arbeitsblatt selbst - immer in einer eigenen,
+  // separaten Dokument-Section, damit sie nicht versehentlich mit an Schüler:innen geht.
+  const loesungChildren: (Paragraph | Table)[] = [];
+  loesungChildren.push(
+    new Paragraph({
+      heading: HeadingLevel.HEADING_1,
+      alignment: AlignmentType.LEFT,
+      children: [new TextRun({ text: `${content.titel} — Lösungsblatt`, color: accentColor, bold: true })],
+      spacing: { after: 240 },
+    }),
+  );
+  pushLoesungen(loesungChildren, content, baseSize);
+  sections.push({ children: loesungChildren });
 
   const doc = new Document({ sections });
   return Packer.toBuffer(doc);
