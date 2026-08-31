@@ -1,13 +1,20 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Users, GraduationCap, Lock } from "lucide-react";
+import { Users, GraduationCap, Lock, Search } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
 import { ThemenbereichSchema } from "@/lib/types";
-import { THEMENBEREICHE } from "@/lib/curriculum";
+import {
+  THEMENBEREICHE,
+  THEMENBEREICH_KEYS,
+  ThemenbereichKey,
+  SCHULSTUFEN_CLUSTER,
+  guessSchulstufenCluster,
+} from "@/lib/curriculum";
 import { communityAutorLabel } from "@/lib/community";
 import CommunityFavoritButton from "@/components/CommunityFavoritButton";
+import { inputClass } from "@/lib/formStyles";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +23,13 @@ export const dynamic = "force-dynamic";
  * gegenseitig (istZahlendesKonto), sofort sichtbar ohne Freigabe-Workflow. Enthält auch die
  * EIGENEN geteilten Arbeitsblätter (klar als "Von dir" markiert statt Autorenname), damit man
  * hier auf einen Blick sieht, was man selbst freigegeben hat - nicht nur, was andere geteilt
- * haben. */
-export default async function CommunityPage() {
+ * haben. Filter über ein simples GET-Formular (Suchparameter in der URL) statt Client-State,
+ * damit die Seite ohne JavaScript funktioniert und Filterzustände direkt verlinkbar sind. */
+export default async function CommunityPage({
+  searchParams,
+}: {
+  searchParams: { themenbereich?: string; schulstufe?: string; suche?: string };
+}) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
@@ -39,12 +51,35 @@ export default async function CommunityPage() {
     );
   }
 
-  const geteilteWorksheets = await prisma.worksheet.findMany({
-    where: { geteilt: true },
+  const themenbereichFilter = THEMENBEREICH_KEYS.includes(
+    searchParams.themenbereich as ThemenbereichKey,
+  )
+    ? (searchParams.themenbereich as ThemenbereichKey)
+    : null;
+  const schulstufeFilter = SCHULSTUFEN_CLUSTER.some((c) => c.id === searchParams.schulstufe)
+    ? searchParams.schulstufe
+    : null;
+  const sucheFilter = searchParams.suche?.trim() || null;
+
+  const alleGeteiltenWorksheets = await prisma.worksheet.findMany({
+    where: {
+      geteilt: true,
+      ...(themenbereichFilter ? { themenbereich: themenbereichFilter } : {}),
+      ...(sucheFilter ? { thema: { contains: sucheFilter, mode: "insensitive" } } : {}),
+    },
     include: { user: { select: { username: true } } },
     orderBy: [{ geteiltAm: "desc" }],
-    take: 100,
+    take: 300,
   });
+
+  // Schulstufen-Cluster ist keine eigene Spalte (Worksheet.schulstufe ist Freitext, siehe
+  // guessSchulstufenCluster) - daher erst laden, dann in JS filtern statt per Datenbank-Query.
+  // Bei der überschaubaren Datenmenge geteilter Arbeitsblätter unproblematisch.
+  const geteilteWorksheets = schulstufeFilter
+    ? alleGeteiltenWorksheets.filter(
+        (w) => guessSchulstufenCluster(w.schulstufe).id === schulstufeFilter,
+      )
+    : alleGeteiltenWorksheets;
 
   const favoritenRows = geteilteWorksheets.length
     ? await prisma.communityFavorit.findMany({
@@ -53,6 +88,8 @@ export default async function CommunityPage() {
       })
     : [];
   const favorisierteIds = new Set(favoritenRows.map((f) => f.worksheetId));
+
+  const filterAktiv = !!(themenbereichFilter || schulstufeFilter || sucheFilter);
 
   return (
     <main>
@@ -68,12 +105,74 @@ export default async function CommunityPage() {
         </div>
       </div>
 
+      <form
+        method="GET"
+        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
+      >
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-medium text-slate-500">Thema durchsuchen</span>
+          <div className="relative">
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              name="suche"
+              defaultValue={sucheFilter ?? ""}
+              placeholder="z.B. Ramadan"
+              className={`${inputClass} w-52 pl-8`}
+            />
+          </div>
+        </label>
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-medium text-slate-500">Grundkompetenz</span>
+          <select name="themenbereich" defaultValue={themenbereichFilter ?? ""} className={`${inputClass} w-56`}>
+            <option value="">Alle</option>
+            {THEMENBEREICH_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {THEMENBEREICHE[key].label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-medium text-slate-500">Schulstufe</span>
+          <select name="schulstufe" defaultValue={schulstufeFilter ?? ""} className={`${inputClass} w-52`}>
+            <option value="">Alle</option>
+            {SCHULSTUFEN_CLUSTER.map((cluster) => (
+              <option key={cluster.id} value={cluster.id}>
+                {cluster.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="submit"
+          className="rounded-lg bg-brand-gradient px-4 py-2.5 text-sm font-medium text-white shadow-card transition hover:shadow-card-hover"
+        >
+          Filtern
+        </button>
+        {filterAktiv && (
+          <Link
+            href="/community"
+            className="text-sm font-medium text-slate-500 hover:text-brand-700"
+          >
+            Filter zurücksetzen
+          </Link>
+        )}
+      </form>
+
       {geteilteWorksheets.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-brand-200 bg-white p-12 text-center shadow-card">
           <Users className="mx-auto mb-3 text-brand-300" size={32} strokeWidth={1.5} />
           <p className="text-slate-600">
-            Noch keine Arbeitsblätter geteilt. Gib eines deiner eigenen frei (Button „Arbeitsblatt
-            teilen" auf der Detailseite eines Arbeitsblatts), um den Anfang zu machen.
+            {filterAktiv ? (
+              "Keine geteilten Arbeitsblätter zu diesen Filtern gefunden."
+            ) : (
+              <>
+                Noch keine Arbeitsblätter geteilt. Gib eines deiner eigenen frei (Button
+                „Arbeitsblatt teilen" auf der Detailseite eines Arbeitsblatts), um den Anfang zu
+                machen.
+              </>
+            )}
           </p>
         </div>
       ) : (

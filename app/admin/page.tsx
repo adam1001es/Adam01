@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag } from "lucide-react";
+import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag, BarChart3 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import {
@@ -105,17 +105,26 @@ export default async function AdminPage() {
             </p>
           </div>
         </div>
-        <Link
-          href="/admin/meldungen"
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium shadow-sm transition ${
-            offeneMeldungen > 0
-              ? "border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
-              : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700"
-          }`}
-        >
-          <Flag size={15} />
-          Meldungen{offeneMeldungen > 0 && ` (${offeneMeldungen} ungesichtet)`}
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/admin/auswertung"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
+          >
+            <BarChart3 size={15} />
+            Auswertung
+          </Link>
+          <Link
+            href="/admin/meldungen"
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium shadow-sm transition ${
+              offeneMeldungen > 0
+                ? "border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
+                : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700"
+            }`}
+          >
+            <Flag size={15} />
+            Meldungen{offeneMeldungen > 0 && ` (${offeneMeldungen} ungesichtet)`}
+          </Link>
+        </div>
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
