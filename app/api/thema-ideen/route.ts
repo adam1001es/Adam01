@@ -25,6 +25,38 @@ ${
 }`;
 }
 
+/** Ein einzelner Versuch, Ideen zu generieren und als JSON zu lesen - wirft bei jedem Fehlschlag
+ * (Netzwerk, Abschneiden durch max_tokens, kein valides JSON in der Antwort). Wird von der Route
+ * bis zu zweimal aufgerufen (siehe unten): bei einem so kurzen, günstigen Aufruf ist ein
+ * automatischer zweiter Versuch fast kostenlos und macht die Funktion für die Lehrkraft
+ * spürbar zuverlässiger, statt bei einem einmaligen Ausrutscher sofort eine rohe Fehlermeldung
+ * zu zeigen. */
+async function versucheIdeenGenerierung(userPrompt: string): Promise<string[]> {
+  const client = getAnthropicClient();
+  const response = await client.messages.create({
+    model: IDEEN_MODEL,
+    max_tokens: 1024,
+    system: IDEEN_SYSTEM_PROMPT,
+    messages: [{ role: "user", content: userPrompt }],
+  });
+
+  if (response.stop_reason === "max_tokens") {
+    throw new Error("Die Antwort wurde abgeschnitten.");
+  }
+
+  const rawText = getTextFromMessage(response);
+  try {
+    const raw = extractJson(rawText);
+    const { ideen } = ThemaIdeenAntwortSchema.parse(raw);
+    return ideen;
+  } catch (err) {
+    // rawText mitloggen, sonst lässt sich ein Parse-Fehler in Produktion nicht nachvollziehen -
+    // "Keine JSON-Struktur gefunden" allein sagt nicht, was die KI stattdessen geschrieben hat.
+    console.error("Themenideen-Antwort konnte nicht gelesen werden. Rohtext:", rawText);
+    throw err;
+  }
+}
+
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
   if (!user) {
@@ -53,28 +85,28 @@ export async function POST(request: NextRequest) {
   }
 
   const bereich = THEMENBEREICHE[parsed.data.themenbereich];
+  const userPrompt = buildIdeenUserPrompt(parsed.data.schulstufe, bereich.label, bereich.beschreibung);
 
-  try {
-    const client = getAnthropicClient();
-    const response = await client.messages.create({
-      model: IDEEN_MODEL,
-      max_tokens: 500,
-      system: IDEEN_SYSTEM_PROMPT,
-      messages: [
-        { role: "user", content: buildIdeenUserPrompt(parsed.data.schulstufe, bereich.label, bereich.beschreibung) },
-      ],
-    });
-
-    const raw = extractJson(getTextFromMessage(response));
-    const { ideen } = ThemaIdeenAntwortSchema.parse(raw);
-
-    if (!istAdmin) await incrementThemaIdeenUsage(user.id);
-    const verbleibend = istAdmin ? null : Math.max(0, (status?.verbleibend ?? THEMA_IDEEN_TAGESLIMIT) - 1);
-
-    return NextResponse.json({ ideen, verbleibend });
-  } catch (err) {
-    console.error("Fehler bei der Themenideen-Generierung:", err);
-    const message = err instanceof Error ? err.message : "Unbekannter Fehler.";
-    return NextResponse.json({ error: message }, { status: 502 });
+  let ideen: string[] | null = null;
+  let letzterFehler: unknown = null;
+  for (let versuch = 1; versuch <= 2 && !ideen; versuch++) {
+    try {
+      ideen = await versucheIdeenGenerierung(userPrompt);
+    } catch (err) {
+      letzterFehler = err;
+    }
   }
+
+  if (!ideen) {
+    console.error("Themenideen-Generierung nach zwei Versuchen fehlgeschlagen:", letzterFehler);
+    return NextResponse.json(
+      { error: "Ideen konnten gerade nicht erstellt werden. Bitte nochmal versuchen." },
+      { status: 502 },
+    );
+  }
+
+  if (!istAdmin) await incrementThemaIdeenUsage(user.id);
+  const verbleibend = istAdmin ? null : Math.max(0, (status?.verbleibend ?? THEMA_IDEEN_TAGESLIMIT) - 1);
+
+  return NextResponse.json({ ideen, verbleibend });
 }
