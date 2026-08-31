@@ -14,6 +14,7 @@
  */
 
 import { ICON_KEYS, ICONS } from "./icons";
+import type { Komplexitaet } from "./types";
 
 export const THEMENBEREICH_KEYS = ["iman", "ibadat", "muamalat", "kulturgeschichte", "gemischt"] as const;
 export type ThemenbereichKey = (typeof THEMENBEREICH_KEYS)[number];
@@ -195,7 +196,25 @@ export const HADITH_QUELLEN = {
   ],
 };
 
-export function buildCurriculumSystemContext(themenbereich: ThemenbereichKey, schulstufeText: string): string {
+/** Verschiebt die AFB-Zielspanne innerhalb dessen, was die Schulstufe ohnehin zulässt - "einfach"
+ * bewusst zum unteren, "anspruchsvoll" zum oberen Rand, "mittel" verändert nichts (unverändertes
+ * Verhalten von vor dem Komplexitäts-Feature). Die Schulstufe bleibt die harte Altersgrenze, die
+ * Komplexität wirkt nur INNERHALB davon. */
+function komplexitaetsHinweis(komplexitaet: Komplexitaet): string {
+  if (komplexitaet === "einfach") {
+    return " Gewählte Komplexität \"Einfach\": bewege dich bewusst am UNTEREN Rand dieser Spanne (mehr AFB I, kürzere/einfachere Formulierungen), auch wenn die Schulstufe grundsätzlich mehr zuließe.";
+  }
+  if (komplexitaet === "anspruchsvoll") {
+    return " Gewählte Komplexität \"Anspruchsvoll\": bewege dich bewusst am OBEREN Rand dieser Spanne (mehr AFB II/III wo die Schulstufe das zulässt, tiefere Fragestellungen, anspruchsvollere Antworterwartung bei offenen Fragen), aber bleibe innerhalb dessen, was für die Schulstufe altersgerecht ist.";
+  }
+  return "";
+}
+
+export function buildCurriculumSystemContext(
+  themenbereich: ThemenbereichKey,
+  schulstufeText: string,
+  komplexitaet: Komplexitaet,
+): string {
   const bereich = THEMENBEREICHE[themenbereich];
   const cluster = guessSchulstufenCluster(schulstufeText);
   const fruehLesend = istFrueheVolksschulstufe(schulstufeText);
@@ -231,7 +250,7 @@ Bei "bild" bzw. den "bild"-Feldern in "bildergeschichteSchritte" GENAU EINES von
 - Diese App bildet die Lehrplan-Struktur nur orientierend ab, nicht als Volltext. Die Lehrkraft prüft die konkrete Passung zur jeweiligen Schulart/Schulstufe weiterhin anhand von BGBl. II Nr. 234/2011.
 
 Pädagogisch-didaktische Standards (im deutschsprachigen Schulwesen etablierte Aufgabenkultur):
-- Anforderungsbereiche (AFB I-III): Jede Aufgabe bekommt im Feld "anforderungsbereich" den Wert "afb1" (Reproduktion: ${ANFORDERUNGSBEREICHE.afb1.operatoren.join("/")}), "afb2" (Transfer: ${ANFORDERUNGSBEREICHE.afb2.operatoren.join("/")}) oder "afb3" (Reflexion/Urteil: ${ANFORDERUNGSBEREICHE.afb3.operatoren.join("/")}). Verteilung für diese Schulstufe: ${afbSpanne} Baue NICHT nur reine Abfrage-Aufgaben (AFB I).
+- Anforderungsbereiche (AFB I-III): Jede Aufgabe bekommt im Feld "anforderungsbereich" den Wert "afb1" (Reproduktion: ${ANFORDERUNGSBEREICHE.afb1.operatoren.join("/")}), "afb2" (Transfer: ${ANFORDERUNGSBEREICHE.afb2.operatoren.join("/")}) oder "afb3" (Reflexion/Urteil: ${ANFORDERUNGSBEREICHE.afb3.operatoren.join("/")}). Verteilung für diese Schulstufe: ${afbSpanne}${komplexitaetsHinweis(komplexitaet)} Baue NICHT nur reine Abfrage-Aufgaben (AFB I).
 - Kompetenzorientierung: Berücksichtige - altersgerecht und wo thematisch passend - mehr als nur Faktenwissen, orientiert an den anerkannten Kompetenzbereichen des Religionsunterrichts (Wahrnehmung, religiöse Sach-/Darstellungskompetenz, interkulturelle/interreligiöse Kompetenz, ethische Deutungs-/Urteilskompetenz, lebensweltliche Anwendungskompetenz). Nicht jede Aufgabe muss jede Kompetenz abdecken, aber das Arbeitsblatt als Ganzes soll nicht nur auf Auswendiglernen abzielen.
 - Das "lernziel" MUSS kompetenzorientiert/operationalisiert formuliert sein, mit einem Verb passend zum höchsten enthaltenen Anforderungsbereich (z.B. "Die Schüler:innen können ... nennen/beschreiben" bei reinem AFB I, "... erklären/vergleichen" bei AFB II, "... beurteilen/begründen" bei AFB III).
 - Sprachsensibler Unterricht: kurze, klare Sätze passend zur Schulstufe; erkläre Fachbegriffe und arabische Begriffe im Kontext, statt sie unerklärt vorauszusetzen.

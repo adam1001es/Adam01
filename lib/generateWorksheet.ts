@@ -13,6 +13,8 @@ import {
   VerificationSchema,
   AUFGABEN_TYP_MAXIMUM,
   BILDERGESCHICHTE_SCHRITTE_MAXIMUM,
+  KOMPLEXITAET_LABEL,
+  schaetzeAufgabenAnzahl,
 } from "./types";
 import { buildCurriculumSystemContext } from "./curriculum";
 import { prisma } from "./prisma";
@@ -173,12 +175,14 @@ export function begrenzeBildergeschichteSchritte(content: WorksheetContent): voi
   }
 }
 
-function buildUserPrompt(req: GenerateRequest): string {
+function buildUserPrompt(req: GenerateRequest, anzahlAufgaben: number): string {
   return `Erstelle ein Arbeitsblatt mit folgenden Vorgaben:
 - Bereich/Fach: ${req.bereich}
 - Thema: ${req.thema}
 - Schulstufe: ${req.schulstufe}
-- Anzahl Aufgaben: ${req.anzahlAufgaben}
+- Zieldauer für die Bearbeitung im Unterricht: ${req.zieldauerMinuten} Minuten (Richtwert, keine exakte Messung möglich)
+- Komplexität: ${KOMPLEXITAET_LABEL[req.komplexitaet]}
+- Anzahl Aufgaben (aus der Zieldauer abgeleiteter Richtwert - Ziel ist, die Zieldauer zu treffen, nicht exakt diese Zahl): ${anzahlAufgaben}
 - Erlaubte Aufgabentypen (mische sinnvoll): ${req.aufgabentypen.join(", ")}
 ${req.zusatzhinweise ? `- Zusätzliche Hinweise der Lehrkraft: ${req.zusatzhinweise}` : ""}`;
 }
@@ -193,7 +197,8 @@ export async function generateAndVerifyWorksheet(
 ): Promise<GenerationResult> {
   const client = getAnthropicClient();
 
-  const curriculumContext = buildCurriculumSystemContext(req.themenbereich, req.schulstufe);
+  const curriculumContext = buildCurriculumSystemContext(req.themenbereich, req.schulstufe, req.komplexitaet);
+  const anzahlAufgaben = schaetzeAufgabenAnzahl(req.zieldauerMinuten, req.aufgabentypen, req.komplexitaet);
 
   const genResponse = await client.messages.create({
     model: GENERATION_MODEL,
@@ -213,7 +218,7 @@ export async function generateAndVerifyWorksheet(
       },
       { type: "text", text: curriculumContext },
     ],
-    messages: [{ role: "user", content: buildUserPrompt(req) }],
+    messages: [{ role: "user", content: buildUserPrompt(req, anzahlAufgaben) }],
   });
 
   if (genResponse.stop_reason === "max_tokens") {

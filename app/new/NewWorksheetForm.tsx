@@ -30,6 +30,11 @@ import {
   MUSTER_VARIANTEN,
   MusterVariante,
   WorksheetContent,
+  ZIELDAUER_OPTIONEN_MINUTEN,
+  KOMPLEXITAET_STUFEN,
+  KOMPLEXITAET_LABEL,
+  Komplexitaet,
+  schaetzeAufgabenAnzahl,
 } from "@/lib/types";
 import {
   THEMENBEREICHE,
@@ -47,7 +52,6 @@ import { inputClass, labelClass } from "@/lib/formStyles";
 import { MUSTER_LABEL } from "@/lib/patternStrip";
 
 const ANDERE_SCHULSTUFE = "__andere__";
-const ANZAHL_OPTIONEN = [3, 4, 5, 6, 7, 8, 9, 10];
 
 const VORSCHAU_INHALT: WorksheetContent = {
   titel: "Beispiel: Die 5 Säulen des Islam",
@@ -125,7 +129,8 @@ export default function NewWorksheetForm({
   const [schulstufeAuswahl, setSchulstufeAuswahl] = useState(SCHULSTUFEN_OPTIONEN[0]);
   const [schulstufeFrei, setSchulstufeFrei] = useState("");
   const schulstufe = schulstufeAuswahl === ANDERE_SCHULSTUFE ? schulstufeFrei : schulstufeAuswahl;
-  const [anzahlAufgaben, setAnzahlAufgaben] = useState(6);
+  const [zieldauerMinuten, setZieldauerMinuten] = useState<(typeof ZIELDAUER_OPTIONEN_MINUTEN)[number]>(35);
+  const [komplexitaet, setKomplexitaet] = useState<Komplexitaet>("mittel");
   const [aufgabentypen, setAufgabentypen] = useState<string[]>([
     "multiple_choice",
     "lueckentext",
@@ -168,7 +173,8 @@ export default function NewWorksheetForm({
           thema,
           schulstufe,
           themenbereich,
-          anzahlAufgaben,
+          zieldauerMinuten,
+          komplexitaet,
           aufgabentypen,
           zusatzhinweise: zusatzhinweise || undefined,
           layout: {
@@ -322,29 +328,67 @@ export default function NewWorksheetForm({
         </SectionCard>
 
         <SectionCard icon={ListChecks} title="Aufgaben" subtitle="Umfang und Aufgabentypen" akzent="gold">
-          <div className="mb-5">
-            <span className={labelClass}>Anzahl Aufgaben</span>
-            <div className="flex flex-wrap gap-2">
-              {ANZAHL_OPTIONEN.map((n) => (
-                <button
-                  type="button"
-                  key={n}
-                  onClick={() => setAnzahlAufgaben(n)}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border text-sm font-medium transition ${
-                    anzahlAufgaben === n
-                      ? "border-brand-600 bg-brand-50 text-brand-700"
-                      : "border-slate-200 text-slate-500 hover:border-slate-300"
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
+          <div className="mb-5 grid gap-4 sm:grid-cols-2">
+            <div>
+              <span className={labelClass}>Zieldauer im Unterricht</span>
+              <div className="flex flex-wrap gap-2">
+                {ZIELDAUER_OPTIONEN_MINUTEN.map((minuten) => (
+                  <button
+                    type="button"
+                    key={minuten}
+                    onClick={() => setZieldauerMinuten(minuten)}
+                    className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                      zieldauerMinuten === minuten
+                        ? "border-brand-600 bg-brand-50 text-brand-700"
+                        : "border-slate-200 text-slate-500 hover:border-slate-300"
+                    }`}
+                  >
+                    {minuten} Min
+                  </button>
+                ))}
+              </div>
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
-              Wie viele sinnvoll sind, hängt von Thema und Schulstufe ab - für jüngere Klassen
-              oder ausführlichere Aufgabentypen (z.B. offene Fragen) eher weniger wählen.
-            </p>
+            <div>
+              <span className={labelClass}>Komplexität</span>
+              <div className="flex flex-wrap gap-2">
+                {KOMPLEXITAET_STUFEN.map((stufe) => (
+                  <button
+                    type="button"
+                    key={stufe}
+                    onClick={() => setKomplexitaet(stufe)}
+                    className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                      komplexitaet === stufe
+                        ? "border-brand-600 bg-brand-50 text-brand-700"
+                        : "border-slate-200 text-slate-500 hover:border-slate-300"
+                    }`}
+                  >
+                    {KOMPLEXITAET_LABEL[stufe]}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
+          <p className="-mt-2 mb-5 text-xs leading-relaxed text-slate-400">
+            {aufgabentypen.length > 0 ? (
+              <>
+                → ca.{" "}
+                <strong className="text-slate-600">
+                  {schaetzeAufgabenAnzahl(
+                    zieldauerMinuten,
+                    aufgabentypen as (typeof AUFGABEN_TYPEN)[number][],
+                    komplexitaet,
+                  )}{" "}
+                  Aufgaben
+                </strong>{" "}
+                (Richtwert für {zieldauerMinuten} Minuten - Aufgabenzahl statt fixer Stückzahl
+                wählen ist hier bewusst nicht möglich, weil einzelne Typen sehr unterschiedlich
+                lange dauern; Genauigkeit auf die Minute ist dabei nicht erreichbar, besonders bei
+                "Offene Frage"/"Diskussion").
+              </>
+            ) : (
+              "Wähle unten mindestens einen Aufgabentyp, um eine Richtwert-Anzahl zu sehen."
+            )}
+          </p>
           <span className={labelClass}>Aufgabentypen</span>
           <div className="flex flex-wrap gap-2">
             {AUFGABEN_TYPEN.map((typ) => {

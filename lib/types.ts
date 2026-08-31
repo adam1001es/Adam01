@@ -40,6 +40,75 @@ export const AUFGABEN_TYP_MAXIMUM: Partial<Record<(typeof AUFGABEN_TYPEN)[number
  * Schritte/Bilder umfassen (siehe begrenzeBildergeschichteSchritte in lib/generateWorksheet.ts). */
 export const BILDERGESCHICHTE_SCHRITTE_MAXIMUM = 6;
 
+/** Grobe Richtzeit in Minuten pro Aufgabentyp bei "mittlerer" Komplexität (siehe
+ * KOMPLEXITAET_FAKTOR) - Schätzwerte für eine durchschnittliche Bearbeitung im Unterricht, KEINE
+ * exakte Messung (v.a. "diskussion"/"offene_frage" schwanken naturgemäß stark je nach Klasse).
+ * Grundlage für die Zieldauer-basierte Aufgabenanzahl statt einer reinen, zeitunabhängigen
+ * Stückzahl (siehe schaetzeAufgabenAnzahl unten und GenerateRequestSchema.zieldauerMinuten). */
+export const AUFGABEN_TYP_RICHTZEIT_MINUTEN: Record<(typeof AUFGABEN_TYPEN)[number], number> = {
+  wahr_falsch: 1,
+  multiple_choice: 2,
+  zuordnung: 3,
+  reihenfolge: 3,
+  lueckentext: 3,
+  offene_frage: 4,
+  ausmalbild: 6,
+  lesetext: 6,
+  diskussion: 8,
+  wortsuche: 8,
+  kreuzwortraetsel: 10,
+  bildergeschichte: 12,
+};
+
+export const KOMPLEXITAET_STUFEN = ["einfach", "mittel", "anspruchsvoll"] as const;
+export type Komplexitaet = (typeof KOMPLEXITAET_STUFEN)[number];
+
+export const KOMPLEXITAET_LABEL: Record<Komplexitaet, string> = {
+  einfach: "Einfach",
+  mittel: "Mittel",
+  anspruchsvoll: "Anspruchsvoll",
+};
+
+/** Skaliert die Richtzeit je nach gewählter Komplexität - wirkt sich zusätzlich (siehe
+ * buildCurriculumSystemContext in lib/curriculum.ts) auf den Anforderungsbereich-Schwerpunkt der
+ * generierten Aufgaben aus: höhere Komplexität = tendenziell mehr AFB II/III und tiefere
+ * Fragestellungen (innerhalb dessen, was die Schulstufe zulässt), nicht nur mehr Zeit pro Aufgabe. */
+export const KOMPLEXITAET_FAKTOR: Record<Komplexitaet, number> = {
+  einfach: 0.75,
+  mittel: 1,
+  anspruchsvoll: 1.3,
+};
+
+export const ZIELDAUER_OPTIONEN_MINUTEN = [20, 35, 50] as const;
+
+/** Fixer Puffer für Einstieg (Begrüßung/Wiederholung) und Abschluss (Reflexion) einer
+ * Unterrichtseinheit, angelehnt an den üblichen Ablauf einer 50-minütigen österreichischen
+ * Unterrichtsstunde - nur die restliche Zeit steht für die Arbeitsblatt-Aufgaben selbst zur
+ * Verfügung. */
+export const ZIELDAUER_PUFFER_MINUTEN = 10;
+
+/** Leitet aus Zieldauer, gewählten Aufgabentypen und Komplexität eine Richtwert-Anzahl an
+ * Aufgaben ab - ersetzt eine direkte "Anzahl Aufgaben"-Eingabe, die nichts über die tatsächliche
+ * Bearbeitungszeit im Unterricht aussagt. Wird sowohl im Erstellen-Formular für die Live-Vorschau
+ * als auch serverseitig (autoritativ, siehe lib/generateWorksheet.ts) verwendet - rein
+ * arithmetisch, keine externen Abhängigkeiten, daher clientseitig ohne Weiteres importierbar.
+ * Exakte Minutentreue ist NICHT das Ziel (nicht erreichbar) - nur eine deutlich bessere Näherung
+ * als eine reine, zeitunabhängige Stückzahl. */
+export function schaetzeAufgabenAnzahl(
+  zieldauerMinuten: number,
+  aufgabentypen: (typeof AUFGABEN_TYPEN)[number][],
+  komplexitaet: Komplexitaet,
+): number {
+  if (aufgabentypen.length === 0) return 0;
+  const faktor = KOMPLEXITAET_FAKTOR[komplexitaet];
+  const durchschnittsZeit =
+    aufgabentypen.reduce((summe, typ) => summe + AUFGABEN_TYP_RICHTZEIT_MINUTEN[typ], 0) /
+    aufgabentypen.length;
+  const budget = Math.max(zieldauerMinuten - ZIELDAUER_PUFFER_MINUTEN, 5);
+  const anzahl = Math.round(budget / (durchschnittsZeit * faktor));
+  return Math.min(10, Math.max(2, anzahl));
+}
+
 export const BildergeschichteSchrittSchema = z.object({
   bild: z.enum(ICON_KEYS).optional(), // festes Icon aus der kuratierten Bibliothek
   bildBeschreibung: z.string().optional(), // ODER: neues Motiv, per Bild-KI erzeugt (siehe lib/imageGen.ts) - nur Gegenstände/Tiere/Natur/Gebäude, nie Personen
@@ -150,7 +219,17 @@ export const GenerateRequestSchema = z.object({
   thema: z.string().min(1),
   schulstufe: z.string().min(1),
   themenbereich: ThemenbereichSchema.default("gemischt"),
-  anzahlAufgaben: z.number().min(1).max(10).default(6),
+  // Ersetzt eine direkte "Anzahl Aufgaben"-Eingabe: die tatsächliche Aufgabenanzahl wird daraus
+  // serverseitig abgeleitet (siehe schaetzeAufgabenAnzahl), weil eine reine Stückzahl nichts über
+  // die tatsächliche Bearbeitungszeit im Unterricht aussagt.
+  zieldauerMinuten: z
+    .number()
+    .int()
+    .refine((v) => (ZIELDAUER_OPTIONEN_MINUTEN as readonly number[]).includes(v), {
+      message: "Ungültige Zieldauer.",
+    })
+    .default(35),
+  komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
   aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN)).min(1),
   zusatzhinweise: z.string().optional(),
   layout: LayoutConfigSchema,
