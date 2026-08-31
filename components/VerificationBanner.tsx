@@ -25,11 +25,11 @@ const VERIFICATION_STYLE: Record<
   },
 };
 
-/** Zeigt das Prüfungsergebnis kompakt an - nur bei "warnung"/"fehler" (also wenn etwas nicht
- * passt) standardmäßig aufgeklappt, bei "ok" eingeklappt, damit die oft lange Liste an
- * Hinweisen nicht jedes Mal den Blick auf das eigentliche Arbeitsblatt verstellt. */
+/** Zeigt das Prüfungsergebnis kompakt an - immer eingeklappt, auch bei "warnung"/"fehler",
+ * damit die oft lange Liste an Hinweisen nicht jedes Mal den Blick auf das eigentliche
+ * Arbeitsblatt verstellt. Die Lehrkraft klappt bei Bedarf über den Pfeil selbst auf. */
 export default function VerificationBanner({ verification }: { verification: Verification }) {
-  const [offen, setOffen] = useState(verification.status !== "ok");
+  const [offen, setOffen] = useState(false);
   const vStyle = VERIFICATION_STYLE[verification.status];
   const VIcon = vStyle.icon;
 
