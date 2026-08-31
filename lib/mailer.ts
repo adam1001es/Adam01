@@ -47,3 +47,31 @@ export async function sendeVerifizierungsMail(
     `,
   });
 }
+
+/** Bestätigungsmail für eine ÄNDERUNG der E-Mail-Adresse eines bestehenden Kontos (siehe
+ * app/api/account/email) - geht an die NEUE Adresse, damit sichergestellt ist, dass sie
+ * tatsächlich erreichbar/im eigenen Besitz ist, bevor sie zur aktiven Anmelde-Adresse wird. */
+export async function sendeEmailAenderungsMail(
+  empfaenger: string,
+  bestaetigungsUrl: string,
+): Promise<void> {
+  const t = getTransporter();
+  await t.sendMail({
+    from: `"Arbeitsblatt-Generator" <${process.env.GMAIL_USER}>`,
+    to: empfaenger,
+    subject: "Bitte bestätige deine neue E-Mail-Adresse",
+    text: `Für dein Konto beim Arbeitsblatt-Generator wurde diese Adresse als neue E-Mail-Adresse hinterlegt.\n\nBitte bestätige sie über diesen Link (24 Stunden gültig):\n${bestaetigungsUrl}\n\nErst danach wird sie zu deiner neuen Anmelde-Adresse - bis dahin bleibt deine bisherige E-Mail-Adresse aktiv. Falls du das nicht warst, kannst du diese Mail einfach ignorieren.`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
+        <h2 style="color:#12704c;">Neue E-Mail-Adresse bestätigen</h2>
+        <p>Für dein Konto beim Arbeitsblatt-Generator wurde diese Adresse als neue E-Mail-Adresse hinterlegt.</p>
+        <p>
+          <a href="${bestaetigungsUrl}" style="display:inline-block;background:#12704c;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+            E-Mail-Adresse bestätigen
+          </a>
+        </p>
+        <p style="color:#64748b;font-size:13px;">Erst nach Bestätigung wird sie zu deiner neuen Anmelde-Adresse - bis dahin bleibt deine bisherige E-Mail-Adresse aktiv. Der Link ist 24 Stunden gültig. Falls du das nicht warst, kannst du diese Mail einfach ignorieren.</p>
+      </div>
+    `,
+  });
+}

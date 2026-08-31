@@ -59,6 +59,14 @@ model User {
   emailVerifiziert Boolean @default(false)
   verifizierungsToken String? @unique
   verifizierungsTokenAblauf DateTime?
+  // Neue, noch nicht bestätigte E-Mail-Adresse (siehe app/api/account/email) - wird erst nach
+  // Klick auf den Bestätigungslink (an DIESE Adresse gesendet, siehe app/api/auth/verify) zur
+  // aktiven "email". Bis dahin bleibt das Konto mit der alten Adresse voll nutzbar, damit ein
+  // Tippfehler oder eine nicht erreichbare neue Adresse niemanden aussperrt. Nutzt denselben
+  // verifizierungsToken wie die ursprüngliche Registrierungs-Bestätigung - beide Vorgänge
+  // schließen sich zeitlich aus (ein Konto hat nie beide gleichzeitig offen), daher genügt ein
+  // gemeinsames Tokenfeld.
+  pendingEmail String?
   tier         String?  // null (kein Abo) | "starter" (30/Monat) | "pro" (80/Monat)
   // Optionaler Gültigkeitszeitraum für "tier" (z.B. Schuljahr/Semester, nach dem privat bezahlt
   // wird) - beide optional, vom Admin gesetzt. Außerhalb dieses Zeitraums (falls gesetzt) gilt
