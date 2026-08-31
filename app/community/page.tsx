@@ -11,11 +11,12 @@ import CommunityFavoritButton from "@/components/CommunityFavoritButton";
 
 export const dynamic = "force-dynamic";
 
-/** Community-Übersicht: von ANDEREN zahlenden Konten für die Community freigegebene
- * Arbeitsblätter (siehe Worksheet.geteilt, app/api/worksheet/[id]/teilen) - bewusst nur unter
- * zahlenden Konten gegenseitig (istZahlendesKonto), sofort sichtbar ohne Freigabe-Workflow.
- * Eigene Arbeitsblätter erscheinen bewusst NICHT hier (die stehen bereits im eigenen
- * Dashboard) - so bleibt sofort klar, dass alles auf dieser Seite von anderen stammt. */
+/** Community-Übersicht: alle für die Community freigegebenen Arbeitsblätter (siehe
+ * Worksheet.geteilt, app/api/worksheet/[id]/teilen) - bewusst nur unter zahlenden Konten
+ * gegenseitig (istZahlendesKonto), sofort sichtbar ohne Freigabe-Workflow. Enthält auch die
+ * EIGENEN geteilten Arbeitsblätter (klar als "Von dir" markiert statt Autorenname), damit man
+ * hier auf einen Blick sieht, was man selbst freigegeben hat - nicht nur, was andere geteilt
+ * haben. */
 export default async function CommunityPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
@@ -38,7 +39,7 @@ export default async function CommunityPage() {
   }
 
   const geteilteWorksheets = await prisma.worksheet.findMany({
-    where: { geteilt: true, userId: { not: user.id } },
+    where: { geteilt: true },
     include: { user: { select: { username: true } } },
     orderBy: [{ geteiltAm: "desc" }],
     take: 100,
@@ -84,11 +85,14 @@ export default async function CommunityPage() {
           <ul className="mt-3 space-y-3">
             {geteilteWorksheets.map((w) => {
               const themenbereich = ThemenbereichSchema.catch("gemischt").parse(w.themenbereich);
+              const istEigenes = w.userId === user.id;
               return (
                 <li key={w.id}>
                   <Link
                     href={`/worksheet/${w.id}`}
-                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5"
+                    className={`group flex items-center gap-3 rounded-xl border bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5 ${
+                      istEigenes ? "border-gold-200" : "border-slate-200"
+                    }`}
                   >
                     <CommunityFavoritButton
                       worksheetId={w.id}
@@ -103,11 +107,21 @@ export default async function CommunityPage() {
                           <GraduationCap size={13} /> {w.schulstufe}
                         </span>
                         <span>{THEMENBEREICHE[themenbereich].label}</span>
-                        <span>von {communityAutorLabel(w.user ?? { username: null })}</span>
+                        {istEigenes ? (
+                          <span className="font-medium text-gold-700">Von dir</span>
+                        ) : (
+                          <span>von {communityAutorLabel(w.user ?? { username: null })}</span>
+                        )}
                       </div>
                     </div>
-                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-200">
-                      <Users size={13} /> Geteilt
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${
+                        istEigenes
+                          ? "bg-gold-50 text-gold-700 ring-gold-200"
+                          : "bg-brand-50 text-brand-700 ring-brand-200"
+                      }`}
+                    >
+                      <Users size={13} /> {istEigenes ? "Von dir geteilt" : "Geteilt"}
                     </span>
                   </Link>
                 </li>
