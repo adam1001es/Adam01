@@ -35,7 +35,14 @@ async function versucheIdeenGenerierung(userPrompt: string): Promise<string[]> {
   const client = getAnthropicClient();
   const response = await client.messages.create({
     model: IDEEN_MODEL,
-    max_tokens: 1024,
+    // claude-sonnet-5 denkt standardmäßig (adaptive thinking), auch ohne "thinking"-Parameter -
+    // die Denk-Tokens zählen dabei gegen max_tokens. Ohne effort-Begrenzung konnte das variable
+    // Denken bei dieser eigentlich trivialen Aufgabe (6 kurze Themenideen) gelegentlich den
+    // gesamten Token-Rahmen aufbrauchen, bevor überhaupt sichtbarer JSON-Text geschrieben wurde -
+    // das war die eigentliche Ursache für die abgeschnittenen Antworten, nicht ein zu niedriges
+    // max_tokens allein. effort "low" hält das Denken für diese einfache Aufgabe knapp.
+    output_config: { effort: "low" },
+    max_tokens: 2048,
     system: IDEEN_SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });
