@@ -109,9 +109,11 @@ const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch:
 export default function NewWorksheetForm({
   kannErstellen,
   bildKontingentAufgebraucht,
+  bildFeatureNurAbo,
 }: {
   kannErstellen: boolean;
   bildKontingentAufgebraucht: boolean;
+  bildFeatureNurAbo: boolean;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -378,9 +380,19 @@ export default function NewWorksheetForm({
           {bildKontingentAufgebraucht &&
             aufgabentypen.some((typ) => typ === "ausmalbild" || typ === "bildergeschichte") && (
               <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-relaxed text-red-700">
-                Dein monatliches Kontingent für „Ausmalbild"/„Bildergeschichte" ist aufgebraucht -
-                die Erstellung mit diesen Aufgabentypen wird fehlschlagen. Wähle stattdessen andere
-                Aufgabentypen, oder warte bis zum nächsten Zyklus.
+                {bildFeatureNurAbo ? (
+                  <>
+                    „Ausmalbild"/„Bildergeschichte" mit KI-generierten Bildern sind nur in einem
+                    zahlenden Abo verfügbar - die Erstellung mit diesen Aufgabentypen wird
+                    fehlschlagen. Wähle stattdessen andere Aufgabentypen.
+                  </>
+                ) : (
+                  <>
+                    Dein monatliches Kontingent für „Ausmalbild"/„Bildergeschichte" ist aufgebraucht
+                    - die Erstellung mit diesen Aufgabentypen wird fehlschlagen. Wähle stattdessen
+                    andere Aufgabentypen, oder warte bis zum nächsten Zyklus.
+                  </>
+                )}
               </p>
             )}
           {istFrueheVolksschulstufe(schulstufe) && (

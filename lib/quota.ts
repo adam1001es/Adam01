@@ -44,7 +44,11 @@ export const TIER_BILD_QUOTA: Record<string, number> = {
   starter: 3,
   pro: 6,
 };
-export const KOSTENLOS_BILD_LIMIT = 2;
+// 0 statt einem kleinen Kontingent: Bildgenerierung (Ausmalbild/Bildergeschichte) ist bewusst
+// ein reines Zahltarif-Feature - im kostenlosen Testkonto komplett gesperrt, nicht nur
+// begrenzt. Andere Aufgabentypen bleiben im Gratis-Kontingent (KOSTENLOS_LIMIT) unverändert
+// nutzbar.
+export const KOSTENLOS_BILD_LIMIT = 0;
 
 export function bildLimitFuer(tier: string | null): number {
   return tier ? TIER_BILD_QUOTA[tier] ?? 0 : KOSTENLOS_BILD_LIMIT;

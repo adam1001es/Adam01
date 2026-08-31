@@ -49,6 +49,7 @@ export default async function NewWorksheetPage() {
       <NewWorksheetForm
         kannErstellen={kontingent.verbleibend > 0 && !netzwerkBlockiert}
         bildKontingentAufgebraucht={kontingent.bildVerbleibend <= 0}
+        bildFeatureNurAbo={kontingent.bildLimit === 0}
       />
     </main>
   );
