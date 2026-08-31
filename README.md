@@ -250,6 +250,20 @@ Stacktraces in der Sentry-Oberfläche) ist bewusst nicht eingerichtet, um kein z
 Sentry-Auth-Token als Secret zu brauchen - kann bei Bedarf in `next.config.js`
 (`withSentryConfig`-Optionen `org`/`project`/`authToken`) nachgerüstet werden.
 
+### Tests
+
+```bash
+npm test          # einmal ausführen
+npm run test:watch  # bei jeder Änderung neu ausführen
+```
+
+Deckt bewusst nur reine, DB-/netzwerkfreie Logik unter `lib/` ab (z.B. Kontingent-Berechnung,
+Lehrplan-Zuordnung, Hijri-Datum) - `*.test.ts` neben der jeweiligen Datei. Kein Aufbau gegen eine
+echte Datenbank oder externe APIs (Claude/Gemini/Mail) - dafür gibt es die manuellen
+Smoke-Tests pro Feature (siehe Commit-Historie). Neue, nicht-triviale Funktionen in `lib/`
+sollten bei Gelegenheit einen Test bekommen, muss aber nicht bei jeder Änderung nachgezogen
+werden - kein Zwang, der die Entwicklung ausbremst.
+
 ## Deployment (Vercel)
 
 1. Projekt in Vercel aus diesem GitHub-Repo importieren.

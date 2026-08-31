@@ -157,7 +157,14 @@ export const SCHULSTUFEN_OPTIONEN: string[] = [
 
 export function guessSchulstufenCluster(schulstufeText: string): SchulstufenCluster {
   const text = schulstufeText.toLowerCase();
-  const zahl = parseInt(text.match(/\d+/)?.[0] ?? "", 10);
+  // Eine explizite "(N. Schulstufe)"-Angabe hat Vorrang vor der ersten Zahl im Text: bei z.B.
+  // "6. Klasse AHS-Oberstufe/BMHS (10. Schulstufe)" ist die erste Zahl im Text die AHS-interne
+  // Klassenzahl (6), nicht die bundesweite Schulstufe (10) - ohne diesen Vorrang würden alle
+  // vier AHS-Oberstufe-Optionen (5.-8. Klasse) fälschlich als Sekundarstufe I statt II
+  // eingestuft, weil ihre Klassenzahl zufällig immer <= 8 ist (dieselbe Technik wie in
+  // holeSchulstufenThemen unten).
+  const explizit = text.match(/(\d+)\.\s*schulstufe/);
+  const zahl = explizit ? parseInt(explizit[1], 10) : parseInt(text.match(/\d+/)?.[0] ?? "", 10);
 
   if (text.includes("volksschule") || text.includes("grundschule")) return SCHULSTUFEN_CLUSTER[0];
   if (text.includes("polytechnisch")) return SCHULSTUFEN_CLUSTER[2];
