@@ -222,13 +222,6 @@ export default function NewWorksheetForm({
 
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
-      {loading && (
-        <GenerierungLoading
-          mitBildern={aufgabentypen.some(
-            (typ) => typ === "ausmalbild" || typ === "bildergeschichte",
-          )}
-        />
-      )}
       <form onSubmit={handleSubmit} className="space-y-6">
         <SectionCard icon={BookOpen} title="Inhalt" subtitle="Bereich, Thema, Schulstufe & Themenbereich" akzent="blau">
           <div className="mb-4 rounded-xl border-2 border-brand-300 bg-gradient-to-br from-brand-50 to-white p-4">
@@ -576,18 +569,22 @@ export default function NewWorksheetForm({
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={loading || !kannErstellen}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-3.5 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
-        >
-          <Wand2 size={18} strokeWidth={2.25} />
-          {loading
-            ? "Wird erstellt und geprüft …"
-            : kannErstellen
-              ? "Arbeitsblatt erstellen"
-              : "Kontingent aufgebraucht"}
-        </button>
+        {loading ? (
+          <GenerierungLoading
+            mitBildern={aufgabentypen.some(
+              (typ) => typ === "ausmalbild" || typ === "bildergeschichte",
+            )}
+          />
+        ) : (
+          <button
+            type="submit"
+            disabled={!kannErstellen}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-3.5 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
+          >
+            <Wand2 size={18} strokeWidth={2.25} />
+            {kannErstellen ? "Arbeitsblatt erstellen" : "Kontingent aufgebraucht"}
+          </button>
+        )}
       </form>
 
       <aside className="hidden md:block">

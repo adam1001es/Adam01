@@ -32,7 +32,6 @@ const config: Config = {
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
-        arabic: ["var(--font-arabic)", "Traditional Arabic", "serif"],
       },
       boxShadow: {
         card: "0 1px 2px rgba(15, 89, 64, 0.04), 0 8px 24px -12px rgba(15, 89, 64, 0.18)",
@@ -42,28 +41,15 @@ const config: Config = {
         "brand-gradient": "linear-gradient(135deg, #12704c 0%, #0f5940 100%)",
       },
       keyframes: {
-        // Sanftes Einblenden + leichtes Heranzoomen der Basmala beim Erscheinen der
-        // Lade-Ansicht (siehe GenerierungLoading.tsx).
-        "basmala-in": {
-          "0%": { opacity: "0", transform: "scale(0.94)" },
-          "100%": { opacity: "1", transform: "scale(1)" },
-        },
-        // Langsames, dezentes "Atmen" der Basmala während der (teils minutenlangen) Wartezeit,
-        // damit die Ansicht sichtbar lebendig bleibt statt eingefroren zu wirken.
-        "basmala-breathe": {
-          "0%, 100%": { opacity: "0.85" },
-          "50%": { opacity: "1" },
-        },
-        // Goldener Lichtschein, der einmalig quer über die Basmala läuft.
-        shimmer: {
-          "0%": { backgroundPosition: "-200% 0" },
-          "100%": { backgroundPosition: "200% 0" },
+        // Wandernder Balken-Abschnitt für die unbestimmte Fortschrittsanzeige während der
+        // Arbeitsblatt-Erstellung (siehe GenerierungLoading.tsx).
+        "lade-balken": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(400%)" },
         },
       },
       animation: {
-        "basmala-in": "basmala-in 900ms ease-out both",
-        "basmala-breathe": "basmala-breathe 3.2s ease-in-out 900ms infinite",
-        shimmer: "shimmer 2.8s linear infinite",
+        "lade-balken": "lade-balken 1.3s ease-in-out infinite",
       },
     },
   },
