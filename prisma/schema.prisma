@@ -63,6 +63,7 @@ model User {
   sessions     Session[]
   worksheets   Worksheet[]
   meldungen    Meldung[]
+  themaIdeenNutzungen ThemaIdeenUsage[]
 }
 
 model Session {
@@ -121,4 +122,20 @@ model Meldung {
   diagnose     String? // kurze, für den Admin verständliche Begründung/Diagnose der KI-Analyse
   bearbeitet   Boolean  @default(false) // vom Admin manuell als gesichtet/erledigt markiert
   createdAt    DateTime @default(now())
+}
+
+// Zählt, wie oft eine Lehrkraft pro Tag die KI-Themenideen-Funktion nutzt (siehe
+// app/api/thema-ideen/route.ts, lib/themaIdeen.ts) - bewusst getrennt vom Arbeitsblatt-
+// Kontingent (lib/quota.ts), da dabei kein Arbeitsblatt entsteht, nur eine kurze, günstige
+// Ideenliste. Tägliches statt monatliches Limit, weil das ein spontanes Kreativitäts-
+// Hilfsmittel ist, nicht die Kernfunktion der App - soll niemanden dauerhaft blockieren.
+model ThemaIdeenUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag       String // "YYYY-MM-DD"
+  anzahl    Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tag])
 }

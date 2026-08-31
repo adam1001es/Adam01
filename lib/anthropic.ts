@@ -14,6 +14,10 @@ export const GENERATION_MODEL = "claude-opus-5";
 // Kernstück der Qualität - ein günstigeres Modell senkt die Kosten hier um ca. 60%, ohne dass
 // die eigentliche Arbeitsblatt-Qualität (die hängt an GENERATION_MODEL) darunter leidet.
 export const VERIFICATION_MODEL = "claude-sonnet-5";
+// Kurze, günstige Themenideen-Vorschläge (siehe app/api/thema-ideen) sind kein Kernstück der
+// Arbeitsblatt-Qualität - dieselbe Kostenlogik wie bei VERIFICATION_MODEL, eigener Name für
+// bessere Lesbarkeit an den Aufrufstellen und falls die Modelle künftig auseinanderlaufen sollen.
+export const IDEEN_MODEL = "claude-sonnet-5";
 
 /** Extrahiert das erste { ... } JSON-Objekt aus einer Modellantwort, auch wenn Fließtext drumherum steht. */
 export function extractJson(text: string): unknown {

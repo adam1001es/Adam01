@@ -20,6 +20,7 @@ import {
   MessagesSquare,
   Grid3x3,
   Hash,
+  Sparkles,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN,
@@ -148,6 +149,10 @@ export default function NewWorksheetForm({
   ]);
   const [zusatzhinweise, setZusatzhinweise] = useState("");
   const [themenbereich, setThemenbereich] = useState<ThemenbereichKey>("gemischt");
+  const [themaIdeen, setThemaIdeen] = useState<string[] | null>(null);
+  const [ideenLaden, setIdeenLaden] = useState(false);
+  const [ideenFehler, setIdeenFehler] = useState<string | null>(null);
+  const [ideenVerbleibend, setIdeenVerbleibend] = useState<number | null>(null);
 
   const [template, setTemplate] = useState<(typeof TEMPLATES)[number]>("klassisch");
   const [schulname, setSchulname] = useState("");
@@ -162,6 +167,26 @@ export default function NewWorksheetForm({
     setAufgabentypen((prev) =>
       prev.includes(typ) ? prev.filter((t) => t !== typ) : [...prev, typ],
     );
+  }
+
+  async function ideenVorschlagen() {
+    setIdeenLaden(true);
+    setIdeenFehler(null);
+    try {
+      const res = await fetch("/api/thema-ideen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ schulstufe, themenbereich }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Ideen konnten nicht erstellt werden.");
+      setThemaIdeen(Array.isArray(data.ideen) ? data.ideen : []);
+      setIdeenVerbleibend(typeof data.verbleibend === "number" ? data.verbleibend : null);
+    } catch (err) {
+      setIdeenFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
+    } finally {
+      setIdeenLaden(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -308,6 +333,47 @@ export default function NewWorksheetForm({
               </div>
             </div>
           )}
+          <div className="mt-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-medium text-slate-500">
+                Noch keine Idee für ein Thema?
+              </span>
+              <button
+                type="button"
+                onClick={ideenVorschlagen}
+                disabled={ideenLaden || ideenVerbleibend === 0}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
+              >
+                <Sparkles size={13} className={ideenLaden ? "animate-pulse" : ""} />
+                {ideenLaden ? "Ideen werden erstellt …" : "KI-Ideen vorschlagen"}
+              </button>
+            </div>
+            {ideenFehler && <p className="mt-1.5 text-xs text-red-600">{ideenFehler}</p>}
+            {themaIdeen && themaIdeen.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {themaIdeen.map((idee) => (
+                  <button
+                    type="button"
+                    key={idee}
+                    onClick={() => setThema(idee)}
+                    className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition ${
+                      thema === idee ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                    }`}
+                  >
+                    <Sparkles size={11} />
+                    {idee}
+                  </button>
+                ))}
+              </div>
+            )}
+            {ideenVerbleibend !== null && (
+              <p className="mt-1.5 text-[11px] text-slate-400">
+                {ideenVerbleibend > 0
+                  ? `Noch ${ideenVerbleibend}× heute verfügbar.`
+                  : "Tageslimit für Themenideen erreicht - morgen wieder verfügbar."}
+              </p>
+            )}
+          </div>
           <label className="mt-4 block">
             <span className={labelClass}>Themenbereich (Grundkompetenz laut Lehrplan IRU NEU)</span>
             <p className="mb-1.5 text-xs leading-relaxed text-slate-400">

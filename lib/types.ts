@@ -259,6 +259,18 @@ export const MeldungRequestSchema = z.object({
 });
 export type MeldungRequest = z.infer<typeof MeldungRequestSchema>;
 
+/** Request-Schema für die KI-Themenideen-Funktion (siehe app/api/thema-ideen/route.ts) - liefert
+ * Inspiration für Lehrkräfte ohne eigene Thema-Idee, unabhängig vom Arbeitsblatt-Kontingent. */
+export const ThemaIdeenRequestSchema = z.object({
+  schulstufe: z.string().min(1),
+  themenbereich: z.enum(THEMENBEREICH_KEYS),
+});
+export type ThemaIdeenRequest = z.infer<typeof ThemaIdeenRequestSchema>;
+
+export const ThemaIdeenAntwortSchema = z.object({
+  ideen: z.array(z.string().min(1)).min(1),
+});
+
 /** Ergebnis-Status der automatischen Meldungs-Analyse (siehe lib/meldungFix.ts), auch für die
  * Anzeige unter /admin/meldungen und im MeldungButton nach dem Absenden. */
 export const MELDUNG_STATUS_LABEL: Record<string, string> = {
