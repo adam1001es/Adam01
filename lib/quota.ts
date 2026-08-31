@@ -5,9 +5,13 @@ import { prisma } from "@/lib/prisma";
  * KOSTENLOS_LIMIT Arbeitsblätter/Monat als Gratis-Basis (jedes Konto braucht einen Login -
  * siehe app/api/generate; zusätzlich pro IP/Browser begrenzt, siehe lib/trial.ts, damit sich
  * niemand durch mehrere Konten ein Vielfaches des Gratis-Kontingents verschafft). */
+// Bemessen anhand der geschätzten KI-Kosten pro Arbeitsblatt (~0,14€ im Schnitt, siehe unten) -
+// bei diesen Werten bleibt bei beiden Tarifen realistische Marge, auch wenn das Kontingent
+// vollständig ausgeschöpft wird (vorher: 30/80 bei unverändertem Preis war strukturell
+// defizitär, siehe Admin-Übersicht "Geschätzter Gewinn/Verlust").
 export const TIER_QUOTA: Record<string, number> = {
-  starter: 30,
-  pro: 80,
+  starter: 15,
+  pro: 30,
 };
 
 export const TIER_PREIS_EUR: Record<string, number> = {
