@@ -48,7 +48,7 @@ const FEATURES = [
   {
     icon: Baby,
     titel: "Altersgerecht bis Klasse 1",
-    text: "Für noch nicht lese-/schreibkundige Kinder automatisch bildbasierte Aufgaben (Ausmalbild, Bildergeschichte zum Vorlesen) statt ungeeigneter Lesetext-Aufgaben.",
+    text: "Für noch nicht lese-/schreibkundige Kinder automatisch besonders einfache, mündlich vorlesbare Aufgaben statt ungeeigneter Lesetext-Aufgaben.",
     akzent: "brand",
   },
 ] as const;
@@ -73,8 +73,8 @@ const VERGLEICH_UNS = [
 ];
 
 const WAS_ENTHALTEN = [
-  "Über 10 Aufgabentypen: Multiple Choice, Lückentext, Zuordnung, Reihenfolge, Kreuzworträtsel, Wortsuche, Diskussionsimpulse u.v.m.",
-  "Speziell für die Kleinsten: Ausmalbilder und Bildergeschichten zum Vorlesen, für Kinder, die noch nicht lesen/schreiben können",
+  "10 Aufgabentypen: Multiple Choice, Lückentext, Zuordnung, Reihenfolge, Kreuzworträtsel, Wortsuche, Diskussionsimpulse u.v.m.",
+  "Speziell für die Kleinsten: automatisch besonders einfache, mündlich vorlesbare Aufgaben für Kinder, die noch nicht lesen/schreiben können",
   "Fertiges, druckreifes PDF oder Word-Dokument - direkt zum Ausdrucken",
   "Eine zweite, unabhängige KI-Prüfung für jedes einzelne Arbeitsblatt",
   "Eigene Bibliothek: alle bisher erstellten Arbeitsblätter jederzeit wieder abrufbar",

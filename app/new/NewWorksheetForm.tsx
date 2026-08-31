@@ -13,8 +13,6 @@ import {
   MessageSquareText,
   ToggleLeft,
   Eye,
-  Palette,
-  Images,
   ListOrdered,
   BookOpenText,
   MessagesSquare,
@@ -24,7 +22,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import {
-  AUFGABEN_TYPEN,
+  AUFGABEN_TYPEN_AKTIV,
   AUFGABEN_TYP_MAXIMUM,
   TEMPLATES,
   FARBMODI,
@@ -98,14 +96,12 @@ const VORSCHAU_INHALT: WorksheetContent = {
   quellen: [{ bezeichnung: "Beispiel-Quelle", sicherheit: "gesichert" }],
 };
 
-const TYP_META: Record<(typeof AUFGABEN_TYPEN)[number], { label: string; icon: typeof CheckSquare }> = {
+const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; icon: typeof CheckSquare }> = {
   multiple_choice: { label: "Multiple Choice", icon: CheckSquare },
   lueckentext: { label: "Lückentext", icon: PenLine },
   zuordnung: { label: "Zuordnung", icon: ArrowLeftRight },
   offene_frage: { label: "Offene Frage", icon: MessageSquareText },
   wahr_falsch: { label: "Wahr oder Falsch", icon: ToggleLeft },
-  ausmalbild: { label: "Ausmalbild", icon: Palette },
-  bildergeschichte: { label: "Bildergeschichte", icon: Images },
   reihenfolge: { label: "Reihenfolge", icon: ListOrdered },
   lesetext: { label: "Lesetext", icon: BookOpenText },
   diskussion: { label: "Diskussionsimpuls", icon: MessagesSquare },
@@ -119,15 +115,7 @@ const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch:
   kompakt: { label: "Kompakt", swatch: "#64748b" },
 };
 
-export default function NewWorksheetForm({
-  kannErstellen,
-  bildKontingentAufgebraucht,
-  bildFeatureNurAbo,
-}: {
-  kannErstellen: boolean;
-  bildKontingentAufgebraucht: boolean;
-  bildFeatureNurAbo: boolean;
-}) {
+export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -236,7 +224,7 @@ export default function NewWorksheetForm({
         // Zeitüberschreitung abgebrochen wurde und stattdessen eine Plattform-Fehlerseite
         // zurückkam) - statt der kryptischen Browser-Fehlermeldung eine verständliche anzeigen.
         throw new Error(
-          "Die Erstellung hat zu lange gedauert oder wurde serverseitig abgebrochen. Bitte erneut versuchen - ggf. mit weniger Aufgaben oder weniger bildbasierten Aufgabentypen gleichzeitig.",
+          "Die Erstellung hat zu lange gedauert oder wurde serverseitig abgebrochen. Bitte erneut versuchen - ggf. mit weniger Aufgaben gleichzeitig.",
         );
       }
       if (!res.ok || !data.id) {
@@ -309,8 +297,8 @@ export default function NewWorksheetForm({
                 />
               )}
               <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-                Steuert Sprachniveau - bei 1./2. Klasse Volksschule werden automatisch
-                bildbasierte Aufgaben empfohlen.
+                Steuert Sprachniveau - bei 1./2. Klasse Volksschule werden automatisch besonders
+                einfache, mündlich vorlesbare Aufgaben bevorzugt.
               </span>
             </label>
           </div>
@@ -430,7 +418,7 @@ export default function NewWorksheetForm({
         >
           <span className={labelClass}>Aufgabentypen</span>
           <div className="flex flex-wrap gap-2">
-            {AUFGABEN_TYPEN.map((typ) => {
+            {AUFGABEN_TYPEN_AKTIV.map((typ) => {
               const meta = TYP_META[typ];
               const active = aufgabentypen.includes(typ);
               return (
@@ -491,7 +479,7 @@ export default function NewWorksheetForm({
                 <strong>
                   {schaetzeAufgabenAnzahl(
                     zieldauerMinuten,
-                    aufgabentypen as (typeof AUFGABEN_TYPEN)[number][],
+                    aufgabentypen as (typeof AUFGABEN_TYPEN_AKTIV)[number][],
                     komplexitaet,
                   )}{" "}
                   Aufgaben
@@ -511,44 +499,25 @@ export default function NewWorksheetForm({
           )}
           {aufgabentypen.some((typ) => typ in AUFGABEN_TYP_MAXIMUM) && (
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
-              Hinweis: „Bildergeschichte", „Kreuzworträtsel" und „Wortsuche" sind für sich schon
-              umfangreich - davon wird höchstens 1 Aufgabe pro Arbeitsblatt erstellt, „Ausmalbild"
-              höchstens 4, auch wenn oben eine höhere Anzahl gewählt ist. Das fertige Blatt kann
-              dadurch weniger Aufgaben enthalten als hier eingestellt.
+              Hinweis: „Kreuzworträtsel" und „Wortsuche" sind für sich schon umfangreich - davon
+              wird höchstens 1 Aufgabe pro Arbeitsblatt erstellt, auch wenn oben eine höhere
+              Anzahl gewählt ist. Das fertige Blatt kann dadurch weniger Aufgaben enthalten als
+              hier eingestellt.
             </p>
           )}
-          {bildKontingentAufgebraucht &&
-            aufgabentypen.some((typ) => typ === "ausmalbild" || typ === "bildergeschichte") && (
-              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-relaxed text-red-700">
-                {bildFeatureNurAbo ? (
-                  <>
-                    „Ausmalbild"/„Bildergeschichte" mit KI-generierten Bildern sind nur in einem
-                    Starter-/Pro-Abo verfügbar - die Erstellung mit diesen Aufgabentypen wird
-                    fehlschlagen. Wähle stattdessen andere Aufgabentypen.
-                  </>
-                ) : (
-                  <>
-                    Dein monatliches Kontingent für „Ausmalbild"/„Bildergeschichte" ist aufgebraucht
-                    - die Erstellung mit diesen Aufgabentypen wird fehlschlagen. Wähle stattdessen
-                    andere Aufgabentypen, oder warte bis zum nächsten Zyklus.
-                  </>
-                )}
-              </p>
-            )}
           {istFrueheVolksschulstufe(schulstufe) && (
             <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
               <p className="text-xs leading-relaxed text-gold-700">
                 Kinder der 1./2. Klasse Volksschule können meist noch nicht lesen/schreiben.
-                Empfehlung: „Ausmalbild" statt Lesetext-Aufgaben - passt zu jedem Thema. Erzählt
-                sich das Thema als kleine Geschichte (z.B. eine Propheten-Erzählung), ergänze
-                zusätzlich „Bildergeschichte" von Hand.
+                Empfehlung: „Wahr oder Falsch", „Multiple Choice" und „Zuordnung" mit ganz kurzen,
+                mündlich vorlesbaren Aufgaben statt textlastiger Typen.
               </p>
               <button
                 type="button"
-                onClick={() => setAufgabentypen(["ausmalbild"])}
+                onClick={() => setAufgabentypen(["wahr_falsch", "multiple_choice", "zuordnung"])}
                 className="shrink-0 whitespace-nowrap rounded-full border border-gold-300 bg-white px-3 py-1.5 text-xs font-medium text-gold-700 transition hover:bg-gold-100"
               >
-                Ausmalbild übernehmen
+                Übernehmen
               </button>
             </div>
           )}
@@ -710,11 +679,7 @@ export default function NewWorksheetForm({
         )}
 
         {loading ? (
-          <GenerierungLoading
-            mitBildern={aufgabentypen.some(
-              (typ) => typ === "ausmalbild" || typ === "bildergeschichte",
-            )}
-          />
+          <GenerierungLoading />
         ) : (
           <button
             type="submit"

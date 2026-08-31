@@ -42,11 +42,7 @@ export default async function NewWorksheetPage() {
           </div>
         </div>
       )}
-      <NewWorksheetForm
-        kannErstellen={kontingent.verbleibend > 0 && !netzwerkBlockiert}
-        bildKontingentAufgebraucht={kontingent.bildVerbleibend <= 0}
-        bildFeatureNurAbo={kontingent.bildLimit === 0}
-      />
+      <NewWorksheetForm kannErstellen={kontingent.verbleibend > 0 && !netzwerkBlockiert} />
     </main>
   );
 }

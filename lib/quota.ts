@@ -5,14 +5,6 @@ import { prisma } from "@/lib/prisma";
  * KOSTENLOS_LIMIT Arbeitsblätter/Monat als Gratis-Basis (jedes Konto braucht einen Login -
  * siehe app/api/generate; zusätzlich pro IP/Browser begrenzt, siehe lib/trial.ts, damit sich
  * niemand durch mehrere Konten ein Vielfaches des Gratis-Kontingents verschafft). */
-// Bemessen so, dass selbst der ABSOLUTE Worst Case (gesamtes TIER_BILD_QUOTA mit maximal
-// teuren Arbeitsblättern voll ausgeschöpft, siehe BILDERGESCHICHTE_SCHRITTE_MAXIMUM/
-// AUFGABEN_TYP_MAXIMUM.ausmalbild in lib/types.ts) die Abo-Kosten nicht übersteigt - "nichts
-// draufzahlen" gilt also nicht nur im Durchschnitt, sondern garantiert. Da reine Text-Blätter
-// mit ~0,10€ sehr günstig sind, ist hier bewusst viel Spielraum für Text-lastige Nutzung
-// eingerechnet (18/36 statt vorher 15/30), während das separate, deutlich engere
-// TIER_BILD_QUOTA unten die teuren Bild-Anfragen begrenzt. Rechnung Starter (Worst Case):
-// 3 × 0,50€ (max. Bild-Blatt) + 15 × 0,10€ (Text) = 3,00€ = genau der Abo-Preis.
 export const TIER_QUOTA: Record<string, number> = {
   starter: 18,
   pro: 36,
@@ -31,60 +23,23 @@ export const TIER_LABEL: Record<string, string> = {
 export const KOSTENLOS_LIMIT = 3;
 export const KOSTENLOS_LABEL = `Kostenlos (${KOSTENLOS_LIMIT} Arbeitsblätter im Monat)`;
 
-/** Zusätzliches, engeres Kontingent NUR für Arbeitsblätter mit "ausmalbild"/"bildergeschichte"-
- * Aufgaben (siehe enthaeltBildAufgabe) - unabhängig vom allgemeinen TIER_QUOTA. Grund: ein
- * einzelnes bildlastiges Arbeitsblatt kostet durch die Live-Bildgenerierung (Gemini) deutlich
- * mehr als ein reines Textblatt (bis zu ~0,50€ im Worst Case mit maximal vielen Bildern pro
- * Blatt vs. ~0,10€ für Text, siehe GESCHAETZTE_KOSTEN_*). Ohne dieses Extra-Limit könnte eine
- * Lehrkraft ihr gesamtes Kontingent mit ausschließlich bildlastigen Blättern ausschöpfen und
- * damit die Kalkulation der Tarife sprengen. Bewusst eng bemessen (3/6 statt vorher 5/10), damit
- * TIER_QUOTA oben trotzdem angehoben werden konnte, ohne dass der garantierte Worst Case den
- * Abo-Preis übersteigt (siehe Rechnung dort). */
-export const TIER_BILD_QUOTA: Record<string, number> = {
-  starter: 3,
-  pro: 6,
-};
-// 0 statt einem kleinen Kontingent: Bildgenerierung (Ausmalbild/Bildergeschichte) ist bewusst
-// ein reines Zahltarif-Feature - im kostenlosen Testkonto komplett gesperrt, nicht nur
-// begrenzt. Andere Aufgabentypen bleiben im Gratis-Kontingent (KOSTENLOS_LIMIT) unverändert
-// nutzbar.
-export const KOSTENLOS_BILD_LIMIT = 0;
-
-export function bildLimitFuer(tier: string | null): number {
-  return tier ? TIER_BILD_QUOTA[tier] ?? 0 : KOSTENLOS_BILD_LIMIT;
-}
-
-/** Prüft, ob ein gespeichertes "contentJson" mindestens eine bildbasierte Aufgabe
- * ("ausmalbild"/"bildergeschichte") enthält - unabhängig davon, ob am Ende ein echtes
- * KI-Bild oder (bei Fehlschlag/Sicherheitsfilter) ein festes Icon verwendet wurde: der
- * kostenrelevante Punkt ist bereits der Versuch, nicht erst der Erfolg (siehe
- * TIER_BILD_QUOTA). Bewusst lose typisiert wie zaehleGenerierteBilder. */
-export function enthaeltBildAufgabe(contentJson: string): boolean {
-  try {
-    const content = JSON.parse(contentJson) as { aufgaben?: Array<{ typ?: string }> };
-    return (content.aufgaben ?? []).some(
-      (a) => a.typ === "ausmalbild" || a.typ === "bildergeschichte",
-    );
-  } catch {
-    return false;
-  }
-}
-
 /** Grobe Kostenschätzung pro Arbeitsblatt (siehe Admin-Übersicht, "Geschätzte KI-Kosten") -
  * bewusst konservativ (eher zu hoch als zu niedrig geschätzt), da echte Token-Nutzung pro
  * Anfrage nicht geloggt wird. Basis: claude-opus-5 für die Erstellung + claude-sonnet-5 für die
- * Prüfung (System-Prompt gecached, 1h-TTL, Rest ungecached; typische Ausgabelänge), Gemini
- * gemini-2.5-flash-image für echte Bild-Generierungen (~0,036€/Bild). Bei Preisänderungen der
- * Anbieter, einem Modellwechsel (siehe lib/anthropic.ts) oder spürbar abweichender
- * tatsächlicher Nutzung anpassen. */
+ * Prüfung (System-Prompt gecached, 1h-TTL, Rest ungecached; typische Ausgabelänge). Live-
+ * Bildgenerierung wurde entfernt (siehe zaehleGenerierteBilder) - GESCHAETZTE_KOSTEN_PRO_BILD_EUR
+ * bleibt für die Kostenschätzung bereits bestehender Arbeitsblätter mit Bildern relevant. Bei
+ * Preisänderungen der Anbieter, einem Modellwechsel (siehe lib/anthropic.ts) oder spürbar
+ * abweichender tatsächlicher Nutzung anpassen. */
 export const GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR = 0.1;
 export const GESCHAETZTE_KOSTEN_PRO_BILD_EUR = 0.036;
 
 /** Zählt, wie viele Aufgaben-Bildfelder in einem gespeicherten "contentJson" tatsächlich ein
  * live per Bild-KI generiertes (und sicherheitsgeprüftes) Bild verwenden - erkennbar an
- * gesetztem "bildGeneriertId" (siehe lib/generateWorksheet.ts). Bewusst lose typisiert
- * (kein Zod-Parse) und defensiv gegen kaputte/ältere Datensätze, da dies nur für die grobe
- * Kostenschätzung in der Admin-Übersicht verwendet wird, nicht für die eigentliche Anzeige. */
+ * gesetztem "bildGeneriertId" (siehe lib/generateWorksheet.ts). Bild-Aufgaben werden nicht mehr
+ * neu erzeugt, aber bestehende Arbeitsblätter können solche Felder noch enthalten (siehe
+ * Admin-Übersicht, "Geschätzte KI-Kosten"). Bewusst lose typisiert (kein Zod-Parse) und defensiv
+ * gegen kaputte/ältere Datensätze. */
 export function zaehleGenerierteBilder(contentJson: string): number {
   try {
     const content = JSON.parse(contentJson) as {
@@ -130,10 +85,6 @@ export interface Kontingent {
   zyklusEnde: Date;
   /** Admin-Konten haben kein Kontingent-Limit - siehe app/api/generate, KontingentBanner. */
   unbegrenzt: boolean;
-  /** Separates, engeres Kontingent nur für bildbasierte Arbeitsblätter (siehe TIER_BILD_QUOTA). */
-  bildLimit: number;
-  bildVerbraucht: number;
-  bildVerbleibend: number;
 }
 
 /** Ist das zugewiesene "tier" gerade im (optionalen) Gültigkeitszeitraum aktiv? Ohne gesetzte
@@ -181,11 +132,7 @@ export async function getKontingent(user: {
   // nachweislich fehlerhaftes Arbeitsblatt zurück, ohne dass das Arbeitsblatt selbst gelöscht
   // werden muss.
   const kontingentFilter = { userId: user.id, createdAt: { gte: zyklusStart }, erstattet: false };
-  const [verbraucht, zyklusWorksheets] = await Promise.all([
-    prisma.worksheet.count({ where: kontingentFilter }),
-    prisma.worksheet.findMany({ where: kontingentFilter, select: { contentJson: true } }),
-  ]);
-  const bildVerbraucht = zyklusWorksheets.filter((w) => enthaeltBildAufgabe(w.contentJson)).length;
+  const verbraucht = await prisma.worksheet.count({ where: kontingentFilter });
 
   // Außerhalb des zugewiesenen Gültigkeitszeitraums (falls gesetzt) zählt das Konto für die
   // Kontingent-Berechnung automatisch wieder als "kostenlos" - ohne dass ein Admin manuell
@@ -208,14 +155,10 @@ export async function getKontingent(user: {
       zyklusStart,
       zyklusEnde,
       unbegrenzt: true,
-      bildLimit: Infinity,
-      bildVerbraucht,
-      bildVerbleibend: Infinity,
     };
   }
 
   const limit = effektiverTier ? TIER_QUOTA[effektiverTier] ?? 0 : KOSTENLOS_LIMIT;
-  const bildLimit = bildLimitFuer(effektiverTier);
   return {
     tier: effektiverTier,
     limit,
@@ -224,8 +167,5 @@ export async function getKontingent(user: {
     zyklusStart,
     zyklusEnde,
     unbegrenzt: false,
-    bildLimit,
-    bildVerbraucht,
-    bildVerbleibend: Math.max(0, bildLimit - bildVerbraucht),
   };
 }

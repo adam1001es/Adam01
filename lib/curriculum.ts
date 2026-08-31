@@ -17,7 +17,6 @@
  * konkrete Passung vor Einsatz im Unterricht.
  */
 
-import { ICON_KEYS, ICONS } from "./icons";
 import type { Komplexitaet } from "./types";
 
 /**
@@ -445,19 +444,19 @@ export function buildCurriculumSystemContext(
   const fruehLesend = istFrueheVolksschulstufe(schulstufeText);
   const schulstufenThemen = holeSchulstufenThemen(schulstufeText);
 
-  const iconListe = ICON_KEYS.map((k) => `"${k}" (${ICONS[k].label})`).join(", ");
   const vorlesekundigHinweis = fruehLesend
     ? `
 
 WICHTIG - noch nicht lese-/schreibkundige Kinder (1./2. Schulstufe Volksschule):
-Diese Schüler:innen können noch nicht (oder kaum) lesen und schreiben. Textlastige Aufgabentypen
-(Lückentext, offene Frage, Multiple Choice mit viel Lesetext, Wahr/Falsch als Lesetext,
-Reihenfolge, Lesetext, Wortsuche, Kreuzworträtsel) sind für sie NICHT geeignet und sollen
-vermieden bzw. nur ganz vereinzelt und mit sehr wenigen, sehr kurzen Wörtern eingesetzt werden.
-Verwende stattdessen überwiegend die bildbasierten Aufgabentypen:
-- "ausmalbild": ein Bild-Symbol zum Ausmalen. Feld "frage" ist eine ganz kurze, einfache Anweisung, die die Lehrkraft vorliest (z.B. "Male die Moschee bunt aus.").
-- "bildergeschichte": eine kleine Bildergeschichte aus 3-5 Schritten. Feld "bildergeschichteSchritte" ist ein Array von Objekten { ..., "vorlesetext": <ein kurzer, einfacher Satz, den die Lehrkraft laut vorliest> }. Feld "frage" ist eine kurze Überschrift/Rahmenanweisung (z.B. "Hört gut zu und schaut euch die Bilder an.").
-Bei "bild" bzw. den "bild"-Feldern in "bildergeschichteSchritte" GENAU EINES von zwei Feldern setzen (siehe Hauptanweisung): entweder "bild" mit einem dieser Schlüssel: ${iconListe} - ODER "bildBeschreibung" mit einer kurzen NEUEN, vollständig eigenständigen und kontextfreien Objekt-Beschreibung (nur Gegenstände/Tiere/Natur/Gebäude, niemals Menschen/Gesichter/religiöse Figuren, und niemals Namen oder Titel von Propheten wie "Yunus"/"Musa"/"Prophet" - auch dann nicht, wenn die Aufgabe selbst von einem Propheten handelt; z.B. "ein großer Fisch im Meer" statt "der Fisch von Prophet Yunus"). Bevorzuge die feste Liste, wenn ein Schlüssel gut passt; nutze "bildBeschreibung" nur für zusätzliche Abwechslung. Setze "anforderungsbereich" bei diesen Aufgaben auf "afb1" (Wahrnehmen/Wiedererkennen). Ein Arbeitsblatt für diese Stufe soll überwiegend aus "ausmalbild"- und "bildergeschichte"-Aufgaben bestehen.`
+Diese Schüler:innen können noch nicht (oder kaum) lesen und schreiben. Aufgaben mit viel
+Lesetext oder eigenständigem Schreiben (Lesetext, Lückentext mit längeren Wörtern, Wortsuche,
+Kreuzworträtsel, lange offene Fragen) sind für sie NICHT geeignet und sollen vermieden bzw. nur
+ganz vereinzelt und mit sehr wenigen, sehr kurzen Wörtern eingesetzt werden. Nutze stattdessen
+fast ausschließlich mündlich vorlesbare Formate mit sehr kurzen, einfachen Formulierungen:
+"wahr_falsch" und "multiple_choice" mit ganz wenigen, kurzen Antwortoptionen (die die Lehrkraft
+vorliest und die Kinder mündlich oder durch Zeigen beantworten) sowie "zuordnung" mit wenigen,
+sehr kurzen Begriffen. Halte "frage"-Texte auf einen einzigen, ganz kurzen Satz beschränkt.
+Setze "anforderungsbereich" bei diesen Aufgaben auf "afb1" (Wahrnehmen/Wiedererkennen).`
     : "";
 
   const afbSpanne =

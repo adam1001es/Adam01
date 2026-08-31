@@ -3,12 +3,8 @@ import {
   istTierAktiv,
   istZahlendesKonto,
   aktuellerZyklusStart,
-  bildLimitFuer,
-  enthaeltBildAufgabe,
   zaehleGenerierteBilder,
   tierLabel,
-  TIER_BILD_QUOTA,
-  KOSTENLOS_BILD_LIMIT,
 } from "./quota";
 
 describe("istTierAktiv", () => {
@@ -76,42 +72,6 @@ describe("aktuellerZyklusStart", () => {
     const erwarteterStart = new Date(erstellt);
     erwarteterStart.setDate(erwarteterStart.getDate() + 30);
     expect(start.getTime()).toBe(erwarteterStart.getTime());
-  });
-});
-
-describe("bildLimitFuer", () => {
-  it("liefert 0 (KOSTENLOS_BILD_LIMIT) ohne tier", () => {
-    expect(bildLimitFuer(null)).toBe(KOSTENLOS_BILD_LIMIT);
-  });
-
-  it("liefert das jeweilige Tier-Limit", () => {
-    expect(bildLimitFuer("starter")).toBe(TIER_BILD_QUOTA.starter);
-    expect(bildLimitFuer("pro")).toBe(TIER_BILD_QUOTA.pro);
-  });
-
-  it("liefert 0 für ein unbekanntes tier statt undefined", () => {
-    expect(bildLimitFuer("unbekannt")).toBe(0);
-  });
-});
-
-describe("enthaeltBildAufgabe", () => {
-  it("erkennt ausmalbild-Aufgaben", () => {
-    const json = JSON.stringify({ aufgaben: [{ typ: "ausmalbild" }] });
-    expect(enthaeltBildAufgabe(json)).toBe(true);
-  });
-
-  it("erkennt bildergeschichte-Aufgaben", () => {
-    const json = JSON.stringify({ aufgaben: [{ typ: "bildergeschichte" }] });
-    expect(enthaeltBildAufgabe(json)).toBe(true);
-  });
-
-  it("ist false bei reinen Text-Aufgaben", () => {
-    const json = JSON.stringify({ aufgaben: [{ typ: "offene_frage" }, { typ: "lueckentext" }] });
-    expect(enthaeltBildAufgabe(json)).toBe(false);
-  });
-
-  it("ist defensiv false bei kaputtem JSON statt zu werfen", () => {
-    expect(enthaeltBildAufgabe("das ist kein JSON")).toBe(false);
   });
 });
 

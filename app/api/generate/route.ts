@@ -6,7 +6,7 @@ import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 
-// Generierung + Verifikation + ggf. mehrere Bild-Generierungen können zusammen deutlich länger
+// Generierung + Verifikation (zwei nacheinander laufende Claude-Aufrufe) können zusammen länger
 // als das Standard-Zeitlimit dauern - ohne diese Erhöhung bricht Vercel die Funktion vorzeitig
 // ab und der Browser zeigt statt der Arbeitsblatt-Seite nur einen generischen Fehler. 180s als
 // großzügiger Puffer - mit Fluid Compute (seit 2026 Standard, auch auf dem kostenlosen
@@ -45,19 +45,6 @@ export async function POST(request: NextRequest) {
     const grund = kontingent.tier
       ? `Dein Kontingent für diesen Zyklus (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
       : `Dein kostenloses Kontingent (${kontingent.limit} Arbeitsblätter/Monat) ist für diesen Zyklus aufgebraucht. Für mehr: ein Abo bei der Person anfragen, die den Zugang verwaltet.`;
-    return NextResponse.json({ error: grund }, { status: 403 });
-  }
-
-  // Separates, engeres Kontingent für bildbasierte Arbeitsblätter (siehe TIER_BILD_QUOTA) - eine
-  // Live-Bildgenerierung kostet deutlich mehr als ein reines Textblatt, daher eigene Grenze
-  // unabhängig vom allgemeinen Kontingent oben.
-  const istBildAnfrage = req.aufgabentypen.some(
-    (t) => t === "ausmalbild" || t === "bildergeschichte",
-  );
-  if (istBildAnfrage && !kontingent.unbegrenzt && kontingent.bildVerbleibend <= 0) {
-    const grund = kontingent.tier
-      ? `Dein Kontingent für bildbasierte Arbeitsblätter (Ausmalbild/Bildergeschichte) ist für diesen Zyklus aufgebraucht (${kontingent.bildLimit}/Monat). Andere Aufgabentypen kannst du weiterhin nutzen. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
-      : "Ausmalbild/Bildergeschichte mit KI-generierten Bildern sind nur in einem Starter-/Pro-Abo verfügbar. Andere Aufgabentypen kannst du im kostenlosen Kontingent weiterhin nutzen. Für ein Abo: die Person anfragen, die den Zugang verwaltet.";
     return NextResponse.json({ error: grund }, { status: 403 });
   }
 

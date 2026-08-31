@@ -2,15 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-const STATUS_TEXTE_TEXT = [
+const STATUS_TEXTE = [
   "Arbeitsblatt wird erstellt …",
-  "Inhalte werden pädagogisch geprüft …",
-  "Gleich fertig …",
-];
-
-const STATUS_TEXTE_MIT_BILDERN = [
-  "Arbeitsblatt wird erstellt …",
-  "Bilder werden per KI generiert …",
   "Inhalte werden pädagogisch geprüft …",
   "Gleich fertig …",
 ];
@@ -18,8 +11,8 @@ const STATUS_TEXTE_MIT_BILDERN = [
 /** Kompakte Lade-Anzeige während der (teils minutenlangen) Arbeitsblatt-Erstellung - ersetzt
  * nur den Erstellen-Button, kein vollflächiges Overlay. "Bismillahirrahmanirrahim" bewusst nur
  * als schlichte Umschrift, keine arabische Kalligrafie/Übersetzung nötig. */
-export default function GenerierungLoading({ mitBildern }: { mitBildern: boolean }) {
-  const texte = mitBildern ? STATUS_TEXTE_MIT_BILDERN : STATUS_TEXTE_TEXT;
+export default function GenerierungLoading() {
+  const texte = STATUS_TEXTE;
   const [index, setIndex] = useState(0);
 
   useEffect(() => {

@@ -2,6 +2,11 @@ import { z } from "zod";
 import { THEMENBEREICH_KEYS, ANFORDERUNGSBEREICHE_KEYS } from "./curriculum";
 import { ICON_KEYS } from "./icons";
 
+// "ausmalbild" und "bildergeschichte" bleiben Teil dieser Liste, obwohl sie NICHT mehr angeboten
+// werden (siehe AUFGABEN_TYPEN_AKTIV unten) - Bild-Aufgaben wurden bewusst wieder entfernt (zu
+// teuer, zu fehleranfällig, zu weit weg vom eigentlichen Ziel: hochwertige TEXT-Arbeitsblätter).
+// Bestehende Arbeitsblätter mit diesen Typen bleiben aber unverändert lesbar/druckbar - dafür
+// müssen AufgabeSchema/WorksheetContentSchema unten diese Werte weiterhin akzeptieren.
 export const AUFGABEN_TYPEN = [
   "multiple_choice",
   "lueckentext",
@@ -17,21 +22,32 @@ export const AUFGABEN_TYPEN = [
   "kreuzwortraetsel",
 ] as const;
 
-/** Manche Aufgabentypen sind inhaltlich für sich schon umfangreich (Bildergeschichte: mehrere
- * Bild-Schritte; Kreuzworträtsel/Wortsuche: 4-8 Wörter samt Gitter) - davon macht daher pro
- * Arbeitsblatt höchstens diese Anzahl Sinn, unabhängig von der insgesamt gewählten "Anzahl
- * Aufgaben". "ausmalbild" ist zusätzlich (anders als die anderen drei) NICHT auf einen echten
- * inhaltlichen Grund gedeckelt, sondern rein auf die Kosten: jedes Ausmalbild kann ein neues,
- * per Bild-KI generiertes Bild bedeuten - ohne Deckel könnte "Anzahl Aufgaben" = 10 nur mit
- * "ausmalbild" bis zu 10 Bilder in einem einzigen Arbeitsblatt anfordern und damit das separate
- * Bild-Kontingent (lib/quota.ts, TIER_BILD_QUOTA) aushebeln, das nur Arbeitsblätter zählt, nicht
- * Bilder. Wird sowohl beim Prompt-Bau als auch als harte serverseitige Grenze verwendet (siehe
- * begrenzeAufgabenProTyp in lib/generateWorksheet.ts). */
+/** Aktuell im Formular anbietbare und für NEUE Arbeitsblätter generierbare Aufgabentypen -
+ * schließt "ausmalbild"/"bildergeschichte" aus (siehe Kommentar bei AUFGABEN_TYPEN). Wird für
+ * GenerateRequestSchema.aufgabentypen sowie im Erstellen-Formular verwendet. Bewusst als eigenes
+ * Array-Literal statt per .filter() von AUFGABEN_TYPEN abgeleitet, damit z.enum() weiterhin ein
+ * literales Tupel (statt eines generischen string[]) zur Typprüfung bekommt. */
+export const AUFGABEN_TYPEN_AKTIV = [
+  "multiple_choice",
+  "lueckentext",
+  "zuordnung",
+  "offene_frage",
+  "wahr_falsch",
+  "reihenfolge",
+  "lesetext",
+  "diskussion",
+  "wortsuche",
+  "kreuzwortraetsel",
+] as const satisfies readonly (typeof AUFGABEN_TYPEN)[number][];
+
+/** Manche Aufgabentypen sind inhaltlich für sich schon umfangreich (Kreuzworträtsel/Wortsuche:
+ * 4-8 Wörter samt Gitter) - davon macht daher pro Arbeitsblatt höchstens diese Anzahl Sinn,
+ * unabhängig von der insgesamt gewählten "Anzahl Aufgaben". Wird sowohl beim Prompt-Bau als auch
+ * als harte serverseitige Grenze verwendet (siehe begrenzeAufgabenProTyp in
+ * lib/generateWorksheet.ts). */
 export const AUFGABEN_TYP_MAXIMUM: Partial<Record<(typeof AUFGABEN_TYPEN)[number], number>> = {
-  bildergeschichte: 1,
   kreuzwortraetsel: 1,
   wortsuche: 1,
-  ausmalbild: 4,
 };
 
 /** Harte Obergrenze für die Anzahl Schritte (= Bilder) einer einzelnen Bildergeschichte-Aufgabe -
@@ -242,7 +258,7 @@ export const GenerateRequestSchema = z.object({
     })
     .default(35),
   komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
-  aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN)).min(1),
+  aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN_AKTIV)).min(1),
   zusatzhinweise: z.string().optional(),
   layout: LayoutConfigSchema,
 });
