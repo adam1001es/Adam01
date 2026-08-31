@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale } from "lucide-react";
+import Link from "next/link";
+import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import {
@@ -70,6 +71,8 @@ export default async function AdminPage() {
     bilderDiesenMonat * GESCHAETZTE_KOSTEN_PRO_BILD_EUR;
   const geschaetzterGewinn = monatsumsatz - geschaetzteKosten;
 
+  const offeneMeldungen = await prisma.meldung.count({ where: { status: "offen" } });
+
   const STATS = [
     { icon: Users, label: "Konten gesamt", wert: String(rows.length) },
     { icon: CreditCard, label: "Aktive Abos", wert: `${aktiveStarter + aktivePro} (${aktiveStarter} Starter · ${aktivePro} Pro)` },
@@ -90,16 +93,29 @@ export default async function AdminPage() {
 
   return (
     <main>
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-          <ShieldCheck size={18} strokeWidth={2} />
-        </span>
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Konten verwalten</h1>
-          <p className="text-sm text-slate-500">
-            Kontingent nach privat organisierter Bezahlung zuweisen, Konten suchen und entfernen.
-          </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+            <ShieldCheck size={18} strokeWidth={2} />
+          </span>
+          <div>
+            <h1 className="font-display text-2xl font-semibold text-slate-800">Konten verwalten</h1>
+            <p className="text-sm text-slate-500">
+              Kontingent nach privat organisierter Bezahlung zuweisen, Konten suchen und entfernen.
+            </p>
+          </div>
         </div>
+        <Link
+          href="/admin/meldungen"
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium shadow-sm transition ${
+            offeneMeldungen > 0
+              ? "border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
+              : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700"
+          }`}
+        >
+          <Flag size={15} />
+          Meldungen{offeneMeldungen > 0 && ` (${offeneMeldungen} offen)`}
+        </Link>
       </div>
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -153,3 +153,26 @@ export const GenerateRequestSchema = z.object({
   layout: LayoutConfigSchema,
 });
 export type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
+
+/** Kategorien für eine Lehrkraft-Meldung zu einem Arbeitsblatt (siehe Prisma-Modell Meldung) -
+ * Grundlage für eine manuelle Erstattung/Nachbesserung durch den Admin. */
+export const MELDUNG_KATEGORIEN = [
+  "aufgabe_fehlt",
+  "bild_fehlerhaft",
+  "text_fehlerhaft",
+  "sonstiges",
+] as const;
+export type MeldungKategorie = (typeof MELDUNG_KATEGORIEN)[number];
+
+export const MELDUNG_KATEGORIE_LABEL: Record<MeldungKategorie, string> = {
+  aufgabe_fehlt: "Eine Aufgabe fehlt/ist unvollständig",
+  bild_fehlerhaft: "Ein Bild ist fehlerhaft",
+  text_fehlerhaft: "Ein Text ist fehlerhaft",
+  sonstiges: "Sonstiges",
+};
+
+export const MeldungRequestSchema = z.object({
+  kategorie: z.enum(MELDUNG_KATEGORIEN),
+  beschreibung: z.string().max(2000).optional(),
+});
+export type MeldungRequest = z.infer<typeof MeldungRequestSchema>;

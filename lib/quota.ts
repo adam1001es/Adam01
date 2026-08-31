@@ -5,13 +5,17 @@ import { prisma } from "@/lib/prisma";
  * KOSTENLOS_LIMIT Arbeitsblätter/Monat als Gratis-Basis (jedes Konto braucht einen Login -
  * siehe app/api/generate; zusätzlich pro IP/Browser begrenzt, siehe lib/trial.ts, damit sich
  * niemand durch mehrere Konten ein Vielfaches des Gratis-Kontingents verschafft). */
-// Bemessen anhand der geschätzten KI-Kosten pro Arbeitsblatt (~0,14€ im Schnitt, siehe unten) -
-// bei diesen Werten bleibt bei beiden Tarifen realistische Marge, auch wenn das Kontingent
-// vollständig ausgeschöpft wird (vorher: 30/80 bei unverändertem Preis war strukturell
-// defizitär, siehe Admin-Übersicht "Geschätzter Gewinn/Verlust").
+// Bemessen so, dass selbst der ABSOLUTE Worst Case (gesamtes TIER_BILD_QUOTA mit maximal
+// teuren Arbeitsblättern voll ausgeschöpft, siehe BILDERGESCHICHTE_SCHRITTE_MAXIMUM/
+// AUFGABEN_TYP_MAXIMUM.ausmalbild in lib/types.ts) die Abo-Kosten nicht übersteigt - "nichts
+// draufzahlen" gilt also nicht nur im Durchschnitt, sondern garantiert. Da reine Text-Blätter
+// mit ~0,10€ sehr günstig sind, ist hier bewusst viel Spielraum für Text-lastige Nutzung
+// eingerechnet (18/36 statt vorher 15/30), während das separate, deutlich engere
+// TIER_BILD_QUOTA unten die teuren Bild-Anfragen begrenzt. Rechnung Starter (Worst Case):
+// 3 × 0,50€ (max. Bild-Blatt) + 15 × 0,10€ (Text) = 3,00€ = genau der Abo-Preis.
 export const TIER_QUOTA: Record<string, number> = {
-  starter: 15,
-  pro: 30,
+  starter: 18,
+  pro: 36,
 };
 
 export const TIER_PREIS_EUR: Record<string, number> = {
@@ -30,13 +34,15 @@ export const KOSTENLOS_LABEL = `Kostenlos (${KOSTENLOS_LIMIT} Arbeitsblätter im
 /** Zusätzliches, engeres Kontingent NUR für Arbeitsblätter mit "ausmalbild"/"bildergeschichte"-
  * Aufgaben (siehe enthaeltBildAufgabe) - unabhängig vom allgemeinen TIER_QUOTA. Grund: ein
  * einzelnes bildlastiges Arbeitsblatt kostet durch die Live-Bildgenerierung (Gemini) deutlich
- * mehr als ein reines Textblatt (~0,28€ vs. ~0,10€, siehe GESCHAETZTE_KOSTEN_*). Ohne dieses
- * Extra-Limit könnte eine Lehrkraft ihr GESAMTES Kontingent mit ausschließlich bildlastigen
- * Blättern ausschöpfen und damit die Kalkulation der Tarife sprengen. Bemessen für ~15% Marge
- * selbst im Extremfall (gesamtes TIER_QUOTA bildlastig genutzt bis zu diesem Limit, Rest Text). */
+ * mehr als ein reines Textblatt (bis zu ~0,50€ im Worst Case mit maximal vielen Bildern pro
+ * Blatt vs. ~0,10€ für Text, siehe GESCHAETZTE_KOSTEN_*). Ohne dieses Extra-Limit könnte eine
+ * Lehrkraft ihr gesamtes Kontingent mit ausschließlich bildlastigen Blättern ausschöpfen und
+ * damit die Kalkulation der Tarife sprengen. Bewusst eng bemessen (3/6 statt vorher 5/10), damit
+ * TIER_QUOTA oben trotzdem angehoben werden konnte, ohne dass der garantierte Worst Case den
+ * Abo-Preis übersteigt (siehe Rechnung dort). */
 export const TIER_BILD_QUOTA: Record<string, number> = {
-  starter: 5,
-  pro: 10,
+  starter: 3,
+  pro: 6,
 };
 export const KOSTENLOS_BILD_LIMIT = 2;
 

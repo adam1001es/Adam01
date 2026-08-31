@@ -7,6 +7,7 @@ import WorksheetView from "@/components/WorksheetView";
 import VerificationBanner from "@/components/VerificationBanner";
 import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
+import MeldungButton from "@/components/MeldungButton";
 import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +56,10 @@ export default async function WorksheetPage({ params }: { params: { id: string }
           </a>
           <DeleteButton worksheetId={worksheet.id} titel={content.titel} redirectTo="/" variant="button" />
         </div>
+      </div>
+
+      <div className="no-print mb-5 flex justify-end">
+        <MeldungButton worksheetId={worksheet.id} />
       </div>
 
       <VerificationBanner verification={verification} />

@@ -25,6 +25,7 @@ model Worksheet {
   // neue Arbeitsblätter bekommen immer einen Besitzer zugewiesen (siehe app/api/generate).
   userId      String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  meldungen   Meldung[]
 }
 
 // Ein Nutzerkonto (Kolleg:in). Selbst-Registrierung; das Abo-Kontingent (tier) wird nach
@@ -55,6 +56,7 @@ model User {
   createdAt    DateTime @default(now()) // Anker für den rollierenden 30-Tage-Kontingent-Zyklus
   sessions     Session[]
   worksheets   Worksheet[]
+  meldungen    Meldung[]
 }
 
 model Session {
@@ -87,4 +89,20 @@ model GeneratedImage {
   id        String   @id @default(cuid())
   data      Bytes
   createdAt DateTime @default(now())
+}
+
+// Meldung einer Lehrkraft zu einem konkreten Arbeitsblatt (z.B. Aufgabe fehlt, Bild
+// fehlerhaft, Text falsch) - Grundlage dafür, dass ein Admin manuell erstatten/nachbessern
+// kann (kein automatischer Erstattungsprozess, kein Zahlungsanbieter im Code, siehe
+// User.tier). Wird über app/worksheet/[id] erstellt und unter /admin/meldungen bearbeitet.
+model Meldung {
+  id           String   @id @default(cuid())
+  worksheetId  String
+  worksheet    Worksheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kategorie    String // "aufgabe_fehlt" | "bild_fehlerhaft" | "text_fehlerhaft" | "sonstiges"
+  beschreibung String? // freiwillige, genauere Beschreibung durch die Lehrkraft
+  status       String   @default("offen") // "offen" | "bearbeitet"
+  createdAt    DateTime @default(now())
 }
