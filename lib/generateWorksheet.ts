@@ -243,18 +243,27 @@ export async function generateAndVerifyWorksheet(
  */
 async function loeseGenerierteBilderAuf(content: WorksheetContent): Promise<void> {
   const verwendeteFallbackIcons = new Set<IconKey>();
+  // Alle Bild-Aufrufe parallel statt nacheinander: jede Generierung + Sicherheitsprüfung dauert
+  // mehrere Sekunden, bei z.B. 4-6 Bildern in einer Bildergeschichte summierte sich das
+  // nacheinander leicht auf über eine Minute und riss das serverseitige Zeitlimit (Vercel
+  // maxDuration) - der Browser zeigt das als generischen Netzwerkfehler ("Load failed").
+  // waehleFallbackIcon()/verwendeteFallbackIcons.add() bleiben dabei sicher: der jeweilige
+  // Zugriff erfolgt synchron direkt nach dem Warten auf die einzelne Bildgenerierung, ohne
+  // weiteren "await" dazwischen - andere parallele Aufrufe können hier nicht dazwischenfunken.
+  const generierungen: Promise<void>[] = [];
   for (const aufgabe of content.aufgaben) {
     if (aufgabe.bildBeschreibung && !aufgabe.bild) {
-      await loeseBildFeldAuf(aufgabe, aufgabe.bildBeschreibung, verwendeteFallbackIcons);
+      generierungen.push(loeseBildFeldAuf(aufgabe, aufgabe.bildBeschreibung, verwendeteFallbackIcons));
     }
     if (aufgabe.bildergeschichteSchritte) {
       for (const schritt of aufgabe.bildergeschichteSchritte) {
         if (schritt.bildBeschreibung && !schritt.bild) {
-          await loeseBildFeldAuf(schritt, schritt.bildBeschreibung, verwendeteFallbackIcons);
+          generierungen.push(loeseBildFeldAuf(schritt, schritt.bildBeschreibung, verwendeteFallbackIcons));
         }
       }
     }
   }
+  await Promise.all(generierungen);
 }
 
 /**

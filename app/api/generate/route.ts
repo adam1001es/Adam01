@@ -6,6 +6,11 @@ import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 
+// Generierung + Verifikation + ggf. mehrere Bild-Generierungen können zusammen deutlich länger
+// als das Standard-Zeitlimit dauern - ohne diese Erhöhung bricht Vercel die Funktion vorzeitig
+// ab und der Browser zeigt einen generischen Netzwerkfehler ("Load failed" in Safari).
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
   if (!user) {
