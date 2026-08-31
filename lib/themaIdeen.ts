@@ -4,7 +4,7 @@ import { prisma } from "./prisma";
  * Kreativitäts-Hilfsmittel für Lehrkräfte, die gerade keine eigene Idee haben, kein Ersatz für
  * das eigentliche Arbeitsblatt-Kontingent (lib/quota.ts). Admin-Konten sind ausgenommen (siehe
  * app/api/thema-ideen/route.ts), analog zum unbegrenzten Arbeitsblatt-Kontingent. */
-export const THEMA_IDEEN_TAGESLIMIT = 10;
+export const THEMA_IDEEN_TAGESLIMIT = 5;
 
 function heutigerTag(): string {
   return new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
