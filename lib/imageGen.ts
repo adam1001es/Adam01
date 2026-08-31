@@ -1,32 +1,34 @@
-import Replicate from "replicate";
+import { GoogleGenAI } from "@google/genai";
 import { pruefeBildSicherheit } from "./imageSafety";
 
 /**
- * Erzeugt live ein neues Ausmalbild-Motiv per Bild-KI (Replicate/SDXL), wenn kein passendes
- * Icon aus der kuratierten Bibliothek (lib/icons.ts) existiert. Wird NUR für Motive
- * aufgerufen, die laut Systemprompt (lib/generateWorksheet.ts) ausschließlich Gegenstände,
- * Tiere, Natur oder Gebäude beschreiben dürfen - nie Personen. Drei unabhängige
- * Sicherheitsebenen, jede für sich ausreichend, zusammen aber deutlich robuster:
- * 1. Text-Blockliste (unten) - bricht schon vor dem teuren API-Aufruf ab, wenn die
- *    Beschreibung selbst verräterische Begriffe enthält (Claude hat sich nicht an den
- *    Systemprompt gehalten).
- * 2. Fester Negativ-Prompt an das Bildmodell selbst.
- * 3. Claude-Bildprüfung NACH der Generierung (siehe lib/imageSafety.ts) - erkennt auch, was
- *    Ebene 1+2 nicht abfangen (das Bildmodell hält sich nicht an den Negativ-Prompt).
+ * Erzeugt live ein neues Ausmalbild-Motiv per Bild-KI (Google Gemini, Modell
+ * "gemini-2.5-flash-image", auch bekannt als "Nano Banana"), wenn kein passendes Icon aus der
+ * kuratierten Bibliothek (lib/icons.ts) existiert. Wird NUR für Motive aufgerufen, die laut
+ * Systemprompt (lib/generateWorksheet.ts) ausschließlich Gegenstände, Tiere, Natur oder Gebäude
+ * beschreiben dürfen - nie Personen. Vier unabhängige Sicherheitsebenen, jede für sich
+ * ausreichend, zusammen aber deutlich robuster:
+ * 1. Text-Blockliste (unten) - bricht schon vor dem API-Aufruf ab, wenn die Beschreibung selbst
+ *    verräterische Begriffe enthält (Claude hat sich nicht an den Systemprompt gehalten).
+ * 2. Explizite Verbots-Anweisung im Prompt an das Bildmodell selbst (Gemini kennt keinen
+ *    separaten "negative_prompt"-Parameter wie SDXL, sondern nimmt Verbote als Teil der
+ *    normalen Anweisung entgegen).
+ * 3. `imageConfig.personGeneration: "ALLOW_NONE"` - modellseitige Sperre gegen Personen-
+ *    Darstellung, unabhängig vom Text-Prompt.
+ * 4. Claude-Bildprüfung NACH der Generierung (siehe lib/imageSafety.ts) - erkennt auch, was
+ *    Ebene 1-3 nicht abfangen (das Bildmodell hält sich nicht an die Anweisung/Sperre).
  *
- * Bewusst OHNE angehängten Versions-Hash (":abc123...") - Replicate löst "owner/modell" dann
- * über den modellbasierten Endpunkt auf, der IMMER die aktuell auf Replicate hinterlegte
- * Version verwendet. Ein früher hier fest eingetragener Versions-Hash wurde von Replicate
- * inzwischen entfernt/ersetzt und führte zu "422 Invalid version or not permitted" bei JEDER
- * Generierung - mit der versionslosen Referenz kann das nicht mehr passieren.
+ * Bewusst über die Gemini API (Google AI Studio) statt Replicate: das kostenlose Kontingent
+ * dort erfordert keine hinterlegte Zahlungsmethode/Kreditkarte, nur einen kostenlosen
+ * API-Key (siehe README).
  */
-const SDXL_MODELL = "stability-ai/sdxl";
+const BILD_MODELL = "gemini-2.5-flash-image";
 
 const STIL_PROMPT_PREFIX =
-  "simple black and white coloring book page for children, clean bold outlines only, no shading, no color, no text, no watermark, white background, single centered object";
+  "Simple black and white coloring book page for children, clean bold outlines only, no shading, no color, no text, no watermark, white background, single centered object.";
 
-const NEGATIV_PROMPT =
-  "human, person, people, face, faces, portrait, man, woman, boy, girl, child, children, silhouette of a person, prophet, muhammad, allah, god, deity, religious figure, hands, body, text, letters, watermark, signature, color, shading, realistic, photo, photorealistic";
+const VERBOTS_ANWEISUNG =
+  "Do NOT depict any human, person, face, body part, silhouette of a person, prophet, deity, religious figure, or any text/letters/watermark. Do not add shading or color - outlines only.";
 
 /**
  * Ebene 1: bricht schon VOR dem API-Aufruf ab, wenn Claude sich nicht an den Systemprompt
@@ -115,52 +117,50 @@ function findeVerbotenenBegriff(text: string): string | null {
   );
 }
 
-let client: Replicate | null = null;
+let client: GoogleGenAI | null = null;
 
-function getReplicateClient(): Replicate {
+function getGeminiClient(): GoogleGenAI {
   if (!client) {
-    if (!process.env.REPLICATE_API_TOKEN) {
-      throw new Error("REPLICATE_API_TOKEN ist nicht gesetzt.");
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY ist nicht gesetzt.");
     }
-    client = new Replicate({ auth: process.env.REPLICATE_API_TOKEN, useFileOutput: false });
+    client = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   }
   return client;
 }
 
 /** Generiert ein einzelnes Ausmalbild-Motiv und gibt die PNG-Bilddaten zurück.
- * `zusaetzlicheNegativBegriffe` verschärft den Negativ-Prompt gezielt (z.B. nach einem
+ * `zusaetzlicheVerbote` verschärft die Verbots-Anweisung gezielt (z.B. nach einem
  * fehlgeschlagenen Sicherheits-Check, siehe beschaffeSicheresAusmalbild). */
 export async function generiereAusmalbild(
   motivBeschreibung: string,
-  zusaetzlicheNegativBegriffe?: string,
+  zusaetzlicheVerbote?: string,
 ): Promise<Buffer> {
-  const replicate = getReplicateClient();
+  const ai = getGeminiClient();
 
-  const negativPrompt = zusaetzlicheNegativBegriffe
-    ? `${NEGATIV_PROMPT}, ${zusaetzlicheNegativBegriffe}`
-    : NEGATIV_PROMPT;
+  const verbotsAnweisung = zusaetzlicheVerbote
+    ? `${VERBOTS_ANWEISUNG} Also do not include: ${zusaetzlicheVerbote}.`
+    : VERBOTS_ANWEISUNG;
 
-  const output = await replicate.run(SDXL_MODELL, {
-    input: {
-      prompt: `${STIL_PROMPT_PREFIX}, ${motivBeschreibung}`,
-      negative_prompt: negativPrompt,
-      width: 768,
-      height: 768,
-      num_outputs: 1,
-      num_inference_steps: 30,
+  const response = await ai.models.generateContent({
+    model: BILD_MODELL,
+    contents: `${STIL_PROMPT_PREFIX} Motif: ${motivBeschreibung}. ${verbotsAnweisung}`,
+    config: {
+      responseModalities: ["IMAGE"],
+      // "ALLOW_NONE": zusätzliche, modellseitige Sperre (unabhängig vom Text-Prompt) gegen
+      // die Darstellung von Personen - eine vierte Sicherheitsebene neben Blockliste,
+      // Prompt-Anweisung und der Claude-Nachprüfung in lib/imageSafety.ts.
+      imageConfig: { aspectRatio: "1:1", personGeneration: "ALLOW_NONE" },
     },
   });
 
-  const url = Array.isArray(output) ? output[0] : output;
-  if (typeof url !== "string") {
-    throw new Error("Unerwartetes Antwortformat von Replicate (keine Bild-URL erhalten).");
+  const teil = response.candidates?.[0]?.content?.parts?.find((p) =>
+    p.inlineData?.mimeType?.startsWith("image/"),
+  );
+  if (!teil?.inlineData?.data) {
+    throw new Error("Unerwartetes Antwortformat von Gemini (keine Bilddaten erhalten).");
   }
-
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Generiertes Bild konnte nicht heruntergeladen werden (Status ${response.status}).`);
-  }
-  return Buffer.from(await response.arrayBuffer());
+  return Buffer.from(teil.inlineData.data, "base64");
 }
 
 const MAX_VERSUCHE = 2;
@@ -184,17 +184,17 @@ export async function beschaffeSicheresAusmalbild(motivBeschreibung: string): Pr
     return null;
   }
 
-  let zusaetzlicheNegativBegriffe: string | undefined;
+  let zusaetzlicheVerbote: string | undefined;
 
   for (let versuch = 1; versuch <= MAX_VERSUCHE; versuch++) {
     try {
-      const bild = await generiereAusmalbild(motivBeschreibung, zusaetzlicheNegativBegriffe);
+      const bild = await generiereAusmalbild(motivBeschreibung, zusaetzlicheVerbote);
       const ergebnis = await pruefeBildSicherheit(bild);
       if (ergebnis.sicher) return bild;
       console.warn(
         `Generiertes Ausmalbild verworfen (Versuch ${versuch}/${MAX_VERSUCHE}) für Motiv "${motivBeschreibung}": ${ergebnis.grund}`,
       );
-      zusaetzlicheNegativBegriffe = ergebnis.grund;
+      zusaetzlicheVerbote = ergebnis.grund;
     } catch (err) {
       console.error(
         `Fehler bei der Bildgenerierung (Versuch ${versuch}/${MAX_VERSUCHE}) für Motiv "${motivBeschreibung}":`,

@@ -67,14 +67,14 @@ Volksschule“ als Schulstufe gewählt ist.
 
 Passt kein Icon aus der festen Liste, kann Claude statt eines Icon-Schlüssels eine kurze
 Motiv-Beschreibung liefern (Feld `bildBeschreibung`) - z.B. „Laterne mit Sternmuster“. Diese wird
-live über Replicate (Stable Diffusion XL, `lib/imageGen.ts`) als einfaches Schwarz-Weiß-Ausmalbild
-gerendert. Weil hier - anders als bei der festen Icon-Liste - niemand das Ergebnis vorab von Hand
-prüft, gilt eine harte, doppelte Sicherheitsschranke:
+live über die Google Gemini API (Modell `gemini-2.5-flash-image`, `lib/imageGen.ts`) als einfaches
+Schwarz-Weiß-Ausmalbild gerendert. Weil hier - anders als bei der festen Icon-Liste - niemand das
+Ergebnis vorab von Hand prüft, gilt eine harte, doppelte Sicherheitsschranke:
 
 1. **Prompt-Ebene**: Claude darf ausschließlich Gegenstände, Tiere, Natur oder Gebäude
    beschreiben - niemals Menschen, Gesichter, den Propheten, Allah oder religiöse Symbole (siehe
-   Systemprompt in `lib/generateWorksheet.ts`). Der Bild-Prompt selbst enthält zusätzlich einen
-   festen Negativ-Prompt mit denselben Ausschlüssen.
+   Systemprompt in `lib/generateWorksheet.ts`). Der Bild-Prompt selbst enthält zusätzlich eine
+   feste Verbots-Anweisung mit denselben Ausschlüssen.
 2. **Automatische Nachprüfung** (`lib/imageSafety.ts`): Claude sieht sich das erzeugte Bild direkt
    an und prüft gezielt, ob doch eine Person/ein Gesicht oder ein religiöses Symbol zu erkennen
    ist. Bei Verdacht wird einmal neu generiert; bleibt es auffällig oder schlägt die Generierung
@@ -83,8 +83,9 @@ prüft, gilt eine harte, doppelte Sicherheitsschranke:
 
 Generierte Bilder werden dauerhaft in der Datenbank gespeichert (Tabelle `GeneratedImage`, siehe
 `app/api/generated-image/[id]`) und in Web/PDF/Word wie ein normales Icon eingebunden. Braucht
-einen `REPLICATE_API_TOKEN` (siehe Umgebungsvariablen unten) - ohne gesetzten Token schlägt die
-Generierung fehl und es greift automatisch derselbe Fallback auf ein festes Icon.
+einen `GEMINI_API_KEY` (siehe Umgebungsvariablen unten) - kostenlos über Google AI Studio
+erhältlich, KEINE Kreditkarte nötig (Gratis-Kontingent, siehe unten). Ohne gesetzten Key schlägt
+die Generierung fehl und es greift automatisch derselbe Fallback auf ein festes Icon.
 
 ## Layout-Extras
 
@@ -198,9 +199,11 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 - `DATABASE_URL` – Postgres-Verbindung. Auf Vercel automatisch durch die Postgres-Integration
   (Storage-Tab) gesetzt.
 - `ANTHROPIC_API_KEY` – dein Anthropic API-Key
-- `REPLICATE_API_TOKEN` – für live per Bild-KI generierte Ausmalbild-Motive (siehe oben,
-  kostenloser Account unter replicate.com, Bezahlung nur pro generiertem Bild). Ohne gesetzten
-  Token fällt die Generierung automatisch auf ein festes Icon zurück - kein Setup-Zwang.
+- `GEMINI_API_KEY` – für live per Bild-KI generierte Ausmalbild-Motive (siehe oben). Kostenloser
+  Key unter [aistudio.google.com/apikey](https://aistudio.google.com/apikey) - KEINE Kreditkarte
+  nötig, Google-Konto reicht (Gratis-Kontingent pro Tag, für den Umfang dieser App völlig
+  ausreichend). Ohne gesetzten Key fällt die Generierung automatisch auf ein festes Icon zurück -
+  kein Setup-Zwang.
 - `GMAIL_USER` / `GMAIL_APP_PASSWORT` – für den Versand der Bestätigungs-Mail bei der
   Registrierung (E-Mail-Verifizierung, siehe unten). Beide PFLICHT, sonst schlägt jede
   Registrierung fehl.
@@ -232,7 +235,7 @@ E-Mail-Adresse anzumelden.
 1. Projekt in Vercel aus diesem GitHub-Repo importieren.
 2. Im Tab **Storage** eine Postgres-Datenbank anlegen (setzt `DATABASE_URL` automatisch).
 3. Unter **Settings → Environment Variables** `ANTHROPIC_API_KEY`, `GMAIL_USER` und
-   `GMAIL_APP_PASSWORT` (und optional `REPLICATE_API_TOKEN`) eintragen.
+   `GMAIL_APP_PASSWORT` (und optional `GEMINI_API_KEY`) eintragen.
 4. Deployen – der Build-Schritt (`prisma migrate deploy && next build`) legt das Datenbankschema
    automatisch an.
 
