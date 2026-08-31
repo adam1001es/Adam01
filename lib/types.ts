@@ -106,7 +106,19 @@ export function schaetzeAufgabenAnzahl(
     aufgabentypen.length;
   const budget = Math.max(zieldauerMinuten - ZIELDAUER_PUFFER_MINUTEN, 5);
   const anzahl = Math.round(budget / (durchschnittsZeit * faktor));
-  return Math.min(10, Math.max(2, anzahl));
+
+  // Wenn AUSSCHLIESSLICH Aufgabentypen mit eigener Obergrenze gewählt sind (siehe
+  // AUFGABEN_TYP_MAXIMUM - z.B. nur "Bildergeschichte", max. 1 pro Arbeitsblatt), kann die
+  // zeitbasierte Schätzung nie erreicht werden: es gibt keinen unbegrenzten Aufgabentyp, der die
+  // Differenz auffüllen könnte. Ohne diese Deckelung zeigte die Vorschau z.B. "ca. 2 Aufgaben" an,
+  // obwohl serverseitig (siehe begrenzeAufgabenProTyp in lib/generateWorksheet.ts) höchstens 1
+  // tatsächlich erzeugt werden kann - lässt sich sonst auch nicht mit der festen Mindestanzahl 2
+  // unten vereinbaren.
+  const machbareObergrenze = aufgabentypen.every((typ) => typ in AUFGABEN_TYP_MAXIMUM)
+    ? aufgabentypen.reduce((summe, typ) => summe + (AUFGABEN_TYP_MAXIMUM[typ] ?? 0), 0)
+    : Infinity;
+
+  return Math.max(1, Math.min(10, machbareObergrenze, Math.max(2, anzahl)));
 }
 
 export const BildergeschichteSchrittSchema = z.object({
