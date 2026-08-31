@@ -10,7 +10,10 @@ export function getAnthropicClient(): Anthropic {
 }
 
 export const GENERATION_MODEL = "claude-opus-5";
-export const VERIFICATION_MODEL = "claude-opus-5";
+// Die Prüfung ist eine Gegenkontrolle des bereits von Opus generierten Inhalts, kein
+// Kernstück der Qualität - ein günstigeres Modell senkt die Kosten hier um ca. 60%, ohne dass
+// die eigentliche Arbeitsblatt-Qualität (die hängt an GENERATION_MODEL) darunter leidet.
+export const VERIFICATION_MODEL = "claude-sonnet-5";
 
 /** Extrahiert das erste { ... } JSON-Objekt aus einer Modellantwort, auch wenn Fließtext drumherum steht. */
 export function extractJson(text: string): unknown {

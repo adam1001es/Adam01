@@ -25,11 +25,12 @@ export const KOSTENLOS_LABEL = `Kostenlos (${KOSTENLOS_LIMIT} Arbeitsblätter im
 
 /** Grobe Kostenschätzung pro Arbeitsblatt (siehe Admin-Übersicht, "Geschätzte KI-Kosten") -
  * bewusst konservativ (eher zu hoch als zu niedrig geschätzt), da echte Token-Nutzung pro
- * Anfrage nicht geloggt wird. Basis: claude-opus-5 für Erstellung + Prüfung (System-Prompt
- * gecached, 1h-TTL, Rest ungecached; typische Ausgabelänge), Gemini gemini-2.5-flash-image für
- * echte Bild-Generierungen (~0,036€/Bild). Bei Preisänderungen der Anbieter oder spürbar
- * abweichender tatsächlicher Nutzung anpassen. */
-export const GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR = 0.13;
+ * Anfrage nicht geloggt wird. Basis: claude-opus-5 für die Erstellung + claude-sonnet-5 für die
+ * Prüfung (System-Prompt gecached, 1h-TTL, Rest ungecached; typische Ausgabelänge), Gemini
+ * gemini-2.5-flash-image für echte Bild-Generierungen (~0,036€/Bild). Bei Preisänderungen der
+ * Anbieter, einem Modellwechsel (siehe lib/anthropic.ts) oder spürbar abweichender
+ * tatsächlicher Nutzung anpassen. */
+export const GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR = 0.1;
 export const GESCHAETZTE_KOSTEN_PRO_BILD_EUR = 0.036;
 
 /** Zählt, wie viele Aufgaben-Bildfelder in einem gespeicherten "contentJson" tatsächlich ein
