@@ -57,9 +57,30 @@ function musterDivider(variante: MusterVariante): Paragraph {
   });
 }
 
-function iconPfadDocx(key: IconKey): string {
-  return path.join(process.cwd(), `public/icons/${key}.png`);
+/** Feste Icons als Buffer, beim Modul-Laden EINMAL eingelesen - wichtig für Vercel: dort läuft
+ * die Route als eigens gebündelte Funktion, deren Dateispur (Node File Trace) NUR Pfade findet,
+ * die statisch im Code als Literal erkennbar sind. Ein zur Laufzeit aus einer Variable
+ * zusammengesetzter Pfad (`public/icons/${key}.png`) wird nicht erkannt - die PNGs fehlten
+ * dadurch im Deployment, `fs.readFileSync` schlug fehl und die Word-Erstellung brach bei JEDEM
+ * Arbeitsblatt mit einer Ausmalbild-/Bildergeschichte-Aufgabe mit festem Icon ab. Deshalb hier
+ * bewusst zehn ausgeschriebene, statisch erkennbare Aufrufe statt einer Schleife über
+ * ICON_KEYS mit Template-String (siehe identischer Fix in lib/pdf/WorksheetPdf.tsx). */
+function liesIcon(dateiname: string): Buffer {
+  return fs.readFileSync(path.join(process.cwd(), "public/icons", dateiname));
 }
+
+const ICON_BUFFER: Record<IconKey, Buffer> = {
+  halbmond: liesIcon("halbmond.png"),
+  stern: liesIcon("stern.png"),
+  moschee: liesIcon("moschee.png"),
+  laterne: liesIcon("laterne.png"),
+  herz: liesIcon("herz.png"),
+  buch: liesIcon("buch.png"),
+  sonne: liesIcon("sonne.png"),
+  wassertropfen: liesIcon("wassertropfen.png"),
+  familie: liesIcon("familie.png"),
+  teppich: liesIcon("teppich.png"),
+};
 
 /** Liefert die Bilddaten + passende Breite für ein festes Icon oder ein live per Bild-KI
  * generiertes, sicherheitsgeprüftes Motiv (genau eines der beiden ist gesetzt). Generierte
@@ -75,7 +96,7 @@ function bildFuerDocx(
   }
   if (bild) {
     return {
-      data: fs.readFileSync(iconPfadDocx(bild)),
+      data: ICON_BUFFER[bild],
       breite: Math.round(bildHoehe * ICONS[bild].seitenverhaeltnis),
     };
   }

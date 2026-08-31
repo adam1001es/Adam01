@@ -1,4 +1,5 @@
 import React from "react";
+import fs from "fs";
 import path from "path";
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
@@ -24,9 +25,32 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   kreuzwortraetsel: "Kreuzworträtsel",
 };
 
-function iconPfadPdf(key: IconKey): string {
-  return path.join(process.cwd(), `public/icons/${key}.png`);
+/** Feste Icons als Base64-Data-URIs statt Dateipfad, beim Modul-Laden EINMAL eingelesen -
+ * wichtig für Vercel: dort läuft die Route als eigens gebündelte Funktion, deren Dateispur
+ * (Node File Trace) NUR Pfade findet, die statisch im Code als Literal erkennbar sind. Ein
+ * Pfad, der zur Laufzeit aus einer Variable zusammengesetzt wird
+ * (`public/icons/${key}.png`), kann nicht erkannt werden - die PNGs fehlten dadurch im
+ * Deployment, `fs.readFileSync` schlug fehl und die PDF-Erstellung brach bei JEDEM
+ * Arbeitsblatt mit einer Ausmalbild-/Bildergeschichte-Aufgabe mit festem Icon ab. Deshalb hier
+ * bewusst zehn ausgeschriebene, statisch erkennbare Aufrufe statt einer Schleife über
+ * ICON_KEYS mit Template-String. */
+function liesIconAlsDataUri(dateiname: string): string {
+  const buffer = fs.readFileSync(path.join(process.cwd(), "public/icons", dateiname));
+  return `data:image/png;base64,${buffer.toString("base64")}`;
 }
+
+const ICON_DATA_URIS: Record<IconKey, string> = {
+  halbmond: liesIconAlsDataUri("halbmond.png"),
+  stern: liesIconAlsDataUri("stern.png"),
+  moschee: liesIconAlsDataUri("moschee.png"),
+  laterne: liesIconAlsDataUri("laterne.png"),
+  herz: liesIconAlsDataUri("herz.png"),
+  buch: liesIconAlsDataUri("buch.png"),
+  sonne: liesIconAlsDataUri("sonne.png"),
+  wassertropfen: liesIconAlsDataUri("wassertropfen.png"),
+  familie: liesIconAlsDataUri("familie.png"),
+  teppich: liesIconAlsDataUri("teppich.png"),
+};
 
 /** Zeigt entweder ein festes Icon aus der kuratierten Bibliothek oder ein live per Bild-KI
  * generiertes, sicherheitsgeprüftes Motiv - genau eines der beiden ist gesetzt.
@@ -49,7 +73,7 @@ function AufgabenBildPdf({
   if (bild) {
     return (
       <Image
-        src={iconPfadPdf(bild)}
+        src={ICON_DATA_URIS[bild]}
         style={{ width: groesse * ICONS[bild].seitenverhaeltnis, height: groesse }}
       />
     );
