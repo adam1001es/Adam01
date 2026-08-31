@@ -80,6 +80,8 @@ Wichtige Regeln für religiöse Inhalte:
 - Antworte ausschließlich auf Deutsch.
 - Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock, ohne Erklärtext davor oder danach.
 
+Qualitätsanspruch - kein 08/15-Arbeitsblatt: Jede Aufgabe muss erkennbar aus dem KONKRETEN Thema heraus entwickelt sein, nicht x-beliebig gegen ein anderes Thema derselben Grundkompetenz austauschbar. Vermeide austauschbare Floskeln, generische Lehrbuch-Standardsätze und Alibi-Antworten wie "individuelle Antwort" ohne echten Denkanstoß (Ausnahme: bei "diskussion" und wirklich offenen Fragen ist eine kurze Hinweis-Antwort statt einer "Musterlösung" sachlich korrekt - dort zählt das nicht als Floskel). Nutze wo passend konkrete Details aus dem Thema selbst (Namen, Orte, Situationen) statt vager Verallgemeinerungen. "einleitung" und "lernziel" sollen erkennen lassen, WORUM es in diesem spezifischen Arbeitsblatt geht, nicht nur allgemein um "den Islam" oder "die Religion".
+
 Das JSON-Objekt muss exakt diese Struktur haben:
 {
   "titel": string,
@@ -116,6 +118,7 @@ const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und
 6b. Terminologie: Wird durchgehend "Allah" statt "Gott" verwendet, grammatikalisch korrekt? Falls "Gott" irrtümlich vorkommt, als Hinweis aufnehmen.
 7. Kompetenzorientierung: Sind die "anforderungsbereich"-Angaben (afb1/afb2/afb3) plausibel und passt die Verteilung zur Schulstufe (nicht nur AFB I bei älteren Schulstufen)? Ist das Lernziel kompetenzorientiert/operationalisiert formuliert (passendes Verb zum höchsten Anforderungsbereich)?
 8. Falls "ausmalbild"/"bildergeschichte"-Aufgaben enthalten sind: sind "frage" bzw. "vorlesetext" wirklich sehr kurz und einfach formuliert (vorlesbar für noch nicht lesekundige Kinder)? Falls die Schulstufe 1./2. Klasse Volksschule ist, aber trotzdem überwiegend textlastige Aufgabentypen verwendet wurden, als Hinweis/Fehler aufnehmen.
+9. Konkretheit statt 08/15: Könnten mehrere Aufgaben eins zu eins auch für ein völlig anderes Thema stehen (austauschbare Floskeln statt konkretem Bezug zum angegebenen Thema)? Ist "einleitung"/"lernziel" nur vage allgemein ("der Islam ist wichtig" o.ä.) statt konkret auf DIESES Thema bezogen? Das zählt als eigenständiger Mangel, unabhängig von fachlicher Korrektheit - stufe ein Arbeitsblatt, das überwiegend aus austauschbaren Standardformulierungen ohne erkennbaren Bezug zum konkreten Thema besteht, als "fehler" ein (nicht nur "warnung"); einzelne wenig konkrete Stellen reichen für "warnung".
 
 Sei besonders streng bei allen Quellenangaben mit "sicherheit": "gesichert" - wenn du dir nicht sicher bist, ob die Stelle korrekt ist, stufe sie im Hinweis als fragwürdig ein.
 
@@ -177,7 +180,15 @@ export function begrenzeBildergeschichteSchritte(content: WorksheetContent): voi
   }
 }
 
-function buildUserPrompt(req: GenerateRequest, anzahlAufgaben: number): string {
+function buildUserPrompt(
+  req: GenerateRequest,
+  anzahlAufgaben: number,
+  korrekturAuftrag?: Verification,
+): string {
+  const korrekturBlock = korrekturAuftrag
+    ? `\n\nWICHTIG - Korrekturauftrag: Ein vorheriger Versuch für dieses Arbeitsblatt wurde bei der Qualitätsprüfung als "fehler" eingestuft. Erstelle das Arbeitsblatt neu und behebe dabei GEZIELT diese konkreten Probleme (beim Rest darfst du dich frei orientieren, nicht stur am alten Versuch festhalten):\n${korrekturAuftrag.hinweise.map((h) => `- ${h}`).join("\n")}\nZusammenfassung der vorherigen Prüfung: ${korrekturAuftrag.zusammenfassung}`
+    : "";
+
   return `Erstelle ein Arbeitsblatt mit folgenden Vorgaben:
 - Bereich/Fach: ${req.bereich}
 - Thema: ${req.thema}
@@ -186,7 +197,7 @@ function buildUserPrompt(req: GenerateRequest, anzahlAufgaben: number): string {
 - Komplexität: ${KOMPLEXITAET_LABEL[req.komplexitaet]}
 - Anzahl Aufgaben (aus der Zieldauer abgeleiteter Richtwert - Ziel ist, die Zieldauer zu treffen, nicht exakt diese Zahl): ${anzahlAufgaben}
 - Erlaubte Aufgabentypen (mische sinnvoll): ${req.aufgabentypen.join(", ")}
-${req.zusatzhinweise ? `- Zusätzliche Hinweise der Lehrkraft: ${req.zusatzhinweise}` : ""}`;
+${req.zusatzhinweise ? `- Zusätzliche Hinweise der Lehrkraft: ${req.zusatzhinweise}` : ""}${korrekturBlock}`;
 }
 
 export interface GenerationResult {
@@ -197,10 +208,28 @@ export interface GenerationResult {
 export async function generateAndVerifyWorksheet(
   req: GenerateRequest,
 ): Promise<GenerationResult> {
-  const client = getAnthropicClient();
-
   const curriculumContext = buildCurriculumSystemContext(req.themenbereich, req.schulstufe, req.komplexitaet);
   const anzahlAufgaben = schaetzeAufgabenAnzahl(req.zieldauerMinuten, req.aufgabentypen, req.komplexitaet);
+
+  const ersterVersuch = await generiereUndPruefeEinmal(req, curriculumContext, anzahlAufgaben);
+
+  // Automatischer zweiter Versuch NUR bei "fehler" (ein von der Prüfung erkannter echter Mangel) -
+  // NICHT bei "warnung" (das Blatt ist nutzbar, nur mit Hinweisen zum Gegenchecken). Die konkrete
+  // Kritik aus der ersten Prüfung wird als Korrekturauftrag mitgegeben, damit der zweite Versuch
+  // gezielt das Problem behebt statt blind neu zu würfeln. Ohne diesen zweiten Versuch würde ein
+  // von der eigenen Prüfung als fehlerhaft erkanntes Arbeitsblatt bisher trotzdem unverändert an
+  // die Lehrkraft ausgeliefert (nur mit Status "verworfen" im Hintergrund).
+  if (ersterVersuch.verification.status !== "fehler") return ersterVersuch;
+  return generiereUndPruefeEinmal(req, curriculumContext, anzahlAufgaben, ersterVersuch.verification);
+}
+
+async function generiereUndPruefeEinmal(
+  req: GenerateRequest,
+  curriculumContext: string,
+  anzahlAufgaben: number,
+  korrekturAuftrag?: Verification,
+): Promise<GenerationResult> {
+  const client = getAnthropicClient();
 
   const genResponse = await client.messages.create({
     model: GENERATION_MODEL,
@@ -220,7 +249,7 @@ export async function generateAndVerifyWorksheet(
       },
       { type: "text", text: curriculumContext },
     ],
-    messages: [{ role: "user", content: buildUserPrompt(req, anzahlAufgaben) }],
+    messages: [{ role: "user", content: buildUserPrompt(req, anzahlAufgaben, korrekturAuftrag) }],
   });
 
   if (genResponse.stop_reason === "max_tokens") {
