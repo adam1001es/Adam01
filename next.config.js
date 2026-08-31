@@ -1,3 +1,5 @@
+const { withSentryConfig } = require("@sentry/nextjs/config");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
@@ -12,7 +14,17 @@ const nextConfig = {
     outputFileTracingIncludes: {
       "**/pdf/**": ["./node_modules/pdfkit/js/**/*"],
     },
+    // Nötig, damit Next.js instrumentation.ts überhaupt lädt (siehe dort) - in Next.js 14 noch
+    // hinter diesem Flag, ab 15 standardmäßig aktiv.
+    instrumentationHook: true,
   },
 };
 
-module.exports = nextConfig;
+// Bewusst OHNE org/project/authToken: kein Source-Map-Upload eingerichtet, da das ein
+// zusätzliches Sentry-Auth-Token als Secret bräuchte - Fehler werden trotzdem vollständig
+// erfasst, nur die Stacktraces in der Sentry-Oberfläche zeigen minifizierten statt
+// Original-Code. Kann bei Bedarf später nachgerüstet werden.
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  telemetry: false,
+});

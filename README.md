@@ -207,6 +207,8 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 - `GMAIL_USER` / `GMAIL_APP_PASSWORT` – für den Versand der Bestätigungs-Mail bei der
   Registrierung (E-Mail-Verifizierung, siehe unten). Beide PFLICHT, sonst schlägt jede
   Registrierung fehl.
+- `NEXT_PUBLIC_SENTRY_DSN` – optional, für Fehlerüberwachung in Produktion (siehe unten). Ohne
+  gesetzten Wert läuft die App normal weiter, nur ohne Fehlerberichte.
 
 Kein separates Auth-Secret nötig: Sessions sind DB-gestützt (Tabelle `Session`), das Cookie
 enthält nur ein zufälliges Token, keinen signierten/verschlüsselten Wert.
@@ -230,12 +232,30 @@ nur Neuregistrierungen müssen den Link bestätigen. Nach der ersten erfolgreich
 unter „Mein Konto" ein Benutzername gesetzt werden, um sich künftig damit statt mit der vollen
 E-Mail-Adresse anzumelden.
 
+### Fehlerüberwachung (Sentry)
+
+Meldet unbehandelte Fehler (Server, Client, Edge-Runtime) automatisch an
+[sentry.io](https://sentry.io) - ohne das würde ein Absturz in Produktion nur auffallen, wenn
+sich zufällig eine Lehrkraft meldet.
+
+1. Kostenloses Konto auf [sentry.io](https://sentry.io) anlegen, neues Projekt mit Plattform
+   "Next.js" erstellen.
+2. Den angezeigten DSN (eine URL, kein Passwort, aber trotzdem nicht öffentlich teilen) als
+   `NEXT_PUBLIC_SENTRY_DSN` setzen - lokal in `.env`, auf Vercel unter
+   **Settings → Environment Variables**.
+
+Ohne gesetzten Wert initialisiert sich Sentry gar nicht erst (siehe `sentry.*.config.ts`) - kein
+Setup-Zwang für die lokale Entwicklung. Source-Map-Upload (für lesbare statt minifizierte
+Stacktraces in der Sentry-Oberfläche) ist bewusst nicht eingerichtet, um kein zusätzliches
+Sentry-Auth-Token als Secret zu brauchen - kann bei Bedarf in `next.config.js`
+(`withSentryConfig`-Optionen `org`/`project`/`authToken`) nachgerüstet werden.
+
 ## Deployment (Vercel)
 
 1. Projekt in Vercel aus diesem GitHub-Repo importieren.
 2. Im Tab **Storage** eine Postgres-Datenbank anlegen (setzt `DATABASE_URL` automatisch).
 3. Unter **Settings → Environment Variables** `ANTHROPIC_API_KEY`, `GMAIL_USER` und
-   `GMAIL_APP_PASSWORT` (und optional `GEMINI_API_KEY`) eintragen.
+   `GMAIL_APP_PASSWORT` (und optional `GEMINI_API_KEY`, `NEXT_PUBLIC_SENTRY_DSN`) eintragen.
 4. Deployen – der Build-Schritt (`prisma migrate deploy && next build`) legt das Datenbankschema
    automatisch an.
 
