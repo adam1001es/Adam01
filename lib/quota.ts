@@ -23,6 +23,41 @@ export const TIER_LABEL: Record<string, string> = {
 export const KOSTENLOS_LIMIT = 3;
 export const KOSTENLOS_LABEL = `Kostenlos (${KOSTENLOS_LIMIT} Arbeitsblätter im Monat)`;
 
+/** Grobe Kostenschätzung pro Arbeitsblatt (siehe Admin-Übersicht, "Geschätzte KI-Kosten") -
+ * bewusst konservativ (eher zu hoch als zu niedrig geschätzt), da echte Token-Nutzung pro
+ * Anfrage nicht geloggt wird. Basis: claude-opus-5 für Erstellung + Prüfung (System-Prompt
+ * gecached, 1h-TTL, Rest ungecached; typische Ausgabelänge), Gemini gemini-2.5-flash-image für
+ * echte Bild-Generierungen (~0,036€/Bild). Bei Preisänderungen der Anbieter oder spürbar
+ * abweichender tatsächlicher Nutzung anpassen. */
+export const GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR = 0.13;
+export const GESCHAETZTE_KOSTEN_PRO_BILD_EUR = 0.036;
+
+/** Zählt, wie viele Aufgaben-Bildfelder in einem gespeicherten "contentJson" tatsächlich ein
+ * live per Bild-KI generiertes (und sicherheitsgeprüftes) Bild verwenden - erkennbar an
+ * gesetztem "bildGeneriertId" (siehe lib/generateWorksheet.ts). Bewusst lose typisiert
+ * (kein Zod-Parse) und defensiv gegen kaputte/ältere Datensätze, da dies nur für die grobe
+ * Kostenschätzung in der Admin-Übersicht verwendet wird, nicht für die eigentliche Anzeige. */
+export function zaehleGenerierteBilder(contentJson: string): number {
+  try {
+    const content = JSON.parse(contentJson) as {
+      aufgaben?: Array<{
+        bildGeneriertId?: string;
+        bildergeschichteSchritte?: Array<{ bildGeneriertId?: string }>;
+      }>;
+    };
+    let anzahl = 0;
+    for (const aufgabe of content.aufgaben ?? []) {
+      if (aufgabe.bildGeneriertId) anzahl += 1;
+      for (const schritt of aufgabe.bildergeschichteSchritte ?? []) {
+        if (schritt.bildGeneriertId) anzahl += 1;
+      }
+    }
+    return anzahl;
+  } catch {
+    return 0;
+  }
+}
+
 export function tierLabel(tier: string | null): string {
   if (tier && TIER_LABEL[tier]) return TIER_LABEL[tier];
   return KOSTENLOS_LABEL;
