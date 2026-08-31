@@ -104,7 +104,7 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; i
   lueckentext: { label: "Lückentext", icon: PenLine },
   zuordnung: { label: "Zuordnung", icon: ArrowLeftRight },
   offene_frage: { label: "Offene Frage", icon: MessageSquareText },
-  wahr_falsch: { label: "Wahr oder Falsch", icon: ToggleLeft },
+  wahr_falsch: { label: "Wahr oder Falsch (mit Begründung)", icon: ToggleLeft },
   reihenfolge: { label: "Reihenfolge", icon: ListOrdered },
   lesetext: { label: "Lesetext", icon: BookOpenText },
   diskussion: { label: "Diskussionsimpuls", icon: MessagesSquare },
