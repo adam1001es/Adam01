@@ -12,6 +12,7 @@ import {
   Verification,
   VerificationSchema,
   AUFGABEN_TYP_MAXIMUM,
+  BILDERGESCHICHTE_SCHRITTE_MAXIMUM,
 } from "./types";
 import { buildCurriculumSystemContext } from "./curriculum";
 import { prisma } from "./prisma";
@@ -99,7 +100,7 @@ Bei "lesetext" MUSS "lesetext" gesetzt sein: ein kurzer, altersgerechter Lesetex
 Bei "diskussion" ist "frage" der Diskussionsimpuls für ein mündliches Unterrichtsgespräch (kein schriftliches Ergebnis erwartet); "loesung" ist ein kurzer Hinweis für die Lehrkraft mit möglichen Gesprächsaspekten (z.B. "Mögliche Aspekte: ..., ...").
 Bei "wortsuche" MUSS "wortsucheWoerter" gesetzt sein: 4-8 kurze, thematisch passende Wörter in GROSSBUCHSTABEN (nur A-Z, keine Umlaute/ß/Leerzeichen/Bindestriche - schreibe z.B. "MOSCHEE" statt "Gebetsstätte", "SCHAHADA" statt "Schahāda"). Das System erzeugt daraus automatisch ein Buchstabengitter zum Suchen - liefere KEIN Gitter, nur die Wortliste. "frage" ist die Arbeitsanweisung (z.B. "Finde die folgenden Wörter im Buchstabengitter.").
 Bei "kreuzwortraetsel" MUSS "kreuzwortEintraege" gesetzt sein: 5-8 Objekte { "frage": kurze Umschreibung/Hinweis, "antwort": Lösungswort in GROSSBUCHSTABEN (nur A-Z, keine Umlaute/ß/Leerzeichen, z.B. "MOSCHEE" statt "Gebetsstätte") }. Wähle nach Möglichkeit Wörter mit gemeinsamen Buchstaben, damit sich ein zusammenhängendes Rätsel ergibt. Das System erzeugt daraus automatisch das nummerierte Gitter - liefere KEIN Gitter. Das Top-Level-Feld "frage" der Aufgabe ist die allgemeine Arbeitsanweisung (z.B. "Löse das Kreuzworträtsel mithilfe der Hinweise.").
-Wichtige Ausnahme bei der "Anzahl Aufgaben": "bildergeschichte", "kreuzwortraetsel" und "wortsuche" sind für sich genommen schon umfangreich (mehrere Bild-Schritte bzw. 4-8 Wörter samt Gitter) - erstelle von JEDEM dieser drei Typen HÖCHSTENS 1 Aufgabe pro Arbeitsblatt, egal wie hoch "Anzahl Aufgaben" ist oder ob nur ein solcher Typ erlaubt ist. Ist die angeforderte Gesamtzahl mit den erlaubten Typen unter dieser Grenze nicht erreichbar (z.B. nur "kreuzwortraetsel" erlaubt und Anzahl Aufgaben > 1), erstelle trotzdem nur die eine sinnvolle Aufgabe dieses Typs - ein Arbeitsblatt mit weniger Aufgaben als angefordert ist hier ausdrücklich in Ordnung, mehrere vollständige Bildergeschichten/Kreuzworträtsel/Wortsuchen auf einem Blatt NICHT.
+Wichtige Ausnahme bei der "Anzahl Aufgaben": "bildergeschichte", "kreuzwortraetsel" und "wortsuche" sind für sich genommen schon umfangreich (mehrere Bild-Schritte bzw. 4-8 Wörter samt Gitter) - erstelle von JEDEM dieser drei Typen HÖCHSTENS 1 Aufgabe pro Arbeitsblatt, egal wie hoch "Anzahl Aufgaben" ist oder ob nur ein solcher Typ erlaubt ist. Bei "bildergeschichte" zusätzlich HÖCHSTENS 5 Schritte (nicht mehr, auch wenn die Geschichte länger wäre - kürze sinnvoll). "ausmalbild" ist auf HÖCHSTENS 4 Aufgaben pro Arbeitsblatt begrenzt (jedes weitere Ausmalbild bedeutet ein zusätzliches, per Bild-KI generiertes Bild - das ist ein reines Kosten-Limit, kein inhaltlicher Grund). Ist die angeforderte Gesamtzahl mit den erlaubten Typen unter diesen Grenzen nicht erreichbar (z.B. nur "kreuzwortraetsel" erlaubt und Anzahl Aufgaben > 1, oder nur "ausmalbild" erlaubt und Anzahl Aufgaben > 4), erstelle trotzdem nur so viele Aufgaben wie hier erlaubt - ein Arbeitsblatt mit weniger Aufgaben als angefordert ist hier ausdrücklich in Ordnung, die Grenzen selbst NICHT überschreiten.
 Jede verwendete Hadith-Quellenangabe MUSS die Sammlung im Feld "bezeichnung" nennen (z.B. "Sahih al-Bukhari, ...").`;
 
 const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
@@ -154,6 +155,24 @@ function begrenzeAufgabenProTyp(content: WorksheetContent): void {
     .map((loesung) => ({ ...loesung, nr: alteZuNeueNr.get(loesung.nr)! }));
 }
 
+/** Erzwingt BILDERGESCHICHTE_SCHRITTE_MAXIMUM serverseitig: die Systemprompt-Anweisung
+ * "3-5 Schritte" ist nur eine Empfehlung, kein hartes Zod-Limit (ein hartes Zod-Limit hätte
+ * die ganze Antwort als ungültig verworfen statt nur überzählige Schritte zu kappen). Schneidet
+ * überzählige Schritte einfach ab, statt die Generierung abzubrechen. */
+function begrenzeBildergeschichteSchritte(content: WorksheetContent): void {
+  for (const aufgabe of content.aufgaben) {
+    if (
+      aufgabe.bildergeschichteSchritte &&
+      aufgabe.bildergeschichteSchritte.length > BILDERGESCHICHTE_SCHRITTE_MAXIMUM
+    ) {
+      aufgabe.bildergeschichteSchritte = aufgabe.bildergeschichteSchritte.slice(
+        0,
+        BILDERGESCHICHTE_SCHRITTE_MAXIMUM,
+      );
+    }
+  }
+}
+
 function buildUserPrompt(req: GenerateRequest): string {
   return `Erstelle ein Arbeitsblatt mit folgenden Vorgaben:
 - Bereich/Fach: ${req.bereich}
@@ -205,6 +224,7 @@ export async function generateAndVerifyWorksheet(
   const rawContent = extractJson(getTextFromMessage(genResponse));
   const content = WorksheetContentSchema.parse(rawContent);
   begrenzeAufgabenProTyp(content);
+  begrenzeBildergeschichteSchritte(content);
   // Gitter-Auflösung (schnell, synchron, rein lokal) VOR der Verifikation, damit die
   // Kreuzworträtsel-Lösung dort schon final/korrekt nummeriert vorliegt. Die Bildgenerierung
   // dagegen (potenziell mehrere Sekunden pro Bild) läuft PARALLEL zum Verifikations-Aufruf statt

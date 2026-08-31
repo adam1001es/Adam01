@@ -20,13 +20,25 @@ export const AUFGABEN_TYPEN = [
 /** Manche Aufgabentypen sind inhaltlich für sich schon umfangreich (Bildergeschichte: mehrere
  * Bild-Schritte; Kreuzworträtsel/Wortsuche: 4-8 Wörter samt Gitter) - davon macht daher pro
  * Arbeitsblatt höchstens diese Anzahl Sinn, unabhängig von der insgesamt gewählten "Anzahl
- * Aufgaben". Wird sowohl beim Prompt-Bau als auch als harte serverseitige Grenze verwendet
- * (siehe begrenzeAufgabenProTyp in lib/generateWorksheet.ts). */
+ * Aufgaben". "ausmalbild" ist zusätzlich (anders als die anderen drei) NICHT auf einen echten
+ * inhaltlichen Grund gedeckelt, sondern rein auf die Kosten: jedes Ausmalbild kann ein neues,
+ * per Bild-KI generiertes Bild bedeuten - ohne Deckel könnte "Anzahl Aufgaben" = 10 nur mit
+ * "ausmalbild" bis zu 10 Bilder in einem einzigen Arbeitsblatt anfordern und damit das separate
+ * Bild-Kontingent (lib/quota.ts, TIER_BILD_QUOTA) aushebeln, das nur Arbeitsblätter zählt, nicht
+ * Bilder. Wird sowohl beim Prompt-Bau als auch als harte serverseitige Grenze verwendet (siehe
+ * begrenzeAufgabenProTyp in lib/generateWorksheet.ts). */
 export const AUFGABEN_TYP_MAXIMUM: Partial<Record<(typeof AUFGABEN_TYPEN)[number], number>> = {
   bildergeschichte: 1,
   kreuzwortraetsel: 1,
   wortsuche: 1,
+  ausmalbild: 4,
 };
+
+/** Harte Obergrenze für die Anzahl Schritte (= Bilder) einer einzelnen Bildergeschichte-Aufgabe -
+ * die Systemprompt-Anweisung nennt "3-5 Schritte" nur als weiche Empfehlung, ohne diese
+ * zusätzliche harte Grenze könnte eine einzelne Bildergeschichte theoretisch beliebig viele
+ * Schritte/Bilder umfassen (siehe begrenzeBildergeschichteSchritte in lib/generateWorksheet.ts). */
+export const BILDERGESCHICHTE_SCHRITTE_MAXIMUM = 6;
 
 export const BildergeschichteSchrittSchema = z.object({
   bild: z.enum(ICON_KEYS).optional(), // festes Icon aus der kuratierten Bibliothek
