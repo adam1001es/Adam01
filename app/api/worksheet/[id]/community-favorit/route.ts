@@ -19,7 +19,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
   }
   if (!istZahlendesKonto(user)) {
-    return NextResponse.json({ error: "Nur für Starter-/Pro-Konten verfügbar." }, { status: 403 });
+    return NextResponse.json({ error: "Nur für Abo-Konten verfügbar." }, { status: 403 });
   }
 
   let body: unknown;

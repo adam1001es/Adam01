@@ -7,8 +7,8 @@ import { istZahlendesKonto } from "@/lib/quota";
 const BodySchema = z.object({ geteilt: z.boolean() });
 
 /** Gibt ein eigenes Arbeitsblatt für andere Lehrkräfte frei bzw. zieht die Freigabe zurück
- * (siehe app/community) - bewusst nur für Starter-/Pro-Konten (istZahlendesKonto), analog zur
- * Idee "nur Starter/Pro teilen untereinander". Sofort sichtbar, kein Freigabe-Workflow. */
+ * (siehe app/community) - bewusst nur für Abo-Konten (istZahlendesKonto), analog zur Idee "nur
+ * Abo-Konten teilen untereinander". Sofort sichtbar, kein Freigabe-Workflow. */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
@@ -19,7 +19,7 @@ export async function PATCH(
   }
   if (!istZahlendesKonto(user)) {
     return NextResponse.json(
-      { error: "Das Teilen mit anderen Lehrkräften ist nur in einem Starter-/Pro-Abo verfügbar." },
+      { error: "Das Teilen mit anderen Lehrkräften ist nur in einem Abo verfügbar." },
       { status: 403 },
     );
   }
