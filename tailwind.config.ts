@@ -50,9 +50,17 @@ const config: Config = {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(400%)" },
         },
+        // Dezentes Einblenden beim Seitenwechsel (siehe app/template.tsx) - bewusst sehr kurz
+        // und mit minimaler Bewegung (4px), damit es als angenehmes Detail auffällt statt als
+        // spürbare Verzögerung.
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "lade-balken": "lade-balken 1.3s ease-in-out infinite",
+        "fade-in": "fade-in 0.25s ease-out",
       },
     },
   },

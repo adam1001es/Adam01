@@ -3,7 +3,8 @@ import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import { getSessionUser } from "@/lib/auth";
-import { istZahlendesKonto } from "@/lib/quota";
+import { istZahlendesKonto, getKontingent } from "@/lib/quota";
+import { toHijri } from "@/lib/hijri";
 
 const display = Newsreader({
   subsets: ["latin"],
@@ -48,11 +49,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const user = await getSessionUser();
+  const kontingent = user ? await getKontingent(user) : null;
+  const hijriDatum = toHijri(new Date()).label;
 
   return (
     <html lang="de" className={`${display.variable} ${sans.variable}`}>
       <body className="min-h-screen bg-canvas font-sans text-slate-900">
         <SiteHeader
+          hijriDatum={hijriDatum}
           user={
             user
               ? {
@@ -60,6 +64,14 @@ export default async function RootLayout({
                   username: user.username,
                   role: user.role,
                   istZahlend: istZahlendesKonto(user),
+                  kontingent: kontingent
+                    ? {
+                        verbraucht: kontingent.verbraucht,
+                        limit: kontingent.limit,
+                        verbleibend: kontingent.verbleibend,
+                        unbegrenzt: kontingent.unbegrenzt,
+                      }
+                    : null,
                 }
               : null
           }

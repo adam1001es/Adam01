@@ -6,8 +6,6 @@ import DeleteButton from "@/components/DeleteButton";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import LandingPage from "@/components/LandingPage";
 import { getSessionUser } from "@/lib/auth";
-import { getKontingent } from "@/lib/quota";
-import KontingentBanner from "@/components/KontingentBanner";
 
 const STATUS_STYLE: Record<string, { text: string; className: string; icon: typeof CheckCircle2 }> = {
   geprueft: { text: "Geprüft", className: "bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200", icon: CheckCircle2 },
@@ -26,14 +24,11 @@ export default async function DashboardPage({
   const user = await getSessionUser();
   if (!user) return <LandingPage />;
 
-  const [worksheets, kontingent] = await Promise.all([
-    prisma.worksheet.findMany({
-      where: { userId: user.id },
-      orderBy: [{ favorit: "desc" }, { createdAt: "desc" }],
-      take: 50,
-    }),
-    getKontingent(user),
-  ]);
+  const worksheets = await prisma.worksheet.findMany({
+    where: { userId: user.id },
+    orderBy: [{ favorit: "desc" }, { createdAt: "desc" }],
+    take: 50,
+  });
 
   return (
     <main>
@@ -43,9 +38,6 @@ export default async function DashboardPage({
           E-Mail-Adresse bestätigt - dein Konto ist jetzt aktiv.
         </div>
       )}
-      <div className="mb-6">
-        <KontingentBanner kontingent={kontingent} />
-      </div>
       <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
         <div className="max-w-2xl">
           <h1 className="font-display text-3xl font-semibold text-white sm:text-4xl">

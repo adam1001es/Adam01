@@ -4,7 +4,6 @@ import NewWorksheetForm from "./NewWorksheetForm";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
 import { getTrialStatus } from "@/lib/trial";
-import KontingentBanner from "@/components/KontingentBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -29,23 +28,20 @@ export default async function NewWorksheetPage() {
           Alles auswählen und einstellen – Claude generiert und prüft den Inhalt automatisch.
         </p>
       </div>
-      <div className="mb-6 space-y-3">
-        <KontingentBanner kontingent={kontingent} />
-        {netzwerkBlockiert && (
-          <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-sm">
-            <AlertTriangle size={18} className="mt-0.5 shrink-0" />
-            <div>
-              <div className="font-medium">Gratis-Kontingent für diesen Browser/dieses Netzwerk aufgebraucht</div>
-              <p className="mt-0.5">
-                Dein Konto selbst hat noch Kontingent übrig, aber von diesem Browser/Netzwerk aus
-                wurde das kostenlose Kontingent diesen Monat bereits vollständig genutzt
-                (unabhängig vom Konto). Für mehr: ein Abo bei der Person anfragen, die den Zugang
-                verwaltet.
-              </p>
-            </div>
+      {netzwerkBlockiert && (
+        <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-sm">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0" />
+          <div>
+            <div className="font-medium">Gratis-Kontingent für diesen Browser/dieses Netzwerk aufgebraucht</div>
+            <p className="mt-0.5">
+              Dein Konto selbst hat noch Kontingent übrig, aber von diesem Browser/Netzwerk aus
+              wurde das kostenlose Kontingent diesen Monat bereits vollständig genutzt
+              (unabhängig vom Konto). Für mehr: ein Abo bei der Person anfragen, die den Zugang
+              verwaltet.
+            </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       <NewWorksheetForm
         kannErstellen={kontingent.verbleibend > 0 && !netzwerkBlockiert}
         bildKontingentAufgebraucht={kontingent.bildVerbleibend <= 0}

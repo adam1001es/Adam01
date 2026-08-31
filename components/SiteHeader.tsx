@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Plus, LayoutGrid, ShieldCheck, LogOut, UserCircle, Users } from "lucide-react";
+import {
+  FilePlus2,
+  LayoutDashboard,
+  ShieldCheck,
+  LogOut,
+  UserCircle,
+  Users,
+  Gauge,
+  MoonStar,
+} from "lucide-react";
 
 function LogoMark() {
   return (
@@ -15,14 +24,28 @@ function LogoMark() {
 }
 
 const NAV = [
-  { href: "/", label: "Übersicht", icon: LayoutGrid },
-  { href: "/new", label: "Neues Arbeitsblatt", icon: Plus },
+  { href: "/", label: "Übersicht", icon: LayoutDashboard },
+  { href: "/new", label: "Neues Arbeitsblatt", icon: FilePlus2 },
 ];
+
+interface SiteHeaderUser {
+  email: string;
+  username: string | null;
+  role: string;
+  istZahlend: boolean;
+  kontingent: { verbraucht: number; limit: number; verbleibend: number; unbegrenzt: boolean } | null;
+}
 
 export default function SiteHeader({
   user,
+  hijriDatum,
 }: {
-  user: { email: string; username: string | null; role: string; istZahlend: boolean } | null;
+  user: SiteHeaderUser | null;
+  /** Heutiges Hijri-Datum (z.B. "17. Rabi al-Awwal 1448 n. H.") - immer sichtbar, unabhängig
+   * vom Login-Status, als kleiner einladender islamischer Akzent im Kopfbereich (siehe
+   * lib/hijri.ts). Eigene volle Zeile statt Platz in der ohnehin engen Navigation zu
+   * beanspruchen. */
+  hijriDatum: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -33,10 +56,25 @@ export default function SiteHeader({
     router.refresh();
   }
 
+  const navLinkClass = (active: boolean, warnung = false) =>
+    `flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium transition active:scale-95 sm:px-3.5 ${
+      active
+        ? "bg-brand-gradient text-white shadow-card"
+        : warnung
+          ? "text-red-600 hover:bg-red-50"
+          : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
+    }`;
+
   return (
     <header className="no-print sticky top-0 z-10 border-b border-slate-200/80 bg-canvas/85 backdrop-blur-md">
+      <div className="border-b border-gold-100 bg-gold-50/70 px-4 py-1 text-center text-[11px] font-medium text-gold-700 sm:px-6">
+        <span className="inline-flex items-center gap-1.5">
+          <MoonStar size={11} strokeWidth={2.25} />
+          {hijriDatum}
+        </span>
+      </div>
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-1.5 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 sm:gap-3">
+        <Link href="/" className="flex items-center gap-2 transition active:scale-95 sm:gap-3">
           <LogoMark />
           <span className="flex flex-col leading-tight">
             <span className="font-display text-base font-semibold text-brand-800 sm:text-lg">
@@ -52,42 +90,37 @@ export default function SiteHeader({
             NAV.map(({ href, label, icon: Icon }) => {
               const active = href === "/" ? pathname === "/" : pathname?.startsWith(href);
               return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 transition ${
-                    active
-                      ? "bg-brand-gradient text-white shadow-card"
-                      : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
-                  }`}
-                >
+                <Link key={href} href={href} className={navLinkClass(!!active)}>
                   <Icon size={16} strokeWidth={2.25} />
                   <span className="hidden sm:inline">{label}</span>
                 </Link>
               );
             })}
-          {user?.istZahlend && (
+          {user?.kontingent && (
             <Link
-              href="/community"
-              className={`flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 transition ${
-                pathname?.startsWith("/community")
-                  ? "bg-brand-gradient text-white shadow-card"
-                  : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
-              }`}
+              href="/kontingent"
+              title="Kontingent"
+              className={navLinkClass(
+                !!pathname?.startsWith("/kontingent"),
+                !user.kontingent.unbegrenzt && user.kontingent.verbleibend === 0,
+              )}
             >
+              <Gauge size={16} strokeWidth={2.25} />
+              <span>
+                {user.kontingent.unbegrenzt
+                  ? "∞"
+                  : `${user.kontingent.verbraucht}/${user.kontingent.limit}`}
+              </span>
+            </Link>
+          )}
+          {user?.istZahlend && (
+            <Link href="/community" className={navLinkClass(!!pathname?.startsWith("/community"))}>
               <Users size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Geteilte Arbeitsblätter</span>
             </Link>
           )}
           {user?.role === "admin" && (
-            <Link
-              href="/admin"
-              className={`flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 transition ${
-                pathname?.startsWith("/admin")
-                  ? "bg-brand-gradient text-white shadow-card"
-                  : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
-              }`}
-            >
+            <Link href="/admin" className={navLinkClass(!!pathname?.startsWith("/admin"))}>
               <ShieldCheck size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Admin</span>
             </Link>
@@ -98,11 +131,7 @@ export default function SiteHeader({
                 href="/account"
                 title="Mein Konto"
                 aria-label="Mein Konto"
-                className={`flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 transition ${
-                  pathname?.startsWith("/account")
-                    ? "bg-brand-gradient text-white shadow-card"
-                    : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
-                }`}
+                className={navLinkClass(!!pathname?.startsWith("/account"))}
               >
                 <UserCircle size={16} strokeWidth={2.25} />
                 <span className="hidden md:inline">{user.username ?? user.email}</span>
@@ -112,7 +141,7 @@ export default function SiteHeader({
                 onClick={handleLogout}
                 title="Abmelden"
                 aria-label="Abmelden"
-                className="flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 text-slate-500 transition hover:bg-red-50 hover:text-red-600"
+                className="flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium text-slate-500 transition active:scale-95 sm:px-3.5 hover:bg-red-50 hover:text-red-600"
               >
                 <LogOut size={16} strokeWidth={2.25} />
               </button>
@@ -120,7 +149,7 @@ export default function SiteHeader({
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-1.5 rounded-full bg-brand-gradient px-3.5 py-2 text-sm font-medium text-white shadow-card"
+              className="flex items-center gap-1.5 rounded-full bg-brand-gradient px-3.5 py-2 text-sm font-medium text-white shadow-card transition active:scale-95"
             >
               Anmelden
             </Link>
