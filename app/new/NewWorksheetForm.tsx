@@ -129,7 +129,10 @@ export default function NewWorksheetForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [bereich, setBereich] = useState("Islamischer Religionsunterricht");
+  // Kein Formularfeld mehr (siehe Design-Feedback) - die App ist ausschließlich für islamischen
+  // Religionsunterricht gebaut, eine Eingabemöglichkeit dafür bot Lehrkräften nie eine sinnvolle
+  // Entscheidung. Wert bleibt im System/Prompt/Dashboard unverändert, nur fest statt editierbar.
+  const bereich = "Islamischer Religionsunterricht";
   const [thema, setThema] = useState("");
   const [schulstufeAuswahl, setSchulstufeAuswahl] = useState(SCHULSTUFEN_OPTIONEN[0]);
   const [schulstufeFrei, setSchulstufeFrei] = useState("");
@@ -317,16 +320,6 @@ export default function NewWorksheetForm({
             <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
               {THEMENBEREICHE[themenbereich].beschreibung}
             </span>
-          </label>
-          <label className="mt-4 block">
-            <span className={labelClass}>Bereich / Fach</span>
-            <input
-              className={inputClass}
-              value={bereich}
-              onChange={(e) => setBereich(e.target.value)}
-              placeholder="z.B. Islamischer Religionsunterricht"
-              required
-            />
           </label>
           <label className="mt-4 block">
             <span className={labelClass}>Zusätzliche Hinweise (optional)</span>
