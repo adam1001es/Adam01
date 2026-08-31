@@ -19,6 +19,7 @@ export default function KontingentBanner({ kontingent }: { kontingent: Kontingen
 
   const prozent = Math.min(100, Math.round((kontingent.verbraucht / kontingent.limit) * 100));
   const knapp = kontingent.verbleibend === 0;
+  const bildKnapp = kontingent.bildVerbleibend === 0;
 
   return (
     <div
@@ -49,6 +50,10 @@ export default function KontingentBanner({ kontingent }: { kontingent: Kontingen
               {!kontingent.tier && ". Für mehr: ein Abo anfragen"}.
             </>
           )}
+        </p>
+        <p className={`mt-1 text-xs ${bildKnapp ? "text-red-700" : "opacity-60"}`}>
+          Davon {kontingent.bildVerbraucht} / {kontingent.bildLimit} mit Ausmalbild/Bildergeschichte
+          {bildKnapp && " – für diesen Zyklus aufgebraucht, andere Aufgabentypen gehen weiterhin"}.
         </p>
       </div>
     </div>

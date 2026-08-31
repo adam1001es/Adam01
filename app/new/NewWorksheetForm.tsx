@@ -106,7 +106,13 @@ const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch:
   kompakt: { label: "Kompakt", swatch: "#64748b" },
 };
 
-export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boolean }) {
+export default function NewWorksheetForm({
+  kannErstellen,
+  bildKontingentAufgebraucht,
+}: {
+  kannErstellen: boolean;
+  bildKontingentAufgebraucht: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -369,6 +375,14 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               enthalten als hier eingestellt.
             </p>
           )}
+          {bildKontingentAufgebraucht &&
+            aufgabentypen.some((typ) => typ === "ausmalbild" || typ === "bildergeschichte") && (
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-relaxed text-red-700">
+                Dein monatliches Kontingent für „Ausmalbild"/„Bildergeschichte" ist aufgebraucht -
+                die Erstellung mit diesen Aufgabentypen wird fehlschlagen. Wähle stattdessen andere
+                Aufgabentypen, oder warte bis zum nächsten Zyklus.
+              </p>
+            )}
           {istFrueheVolksschulstufe(schulstufe) && (
             <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
               <p className="text-xs leading-relaxed text-gold-700">

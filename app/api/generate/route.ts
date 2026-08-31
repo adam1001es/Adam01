@@ -48,6 +48,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: grund }, { status: 403 });
   }
 
+  // Separates, engeres Kontingent für bildbasierte Arbeitsblätter (siehe TIER_BILD_QUOTA) - eine
+  // Live-Bildgenerierung kostet deutlich mehr als ein reines Textblatt, daher eigene Grenze
+  // unabhängig vom allgemeinen Kontingent oben.
+  const istBildAnfrage = req.aufgabentypen.some(
+    (t) => t === "ausmalbild" || t === "bildergeschichte",
+  );
+  if (istBildAnfrage && !kontingent.unbegrenzt && kontingent.bildVerbleibend <= 0) {
+    return NextResponse.json(
+      {
+        error: `Dein Kontingent für bildbasierte Arbeitsblätter (Ausmalbild/Bildergeschichte) ist für diesen Zyklus aufgebraucht (${kontingent.bildLimit}/Monat). Andere Aufgabentypen kannst du weiterhin nutzen. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`,
+      },
+      { status: 403 },
+    );
+  }
+
   // Nur Konten OHNE bezahltes Abo unterliegen zusätzlich der Browser-/IP-Sperre - sie
   // verhindert, dass sich jemand mehrere Konten anlegt, um das Gratis-Kontingent zu
   // vervielfachen. Bezahlte Abos wurden von einem Admin manuell freigeschaltet und Admin-Konten
