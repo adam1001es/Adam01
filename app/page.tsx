@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle, MailCheck } from "lucide-react";
+import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle, MailCheck, Users } from "lucide-react";
 import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
@@ -105,6 +105,11 @@ export default async function DashboardPage({
                         </span>
                         <span>{w.bereich}</span>
                         <span>{new Date(w.createdAt).toLocaleString("de-AT")}</span>
+                        {w.geteilt && (
+                          <span className="inline-flex items-center gap-1 text-brand-600">
+                            <Users size={13} /> Geteilt
+                          </span>
+                        )}
                       </div>
                     </div>
                     <span

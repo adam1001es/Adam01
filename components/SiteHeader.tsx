@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Plus, LayoutGrid, ShieldCheck, LogOut, UserCircle } from "lucide-react";
+import { Plus, LayoutGrid, ShieldCheck, LogOut, UserCircle, Users } from "lucide-react";
 
 function LogoMark() {
   return (
@@ -22,7 +22,7 @@ const NAV = [
 export default function SiteHeader({
   user,
 }: {
-  user: { email: string; username: string | null; role: string } | null;
+  user: { email: string; username: string | null; role: string; istZahlend: boolean } | null;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -66,6 +66,19 @@ export default function SiteHeader({
                 </Link>
               );
             })}
+          {user?.istZahlend && (
+            <Link
+              href="/community"
+              className={`flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium sm:px-3.5 transition ${
+                pathname?.startsWith("/community")
+                  ? "bg-brand-gradient text-white shadow-card"
+                  : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
+              }`}
+            >
+              <Users size={16} strokeWidth={2.25} />
+              <span className="hidden sm:inline">Community</span>
+            </Link>
+          )}
           {user?.role === "admin" && (
             <Link
               href="/admin"

@@ -151,6 +151,21 @@ export function istTierAktiv(
   return true;
 }
 
+/** Ist dieses Konto aktuell zahlend (aktives "starter"/"pro"-Abo) oder Admin? Für Features, die
+ * nur echte Kosten für zahlende Konten wert sind (aktuell: Community-Teilen, siehe
+ * app/community) - bewusst leichtgewichtig (kein DB-Zugriff, nur das bereits geladene
+ * SessionUser-Objekt), im Unterschied zu getKontingent, das zusätzlich das Verbrauchs-
+ * Kontingent berechnet. */
+export function istZahlendesKonto(user: {
+  role: string;
+  tier: string | null;
+  tierGueltigVon?: Date | null;
+  tierGueltigBis?: Date | null;
+}): boolean {
+  if (user.role === "admin") return true;
+  return istTierAktiv(user.tier, user.tierGueltigVon ?? null, user.tierGueltigBis ?? null);
+}
+
 export async function getKontingent(user: {
   id: string;
   tier: string | null;

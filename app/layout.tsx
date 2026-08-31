@@ -3,6 +3,7 @@ import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import { getSessionUser } from "@/lib/auth";
+import { istZahlendesKonto } from "@/lib/quota";
 
 const display = Newsreader({
   subsets: ["latin"],
@@ -52,7 +53,16 @@ export default async function RootLayout({
     <html lang="de" className={`${display.variable} ${sans.variable}`}>
       <body className="min-h-screen bg-canvas font-sans text-slate-900">
         <SiteHeader
-          user={user ? { email: user.email, username: user.username, role: user.role } : null}
+          user={
+            user
+              ? {
+                  email: user.email,
+                  username: user.username,
+                  role: user.role,
+                  istZahlend: istZahlendesKonto(user),
+                }
+              : null
+          }
         />
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
       </body>

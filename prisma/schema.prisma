@@ -26,12 +26,20 @@ model Worksheet {
   // eigentliche "Erstattung": kein Zahlungsanbieter im Code, aber das verbrauchte Kontingent
   // wird der Lehrkraft zurückgebucht.
   erstattet   Boolean  @default(false)
+  // Von der Lehrkraft (nur zahlende Konten, siehe istZahlendesKonto in lib/quota.ts) bewusst
+  // für die Community freigegeben - sofort sichtbar für alle anderen zahlenden Konten
+  // (app/community), kein Freigabe-Workflow. geteiltAm dient nur der Sortierung "neueste
+  // zuerst" und bleibt beim Zurückziehen (geteilt = false) stehen, falls später erneut geteilt
+  // wird.
+  geteilt     Boolean  @default(false)
+  geteiltAm   DateTime?
   createdAt   DateTime @default(now())
   // Optional, damit ältere Arbeitsblätter aus der Zeit vor dem Login-System gültig bleiben -
   // neue Arbeitsblätter bekommen immer einen Besitzer zugewiesen (siehe app/api/generate).
   userId      String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   meldungen   Meldung[]
+  communityFavoriten CommunityFavorit[]
 }
 
 // Ein Nutzerkonto (Kolleg:in). Selbst-Registrierung; das Abo-Kontingent (tier) wird nach
@@ -64,6 +72,7 @@ model User {
   worksheets   Worksheet[]
   meldungen    Meldung[]
   themaIdeenNutzungen ThemaIdeenUsage[]
+  communityFavoriten CommunityFavorit[]
 }
 
 model Session {
@@ -138,4 +147,20 @@ model ThemaIdeenUsage {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, tag])
+}
+
+// Markiert ein von einer ANDEREN Lehrkraft geteiltes Arbeitsblatt (Worksheet.geteilt) als
+// Favorit in der Community-Übersicht (app/community) - bewusst getrennt von Worksheet.favorit
+// (das ist der EIGENE Favoriten-Stern der Besitzerin/des Besitzers auf dem eigenen Dashboard),
+// da hier mehrere fremde Konten unabhängig voneinander dasselbe Arbeitsblatt favorisieren
+// können müssen, ohne sich gegenseitig zu überschreiben.
+model CommunityFavorit {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  worksheetId String
+  worksheet   Worksheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, worksheetId])
 }

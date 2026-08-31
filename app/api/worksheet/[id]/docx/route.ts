@@ -4,6 +4,7 @@ import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema } from 
 import { THEMENBEREICHE } from "@/lib/curriculum";
 import { buildWorksheetDocx } from "@/lib/docx/buildWorksheetDocx";
 import { getSessionUser } from "@/lib/auth";
+import { istZahlendesKonto } from "@/lib/quota";
 import { sammleBildGeneriertIds } from "@/lib/generiertesBildHelfer";
 
 export const runtime = "nodejs";
@@ -20,7 +21,8 @@ export async function GET(
   }
 
   const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!worksheet || worksheet.userId !== user.id) {
+  // Siehe dieselbe Begründung in app/api/worksheet/[id]/pdf/route.ts.
+  if (!worksheet || !(worksheet.userId === user.id || (worksheet.geteilt && istZahlendesKonto(user)))) {
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 

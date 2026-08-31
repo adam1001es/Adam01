@@ -6,6 +6,7 @@ import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema } from 
 import { THEMENBEREICHE } from "@/lib/curriculum";
 import { WorksheetPdfDocument } from "@/lib/pdf/WorksheetPdf";
 import { getSessionUser } from "@/lib/auth";
+import { istZahlendesKonto } from "@/lib/quota";
 import { sammleBildGeneriertIds } from "@/lib/generiertesBildHelfer";
 
 export const runtime = "nodejs";
@@ -24,7 +25,10 @@ export async function GET(
   }
 
   const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  if (!worksheet || worksheet.userId !== user.id) {
+  // Ebenfalls erreichbar, wenn ein anderes zahlendes Konto das Arbeitsblatt für die Community
+  // freigegeben hat (siehe app/community) - Herunterladen als eigene Vorlage ist dort der
+  // eigentliche Sinn des Teilens.
+  if (!worksheet || !(worksheet.userId === user.id || (worksheet.geteilt && istZahlendesKonto(user)))) {
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 
