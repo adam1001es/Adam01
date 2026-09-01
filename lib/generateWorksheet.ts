@@ -21,6 +21,13 @@ import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 import { vereinfacheArabischeTransliteration } from "./transliteration";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 
+/** Markiert einen Fehlschlag beim Auslesen der Modellantwort selbst (keine oder keine gültige
+ * JSON-Struktur gefunden bzw. Struktur entsprach nicht dem erwarteten Schema) - im Unterschied zu
+ * einem inhaltlichen Mangel, den die Qualitätsprüfung erkennt. Passiert selten, aber real (das
+ * Modell antwortet trotz Anweisung gelegentlich mit erklärendem Text statt nur dem JSON-Objekt) -
+ * siehe der zugehörige automatische Wiederholungsversuch in generateAndVerifyWorksheet. */
+class UngueltigesModellFormat extends Error {}
+
 const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, aktueller Lehrplan der IGGÖ "Lehrplan IRU NEU"). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
 
 Wichtige Regeln für religiöse Inhalte:
@@ -174,9 +181,13 @@ function buildUserPrompt(
   req: GenerateRequest,
   anzahlAufgaben: number,
   korrekturAuftrag?: Verification,
+  formatErinnerung?: boolean,
 ): string {
   const korrekturBlock = korrekturAuftrag
     ? `\n\nWICHTIG - Korrekturauftrag: Ein vorheriger Versuch für dieses Arbeitsblatt wurde bei der Qualitätsprüfung als "fehler" eingestuft. Erstelle das Arbeitsblatt neu und behebe dabei GEZIELT diese konkreten Probleme (beim Rest darfst du dich frei orientieren, nicht stur am alten Versuch festhalten):\n${korrekturAuftrag.hinweise.map((h) => `- ${h}`).join("\n")}\nZusammenfassung der vorherigen Prüfung: ${korrekturAuftrag.zusammenfassung}`
+    : "";
+  const formatBlock = formatErinnerung
+    ? `\n\nWICHTIG: Deine letzte Antwort enthielt keine oder keine vollständige gültige JSON-Struktur. Antworte dieses Mal AUSSCHLIESSLICH mit dem rohen JSON-Objekt gemäß der vorgegebenen Struktur - kein einleitender oder erklärender Text davor oder danach, keine Markdown-Codeblock-Markierungen.`
     : "";
 
   return `Erstelle ein Arbeitsblatt mit folgenden Vorgaben:
@@ -188,7 +199,7 @@ function buildUserPrompt(
 - Anzahl Aufgaben (aus der Zieldauer abgeleiteter Richtwert - Ziel ist, die Zieldauer zu treffen, nicht exakt diese Zahl): ${anzahlAufgaben}
 - Erlaubte Aufgabentypen (mische sinnvoll): ${req.aufgabentypen.join(", ")}
 ${req.istPruefung ? `- Diese Erstellung ist eine formelle PRÜFUNG mit einer Zielpunktzahl von ${req.punkteGesamt} Punkten (siehe Zusatzanweisungen).` : ""}
-${req.zusatzhinweise ? `- Zusätzliche Hinweise der Lehrkraft: ${req.zusatzhinweise}` : ""}${korrekturBlock}`;
+${req.zusatzhinweise ? `- Zusätzliche Hinweise der Lehrkraft: ${req.zusatzhinweise}` : ""}${korrekturBlock}${formatBlock}`;
 }
 
 export interface GenerationResult {
@@ -203,7 +214,24 @@ export async function generateAndVerifyWorksheet(
   const curriculumContext = buildCurriculumSystemContext(req.themenbereich, req.schulstufe, req.komplexitaet);
   const anzahlAufgaben = schaetzeAufgabenAnzahl(req.zieldauerMinuten, req.aufgabentypen, req.komplexitaet);
 
-  const ersterVersuch = await generiereUndPruefeEinmal(req, curriculumContext, anzahlAufgaben);
+  let ersterVersuch: GenerationResult;
+  try {
+    ersterVersuch = await generiereUndPruefeEinmal(req, curriculumContext, anzahlAufgaben);
+  } catch (err) {
+    // Reines Format-Problem (siehe UngueltigesModellFormat) statt eines inhaltlichen Mangels -
+    // die Qualitätsprüfung wurde in diesem Fall nie erreicht, ein Wiederholungsversuch mit einer
+    // expliziten Format-Erinnerung behebt das fast immer. Bei jedem anderen Fehler (Netzwerk,
+    // Rate-Limit, abgeschnittene Antwort wegen zu vieler Aufgaben) hilft ein blinder
+    // Wiederholungsversuch nicht und würde nur unnötig weitere Kosten verursachen.
+    if (!(err instanceof UngueltigesModellFormat)) throw err;
+    ersterVersuch = await generiereUndPruefeEinmal(
+      req,
+      curriculumContext,
+      anzahlAufgaben,
+      undefined,
+      true,
+    );
+  }
 
   // Automatischer zweiter Versuch NUR bei "fehler" (ein von der Prüfung erkannter echter Mangel) -
   // NICHT bei "warnung" (das Blatt ist nutzbar, nur mit Hinweisen zum Gegenchecken). Die konkrete
@@ -228,6 +256,7 @@ async function generiereUndPruefeEinmal(
   curriculumContext: string,
   anzahlAufgaben: number,
   korrekturAuftrag?: Verification,
+  formatErinnerung?: boolean,
 ): Promise<GenerationResult> {
   const client = getAnthropicClient();
 
@@ -250,7 +279,9 @@ async function generiereUndPruefeEinmal(
       { type: "text", text: curriculumContext },
       ...(req.istPruefung ? [{ type: "text" as const, text: PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ }] : []),
     ],
-    messages: [{ role: "user", content: buildUserPrompt(req, anzahlAufgaben, korrekturAuftrag) }],
+    messages: [
+      { role: "user", content: buildUserPrompt(req, anzahlAufgaben, korrekturAuftrag, formatErinnerung) },
+    ],
   });
 
   if (genResponse.stop_reason === "max_tokens") {
@@ -258,8 +289,18 @@ async function generiereUndPruefeEinmal(
       "Die Antwort des Modells wurde wegen zu vieler Aufgaben/Inhalte abgeschnitten. Bitte weniger Aufgaben oder weniger Aufgabentypen gleichzeitig anfordern.",
     );
   }
-  const rawContent = extractJson(getTextFromMessage(genResponse));
-  let content = WorksheetContentSchema.parse(rawContent);
+  let rawContent: unknown;
+  try {
+    rawContent = extractJson(getTextFromMessage(genResponse));
+  } catch (err) {
+    throw new UngueltigesModellFormat(err instanceof Error ? err.message : String(err));
+  }
+  let content: WorksheetContent;
+  try {
+    content = WorksheetContentSchema.parse(rawContent);
+  } catch {
+    throw new UngueltigesModellFormat("Die Antwort entsprach nicht der erwarteten Struktur.");
+  }
   // Sicherheitsnetz für den Fall, dass sich das Modell trotz Prompt-Anweisung nicht an
   // diakritikfreie Transliteration hält (siehe lib/transliteration.ts) - VOR der Verifikation,
   // damit die geprüfte und gespeicherte Version bereits die sicher darstellbare ist.
