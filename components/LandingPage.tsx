@@ -12,7 +12,7 @@ import {
   Gift,
   ArrowRight,
 } from "lucide-react";
-import { TIER_QUOTA, TIER_PREIS_EUR, KOSTENLOS_LIMIT } from "@/lib/quota";
+import { TIER_QUOTA, TIER_PREIS_EUR, KOSTENLOS_LIMIT, formatEur } from "@/lib/quota";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 
 const FEATURES = [
@@ -244,7 +244,7 @@ export default function LandingPage() {
           </div>
           <div className="rounded-xl border border-brand-200 bg-brand-50/40 p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">
-              Abo <span className="font-normal text-slate-400">· {TIER_PREIS_EUR.pro.toFixed(2)}€/Monat</span>
+              Abo <span className="font-normal text-slate-400">· {formatEur(TIER_PREIS_EUR.pro)}€/Monat</span>
             </div>
             <div className="mt-1 text-xs text-slate-400">
               {TIER_QUOTA.pro} Arbeitsblätter/Monat · inkl. Community

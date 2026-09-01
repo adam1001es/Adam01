@@ -5,10 +5,21 @@ import {
   aktuellerZyklusStart,
   zaehleGenerierteBilder,
   tierLabel,
+  formatEur,
   TIER_QUOTA,
   TIER_PREIS_EUR,
   GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR,
 } from "./quota";
+
+describe("formatEur", () => {
+  // Regressionstest für einen echten Bug: (3.5).toFixed(2) liefert "3.50" mit Punkt statt des im
+  // Deutschen/Österreichischen üblichen Kommas - stand so unbemerkt an mehreren Stellen im Code.
+  it("nutzt ein Komma statt eines Punkts als Dezimaltrenner", () => {
+    expect(formatEur(3.5)).toBe("3,50");
+    expect(formatEur(2)).toBe("2,00");
+    expect(formatEur(0.1)).toBe("0,10");
+  });
+});
 
 describe("istTierAktiv", () => {
   it("ist false ohne tier", () => {

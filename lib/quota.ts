@@ -9,21 +9,30 @@ import { prisma } from "@/lib/prisma";
  * damit sich niemand durch mehrere Konten ein Vielfaches des Gratis-Kontingents verschafft).
  *
  * Kalkulation (Worst Case bei voller Ausschöpfung, Ziel: mindestens ~25-30% Marge - siehe
- * GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR): 18 × 0,10€ = 1,80€ Kosten bei 2,50€ Preis = 28% Marge.
+ * GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR): 11 × 0,10€ = 1,10€ Kosten bei 3,50€ Preis = 68,6% Marge
+ * nach der (vermutlich zu niedrig angesetzten) Pauschalschätzung. Nach der echten, gemessenen
+ * Nutzung (siehe "Ø Kosten pro Arbeitsblatt (echt)" im Admin-Bereich, lib/usageLog.ts) unbedingt
+ * gegenprüfen und Preis/Kontingent bei Bedarf nachjustieren, sobald genug Datenpunkte vorliegen.
  * "starter" bleibt als Alias mit identischen Werten bestehen - reine Abwärtskompatibilität für
  * Konten, die vor dieser Umstellung noch "starter" zugewiesen bekamen (sonst würden sie beim
  * nächsten Zyklus plötzlich auf 0 Kontingent fallen); neu zuweisbar ist nur noch "pro". */
 export const TIER_QUOTA: Record<string, number> = {
-  starter: 18,
-  pro: 18,
+  starter: 11,
+  pro: 11,
 };
 
 export const TIER_PREIS_EUR: Record<string, number> = {
-  starter: 2.5,
-  pro: 2.5,
+  starter: 3.5,
+  pro: 3.5,
 };
 
-const ABO_LABEL = `Abo (${TIER_PREIS_EUR.pro.toFixed(2)}€ / ${TIER_QUOTA.pro} Arbeitsblätter im Monat)`;
+/** ".toFixed(2)" allein liefert "3.50" (Punkt) statt der im Deutschen/Österreichischen üblichen
+ * "3,50" (Komma) - kein Locale-Aufruf nötig für einen simplen Dezimaltrenner-Swap. */
+export function formatEur(betrag: number): string {
+  return betrag.toFixed(2).replace(".", ",");
+}
+
+const ABO_LABEL = `Abo (${formatEur(TIER_PREIS_EUR.pro)}€ / ${TIER_QUOTA.pro} Arbeitsblätter im Monat)`;
 export const TIER_LABEL: Record<string, string> = {
   starter: ABO_LABEL,
   pro: ABO_LABEL,
@@ -34,7 +43,7 @@ export const TIER_LABEL: Record<string, string> = {
 // mitwachsenden Kostenblock ohne Gegenfinanzierung (siehe getKontingent: für Konten ohne
 // aktives tier wird über die GESAMTE Kontolebenszeit gezählt statt nur im aktuellen Zyklus).
 // Wer mehr will, braucht das bezahlte Abo - kein "jeden Monat wieder gratis".
-export const KOSTENLOS_LIMIT = 5;
+export const KOSTENLOS_LIMIT = 4;
 export const KOSTENLOS_LABEL = `Kostenlos zum Ausprobieren (${KOSTENLOS_LIMIT} Arbeitsblätter insgesamt, einmalig)`;
 
 /** Grobe Kostenschätzung pro Arbeitsblatt (siehe Admin-Übersicht, "Geschätzte KI-Kosten") -

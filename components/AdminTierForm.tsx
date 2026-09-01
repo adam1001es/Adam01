@@ -71,8 +71,8 @@ export default function AdminTierForm({
           }}
           className={inputClass}
         >
-          <option value="">Kostenlos (3/Monat)</option>
-          <option value="pro">Abo (2,50€ / 18 im Monat)</option>
+          <option value="">Kostenlos (4 einmalig)</option>
+          <option value="pro">Abo (3,50€ / 11 im Monat)</option>
         </select>
       </label>
 

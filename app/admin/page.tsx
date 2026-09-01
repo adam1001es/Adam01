@@ -10,6 +10,7 @@ import {
   GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR,
   GESCHAETZTE_KOSTEN_PRO_BILD_EUR,
   zaehleGenerierteBilder,
+  formatEur,
 } from "@/lib/quota";
 import { summeTokens, summeKostenEur, durchschnittKostenProBlattEur } from "@/lib/usageLog";
 import { KOSTEN_BERECHNUNGSGRUNDLAGE } from "@/lib/pricing";
@@ -95,29 +96,29 @@ export default async function AdminPage() {
   const STATS = [
     { icon: Users, label: "Konten gesamt", wert: String(rows.length) },
     { icon: CreditCard, label: "Aktive Abos", wert: String(aktiveAbos) },
-    { icon: TrendingUp, label: "Geschätzter Monatsumsatz", wert: `${monatsumsatz.toFixed(2)}€` },
+    { icon: TrendingUp, label: "Geschätzter Monatsumsatz", wert: `${formatEur(monatsumsatz)}€` },
     {
       icon: Coins,
       label: "Geschätzte KI-Kosten (Monat)",
-      wert: `${geschaetzteKosten.toFixed(2)}€`,
+      wert: `${formatEur(geschaetzteKosten)}€`,
       unterschrift: `${worksheetsDiesenMonat.length} Arbeitsblätter · ${bilderDiesenMonat} Bilder`,
     },
     {
       icon: Scale,
       label: "Geschätzter Gewinn/Verlust (Monat)",
-      wert: `${geschaetzterGewinn >= 0 ? "+" : ""}${geschaetzterGewinn.toFixed(2)}€`,
+      wert: `${geschaetzterGewinn >= 0 ? "+" : ""}${formatEur(geschaetzterGewinn)}€`,
       farbe: geschaetzterGewinn >= 0 ? "text-brand-700" : "text-red-600",
     },
     {
       icon: Cpu,
       label: "Echte Kosten (Monat)",
-      wert: `${kostenMonat < 0.01 && kostenMonat > 0 ? "<0,01" : kostenMonat.toFixed(2)}€`,
+      wert: kostenMonat < 0.01 && kostenMonat > 0 ? "<0,01€" : `${formatEur(kostenMonat)}€`,
       unterschrift: `${tokensMonat.gesamt.toLocaleString("de-AT")} Tokens · ${tokensMonat.anzahlAufrufe} API-Aufrufe`,
     },
     {
       icon: Cpu,
       label: "Echte Kosten (gesamt)",
-      wert: `${kostenGesamt < 0.01 && kostenGesamt > 0 ? "<0,01" : kostenGesamt.toFixed(2)}€`,
+      wert: kostenGesamt < 0.01 && kostenGesamt > 0 ? "<0,01€" : `${formatEur(kostenGesamt)}€`,
       unterschrift: "bleibt beim Löschen von Arbeitsblättern unverändert",
     },
     {
@@ -126,7 +127,7 @@ export default async function AdminPage() {
       wert:
         durchschnittGesamt.durchschnittEur === null
           ? "–"
-          : `${durchschnittGesamt.durchschnittEur.toFixed(2)}€`,
+          : `${formatEur(durchschnittGesamt.durchschnittEur)}€`,
       unterschrift:
         durchschnittGesamt.anzahlBlaetter === 0
           ? "noch keine Daten"

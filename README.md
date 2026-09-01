@@ -150,11 +150,13 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
   Admin-Rechte zu vergeben) - dieser Account sollte also der/die Betreiber:in sein. **Admin-Konten
   haben kein Kontingent-Limit** (weder persönlich noch über die Browser-/IP-Sperre) - `/new` und
   das Dashboard zeigen dafür ein eigenes „unbegrenztes Kontingent"-Banner statt einer Zahl.
-- **Zwei Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 5
+- **Zwei Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 4
   Arbeitsblätter EINMALIG fürs ganze Konto - automatisch, ohne Admin-Freischaltung, kein
-  monatlicher Reset) und ein einziges bezahltes „Abo" (2,50€ / 18 Arbeitsblätter **im Monat**,
-  ~28% Marge bei voller Kontingent-Ausschöpfung, siehe Kommentar bei `TIER_QUOTA`). Bewusst nur
-  ein Bezahl-Tarif statt einer Staffelung - einfacher zu kommunizieren, ohne dass Lehrkräfte
+  monatlicher Reset) und ein einziges bezahltes „Abo" (3,50€ / 11 Arbeitsblätter **im Monat**,
+  siehe Kommentar bei `TIER_QUOTA` für die Margen-Kalkulation - basiert bisher auf der groben
+  Pauschalschätzung, sollte aber gegen die echte, gemessene Kosten pro Arbeitsblatt geprüft
+  werden, siehe "Ø Kosten pro Arbeitsblatt (echt)" im Admin-Bereich). Bewusst nur ein
+  Bezahl-Tarif statt einer Staffelung - einfacher zu kommunizieren, ohne dass Lehrkräfte
   zwischen mehreren Paketen abwägen müssen. Jedes frisch registrierte Konto startet automatisch
   auf „Kostenlos"; ein Admin schaltet unter `/admin` bei Bedarf auf das Abo hoch. Intern bleibt
   der Datenbankwert `"pro"` (historisch gewachsen aus einer früheren Zwei-Tarif-Version;
