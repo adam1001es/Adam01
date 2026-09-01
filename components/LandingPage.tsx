@@ -95,7 +95,7 @@ export default function LandingPage() {
       <section className="relative overflow-hidden rounded-3xl bg-brand-gradient px-6 py-14 text-center text-white shadow-card sm:px-12">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">
           KI-geprüfte, lehrplanorientierte Arbeitsblätter für den
-          <br className="hidden sm:block" /> islamischen Religionsunterricht - in Minuten
+          <br className="hidden sm:block" /> islamischen Religionsunterricht - in unter einer Minute
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-brand-50">
           Nicht irgendein KI-Text: jedes Arbeitsblatt wird von einer zweiten, unabhängigen Prüfung
