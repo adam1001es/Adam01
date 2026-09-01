@@ -7,12 +7,16 @@ import { getKontingent } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 import { speichereUsage } from "@/lib/usageLog";
 
-// Generierung + Verifikation (zwei nacheinander laufende Claude-Aufrufe) können zusammen länger
-// als das Standard-Zeitlimit dauern - ohne diese Erhöhung bricht Vercel die Funktion vorzeitig
-// ab und der Browser zeigt statt der Arbeitsblatt-Seite nur einen generischen Fehler. 180s als
-// großzügiger Puffer - mit Fluid Compute (seit 2026 Standard, auch auf dem kostenlosen
-// Hobby-Plan) sind bis zu 300s möglich, ohne dass ein Deploy fehlschlägt.
-export const maxDuration = 180;
+// Generierung + Verifikation (zwei nacheinander laufende Claude-Aufrufe, bei einem automatischen
+// zweiten Versuch nach "fehler" sogar vier, siehe generateAndVerifyWorksheet) können zusammen
+// länger als das Standard-Zeitlimit dauern - ohne diese Erhöhung bricht Vercel die Funktion
+// vorzeitig ab und der Browser zeigt statt der Arbeitsblatt-Seite nur einen generischen Fehler
+// (siehe NewWorksheetForm.tsx, dort abgefangen als "hat zu lange gedauert"). War bisher auf 180s
+// gesetzt und reichte bei einer anspruchsvollen, ~10-Aufgaben-Anfrage für eine hohe Schulstufe in
+// der Praxis NICHT (echter Abbruch beobachtet) - jetzt nah am dokumentierten Maximum: mit Fluid
+// Compute (seit 2026 Standard, auch auf dem kostenlosen Hobby-Plan) sind bis zu 300s möglich,
+// ohne dass ein Deploy fehlschlägt.
+export const maxDuration = 280;
 
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
