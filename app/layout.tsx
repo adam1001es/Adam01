@@ -59,11 +59,11 @@ export default async function RootLayout({
         {/* Setzt die .dark-Klasse VOR dem ersten Paint (siehe components/ThemeToggle.tsx) - ohne
             das würde bei gespeichertem Dark-Mode-Wunsch kurz die helle Seite aufblitzen, bevor
             React hydriert. "beforeInteractive" landet unabhängig von der Platzierung im
-            HTML-<head> (Next.js-Verhalten). Erster Besuch ohne gespeicherte Wahl: System-
-            Präferenz als schnelle, synchrone Näherung - der tatsächliche Wien-Sonnenstand
-            (suncalc) korrigiert das direkt nach der Hydration in ThemeToggle, falls nötig. */}
+            HTML-<head> (Next.js-Verhalten). Dark Mode schaltet sich NIE von selbst ein - weder
+            nach System-Präferenz noch nach Tageszeit: nur eine explizit gespeicherte "dark"-Wahl
+            (durch Klick auf ThemeToggle) aktiviert ihn, sonst bleibt es immer hell. */}
         <Script id="theme-init" strategy="beforeInteractive">
-          {`(function(){try{var s=localStorage.getItem("lernwerk-theme");var d=s==="dark"||(s!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");}catch(e){}})();`}
+          {`(function(){try{if(localStorage.getItem("lernwerk-theme")==="dark")document.documentElement.classList.add("dark");}catch(e){}})();`}
         </Script>
         <SiteHeader
           hijriDatum={hijriDatum}

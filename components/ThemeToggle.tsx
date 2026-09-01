@@ -1,38 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getTimes } from "suncalc";
 import { Sun, Moon } from "lucide-react";
 
 const SPEICHER_SCHLUESSEL = "lernwerk-theme";
-// Wien (48.2082° N, 16.3738° O) - fix statt Geolocation/Stadt-Eingabe, bewusst einfach gehalten.
-const WIEN = { lat: 48.2082, lon: 16.3738 };
 
 function wendeAn(dunkel: boolean) {
   document.documentElement.classList.toggle("dark", dunkel);
 }
 
-/** Sonne/Mond-Icon neben dem Hijri-Datum: zeigt den aktuellen Dark-Mode-Status an UND dient als
- * Toggle dafür (Klick schaltet um, Wahl wird in localStorage gemerkt). Ohne gespeicherte Wahl
- * (erster Besuch) richtet sich der Startzustand danach, ob in Wien gerade tatsächlich Tag oder
- * Nacht ist (lib suncalc, keine externe API nötig) - ab dem ersten Klick zählt nur noch die
- * eigene Wahl, unabhängig vom weiteren Sonnenstand. */
+/** Manueller Dark-Mode-Schalter neben dem Hijri-Datum - schaltet sich NIE von selbst ein (auch
+ * nicht nach System-Präferenz oder Tageszeit): Start ist immer hell, außer die Person hat schon
+ * einmal selbst auf Dunkel umgeschaltet (siehe SPEICHER_SCHLUESSEL). Bewusst getrennt von
+ * components/SonnenuntergangAnzeige.tsx, die nur eine Info-Anzeige ist, kein Schalter. */
 export default function ThemeToggle() {
   const [dunkel, setDunkel] = useState<boolean | null>(null);
 
   useEffect(() => {
     const gespeichert = localStorage.getItem(SPEICHER_SCHLUESSEL);
-    if (gespeichert === "dark" || gespeichert === "light") {
-      setDunkel(gespeichert === "dark");
-      return;
-    }
-    const jetzt = new Date();
-    const { sunrise, sunset } = getTimes(jetzt, WIEN.lat, WIEN.lon);
-    // sunrise/sunset sind laut Typdefinition nullbar (Polartag/-nacht bei Extrembreiten) - für
-    // Wien praktisch nie der Fall, aber ohne Fallback bliebe der Fall type-unsicher.
-    const nachtInWien = !sunrise || !sunset || jetzt < sunrise || jetzt > sunset;
-    setDunkel(nachtInWien);
-    wendeAn(nachtInWien);
+    const istDunkel = gespeichert === "dark";
+    setDunkel(istDunkel);
+    // Deckt v.a. den Fall ab, dass das Blocking-Script in layout.tsx aus irgendeinem Grund nicht
+    // lief (z.B. deaktiviertes JS beim ersten Server-Render) - im Normalfall steht die Klasse
+    // schon korrekt, dieser Aufruf ist dann ein No-op.
+    wendeAn(istDunkel);
   }, []);
 
   function toggle() {
