@@ -67,14 +67,14 @@ const FEATURE_BADGE = {
 
 const VERGLEICH_CHAT = [
   "Lehrplan, Kompetenzniveau und Quellenregeln musst du selbst formulieren - jedes Mal neu",
-  "Du bekommst Fließtext, den du selbst in ein druckfertiges Arbeitsblatt bringen musst",
+  "Du bekommst Fließtext, den du selbst in ein druckfertiges Arbeitsblatt bringen musst - mit Recherche, Schreiben und Formatieren schnell 10-15+ Minuten",
   "Niemand prüft die Antwort gegen - die fachliche Kontrolle bleibt komplett bei dir",
   "Kein Verlauf, keine Bibliothek deiner bisherigen Arbeitsblätter",
 ];
 
 const VERGLEICH_UNS = [
   "IGGÖ-Lehrplan, Schulstufen-Cluster und Quellenregeln sind fest eingebaut",
-  "Fertiges, layoutetes PDF/Word - direkt zum Ausdrucken, in Sekunden",
+  "Fertiges, layoutetes PDF/Word - direkt zum Ausdrucken, in 1-2 Minuten statt 10-15+",
   "Ein zweiter, unabhängiger KI-Durchlauf prüft gezielt gegen, bevor du es siehst",
   "Alle erstellten Arbeitsblätter gespeichert, favorisierbar, jederzeit wieder abrufbar",
 ];
@@ -95,7 +95,7 @@ export default function LandingPage() {
       <section className="relative overflow-hidden rounded-3xl bg-brand-gradient px-6 py-14 text-center text-white shadow-card sm:px-12">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">
           KI-geprüfte, lehrplanorientierte Arbeitsblätter für den
-          <br className="hidden sm:block" /> islamischen Religionsunterricht - in unter einer Minute
+          <br className="hidden sm:block" /> islamischen Religionsunterricht - in 1-2 Minuten
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-brand-50">
           Nicht irgendein KI-Text: jedes Arbeitsblatt wird von einer zweiten, unabhängigen Prüfung
