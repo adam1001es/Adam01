@@ -31,7 +31,7 @@ const FEATURES = [
   {
     icon: BookOpenCheck,
     titel: "Für den österreichischen IGGÖ-Lehrplan",
-    text: "Orientiert an der Grobstruktur des Lehrplans für islamischen Religionsunterricht (BGBl. II Nr. 234/2011) - Themenbereich und Schulstufen-Cluster fließen direkt in Sprache und Inhalt ein.",
+    text: "Orientiert an der Grobstruktur des aktuellen Lehrplans für islamischen Religionsunterricht der IGGÖ („Lehrplan IRU NEU“) - Themenbereich und Schulstufen-Cluster fließen direkt in Sprache und Inhalt ein.",
     akzent: "brand",
   },
   {
@@ -48,7 +48,7 @@ const FEATURES = [
   },
   {
     icon: Baby,
-    titel: "Altersgerecht bis Klasse 1",
+    titel: "Altersgerecht für die 1. Klasse",
     text: "Für noch nicht lese-/schreibkundige Kinder vier eigene Aufgabentypen: Bewegungsaufgabe (körperlich reagieren statt lesen), Sortierkarten (ausschneiden & einordnen), Malaufgabe (selbst zeichnen) und Nachspurübung (Schreibmotorik) - statt ungeeigneter Lesetext-Aufgaben.",
     akzent: "brand",
   },

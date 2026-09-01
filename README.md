@@ -20,7 +20,8 @@ eine Lehrkraft.
 ## Lehrplan- und Quellen-Verankerung
 
 Generierung und Verifikation orientieren sich an der öffentlich bekannten Grobstruktur des
-österreichischen Lehrplans für islamischen Religionsunterricht (IGGÖ, BGBl. II Nr. 234/2011):
+aktuellen österreichischen Lehrplans für islamischen Religionsunterricht der IGGÖ
+("Lehrplan IRU NEU"):
 
 - **Themenbereich** pro Arbeitsblatt wählbar: Iman (Glaubenslehre), Fiqh al-Ibadat
   (gottesdienstliche Praxis), Fiqh al-Muamalat (zwischenmenschliche Beziehungen/Ethik),
@@ -29,9 +30,10 @@ Generierung und Verifikation orientieren sich an der öffentlich bekannten Grobs
   II, Berufsschule) steuern Sprachniveau und Komplexität.
 - **Hadithe** werden nur aus Sahih al-Bukhari/Sahih Muslim (bevorzugt) oder anderen allgemein als
   sahih geltenden Sammlungen verwendet; die Verifikation prüft das gezielt gegen.
-- Siehe `lib/curriculum.ts` für Details und Quellenangaben. Diese App bildet die Lehrplan-Struktur
-  nur orientierend ab (kein Volltext-Zugriff) – die Lehrkraft prüft die konkrete Passung zur
-  jeweiligen Schulart/Schulstufe weiterhin anhand von BGBl. II Nr. 234/2011.
+- Siehe `lib/curriculum.ts` für Details und Quellenangaben (inkl. rechtlicher Grundlage). Diese
+  App bildet die Lehrplan-Struktur nur orientierend ab (kein Volltext-Zugriff) – die Lehrkraft
+  prüft die konkrete Passung zur jeweiligen Schulart/Schulstufe weiterhin anhand des offiziellen
+  Lehrplans der IGGÖ.
 
 ## Pädagogisch-didaktische Fundierung
 

@@ -19,7 +19,7 @@ import { buildCurriculumSystemContext } from "./curriculum";
 import { erzeugeWortsucheGitter } from "./wortsuche";
 import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 
-const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, Lehrpläne der IGGÖ gem. BGBl. II Nr. 234/2011). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
+const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, aktueller Lehrplan der IGGÖ "Lehrplan IRU NEU"). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
 
 Wichtige Regeln für religiöse Inhalte:
 - Vertrete eine mehrheitsfähige, in Österreich für den schulischen Unterricht gängige sunnitische Grundposition (Sunnah); vermeide sektiererische oder kontroverse Einzelmeinungen.
