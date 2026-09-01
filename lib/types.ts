@@ -270,7 +270,9 @@ export type Verification = z.infer<typeof VerificationSchema>;
 export const TEMPLATES = ["klassisch", "modern", "kompakt"] as const;
 export type Template = (typeof TEMPLATES)[number];
 
-export const FARBMODI = ["farbe", "schwarzweiss"] as const;
+// Schwarzweiß zuerst: die meisten Lehrkräfte drucken in der Schule überwiegend Schwarz-Weiß
+// (Toner/Tinte sparen) - das ist daher auch der Formular-Standard, siehe LayoutConfigSchema unten.
+export const FARBMODI = ["schwarzweiss", "farbe"] as const;
 export type Farbmodus = (typeof FARBMODI)[number];
 
 export const MUSTER_VARIANTEN = ["sterne", "halbmond", "stern12"] as const;
@@ -288,7 +290,7 @@ export const LayoutConfigSchema = z.object({
   zeigeMuster: z.boolean().default(true),
   musterVariante: z.enum(MUSTER_VARIANTEN).default("sterne"),
   zeigeLernziel: z.boolean().default(false),
-  farbmodus: z.enum(FARBMODI).default("farbe"),
+  farbmodus: z.enum(FARBMODI).default("schwarzweiss"),
 });
 export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
 

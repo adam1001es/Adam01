@@ -179,7 +179,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
   const [zeigeMuster, setZeigeMuster] = useState(true);
   const [musterVariante, setMusterVariante] = useState<MusterVariante>("sterne");
   const [zeigeLernziel, setZeigeLernziel] = useState(false);
-  const [farbmodus, setFarbmodus] = useState<Farbmodus>("farbe");
+  const [farbmodus, setFarbmodus] = useState<Farbmodus>("schwarzweiss");
 
   function toggleTyp(typ: string) {
     setAufgabentypen((prev) =>
