@@ -101,3 +101,47 @@ export function berechneSchuelerUebersicht(
 export function berechneKlassenDurchschnitt(ergebnisse: { prozent: number | null }[]): number | null {
   return mittelwert(ergebnisse.map((e) => e.prozent).filter((p): p is number => p !== null));
 }
+
+export interface ZuweisungFuerVerlauf {
+  id: string;
+  titel: string;
+  datum: Date;
+  istPruefung: boolean;
+  ergebnisse: { schuelerId: string; prozent: number | null; notiz: string | null }[];
+}
+
+export interface VerlaufsEintrag {
+  zuweisungId: string;
+  titel: string;
+  datum: Date;
+  istPruefung: boolean;
+  prozent: number | null;
+  notiz: string | null;
+}
+
+/** Chronologischer Ergebnisverlauf einer einzelnen Person über alle Zuweisungen der Klasse -
+ * Grundlage für die Detailansicht im Klassenzimmer (siehe components/Klassenzimmer.tsx). Nur
+ * Zuweisungen, für die tatsächlich ein Ergebnis-Datensatz existiert (auch mit prozent: null,
+ * z.B. "erfasst aber noch nicht benotet") tauchen auf - reine Nicht-Teilnahme wird nicht
+ * unterschieden von "noch nicht eingetragen". */
+export function berechneSchuelerVerlauf(
+  schuelerId: string,
+  zuweisungen: ZuweisungFuerVerlauf[],
+): VerlaufsEintrag[] {
+  return zuweisungen
+    .flatMap((z) => {
+      const ergebnis = z.ergebnisse.find((e) => e.schuelerId === schuelerId);
+      if (!ergebnis) return [];
+      return [
+        {
+          zuweisungId: z.id,
+          titel: z.titel,
+          datum: z.datum,
+          istPruefung: z.istPruefung,
+          prozent: ergebnis.prozent,
+          notiz: ergebnis.notiz,
+        },
+      ];
+    })
+    .sort((a, b) => a.datum.getTime() - b.datum.getTime());
+}

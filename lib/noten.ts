@@ -33,3 +33,18 @@ export function prozentZuNote(prozent: number): Note {
   const stufe = AUSTRIA_NOTENSCHLUESSEL.find((s) => geklemmt >= s.abProzent);
   return stufe?.note ?? 5;
 }
+
+/** Eine Farbe pro Note für die Klassenzimmer-Ansicht (Farbcodierung der Schülertische) - bewusst
+ * eigenständige Hex-Werte statt Tailwind-Klassennamen, da sie sowohl in Inline-Styles (SVG-Ring,
+ * dynamische Tisch-Einfärbung) als auch als CSS-Variable gebraucht werden. */
+export const NOTE_FARBE: Record<Note, string> = {
+  1: "#1e8c60",
+  2: "#4fb384",
+  3: "#c9a04a",
+  4: "#f97316",
+  5: "#ef4444",
+};
+
+/** Farbe für "noch kein Ergebnis vorhanden" - konsistent an den Stellen verwendet, die
+ * NOTE_FARBE sonst nach prozentZuNote(...) indizieren. */
+export const NOTE_FARBE_LEER = "#cbd5e1";

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { GraduationCap, Plus, FileCheck2, Users } from "lucide-react";
+import { Plus, FileCheck2, Users, LayoutGrid } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
@@ -10,6 +10,7 @@ import { prozentZuNote, NOTE_LABEL } from "@/lib/noten";
 import { berechneAbdeckung, berechneSchuelerUebersicht, berechneKlassenDurchschnitt } from "@/lib/klassen";
 import SchuelerVerwaltung from "@/components/SchuelerVerwaltung";
 import EinfacherLoeschButton from "@/components/EinfacherLoeschButton";
+import KlasseHeaderBearbeiten from "@/components/KlasseHeaderBearbeiten";
 
 export const dynamic = "force-dynamic";
 
@@ -48,13 +49,14 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
     <main>
       <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-2xl">
-            <h1 className="flex items-center gap-2.5 font-display text-3xl font-semibold text-white sm:text-4xl">
-              <GraduationCap size={28} strokeWidth={2} /> {klasse.name}
-            </h1>
-            {klasse.schulstufe && <p className="mt-1 text-sm text-brand-50/90">{klasse.schulstufe}</p>}
-          </div>
+          <KlasseHeaderBearbeiten klasseId={klasse.id} name={klasse.name} schulstufe={klasse.schulstufe} />
           <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/klassen/${klasse.id}/klassenzimmer`}
+              className="inline-flex items-center gap-2 rounded-full bg-gold-50 px-4 py-2 text-sm font-semibold text-gold-700 shadow-card transition hover:bg-gold-100"
+            >
+              <LayoutGrid size={16} /> Klassenzimmer-Ansicht
+            </Link>
             <Link
               href={`/klassen/${klasse.id}/zuweisen`}
               className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brand-800 shadow-card transition hover:bg-gold-50"
