@@ -11,6 +11,12 @@ import {
   XCircle,
   Gift,
   ArrowRight,
+  Users,
+  ClipboardList,
+  BarChart3,
+  LayoutGrid,
+  FileCheck2,
+  Lock,
 } from "lucide-react";
 import { TIER_QUOTA, TIER_PREIS_EUR, KOSTENLOS_LIMIT, formatEur } from "@/lib/quota";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
@@ -58,11 +64,24 @@ const FEATURES = [
     text: "Ab der Sekundarstufe I: eigenständige Recherche-/Präsentationsaufgaben zu Personen, Orten oder Themen - mit Leitfaden, Bewertungskriterien und Quellenhinweis statt vager Freitext-Anweisung.",
     akzent: "gold",
   },
+  {
+    icon: BarChart3,
+    titel: "Wissensstand auf einen Blick",
+    text: "Jede Klasse zeigt Klassendurchschnitt, Abdeckung nach Grundkompetenz und die Entwicklung pro Schüler:in - automatisch aus den zugewiesenen Arbeitsblättern und eingetragenen Ergebnissen berechnet.",
+    akzent: "klassen",
+  },
+  {
+    icon: FileCheck2,
+    titel: "Prüfungen in Minuten statt Stunden",
+    text: "Aus bereits erstellten Arbeitsblättern eine formelle Prüfung zusammenstellen (punktegewichtet, ohne zusätzliches Kontingent) oder komplett neu generieren lassen - inklusive Punkteschema und AFB-Gewichtung.",
+    akzent: "klassen",
+  },
 ] as const;
 
 const FEATURE_BADGE = {
   brand: "bg-brand-50 text-brand-600",
   gold: "bg-gold-100 text-gold-700",
+  klassen: "bg-violet-100 text-violet-600",
 } as const;
 
 const VERGLEICH_CHAT = [
@@ -70,6 +89,7 @@ const VERGLEICH_CHAT = [
   "Du bekommst Fließtext, den du selbst in ein druckfertiges Arbeitsblatt bringen musst - mit Recherche, Schreiben und Formatieren schnell 10-15+ Minuten",
   "Niemand prüft die Antwort gegen - die fachliche Kontrolle bleibt komplett bei dir",
   "Kein Verlauf, keine Bibliothek deiner bisherigen Arbeitsblätter",
+  "Kein Überblick, welche Klasse welches Thema schon hatte oder wie sie dabei steht",
 ];
 
 const VERGLEICH_UNS = [
@@ -77,6 +97,7 @@ const VERGLEICH_UNS = [
   "Fertiges, layoutetes PDF/Word - direkt zum Ausdrucken, in 1-2 Minuten statt 10-15+",
   "Ein zweiter, unabhängiger KI-Durchlauf prüft gezielt gegen, bevor du es siehst",
   "Alle erstellten Arbeitsblätter gespeichert, favorisierbar, jederzeit wieder abrufbar",
+  "Klassen, Wissensstand und Prüfungen direkt im selben Werkzeug - kein Zettelchaos",
 ];
 
 const WAS_ENTHALTEN = [
@@ -89,18 +110,53 @@ const WAS_ENTHALTEN = [
   "Wahlweise mit islamischem Datum und dezentem Ornament-Musterstreifen im Kopfbereich",
 ];
 
+const KLASSEN_PUNKTE = [
+  {
+    icon: Users,
+    titel: "Klassen & pseudonyme Schüler-Kürzel",
+    text: "Klassen anlegen, Schüler:innen nur mit Kürzel führen (z.B. „Schüler 1“) - bewusst ohne echte Namen, damit Datenschutz kein Thema ist.",
+  },
+  {
+    icon: ClipboardList,
+    titel: "Zuweisungen erfassen",
+    text: "Welches Arbeitsblatt oder welche Prüfung hat welche Klasse wann bekommen - eigene Blätter, geteilte Community-Blätter oder manuell erfasste externe Materialien.",
+  },
+  {
+    icon: BarChart3,
+    titel: "Wissensstand automatisch berechnet",
+    text: "Klassendurchschnitt, Abdeckung nach Grundkompetenz und Entwicklung pro Schüler:in - inklusive Noten-Richtwert nach gängigem österreichischem Schlüssel.",
+  },
+  {
+    icon: LayoutGrid,
+    titel: "Klassenzimmer-Ansicht",
+    text: "Tafel und Schülertische von oben, jeder Tisch farbcodiert nach Notendurchschnitt - Klick auf einen Tisch öffnet ein animiertes Profil mit Prozent-Ring und Ergebnisverlauf.",
+  },
+  {
+    icon: FileCheck2,
+    titel: "Prüfungen zusammenstellen oder neu generieren",
+    text: "Aus bereits geprüften Aufgaben eine Prüfung zusammenstellen (punktegewichtet, ohne zusätzliches Kontingent) - oder komplett neu generieren lassen, inklusive Punkteschema.",
+  },
+  {
+    icon: ShieldCheck,
+    titel: "Auch für Maturaklassen gedacht",
+    text: "Formeller Prüfungston, AFB-II/III-Schwerpunkt statt reiner Reproduktion, nur prüfungstaugliche Aufgabenformate - für echte Wissensfeststellung, nicht nur Übung.",
+  },
+] as const;
+
 export default function LandingPage() {
   return (
     <main className="space-y-16">
       <section className="relative overflow-hidden rounded-3xl bg-brand-gradient px-6 py-14 text-center text-white shadow-card sm:px-12">
-        <h1 className="font-display text-3xl font-semibold sm:text-4xl">
-          KI-geprüfte, lehrplanorientierte Arbeitsblätter für den
-          <br className="hidden sm:block" /> islamischen Religionsunterricht - in 1-2 Minuten
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1 text-xs font-semibold tracking-wide text-white ring-1 ring-inset ring-white/30">
+          <Sparkles size={12} /> NEU: Klassen-Tracking, Wissensstand &amp; Prüfungsgenerierung
+        </span>
+        <h1 className="mt-4 font-display text-3xl font-semibold sm:text-4xl">
+          Mehr als Arbeitsblätter: dein komplettes digitales Werkzeug für den
+          <br className="hidden sm:block" /> islamischen Religionsunterricht
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-brand-50">
-          Nicht irgendein KI-Text: jedes Arbeitsblatt wird von einer zweiten, unabhängigen Prüfung
-          gegengecheckt, ist am österreichischen IGGÖ-Lehrplan ausgerichtet und pädagogisch
-          fundiert - fertig formatiert zum Ausdrucken.
+          KI-geprüfte, lehrplanorientierte Arbeitsblätter in 1-2 Minuten - plus Klassen-Tracking,
+          Wissensstand auf einen Blick und Prüfungsgenerierung, die auch Maturaklassen ernst nimmt.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
@@ -124,6 +180,44 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section>
+        <h2 className="mb-1 text-center font-display text-2xl font-semibold text-slate-800">
+          Zwei Bereiche, ein Werkzeug
+        </h2>
+        <p className="mb-8 text-center text-sm text-slate-500">
+          Arbeitsblätter erstellen - und den Überblick behalten, was am Ende bei den Schüler:innen
+          ankommt.
+        </p>
+        <div className="mx-auto grid max-w-4xl gap-5 sm:grid-cols-2">
+          <div className="rounded-2xl bg-brand-gradient p-6 text-white shadow-card sm:p-7">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
+              <Sparkles size={20} strokeWidth={2} />
+            </span>
+            <h3 className="mt-3 font-display text-lg font-semibold">Arbeitsblätter</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-brand-50">
+              KI-generiert, zweifach geprüft, lehrplanorientiert, fertig formatiert - für alle
+              Schulstufen von der 1. Klasse Volksschule bis zur Matura.
+            </p>
+            <p className="mt-4 text-xs font-medium text-brand-50/90">
+              Für alle Konten - {KOSTENLOS_LIMIT} kostenlos zum Ausprobieren
+            </p>
+          </div>
+          <div className="rounded-2xl bg-klassen-gradient p-6 text-white shadow-card-klassen sm:p-7">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
+              <GraduationCap size={20} strokeWidth={2} />
+            </span>
+            <h3 className="mt-3 font-display text-lg font-semibold">Klassen &amp; Prüfungen</h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-violet-50">
+              Klassen anlegen, Blätter/Prüfungen zuweisen, Wissensstand auf einen Blick sehen - bis
+              hin zur animierten Klassenzimmer-Ansicht pro Schüler:in.
+            </p>
+            <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-violet-50/90">
+              <Lock size={12} /> Enthalten im Abo
+            </p>
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map(({ icon: Icon, titel, text, akzent }) => (
           <div key={titel} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
@@ -134,6 +228,68 @@ export default function LandingPage() {
             <p className="mt-1 text-sm leading-relaxed text-slate-500">{text}</p>
           </div>
         ))}
+      </section>
+
+      <section className="relative overflow-hidden rounded-3xl bg-klassen-gradient px-6 py-12 text-white shadow-card-klassen sm:px-10 sm:py-14">
+        <div className="mx-auto max-w-4xl">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide ring-1 ring-inset ring-white/30">
+            <Lock size={12} /> Nur im Abo freigeschaltet
+          </span>
+          <h2 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">
+            Klassen, Wissensstand und Prüfungen - der Teil, der aus einem Generator ein echtes
+            Unterrichtswerkzeug macht
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm text-violet-50 sm:text-base">
+            Jede:r kann hier sehen, was Lernwerk kann - nutzbar ist der Bereich mit einem Abo.
+            Besonders gedacht auch für Lehrkräfte, die Maturaklassen betreuen und echte
+            Wissensfeststellung brauchen, nicht nur Übungsblätter.
+          </p>
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {KLASSEN_PUNKTE.map(({ icon: Icon, titel, text }) => (
+              <div key={titel} className="rounded-2xl bg-white/10 p-5 ring-1 ring-inset ring-white/15">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
+                  <Icon size={18} strokeWidth={2} />
+                </span>
+                <h3 className="mt-3 font-display text-sm font-semibold">{titel}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-violet-50/90">{text}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 rounded-2xl bg-white/95 p-5 text-slate-700 shadow-card sm:p-6">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-violet-600">
+              Beispielhafte Darstellung - Klassenzimmer-Ansicht
+            </p>
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+              {[
+                { kuerzel: "S1", prozent: 90, farbe: "#1e8c60" },
+                { kuerzel: "S2", prozent: 95, farbe: "#1e8c60" },
+                { kuerzel: "S3", prozent: 68, farbe: "#c9a04a" },
+                { kuerzel: "S4", prozent: 48, farbe: "#f97316" },
+                { kuerzel: "S5", prozent: 28, farbe: "#ef4444" },
+                { kuerzel: "S6", prozent: 78, farbe: "#4fb384" },
+              ].map((s) => (
+                <div
+                  key={s.kuerzel}
+                  className="flex flex-col items-center gap-1.5 rounded-xl border border-[#d9c7a3] bg-gradient-to-b from-[#ecdbb9] to-[#d9c093] p-3"
+                >
+                  <span
+                    className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white ring-2 ring-white"
+                    style={{ backgroundColor: s.farbe }}
+                  >
+                    {s.kuerzel}
+                  </span>
+                  <span className="text-[10px] text-slate-500">{s.prozent}%</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-slate-400">
+              Frei erfundene Beispieldaten zur Veranschaulichung - Klick auf einen Tisch öffnet in
+              der echten Ansicht ein animiertes Profil mit Prozent-Ring und Ergebnisverlauf.
+            </p>
+          </div>
+        </div>
       </section>
 
       <section>
@@ -158,9 +314,7 @@ export default function LandingPage() {
             </ul>
           </div>
           <div className="rounded-2xl border border-brand-300 bg-brand-50 p-6">
-            <h3 className="mb-4 font-display text-base font-semibold text-brand-800">
-              Dieser Arbeitsblätter-Generator
-            </h3>
+            <h3 className="mb-4 font-display text-base font-semibold text-brand-800">Lernwerk</h3>
             <ul className="space-y-3 text-sm text-brand-900">
               {VERGLEICH_UNS.map((punkt) => (
                 <li key={punkt} className="flex items-start gap-2.5">
@@ -211,8 +365,8 @@ export default function LandingPage() {
         <p className="mb-6 text-center text-sm text-slate-500">
           Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist
           die Anzahl der Arbeitsblätter ({KOSTENLOS_LIMIT} einmalig zum Ausprobieren vs.{" "}
-          {TIER_QUOTA.pro}/Monat im Abo) sowie der Zugang zur Community (geteilte Arbeitsblätter
-          anderer Lehrkräfte), die Abo-Konten vorbehalten ist.
+          {TIER_QUOTA.pro}/Monat im Abo) sowie der Zugang zur Community und zu Klassen-Tracking/
+          Prüfungsgenerierung, die Abo-Konten vorbehalten sind.
         </p>
         <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
           {WAS_ENTHALTEN.map((punkt) => (
@@ -224,6 +378,13 @@ export default function LandingPage() {
               <span>{punkt}</span>
             </div>
           ))}
+          <div className="flex items-start gap-2.5 rounded-xl border border-violet-200 bg-violet-50/60 p-4 text-sm text-violet-900 shadow-card-klassen sm:col-span-2">
+            <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-violet-600" />
+            <span>
+              Nur im Abo: Klassen-Tracking, Wissensstand-Auswertung, Klassenzimmer-Ansicht und
+              Prüfungsgenerierung (Zusammenstellen aus bestehenden Blättern oder komplett neu)
+            </span>
+          </div>
         </div>
 
         <div className="mx-auto mt-8 max-w-2xl rounded-2xl border border-slate-200 bg-slate-50/70 p-5 text-center">
@@ -242,12 +403,12 @@ export default function LandingPage() {
               {KOSTENLOS_LIMIT} Arbeitsblätter insgesamt, einmalig
             </div>
           </div>
-          <div className="rounded-xl border border-brand-200 bg-brand-50/40 p-4 text-center">
+          <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">
               Abo <span className="font-normal text-slate-400">· {formatEur(TIER_PREIS_EUR.pro)}€/Monat</span>
             </div>
             <div className="mt-1 text-xs text-slate-400">
-              {TIER_QUOTA.pro} Arbeitsblätter/Monat · inkl. Community
+              {TIER_QUOTA.pro} Arbeitsblätter/Monat · inkl. Community, Klassen &amp; Prüfungen
             </div>
           </div>
         </div>

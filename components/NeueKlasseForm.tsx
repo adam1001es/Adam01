@@ -37,7 +37,7 @@ export default function NeueKlasseForm() {
       <button
         type="button"
         onClick={() => setOffen(true)}
-        className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-brand-800 shadow-card transition hover:bg-gold-50"
+        className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-violet-50"
       >
         <Plus size={17} strokeWidth={2.5} />
         Neue Klasse anlegen
@@ -79,14 +79,14 @@ export default function NeueKlasseForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-lg bg-brand-gradient px-4 py-2.5 text-sm font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
+        className="rounded-lg bg-klassen-gradient px-4 py-2.5 text-sm font-medium text-white shadow-card-klassen transition hover:shadow-card-klassen-hover disabled:opacity-60"
       >
         {isPending ? "…" : "Anlegen"}
       </button>
       <button
         type="button"
         onClick={() => setOffen(false)}
-        className="text-sm font-medium text-slate-500 hover:text-brand-700"
+        className="text-sm font-medium text-slate-500 hover:text-violet-700"
       >
         Abbrechen
       </button>

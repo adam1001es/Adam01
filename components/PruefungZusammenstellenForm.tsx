@@ -138,7 +138,7 @@ export default function PruefungZusammenstellenForm({
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-xl bg-brand-gradient px-4 py-3 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
+        className="w-full rounded-xl bg-klassen-gradient px-4 py-3 font-medium text-white shadow-card-klassen transition hover:shadow-card-klassen-hover disabled:opacity-60"
       >
         {isPending ? "Wird zusammengestellt …" : "Prüfung zusammenstellen"}
       </button>

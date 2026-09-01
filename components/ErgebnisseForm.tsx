@@ -104,7 +104,7 @@ export default function ErgebnisseForm({
       <button
         type="submit"
         disabled={isPending}
-        className="mt-2 w-full rounded-xl bg-brand-gradient px-4 py-3 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
+        className="mt-2 w-full rounded-xl bg-klassen-gradient px-4 py-3 font-medium text-white shadow-card-klassen transition hover:shadow-card-klassen-hover disabled:opacity-60"
       >
         {isPending ? "…" : gespeichert ? "Gespeichert ✓" : "Ergebnisse speichern"}
       </button>

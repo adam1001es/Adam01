@@ -38,7 +38,7 @@ export default async function ZuweisenPage({ params }: { params: { id: string } 
         Eigenes/geteiltes Arbeitsblatt auswählen oder ein außerhalb von Lernwerk entstandenes
         Blatt manuell erfassen.
       </p>
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+      <div className="mt-6 rounded-2xl border border-violet-100 bg-white p-6 shadow-card-klassen">
         <ZuweisenForm klasseId={klasse.id} eigene={eigene} community={community} />
       </div>
     </main>

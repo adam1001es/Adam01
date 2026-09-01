@@ -49,12 +49,12 @@ export default function KlasseHeaderBearbeiten({
             if (e.key === "Enter") speichern();
             if (e.key === "Escape") setBearbeiten(false);
           }}
-          className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 focus:border-brand-500 focus:outline-none"
+          className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-800 focus:border-violet-500 focus:outline-none"
         />
         <select
           value={neueSchulstufe}
           onChange={(e) => setNeueSchulstufe(e.target.value)}
-          className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 focus:border-brand-500 focus:outline-none"
+          className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs text-slate-600 focus:border-violet-500 focus:outline-none"
         >
           <option value="">Keine Angabe zur Schulstufe</option>
           {SCHULSTUFEN_OPTIONEN.map((s) => (
@@ -68,7 +68,7 @@ export default function KlasseHeaderBearbeiten({
             type="button"
             onClick={speichern}
             disabled={isPending}
-            className="inline-flex items-center gap-1 rounded-lg bg-brand-gradient px-3 py-1.5 text-xs font-medium text-white shadow-sm disabled:opacity-60"
+            className="inline-flex items-center gap-1 rounded-lg bg-klassen-gradient px-3 py-1.5 text-xs font-medium text-white shadow-sm disabled:opacity-60"
           >
             <Check size={13} /> {isPending ? "…" : "Speichern"}
           </button>
@@ -102,7 +102,7 @@ export default function KlasseHeaderBearbeiten({
           <Pencil size={16} />
         </button>
       </h1>
-      {schulstufe && <p className="mt-1 text-sm text-brand-50/90">{schulstufe}</p>}
+      {schulstufe && <p className="mt-1 text-sm text-violet-50/90">{schulstufe}</p>}
     </div>
   );
 }

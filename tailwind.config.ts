@@ -39,9 +39,15 @@ const config: Config = {
       boxShadow: {
         card: "0 1px 2px rgba(15, 89, 64, 0.04), 0 8px 24px -12px rgba(15, 89, 64, 0.18)",
         "card-hover": "0 4px 10px rgba(15, 89, 64, 0.06), 0 16px 32px -14px rgba(15, 89, 64, 0.28)",
+        // Violett-getönte Variante für den Klassen-Bereich (siehe backgroundImage.klassen-gradient
+        // hier drunter) - bewusst eigene Farbidentität statt der grünen Marke, damit sich Klassen/
+        // Wissensstand/Prüfungen als eigener "Modus" innerhalb von Lernwerk anfühlt.
+        "card-klassen": "0 1px 2px rgba(88, 28, 135, 0.05), 0 8px 24px -12px rgba(88, 28, 135, 0.22)",
+        "card-klassen-hover": "0 4px 10px rgba(88, 28, 135, 0.08), 0 16px 32px -14px rgba(88, 28, 135, 0.32)",
       },
       backgroundImage: {
         "brand-gradient": "linear-gradient(135deg, #12704c 0%, #0f5940 100%)",
+        "klassen-gradient": "linear-gradient(135deg, #7c3aed 0%, #a21caf 55%, #db2777 100%)",
       },
       keyframes: {
         // Wandernder Balken-Abschnitt für die unbestimmte Fortschrittsanzeige während der

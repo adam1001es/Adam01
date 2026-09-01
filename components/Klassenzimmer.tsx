@@ -75,7 +75,7 @@ function DeskButton({ schueler, onClick }: { schueler: SchuelerFuerAnsicht; onCl
       whileHover={{ scale: 1.045, y: -3 }}
       whileTap={{ scale: 0.96 }}
       onClick={onClick}
-      className="group relative flex flex-col items-center gap-2 rounded-2xl border border-[#d9c7a3] bg-gradient-to-b from-[#ecdbb9] to-[#d9c093] p-4 pb-5 shadow-sm transition hover:shadow-card-hover"
+      className="group relative flex flex-col items-center gap-2 rounded-2xl border border-[#d9c7a3] bg-gradient-to-b from-[#ecdbb9] to-[#d9c093] p-4 pb-5 shadow-sm transition hover:shadow-card-klassen-hover"
     >
       <span className="absolute -bottom-1.5 h-2 w-10 rounded-full bg-[#a9895c]/40" aria-hidden />
       <span
@@ -106,7 +106,7 @@ function DetailPanel({ schueler, onClose }: { schueler: SchuelerFuerAnsicht; onC
         onClick={onClose}
       />
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-6 shadow-card sm:inset-x-auto sm:right-0 sm:top-0 sm:h-full sm:max-h-none sm:w-[420px] sm:rounded-l-3xl sm:rounded-t-none"
+        className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-6 shadow-card-klassen sm:inset-x-auto sm:right-0 sm:top-0 sm:h-full sm:max-h-none sm:w-[420px] sm:rounded-l-3xl sm:rounded-t-none"
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
@@ -195,7 +195,7 @@ export default function Klassenzimmer({
         <div>
           <Link
             href={`/klassen/${klasseId}`}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-brand-700"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-violet-700"
           >
             <ArrowLeft size={15} /> Zurück zu {klasseName}
           </Link>
@@ -214,17 +214,17 @@ export default function Klassenzimmer({
       </div>
 
       {schueler.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-card">
+        <div className="rounded-2xl border border-violet-100 bg-white p-8 text-center shadow-card-klassen">
           <p className="text-sm text-slate-500">
             Noch keine Schüler:innen in dieser Klasse -{" "}
-            <Link href={`/klassen/${klasseId}`} className="font-medium text-brand-600 hover:underline">
+            <Link href={`/klassen/${klasseId}`} className="font-medium text-violet-600 hover:underline">
               zuerst auf der Klassenseite hinzufügen
             </Link>
             .
           </p>
         </div>
       ) : (
-        <div className="rounded-3xl border border-slate-200 bg-gradient-to-b from-[#f6efe1] to-[#ece1cb] p-6 shadow-card sm:p-10">
+        <div className="rounded-3xl border border-slate-200 bg-gradient-to-b from-[#f6efe1] to-[#ece1cb] p-6 shadow-card-klassen sm:p-10">
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}

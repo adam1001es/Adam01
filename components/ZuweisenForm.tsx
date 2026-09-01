@@ -62,7 +62,7 @@ export default function ZuweisenForm({
           type="button"
           onClick={() => setModus("blatt")}
           className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-            modus === "blatt" ? "border-brand-600 bg-brand-50 text-brand-700" : "border-slate-200 text-slate-500"
+            modus === "blatt" ? "border-violet-600 bg-violet-50 text-violet-700" : "border-slate-200 text-slate-500"
           }`}
         >
           Eigenes/geteiltes Blatt
@@ -71,7 +71,7 @@ export default function ZuweisenForm({
           type="button"
           onClick={() => setModus("manuell")}
           className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-            modus === "manuell" ? "border-brand-600 bg-brand-50 text-brand-700" : "border-slate-200 text-slate-500"
+            modus === "manuell" ? "border-violet-600 bg-violet-50 text-violet-700" : "border-slate-200 text-slate-500"
           }`}
         >
           Manueller Eintrag
@@ -159,7 +159,7 @@ export default function ZuweisenForm({
       <button
         type="submit"
         disabled={isPending || (modus === "blatt" && !worksheetId)}
-        className="w-full rounded-xl bg-brand-gradient px-4 py-3 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
+        className="w-full rounded-xl bg-klassen-gradient px-4 py-3 font-medium text-white shadow-card-klassen transition hover:shadow-card-klassen-hover disabled:opacity-60"
       >
         {isPending ? "…" : "Zuweisen"}
       </button>

@@ -47,19 +47,19 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
 
   return (
     <main>
-      <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
+      <div className="relative overflow-hidden rounded-2xl bg-klassen-gradient px-6 py-8 shadow-card-klassen sm:px-9 sm:py-10">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <KlasseHeaderBearbeiten klasseId={klasse.id} name={klasse.name} schulstufe={klasse.schulstufe} />
           <div className="flex flex-wrap gap-2">
             <Link
               href={`/klassen/${klasse.id}/klassenzimmer`}
-              className="inline-flex items-center gap-2 rounded-full bg-gold-50 px-4 py-2 text-sm font-semibold text-gold-700 shadow-card transition hover:bg-gold-100"
+              className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-white"
             >
               <LayoutGrid size={16} /> Klassenzimmer-Ansicht
             </Link>
             <Link
               href={`/klassen/${klasse.id}/zuweisen`}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-brand-800 shadow-card transition hover:bg-gold-50"
+              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-violet-50"
             >
               <Plus size={16} /> Blatt zuweisen
             </Link>
@@ -73,7 +73,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
         </div>
       </div>
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+      <section className="mt-6 rounded-2xl border border-violet-100 bg-white p-6 shadow-card-klassen">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="font-display text-lg font-semibold text-slate-800">Schüler:innen</h2>
           <EinfacherLoeschButton
@@ -89,7 +89,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
         <SchuelerVerwaltung klasseId={klasse.id} schueler={schueler} />
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+      <section className="mt-6 rounded-2xl border border-violet-100 bg-white p-6 shadow-card-klassen">
         <h2 className="mb-1 font-display text-lg font-semibold text-slate-800">Wissensstand</h2>
         <p className="mb-4 text-xs leading-relaxed text-slate-400">
           Note ist ein Richtwert nach gängigem österreichischem Schlüssel (87/73/59/44%), keine
@@ -161,7 +161,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
         )}
       </section>
 
-      <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+      <section className="mt-6 rounded-2xl border border-violet-100 bg-white p-6 shadow-card-klassen">
         <h2 className="mb-4 font-display text-lg font-semibold text-slate-800">Zuweisungen</h2>
         {zuweisungen.length === 0 ? (
           <p className="text-sm text-slate-400">Noch keine Zuweisung erfasst.</p>
@@ -196,14 +196,14 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
                     {z.worksheetId && (
                       <Link
                         href={`/worksheet/${z.worksheetId}`}
-                        className="shrink-0 text-xs font-medium text-brand-600 hover:underline"
+                        className="shrink-0 text-xs font-medium text-violet-600 hover:underline"
                       >
                         Blatt ansehen
                       </Link>
                     )}
                     <Link
                       href={`/klassen/${klasse.id}/zuweisung/${z.id}`}
-                      className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
+                      className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-violet-300 hover:text-violet-700"
                     >
                       Ergebnisse
                     </Link>

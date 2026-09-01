@@ -66,6 +66,16 @@ export default function SiteHeader({
           : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
     }`;
 
+  // Der Klassen-Bereich hat bewusst eine eigene Farbidentität (violett/pink statt Marken-Grün,
+  // siehe tailwind.config klassen-gradient) - er fühlt sich dadurch schon in der Navigation wie
+  // ein eigener "Modus" innerhalb von Lernwerk an, nicht nur eine weitere Arbeitsblatt-Funktion.
+  const navLinkClassKlassen = (active: boolean) =>
+    `flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium transition active:scale-95 sm:px-3.5 ${
+      active
+        ? "bg-klassen-gradient text-white shadow-card-klassen"
+        : "text-slate-600 hover:bg-violet-50 hover:text-violet-700"
+    }`;
+
   return (
     <header className="no-print sticky top-0 z-10 border-b border-slate-200/80 bg-canvas/85 backdrop-blur-md">
       <div className="border-b border-gold-100 bg-gold-50/70 px-4 py-1 text-center text-[11px] font-medium text-gold-700 sm:px-6">
@@ -125,7 +135,7 @@ export default function SiteHeader({
             </Link>
           )}
           {user?.istZahlend && (
-            <Link href="/klassen" className={navLinkClass(!!pathname?.startsWith("/klassen"))}>
+            <Link href="/klassen" className={navLinkClassKlassen(!!pathname?.startsWith("/klassen"))}>
               <GraduationCap size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Klassen</span>
             </Link>
