@@ -25,7 +25,7 @@ export default async function NewWorksheetPage() {
           Neues Arbeitsblatt
         </h1>
         <p className="mt-1 text-sm text-slate-500">
-          Alles auswählen und einstellen – Claude generiert und prüft den Inhalt automatisch.
+          Alles auswählen und einstellen – der Inhalt wird automatisch generiert und geprüft.
         </p>
       </div>
       {netzwerkBlockiert && (

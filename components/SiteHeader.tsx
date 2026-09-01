@@ -78,7 +78,7 @@ export default function SiteHeader({
           <LogoMark />
           <span className="flex flex-col leading-tight">
             <span className="font-display text-base font-semibold text-brand-800 sm:text-lg">
-              Arbeitsblatt-Generator
+              Lernwerk
             </span>
             <span className="hidden text-xs text-slate-500 sm:inline">
               Islamischer Religionsunterricht · Österreich

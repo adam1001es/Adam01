@@ -34,7 +34,7 @@ export function OgImageLayout() {
         </svg>
       </div>
       <div style={{ display: "flex", fontSize: 66, fontWeight: 700, color: "#ffffff" }}>
-        Arbeitsblatt-Generator
+        Lernwerk
       </div>
       <div style={{ display: "flex", fontSize: 30, color: "#dcf5e7", marginTop: 20 }}>
         Islamischer Religionsunterricht · Österreich

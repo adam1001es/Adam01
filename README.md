@@ -1,4 +1,4 @@
-# Arbeitsblatt-Generator
+# Lernwerk
 
 Webanwendung zur automatischen Erstellung und Prüfung von Unterrichts-Arbeitsblättern.
 Du gibst Bereich, Thema, Schulstufe und ein grobes Layout vor – der Inhalt wird per Claude API
@@ -248,7 +248,7 @@ Gmail-Konto (SMTP), kostenlos, ohne eigenen Domain-Zugriff:
 1. An einem Gmail-Konto (kann ein eigens dafür angelegtes sein) 2-Faktor-Authentifizierung
    aktivieren, falls noch nicht geschehen: [myaccount.google.com/security](https://myaccount.google.com/security).
 2. Unter [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) ein neues
-   App-Passwort erzeugen (App-Name frei wählbar, z.B. "Arbeitsblatt-Generator"). Google zeigt ein
+   App-Passwort erzeugen (App-Name frei wählbar, z.B. "Lernwerk"). Google zeigt ein
    16-stelliges Passwort NUR einmal an.
 3. `GMAIL_USER` = die volle Gmail-Adresse, `GMAIL_APP_PASSWORT` = das 16-stellige App-Passwort
    (ohne Leerzeichen) - lokal in `.env`, auf Vercel unter **Settings → Environment Variables**.

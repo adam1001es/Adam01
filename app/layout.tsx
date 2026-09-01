@@ -26,19 +26,19 @@ const BESCHREIBUNG =
 // app/opengraph-image.tsx bzw. app/twitter-image.tsx (Next.js bindet diese automatisch ein).
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Arbeitsblatt-Generator",
+  title: "Lernwerk",
   description: BESCHREIBUNG,
   openGraph: {
-    title: "Arbeitsblatt-Generator",
+    title: "Lernwerk",
     description: BESCHREIBUNG,
     url: SITE_URL,
-    siteName: "Arbeitsblatt-Generator",
+    siteName: "Lernwerk",
     locale: "de_AT",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Arbeitsblatt-Generator",
+    title: "Lernwerk",
     description: BESCHREIBUNG,
   },
 };
