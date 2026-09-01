@@ -1,0 +1,56 @@
+name: Datenbank-Backup auf eigenes Hosting
+
+# Zusätzliche, von Vercel/Neon unabhängige Sicherung der Produktionsdatenbank - lädt einen
+# komprimierten SQL-Dump täglich per FTPS auf den eigenen Hosting-Webspace hoch. Rotierender
+# Dateiname nach Wochentag (backup-mo.sql.gz ... backup-so.sql.gz): immer nur 7 Dateien, kein
+# unbegrenztes Anwachsen, kein separater Lösch-Schritt nötig. Ersetzt NICHT die automatischen
+# Backups des Datenbank-Anbieters selbst, sondern ergänzt sie um eine Kopie, die nicht an dasselbe
+# Konto/denselben Anbieter gebunden ist.
+#
+# Vor dem ersten Lauf in den GitHub-Repository-Einstellungen unter
+# Settings -> Secrets and variables -> Actions folgende Secrets anlegen:
+#   DATABASE_URL   - dieselbe Verbindung wie in Vercel (Postgres-Connection-String)
+#   FTP_HOST       - Hostname des Hosting-Webspace (aus dem Hosting-Kontrollpanel)
+#   FTP_USERNAME   - FTP-Benutzername
+#   FTP_PASSWORD   - FTP-Passwort
+#   FTP_REMOTE_DIR - Zielordner auf dem Webspace, z.B. /backups (NICHT der Wurzelordner der
+#                    Live-Website, damit die Backup-Dateien nicht versehentlich öffentlich
+#                    abrufbar sind)
+#
+# Ein Backup, das nie wiederhergestellt getestet wurde, ist kein verlässliches Backup - von Zeit
+# zu Zeit eine Datei herunterladen und lokal mit "psql <verbindung> < backup-mo.sql" gegen eine
+# Wegwerf-Datenbank einspielen, um sicherzugehen, dass es tatsächlich funktioniert.
+
+on:
+  schedule:
+    - cron: "0 2 * * *" # täglich 02:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PostgreSQL-Client installieren
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Datenbank-Dump erstellen
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          pg_dump "$DATABASE_URL" --no-owner --no-acl --clean --if-exists > backup.sql
+          gzip backup.sql
+          echo "DATEINAME=backup-$(date -u +%a | tr '[:upper:]' '[:lower:]').sql.gz" >> "$GITHUB_ENV"
+
+      - name: Backup per FTPS hochladen
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          curl --ftp-ssl --ftp-create-dirs --fail --silent --show-error \
+            -T backup.sql.gz \
+            "ftp://${FTP_HOST}${FTP_REMOTE_DIR}/${DATEINAME}" \
+            --user "${FTP_USERNAME}:${FTP_PASSWORD}"
