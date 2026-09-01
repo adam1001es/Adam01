@@ -255,7 +255,18 @@ function buildStyles(layout: LayoutConfig) {
       height: 13,
       alignItems: "center",
       justifyContent: "center",
+    },
+    // lineHeight bewusst auf 1 statt der von der Seite geerbten 1.4: bei geerbtem lineHeight
+    // ergab sich bei fontSize 9 eine Zeilenbox von ~12.6pt, die zusammen mit der internen
+    // Positionierung des Textlaufs in der nur 13pt hohen Zelle dazu führte, dass der Buchstabe
+    // komplett unsichtbar blieb (kein Clipping an den Rändern, sondern vollständig verschwunden -
+    // reproduziert per Debug-Test: bei einer 40x40-Zelle mit sonst identischem Stil war der
+    // Buchstabe sichtbar, bei 13x13 nie, unabhängig von Farbe/Ausrichtung/Datenquelle). Mit
+    // lineHeight: 1 bleibt die Zeilenbox nah an der reinen Zeichenhöhe und passt sicher in die
+    // Zelle.
+    wortsucheBuchstabe: {
       fontSize: baseFontSize - 2,
+      lineHeight: 1,
     },
     kreuzwortZelleLeer: {
       width: 15,
@@ -547,9 +558,9 @@ function AufgabenListe({
               {a.wortsucheGitter.map((zeile, r) => (
                 <View key={r} style={styles.raetselZeile}>
                   {zeile.map((buchstabe, c) => (
-                    <Text key={c} style={styles.wortsucheZelle}>
-                      {buchstabe}
-                    </Text>
+                    <View key={c} style={styles.wortsucheZelle}>
+                      <Text style={styles.wortsucheBuchstabe}>{buchstabe}</Text>
+                    </View>
                   ))}
                 </View>
               ))}
