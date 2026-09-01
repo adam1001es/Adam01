@@ -36,7 +36,7 @@ const FEATURES = [
   },
   {
     icon: Sparkles,
-    titel: "Sekundenschnell druckfertig",
+    titel: "Direkt druckfertig",
     text: "Kein Fließtext zum Selbst-Formatieren: fertiges, layoutetes PDF oder Word-Dokument, wahlweise mit islamischem Datum und Ornament-Musterstreifen.",
     akzent: "brand",
   },
@@ -95,7 +95,7 @@ export default function LandingPage() {
       <section className="relative overflow-hidden rounded-3xl bg-brand-gradient px-6 py-14 text-center text-white shadow-card sm:px-12">
         <h1 className="font-display text-3xl font-semibold sm:text-4xl">
           Geprüfte, lehrplankonforme Arbeitsblätter für den
-          <br className="hidden sm:block" /> islamischen Religionsunterricht - in Sekunden
+          <br className="hidden sm:block" /> islamischen Religionsunterricht - in Minuten
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-brand-50">
           Nicht irgendein KI-Text: jedes Arbeitsblatt wird von einer zweiten, unabhängigen Prüfung
@@ -209,8 +209,9 @@ export default function LandingPage() {
           Was du bekommst
         </h2>
         <p className="mb-6 text-center text-sm text-slate-500">
-          Der Funktionsumfang ist bei jeder Stufe derselbe - nur die Anzahl der Arbeitsblätter pro
-          Monat unterscheidet sich.
+          Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - nur die Anzahl der
+          Arbeitsblätter pro Monat unterscheidet sich, sowie der Zugang zur Community (geteilte
+          Arbeitsblätter anderer Lehrkräfte), die Abo-Konten vorbehalten ist.
         </p>
         <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
           {WAS_ENTHALTEN.map((punkt) => (
@@ -242,7 +243,9 @@ export default function LandingPage() {
             <div className="text-sm font-semibold text-slate-700">
               Abo <span className="font-normal text-slate-400">· {TIER_PREIS_EUR.pro.toFixed(2)}€/Monat</span>
             </div>
-            <div className="mt-1 text-xs text-slate-400">{TIER_QUOTA.pro} Arbeitsblätter/Monat</div>
+            <div className="mt-1 text-xs text-slate-400">
+              {TIER_QUOTA.pro} Arbeitsblätter/Monat · inkl. Community
+            </div>
           </div>
         </div>
         <p className="mt-4 text-center text-xs text-slate-400">
