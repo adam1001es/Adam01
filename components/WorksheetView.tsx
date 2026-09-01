@@ -94,12 +94,19 @@ export default function WorksheetView({
           </div>
         )}
         <h1 className="text-2xl font-bold">{content.titel}</h1>
-        <div className={`text-sm ${isModernFarbig ? "text-brand-50" : "text-slate-600"}`}>
+        {/* Fach/Schulstufe/Thema und Themenbereich sind reine Formular-Metadaten für die
+            Lehrkraft am Bildschirm - auf dem gedruckten Blatt (Web-Druck, PDF, Word) brauchen
+            Schüler:innen das nicht, siehe auch WorksheetPdf.tsx/buildWorksheetDocx.ts, die diese
+            Zeilen von vornherein gar nicht rendern. */}
+        <div className={`text-sm print:hidden ${isModernFarbig ? "text-brand-50" : "text-slate-600"}`}>
           {content.fach} · {content.schulstufe} · Thema: {content.thema}
         </div>
         <div className={`mt-1 text-xs ${isModernFarbig ? "text-brand-50/80" : "text-slate-400"}`}>
-          Themenbereich: {THEMENBEREICHE[themenbereich].label}
-          {layout.zeigeIslamischesDatum && <> · {formatDoppelDatum(erstelltAm)}</>}
+          <span className="print:hidden">
+            Themenbereich: {THEMENBEREICHE[themenbereich].label}
+            {layout.zeigeIslamischesDatum && " · "}
+          </span>
+          {layout.zeigeIslamischesDatum && formatDoppelDatum(erstelltAm)}
         </div>
       </div>
 
@@ -132,7 +139,12 @@ export default function WorksheetView({
               <li key={a.nr}>
                 <div className="mb-0.5 text-xs uppercase tracking-wide text-slate-400">
                   {TYP_LABEL[a.typ]}
-                  {a.anforderungsbereich && ` · ${ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}`}
+                  {a.anforderungsbereich && (
+                    <span className="print:hidden">
+                      {" "}
+                      · {ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}
+                    </span>
+                  )}
                 </div>
                 {a.typ === "lesetext" && a.lesetext && (
                   <div className="mb-1.5 rounded-lg border border-slate-200 bg-slate-50/60 p-3 text-sm italic leading-relaxed text-slate-600">

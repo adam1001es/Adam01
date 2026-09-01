@@ -17,7 +17,6 @@ import {
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
-import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
 import { reihenfolgeAnzeige } from "@/lib/reihenfolge";
@@ -294,6 +293,10 @@ export async function buildWorksheetDocx(
     );
   }
 
+  // Fach/Schulstufe/Thema/Themenbereich sind reine Formular-Metadaten für die Lehrkraft - auf
+  // dem Blatt, das Schüler:innen bekommen, haben sie nichts verloren (siehe WorksheetView.tsx
+  // für dieselbe Entscheidung im Web-Druck; themenbereichLabel bleibt als Parameter bestehen,
+  // wird hier aber bewusst nicht mehr ausgegeben).
   children.push(
     new Paragraph({
       heading: HeadingLevel.TITLE,
@@ -303,27 +306,21 @@ export async function buildWorksheetDocx(
       children: [new TextRun({ text: content.titel, color: accentColor, bold: true })],
       spacing: { after: 120 },
     }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `${content.fach} · ${content.schulstufe} · Thema: ${content.thema}`,
-          italics: true,
-          size: baseSize - 2,
-        }),
-      ],
-      spacing: { after: 40 },
-    }),
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: `Themenbereich: ${themenbereichLabel}${layout.zeigeIslamischesDatum ? `  ·  ${formatDoppelDatum(erstelltAm)}` : ""}`,
-          size: baseSize - 6,
-          color: "666666",
-        }),
-      ],
-      spacing: { after: 120 },
-    }),
   );
+  if (layout.zeigeIslamischesDatum) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: formatDoppelDatum(erstelltAm),
+            size: baseSize - 6,
+            color: "666666",
+          }),
+        ],
+        spacing: { after: 120 },
+      }),
+    );
+  }
 
   if (layout.zeigeMuster) {
     children.push(musterDivider(layout.musterVariante));
@@ -357,11 +354,14 @@ export async function buildWorksheetDocx(
   );
 
   for (const a of content.aufgaben) {
+    // AFB-Angabe ("Reproduktion"/"Transfer"/...) ist Lehrkraft-Jargon und würde Schüler:innen
+    // nur irritieren - bewusst nicht mit auf dem Blatt (siehe gleiche Entscheidung in
+    // WorksheetPdf.tsx/WorksheetView.tsx).
     children.push(
       new Paragraph({
         children: [
           new TextRun({
-            text: `${TYP_LABEL[a.typ]}${a.anforderungsbereich ? `  ·  ${ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}` : ""}`,
+            text: TYP_LABEL[a.typ],
             italics: true,
             size: baseSize - 4,
             color: "666666",

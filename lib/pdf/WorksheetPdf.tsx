@@ -4,7 +4,6 @@ import path from "path";
 import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
-import { ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { ICONS, IconKey } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
 import { reihenfolgeAnzeige } from "@/lib/reihenfolge";
@@ -124,10 +123,6 @@ function buildStyles(layout: LayoutConfig) {
       fontSize: baseFontSize + 8,
       fontWeight: 700,
       marginBottom: 4,
-    },
-    metaZeile: {
-      fontSize: baseFontSize - 1,
-      opacity: 0.9,
     },
     metaZeile2: {
       fontSize: baseFontSize - 3,
@@ -412,13 +407,13 @@ function Header({
     <View style={styles.headerBar}>
       {layout.schulname ? <Text style={styles.schulname}>{layout.schulname}</Text> : null}
       <Text style={styles.titel}>{content.titel}</Text>
-      <Text style={styles.metaZeile}>
-        {content.fach} · {content.schulstufe} · Thema: {content.thema}
-      </Text>
-      <Text style={styles.metaZeile2}>
-        Themenbereich: {themenbereichLabel}
-        {layout.zeigeIslamischesDatum ? `  ·  ${formatDoppelDatum(erstelltAm)}` : ""}
-      </Text>
+      {/* Fach/Schulstufe/Thema/Themenbereich sind reine Formular-Metadaten für die Lehrkraft -
+          auf dem Blatt, das Schüler:innen bekommen, haben sie nichts verloren (siehe
+          WorksheetView.tsx für dieselbe Entscheidung im Web-Druck). themenbereichLabel bleibt
+          als Prop bestehen, wird hier aber bewusst nicht mehr gerendert. */}
+      {layout.zeigeIslamischesDatum ? (
+        <Text style={styles.metaZeile2}>{formatDoppelDatum(erstelltAm)}</Text>
+      ) : null}
     </View>
   );
 }
@@ -462,10 +457,9 @@ function AufgabenListe({
       <Text style={styles.sectionTitel}>Aufgaben</Text>
       {content.aufgaben.map((a) => (
         <View key={a.nr} style={styles.aufgabe} wrap={false}>
-          <Text style={styles.aufgabeTyp}>
-            {TYP_LABEL[a.typ]}
-            {a.anforderungsbereich ? `  ·  ${ANFORDERUNGSBEREICHE[a.anforderungsbereich].label}` : ""}
-          </Text>
+          {/* AFB-Angabe ("Reproduktion"/"Transfer"/...) ist Lehrkraft-Jargon und würde
+              Schüler:innen nur irritieren - bewusst nicht mit auf dem Blatt. */}
+          <Text style={styles.aufgabeTyp}>{TYP_LABEL[a.typ]}</Text>
           {a.typ === "lesetext" && a.lesetext && (
             <Text style={styles.lesetextBox}>{a.lesetext}</Text>
           )}
