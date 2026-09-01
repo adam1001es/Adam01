@@ -168,13 +168,17 @@ export default function WorksheetView({
                 {a.typ === "zuordnung" && zuordnungAnzeige(a) && (
                   <div className="ml-5 mt-1.5 grid gap-x-6 gap-y-1 sm:grid-cols-2">
                     <div className="space-y-1">
+                      {/* Antwortkästchen bewusst NACH dem Text statt davor - man liest erst
+                          links, was zugeordnet werden soll, dann rechts die passende
+                          Beschreibung, und trägt den Buchstaben erst danach ein. Ein Kästchen
+                          vor dem Text müsste man beim Ausfüllen wieder zurückspringen. */}
                       {zuordnungAnzeige(a)!.links.map((l) => (
                         <div key={l.nummer} className="flex items-baseline gap-2">
-                          <span className="w-6 shrink-0 rounded border border-slate-300 text-center text-xs">
-                            &nbsp;
-                          </span>
                           <span className="w-5 shrink-0">{l.nummer}.</span>
                           <span>{l.text}</span>
+                          <span className="ml-auto w-6 shrink-0 rounded border border-slate-300 text-center text-xs">
+                            &nbsp;
+                          </span>
                         </div>
                       ))}
                     </div>

@@ -399,13 +399,16 @@ export async function buildWorksheetDocx(
     }
     const zuordnung = a.typ === "zuordnung" ? zuordnungAnzeige(a) : null;
     if (zuordnung) {
+      // Kästchen NACH dem Text statt davor (anders als bei "reihenfolge" weiter unten) - man
+      // liest erst links das Item, dann rechts die passende Beschreibung, und trägt den
+      // Buchstaben erst danach ein.
       zuordnung.links.forEach((l) => {
         children.push(
           new Paragraph({
             indent: { left: 360 },
             children: [
-              new TextRun({ text: "[   ]  ", size: baseSize }),
-              new TextRun({ text: `${l.nummer}. ${l.text}`, size: baseSize }),
+              new TextRun({ text: `${l.nummer}. ${l.text}  `, size: baseSize }),
+              new TextRun({ text: "[   ]", size: baseSize }),
             ],
           }),
         );

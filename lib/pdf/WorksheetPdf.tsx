@@ -194,6 +194,16 @@ function buildStyles(layout: LayoutConfig) {
       borderRadius: 2,
       marginRight: 5,
     },
+    // Nur für "zuordnung": Kästchen NACH dem Text statt davor (anders als zuordnungBox oben,
+    // die "reihenfolge" weiterhin nutzt) - man liest erst links das Item, dann rechts die
+    // passende Beschreibung, und trägt den Buchstaben erst danach ein.
+    zuordnungBoxNachText: {
+      width: 12,
+      height: 12,
+      border: "1px solid #94a3b8",
+      borderRadius: 2,
+      marginLeft: 8,
+    },
     zuordnungNummer: {
       width: 16,
     },
@@ -483,9 +493,9 @@ function AufgabenListe({
                 <View style={styles.zuordnungSpalte}>
                   {zuordnungAnzeige(a)!.links.map((l) => (
                     <View key={l.nummer} style={styles.zuordnungZeile}>
-                      <View style={styles.zuordnungBox} />
                       <Text style={styles.zuordnungNummer}>{l.nummer}.</Text>
                       <Text>{l.text}</Text>
+                      <View style={styles.zuordnungBoxNachText} />
                     </View>
                   ))}
                 </View>
