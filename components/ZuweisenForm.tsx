@@ -62,7 +62,7 @@ export default function ZuweisenForm({
           type="button"
           onClick={() => setModus("blatt")}
           className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-            modus === "blatt" ? "border-violet-600 bg-violet-50 text-violet-700" : "border-slate-200 text-slate-500"
+            modus === "blatt" ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-slate-200 text-slate-500"
           }`}
         >
           Eigenes/geteiltes Blatt
@@ -71,7 +71,7 @@ export default function ZuweisenForm({
           type="button"
           onClick={() => setModus("manuell")}
           className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-            modus === "manuell" ? "border-violet-600 bg-violet-50 text-violet-700" : "border-slate-200 text-slate-500"
+            modus === "manuell" ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-slate-200 text-slate-500"
           }`}
         >
           Manueller Eintrag

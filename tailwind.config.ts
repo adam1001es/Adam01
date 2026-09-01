@@ -61,13 +61,13 @@ const config: Config = {
       boxShadow: {
         card: "0 1px 2px rgba(15, 89, 64, 0.04), 0 8px 24px -12px rgba(15, 89, 64, 0.18)",
         "card-hover": "0 4px 10px rgba(15, 89, 64, 0.06), 0 16px 32px -14px rgba(15, 89, 64, 0.28)",
-        // Violett-getönte Variante für den Klassen-Bereich (siehe backgroundImage.klassen-gradient
-        // hier drunter) - bewusst eigene Farbidentität statt der grünen Marke, damit sich Klassen/
-        // Wissensstand/Prüfungen als eigener "Modus" innerhalb von Lernwerk anfühlt. Gleiche
-        // Alpha-Werte wie card/card-hover (nur andere Basisfarbe), damit die Intensität zur
-        // grünen Variante passt statt lauter zu wirken.
-        "card-klassen": "0 1px 2px rgba(170, 45, 223, 0.04), 0 8px 24px -12px rgba(170, 45, 223, 0.18)",
-        "card-klassen-hover": "0 4px 10px rgba(170, 45, 223, 0.06), 0 16px 32px -14px rgba(170, 45, 223, 0.28)",
+        // Grün-türkis getönte Variante für den Klassen-Bereich (siehe backgroundImage.klassen-
+        // gradient hier drunter) - eigene, aber weiterhin grüne Farbidentität, damit sich Klassen/
+        // Wissensstand/Prüfungen als eigener "Modus" innerhalb von Lernwerk anfühlt, ohne die
+        // Markenfarbe zu verlassen. Gleiche Alpha-Werte wie card/card-hover (nur andere
+        // Basisfarbe), damit die Intensität zur Standard-Variante passt statt lauter zu wirken.
+        "card-klassen": "0 1px 2px rgba(18, 185, 148, 0.04), 0 8px 24px -12px rgba(18, 185, 148, 0.18)",
+        "card-klassen-hover": "0 4px 10px rgba(18, 185, 148, 0.06), 0 16px 32px -14px rgba(18, 185, 148, 0.28)",
       },
       backgroundImage: {
         "brand-gradient": "linear-gradient(135deg, #12704c 0%, #0f5940 100%)",
@@ -76,9 +76,11 @@ const config: Config = {
         // Bereiche auf den ersten Blick unterscheidbar sind, aber klar in derselben grünen
         // Farbfamilie bleiben statt wie ein eigener Modus wie Klassen zu wirken.
         "community-gradient": "linear-gradient(135deg, #0d9488 0%, #115e59 100%)",
-        // Gedämpfter Violett-Ton für den Klassen-Bereich: nah beieinanderliegende Farbtöne
-        // (Purple->Fuchsia statt Violett->Pink) statt eines kontrastreichen Drei-Farben-Sweeps.
-        "klassen-gradient": "linear-gradient(135deg, #9333ea 0%, #c026d3 100%)",
+        // Grün-zu-türkis für den Klassen-Bereich: bleibt bewusst in der grünen Markenfamilie,
+        // aber heller/frischer (Emerald->Teal in der 500er-Stufe) als das dunklere Waldgrün der
+        // Übersicht und das gedämpftere Teal von Community, damit die drei Bereiche im Nav klar
+        // unterscheidbar bleiben.
+        "klassen-gradient": "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)",
       },
       keyframes: {
         // Wandernder Balken-Abschnitt für die unbestimmte Fortschrittsanzeige während der

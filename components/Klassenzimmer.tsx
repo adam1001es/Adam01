@@ -195,7 +195,7 @@ export default function Klassenzimmer({
         <div>
           <Link
             href={`/klassen/${klasseId}`}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-violet-700"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-emerald-700"
           >
             <ArrowLeft size={15} /> Zurück zu {klasseName}
           </Link>
@@ -214,10 +214,10 @@ export default function Klassenzimmer({
       </div>
 
       {schueler.length === 0 ? (
-        <div className="rounded-2xl border border-violet-100 bg-surface p-8 text-center shadow-card-klassen">
+        <div className="rounded-2xl border border-emerald-100 bg-surface p-8 text-center shadow-card-klassen">
           <p className="text-sm text-slate-500">
             Noch keine Schüler:innen in dieser Klasse -{" "}
-            <Link href={`/klassen/${klasseId}`} className="font-medium text-violet-600 hover:underline">
+            <Link href={`/klassen/${klasseId}`} className="font-medium text-emerald-600 hover:underline">
               zuerst auf der Klassenseite hinzufügen
             </Link>
             .

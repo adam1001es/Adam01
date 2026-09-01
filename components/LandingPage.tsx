@@ -81,7 +81,7 @@ const FEATURES = [
 const FEATURE_BADGE = {
   brand: "bg-brand-50 text-brand-600",
   gold: "bg-gold-100 text-gold-700",
-  klassen: "bg-violet-100 text-violet-600",
+  klassen: "bg-emerald-100 text-emerald-600",
 } as const;
 
 const VERGLEICH_CHAT = [
@@ -207,11 +207,11 @@ export default function LandingPage() {
               <GraduationCap size={20} strokeWidth={2} />
             </span>
             <h3 className="mt-3 font-display text-lg font-semibold">Klassen &amp; Prüfungen</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-violet-50">
+            <p className="mt-1.5 text-sm leading-relaxed text-emerald-50">
               Klassen anlegen, Blätter/Prüfungen zuweisen, Wissensstand auf einen Blick sehen - bis
               hin zur animierten Klassenzimmer-Ansicht pro Schüler:in.
             </p>
-            <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-violet-50/90">
+            <p className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-emerald-50/90">
               <Lock size={12} /> Enthalten im Abo
             </p>
           </div>
@@ -239,7 +239,7 @@ export default function LandingPage() {
             Klassen, Wissensstand und Prüfungen - der Teil, der aus einem Generator ein echtes
             Unterrichtswerkzeug macht
           </h2>
-          <p className="mt-3 max-w-2xl text-sm text-violet-50 sm:text-base">
+          <p className="mt-3 max-w-2xl text-sm text-emerald-50 sm:text-base">
             Jede:r kann hier sehen, was Lernwerk kann - nutzbar ist der Bereich mit einem Abo.
             Besonders gedacht auch für Lehrkräfte, die Maturaklassen betreuen und echte
             Wissensfeststellung brauchen, nicht nur Übungsblätter.
@@ -252,13 +252,13 @@ export default function LandingPage() {
                   <Icon size={18} strokeWidth={2} />
                 </span>
                 <h3 className="mt-3 font-display text-sm font-semibold">{titel}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-violet-50/90">{text}</p>
+                <p className="mt-1 text-xs leading-relaxed text-emerald-50/90">{text}</p>
               </div>
             ))}
           </div>
 
           <div className="mt-8 rounded-2xl bg-white/95 p-5 text-slate-700 shadow-card sm:p-6">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-violet-600">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-emerald-600">
               Beispielhafte Darstellung - Klassenzimmer-Ansicht
             </p>
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
@@ -378,8 +378,8 @@ export default function LandingPage() {
               <span>{punkt}</span>
             </div>
           ))}
-          <div className="flex items-start gap-2.5 rounded-xl border border-violet-200 bg-violet-50/60 p-4 text-sm text-violet-900 shadow-card-klassen sm:col-span-2">
-            <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-violet-600" />
+          <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-sm text-emerald-900 shadow-card-klassen sm:col-span-2">
+            <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-600" />
             <span>
               Nur im Abo: Klassen-Tracking, Wissensstand-Auswertung, Klassenzimmer-Ansicht und
               Prüfungsgenerierung (Zusammenstellen aus bestehenden Blättern oder komplett neu)
@@ -403,7 +403,7 @@ export default function LandingPage() {
               {KOSTENLOS_LIMIT} Arbeitsblätter insgesamt, einmalig
             </div>
           </div>
-          <div className="rounded-xl border border-violet-200 bg-violet-50/40 p-4 text-center">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">
               Abo <span className="font-normal text-slate-400">· {formatEur(TIER_PREIS_EUR.pro)}€/Monat</span>
             </div>

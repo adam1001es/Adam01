@@ -37,7 +37,7 @@ export default function NeueKlasseForm() {
       <button
         type="button"
         onClick={() => setOffen(true)}
-        className="mt-5 inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-violet-50"
+        className="mt-5 inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-emerald-700 shadow-card transition hover:bg-emerald-50"
       >
         <Plus size={17} strokeWidth={2.5} />
         Neue Klasse anlegen
@@ -86,7 +86,7 @@ export default function NeueKlasseForm() {
       <button
         type="button"
         onClick={() => setOffen(false)}
-        className="text-sm font-medium text-slate-500 hover:text-violet-700"
+        className="text-sm font-medium text-slate-500 hover:text-emerald-700"
       >
         Abbrechen
       </button>

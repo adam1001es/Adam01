@@ -39,7 +39,7 @@ export default async function PruefungZusammenstellenPage({ params }: { params: 
         wird - kein Neu-Erfinden von Inhalten, dadurch deutlich günstiger als eine komplette
         Neu-Generierung und ohne Kontingent-Verbrauch.
       </p>
-      <div className="mt-6 rounded-2xl border border-violet-100 bg-surface p-6 shadow-card-klassen">
+      <div className="mt-6 rounded-2xl border border-emerald-100 bg-surface p-6 shadow-card-klassen">
         <PruefungZusammenstellenForm klasseId={klasse.id} eigene={eigene} community={community} />
       </div>
     </main>

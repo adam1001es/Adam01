@@ -78,13 +78,13 @@ export default function SchuelerVerwaltung({
                       if (e.key === "Enter") umbenennenSpeichern(s.id);
                       if (e.key === "Escape") setBearbeiteId(null);
                     }}
-                    className="w-24 rounded border border-violet-300 px-1.5 py-0.5 text-xs focus:outline-none"
+                    className="w-24 rounded border border-emerald-300 px-1.5 py-0.5 text-xs focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => umbenennenSpeichern(s.id)}
                     disabled={isPending}
-                    className="rounded-full p-1 text-violet-600 hover:bg-violet-50"
+                    className="rounded-full p-1 text-emerald-600 hover:bg-emerald-50"
                   >
                     <Check size={13} />
                   </button>
@@ -129,7 +129,7 @@ export default function SchuelerVerwaltung({
             onChange={(e) => setNeuesLabel(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && hinzufuegenSpeichern()}
             placeholder={`Schüler ${schueler.length + 1} (leer = automatisch)`}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-violet-500 focus:outline-none"
+            className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-emerald-500 focus:outline-none"
           />
           <button
             type="button"
@@ -142,7 +142,7 @@ export default function SchuelerVerwaltung({
           <button
             type="button"
             onClick={() => setHinzufuegen(false)}
-            className="text-sm text-slate-500 hover:text-violet-700"
+            className="text-sm text-slate-500 hover:text-emerald-700"
           >
             Abbrechen
           </button>
@@ -151,7 +151,7 @@ export default function SchuelerVerwaltung({
         <button
           type="button"
           onClick={() => setHinzufuegen(true)}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-surface px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-violet-300 hover:text-violet-700"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-surface px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700"
         >
           <Plus size={13} /> Schüler:in hinzufügen
         </button>
