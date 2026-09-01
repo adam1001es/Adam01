@@ -18,6 +18,7 @@ import {
 import { buildCurriculumSystemContext } from "./curriculum";
 import { erzeugeWortsucheGitter } from "./wortsuche";
 import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
+import { vereinfacheArabischeTransliteration } from "./transliteration";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 
 const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, aktueller Lehrplan der IGGÖ "Lehrplan IRU NEU"). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
@@ -27,6 +28,7 @@ Wichtige Regeln für religiöse Inhalte:
 - Sei bei Koran- und Hadith-Zitaten sehr vorsichtig: Erfinde niemals Sure- und Vers-Nummern oder Hadith-Nummern, wenn du dir nicht absolut sicher bist. Gib im Zweifel nur eine sinngemäße Wiedergabe ohne genaue Stellenangabe an und markiere die Quelle als "bitte_pruefen". Nur bei absolut eindeutigen, allgemein bekannten Stellen (z.B. Sure Al-Fatiha als Ganzes, das Schahada) darfst du "gesichert" verwenden - und auch dann nur den bekannten Grundtext, keine erfundenen Detailangaben.
 - Inhalte müssen altersgerecht für die angegebene Schulstufe sein (Wortwahl, Komplexität, Aufgabenlänge).
 - Verwende durchgehend "Allah" statt "Gott" (z.B. "Allahs Barmherzigkeit" statt "Gottes Barmherzigkeit", "an Allah glauben" statt "an Gott glauben", "Allah der Erhabene" statt "Gott der Erhabene") - grammatikalisch korrekt eingebaut, nicht nur ersetzt.
+- Arabische Begriffe/Namen NUR in einfacher, diakritikfreier Transliteration schreiben: KEINE Makren (ā/ī/ū), KEINE Unterpunkte (ḥ/ṣ/ḍ/ẓ/ṭ), KEIN ʿAyn/Hamza als eigenes IPA-Sonderzeichen (ʿ/ʾ) - diese Zeichen werden von den PDF-Standardschriften (WinAnsi-Kodierung) NICHT unterstützt und erscheinen im gedruckten Arbeitsblatt als falsche Zufallszeichen (z.B. würde "ṣadaqa jāriya" als "badaqa jriya" gedruckt, "ḥisāb" als "$isb"). Schreibe stattdessen einfach lesbar, wie in deutschsprachigen Lehrmaterialien üblich: "ruh" statt "rūḥ", "sadaqa jariya" statt "ṣadaqa jāriya", "hisab" statt "ḥisāb", "Al-Muminun" statt "Al-Mu'minūn", "salat al-janaza" statt "ṣalāt al-janāza", "fard kifaya" statt "farḍ kifāya", "inna lillahi wa inna ilayhi raji'un" statt "innā lillāhi wa innā ilayhi rāji'ūn". Ein normaler gerader Apostroph (') für Ayn/Hamza ist erlaubt (druckt problemlos), lange Vokale einfach als normalen Vokal ohne Makron schreiben.
 - Antworte ausschließlich auf Deutsch.
 - Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock, ohne Erklärtext davor oder danach.
 
@@ -73,6 +75,7 @@ const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und
 5. Sprachliche Korrektheit (Deutsch) und Sprachsensibilität (klare, altersgerechte Sätze, Fachbegriffe erklärt statt vorausgesetzt).
 6. Neutralität/Eignung für konfessionellen Unterricht (keine kontroversen politischen Aussagen, keine Herabsetzung anderer Religionen/Gruppen).
 6b. Terminologie: Wird durchgehend "Allah" statt "Gott" verwendet, grammatikalisch korrekt? Falls "Gott" irrtümlich vorkommt, als Hinweis aufnehmen.
+6c. Transliteration: Enthält irgendein Text noch akademische IPA-Sonderzeichen in arabischen Begriffen (Makren wie ā/ī/ū, Unterpunkte wie ḥ/ṣ/ḍ/ṭ/ẓ, ʿAyn/Hamza als Modifier-Buchstabe ʿ/ʾ, oder andere Zeichen außerhalb des normalen deutschen Alphabets plus einfachem Apostroph)? Diese werden beim Druck als falsche Zufallszeichen dargestellt - IMMER als Hinweis aufnehmen, falls doch vorhanden.
 7. Kompetenzorientierung: Sind die "anforderungsbereich"-Angaben (afb1/afb2/afb3) plausibel und passt die Verteilung zur Schulstufe (nicht nur AFB I bei älteren Schulstufen)? Ist das Lernziel kompetenzorientiert/operationalisiert formuliert (passendes Verb zum höchsten Anforderungsbereich)?
 8. Konkretheit statt 08/15: Könnten mehrere Aufgaben eins zu eins auch für ein völlig anderes Thema stehen (austauschbare Floskeln statt konkretem Bezug zum angegebenen Thema)? Ist "einleitung"/"lernziel" nur vage allgemein ("der Islam ist wichtig" o.ä.) statt konkret auf DIESES Thema bezogen? Das zählt als eigenständiger Mangel, unabhängig von fachlicher Korrektheit - stufe ein Arbeitsblatt, das überwiegend aus austauschbaren Standardformulierungen ohne erkennbaren Bezug zum konkreten Thema besteht, als "fehler" ein (nicht nur "warnung"); einzelne wenig konkrete Stellen reichen für "warnung".
 
@@ -205,7 +208,11 @@ async function generiereUndPruefeEinmal(
     );
   }
   const rawContent = extractJson(getTextFromMessage(genResponse));
-  const content = WorksheetContentSchema.parse(rawContent);
+  let content = WorksheetContentSchema.parse(rawContent);
+  // Sicherheitsnetz für den Fall, dass sich das Modell trotz Prompt-Anweisung nicht an
+  // diakritikfreie Transliteration hält (siehe lib/transliteration.ts) - VOR der Verifikation,
+  // damit die geprüfte und gespeicherte Version bereits die sicher darstellbare ist.
+  content = vereinfacheArabischeTransliteration(content);
   begrenzeAufgabenProTyp(content);
   // Gitter-Auflösung (schnell, synchron, rein lokal) VOR der Verifikation, damit die
   // Kreuzworträtsel-Lösung dort schon final/korrekt nummeriert vorliegt.
