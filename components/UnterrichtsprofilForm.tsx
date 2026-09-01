@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
 
-export default function UnterrichtsprofilForm({ initialStufen }: { initialStufen: string[] }) {
+export default function UnterrichtsprofilForm({
+  initialStufen,
+  onGespeichert,
+}: {
+  initialStufen: string[];
+  /** Wird kurz nach erfolgreichem Speichern aufgerufen (z.B. um die umschließende
+   * EinklappbareSectionCard automatisch wieder zuzuklappen). */
+  onGespeichert?: () => void;
+}) {
   const router = useRouter();
   const [stufen, setStufen] = useState<string[]>(initialStufen);
   const [isPending, setIsPending] = useState(false);
@@ -36,6 +44,7 @@ export default function UnterrichtsprofilForm({ initialStufen }: { initialStufen
     }
     setGespeichert(true);
     router.refresh();
+    if (onGespeichert) setTimeout(onGespeichert, 900);
   }
 
   return (

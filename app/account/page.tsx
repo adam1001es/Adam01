@@ -19,6 +19,7 @@ import { getKontingent, istZahlendesKonto, tierLabel } from "@/lib/quota";
 import { prisma } from "@/lib/prisma";
 import { SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
 import SectionCard from "@/components/SectionCard";
+import EinklappbareSectionCard from "@/components/EinklappbareSectionCard";
 import UsernameForm from "@/components/UsernameForm";
 import PasswordForm from "@/components/PasswordForm";
 import EmailForm from "@/components/EmailForm";
@@ -109,24 +110,26 @@ export default async function AccountPage({
       )}
 
       <div className="space-y-5">
-        <SectionCard
-          icon={Smile}
+        <EinklappbareSectionCard
+          icon={<Smile size={18} strokeWidth={2} />}
           title="Avatar"
           subtitle="Symbol und Farbe, mit denen man dich in der App wiedererkennt"
+          autoCollapseAfterSave
         >
           <AvatarForm initialEmoji={user.avatarEmoji} initialFarbe={user.avatarFarbe} />
-        </SectionCard>
+        </EinklappbareSectionCard>
 
-        <SectionCard
-          icon={GraduationCap}
+        <EinklappbareSectionCard
+          icon={<GraduationCap size={18} strokeWidth={2} />}
           title="Unterrichtsprofil"
           subtitle="Welche Schulstufen unterrichtest du? Freiwillig, hilft später beim Austausch mit anderen Lehrkräften"
           akzent="gold"
+          autoCollapseAfterSave
         >
           <UnterrichtsprofilForm initialStufen={user.unterrichtsStufen} />
-        </SectionCard>
+        </EinklappbareSectionCard>
 
-        <SectionCard icon={BarChart3} title="Deine Statistik" subtitle="Auf einen Blick">
+        <EinklappbareSectionCard icon={<BarChart3 size={18} strokeWidth={2} />} title="Deine Statistik" subtitle="Auf einen Blick">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <StatKachel icon={FileText} wert={arbeitsblaetterGesamt} label="Arbeitsblätter" />
             <StatKachel icon={Users} wert={arbeitsblaetterGeteilt} label="Geteilt" />
@@ -135,7 +138,7 @@ export default async function AccountPage({
               <StatKachel icon={GraduationCap} wert={schuelerAnzahl} label="Schüler:innen" />
             )}
           </div>
-        </SectionCard>
+        </EinklappbareSectionCard>
 
         <SectionCard
           icon={Gauge}

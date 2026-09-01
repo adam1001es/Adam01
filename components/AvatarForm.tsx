@@ -8,9 +8,13 @@ import { AVATAR_EMOJIS, AVATAR_FARBEN } from "@/lib/profil";
 export default function AvatarForm({
   initialEmoji,
   initialFarbe,
+  onGespeichert,
 }: {
   initialEmoji: string;
   initialFarbe: string;
+  /** Wird kurz nach erfolgreichem Speichern aufgerufen (z.B. um die umschließende
+   * EinklappbareSectionCard automatisch wieder zuzuklappen). */
+  onGespeichert?: () => void;
 }) {
   const router = useRouter();
   const [emoji, setEmoji] = useState(initialEmoji);
@@ -40,6 +44,7 @@ export default function AvatarForm({
     }
     setGespeichert(true);
     router.refresh();
+    if (onGespeichert) setTimeout(onGespeichert, 900);
   }
 
   return (
