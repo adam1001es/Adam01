@@ -54,12 +54,16 @@ describe("guessSchulstufenCluster", () => {
 });
 
 describe("istFrueheVolksschulstufe", () => {
-  it("ist true für 1. und 2. Klasse Volksschule", () => {
+  // Nur die 1. Klasse gilt als "früh" (formaler Erstlese-/Erstschreibunterricht beginnt zwar
+  // sofort, echte Lese-/Schreibfähigkeit entwickelt sich aber erst im Schuljahr) - die 2. Klasse
+  // gilt bewusst als regulär, da die meisten Kinder dann schon funktional lese-/schreibfähig
+  // sind (auch wenn noch nicht geübt).
+  it("ist true für die 1. Klasse Volksschule", () => {
     expect(istFrueheVolksschulstufe("1. Klasse Volksschule")).toBe(true);
-    expect(istFrueheVolksschulstufe("2. Klasse Volksschule")).toBe(true);
   });
 
-  it("ist false ab der 3. Klasse Volksschule", () => {
+  it("ist false ab der 2. Klasse Volksschule", () => {
+    expect(istFrueheVolksschulstufe("2. Klasse Volksschule")).toBe(false);
     expect(istFrueheVolksschulstufe("3. Klasse Volksschule")).toBe(false);
     expect(istFrueheVolksschulstufe("4. Klasse Volksschule")).toBe(false);
   });

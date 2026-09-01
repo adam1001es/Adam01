@@ -57,7 +57,7 @@ Antwort), Kreuzworträtsel, Wortsuche. Zwei weitere Typen sind IMMER wählbar, b
 Schulstufe nur eine Empfehlung im Erstellen-Formular statt einer harten Sperre - die Lehrkraft
 kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik:
 
-- **Malaufgabe** (empfohlen für 1./2. Klasse Volksschule): eine kurze, mündlich vorlesbare
+- **Malaufgabe** (empfohlen für 1. Klasse Volksschule): eine kurze, mündlich vorlesbare
   Zeichenanweisung zum Thema - die Schüler:innen zeichnen selbst auf dem ausgedruckten Blatt
   (kein KI-generiertes Bild, siehe Hinweis unten).
 - **Recherche-/Referatsauftrag** (empfohlen ab Sekundarstufe I): eine längerfristige Projekt-/
@@ -65,30 +65,32 @@ kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik:
   generiertem Leitfaden (konkrete Recherchefragen), Bewertungskriterien und einem Hinweis zu
   vertrauenswürdigen Quellenarten (oder einem kurzen Sachtext als Basis ohne Internetzugang) -
   nicht für eine einzelne Unterrichtseinheit gedacht.
-- **Bewegungsaufgabe** (Total Physical Response, empfohlen für 1./2. Klasse Volksschule): die
+- **Bewegungsaufgabe** (Total Physical Response, empfohlen für 1. Klasse Volksschule): die
   Lehrkraft liest eine Mischung aus passenden und nicht-passenden Begriffen vor, die Klasse
   reagiert körperlich (aufstehen/zeigen/klatschen) bei den passenden - prüft Verständnis ganz
   ohne Lese-/Schreibkompetenz.
-- **Sortierkarten** (empfohlen für 1./2. Klasse Volksschule): Ausschneide-Kärtchen, die in 2-3
+- **Sortierkarten** (empfohlen für 1. Klasse Volksschule): Ausschneide-Kärtchen, die in 2-3
   vorgegebene Kategorien einsortiert und geklebt werden - haptisch, fördert echtes
   Kategorienverständnis statt nur Motorik. Die richtige Zuordnung erscheint bewusst nur in der
   Lösung, nicht auf den Karten selbst.
-- **Nachspurübung** (empfohlen für 1./2. Klasse Volksschule): ein kurzes, thematisch passendes
+- **Nachspurübung** (empfohlen für 1. Klasse Volksschule): ein kurzes, thematisch passendes
   Wort mehrfach in heller Schrift zum Nachfahren - klassische Schreibmotorik-Übung.
 
 Kreuzworträtsel, Wortsuche, Recherche-/Referatsauftrag und Sortierkarten sind inhaltlich schon
 für sich umfangreich und werden serverseitig auf höchstens 1 Aufgabe pro Arbeitsblatt begrenzt,
 unabhängig von der insgesamt gewählten Aufgabenzahl.
 
-### Aufgaben für noch nicht lese-/schreibkundige Kinder (1./2. Klasse Volksschule)
+### Aufgaben für noch nicht lese-/schreibkundige Kinder (1. Klasse Volksschule)
 
-Für die 1./2. Schulstufe (Kinder können zu Schulbeginn meist noch nicht lesen/schreiben) wird die
+Für die 1. Schulstufe (Kinder können zu Schulbeginn meist noch nicht lesen/schreiben) wird die
 Generierung zu besonders geeigneten Aufgaben angeleitet - bevorzugt „Bewegungsaufgabe",
 „Sortierkarten", „Malaufgabe" und „Nachspurübung" (alle vier ohne Lese-/Schreibkompetenz lösbar),
 ergänzend „Wahr oder Falsch“, „Multiple Choice“ mit ganz wenigen, kurzen Antwortoptionen und
 „Zuordnung“ mit wenigen, sehr kurzen Begriffen, statt textlastiger Aufgabentypen. Im
-Erstellen-Formular gibt es dafür eine Empfehlung samt Schnellauswahl, sobald „1./2. Klasse
-Volksschule“ als Schulstufe gewählt ist.
+Erstellen-Formular gibt es dafür eine Empfehlung samt Schnellauswahl, sobald „1. Klasse
+Volksschule“ als Schulstufe gewählt ist. Ab der 2. Klasse Volksschule gelten diese vier Typen
+nicht mehr als spezifisch empfohlen (siehe `istFrueheVolksschulstufe` in `lib/curriculum.ts`) -
+die meisten Kinder sind dann bereits funktional lese-/schreibfähig, auch wenn noch nicht geübt.
 
 > Frühere Versionen boten stattdessen bildbasierte Aufgabentypen („Ausmalbild“,
 > „Bildergeschichte“) mit live per Bild-KI (Google Gemini) generierten Motiven an. Diese Funktion

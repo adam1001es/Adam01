@@ -52,7 +52,7 @@ function baseRequest(overrides: Partial<Record<string, unknown>> = {}) {
 
 describe("GenerateRequestSchema - malaufgabe/recherche_auftrag sind für jede Schulstufe wählbar", () => {
   // "malaufgabe" (Schüler:innen zeichnen selbst) und "recherche_auftrag" (eigenständige
-  // Recherche) sind zwar in erster Linie für 1./2. Klasse Volksschule bzw. ab Sekundarstufe I
+  // Recherche) sind zwar in erster Linie für 1. Klasse Volksschule bzw. ab Sekundarstufe I
   // gedacht (siehe Empfehlungs-Hinweise im Erstellen-Formular), es gibt dafür aber bewusst KEINE
   // harte serverseitige Sperre - die Lehrkraft soll frei wählen können, statt am Absenden mit
   // einem Validierungsfehler auszusteigen (siehe Kommentar bei GenerateRequestSchema).
@@ -77,7 +77,7 @@ describe("AUFGABEN_TYP_MAXIMUM", () => {
   });
 });
 
-describe("GenerateRequestSchema - neue Aufgabentypen für 1./2. Klasse (bewegungsaufgabe/sortierkarten/nachspuruebung)", () => {
+describe("GenerateRequestSchema - neue Aufgabentypen für 1. Klasse (bewegungsaufgabe/sortierkarten/nachspuruebung)", () => {
   it("akzeptiert 'bewegungsaufgabe', 'sortierkarten' und 'nachspuruebung'", () => {
     const req = baseRequest({
       schulstufe: "1. Klasse Volksschule",

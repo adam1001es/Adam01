@@ -120,7 +120,7 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; i
   nachspuruebung: { label: "Nachspurübung", icon: PenTool },
 };
 
-/** Für 1./2. Klasse Volksschule (noch nicht lese-/schreibkundig) besonders geeignete Typen -
+/** Für 1. Klasse Volksschule (noch nicht lese-/schreibkundig) besonders geeignete Typen -
  * bekommen im Formular IMMER einen grünen Marker (Punkt + Rahmenfarbe), unabhängig von der
  * gerade gewählten Schulstufe, damit sofort erkennbar ist, welche Methoden dafür gedacht sind
  * (siehe fruehEmpfohlen unten). Bewusst kein Ausblenden bei anderen Schulstufen mehr (siehe
@@ -324,7 +324,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
                 />
               )}
               <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-                Steuert Sprachniveau - bei 1./2. Klasse Volksschule werden automatisch besonders
+                Steuert Sprachniveau - bei 1. Klasse Volksschule werden automatisch besonders
                 einfache, mündlich vorlesbare Aufgaben bevorzugt.
               </span>
             </label>
@@ -454,7 +454,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
                   type="button"
                   key={typ}
                   onClick={() => toggleTyp(typ)}
-                  title={fruehEmpfohlen ? "Empfohlen für 1./2. Klasse Volksschule" : undefined}
+                  title={fruehEmpfohlen ? "Empfohlen für 1. Klasse Volksschule" : undefined}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
                     active
                       ? SEKTION_FARBEN.gold.aktiv
@@ -472,7 +472,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
           </div>
           <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
-            Empfohlen für 1./2. Klasse Volksschule (noch nicht lese-/schreibkundig)
+            Empfohlen für 1. Klasse Volksschule (noch nicht lese-/schreibkundig)
           </p>
           <div className="mb-5 mt-5 grid gap-4 sm:grid-cols-2">
             <div>
@@ -552,7 +552,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
           {fruehStufe && (
             <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
               <p className="text-xs leading-relaxed text-gold-700">
-                Kinder der 1./2. Klasse Volksschule können meist noch nicht lesen/schreiben.
+                Kinder der 1. Klasse Volksschule können meist noch nicht lesen/schreiben.
                 Empfehlung: „Bewegungsaufgabe" (körperlich reagieren statt lesen), „Sortierkarten"
                 (ausschneiden &amp; einordnen), „Malaufgabe" (selbst zeichnen) und „Nachspurübung"
                 (Schreibmotorik) sowie ergänzend „Wahr oder Falsch", „Multiple Choice" und

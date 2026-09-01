@@ -33,7 +33,7 @@ export const AUFGABEN_TYPEN = [
 /** Aktuell im Formular anbietbare und für NEUE Arbeitsblätter generierbare Aufgabentypen -
  * schließt nur die Bild-KI-Typen aus (siehe Kommentar bei AUFGABEN_TYPEN). Alle Typen sind immer
  * im Erstellen-Formular sichtbar und wählbar, unabhängig von der gewählten Schulstufe - die vier
- * für 1./2. Klasse Volksschule empfohlenen Typen ("bewegungsaufgabe", "sortierkarten",
+ * für 1. Klasse Volksschule empfohlenen Typen ("bewegungsaufgabe", "sortierkarten",
  * "malaufgabe", "nachspuruebung") sowie "recherche_auftrag" (ab Sekundarstufe I) bekommen dort
  * zwar eine Empfehlung (siehe istFrueheVolksschulstufe in lib/curriculum.ts), das ist aber
  * bewusst nur eine Empfehlung, keine harte Sperre: die Lehrkraft kennt ihre Klasse besser als
@@ -42,7 +42,7 @@ export const AUFGABEN_TYPEN = [
  * Reihenfolge ist bewusst NICHT alphabetisch, sondern logisch gruppiert (bestimmt auch die
  * Chip-Reihenfolge im Erstellen-Formular): zuerst die für alle Schulstufen gedachten Typen, grob
  * von geschlossenen/kurzen zu offeneren/umfangreicheren Formaten, danach als zusammenhängender
- * Block die vier 1./2.-Klasse-Empfehlungen (im Formular farblich markiert - als Block sichtbar
+ * Block die vier 1.-Klasse-Empfehlungen (im Formular farblich markiert - als Block sichtbar
  * statt im Raster verstreut), zuletzt der für ältere Schulstufen gedachte Recherche-Auftrag.
  *
  * Wird für GenerateRequestSchema.aufgabentypen sowie im Erstellen-Formular verwendet. Bewusst
@@ -310,7 +310,7 @@ export const GenerateRequestSchema = z.object({
     })
     .default(35),
   komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
-  // "malaufgabe" und "recherche_auftrag" sind zwar in erster Linie für 1./2. Klasse Volksschule
+  // "malaufgabe" und "recherche_auftrag" sind zwar in erster Linie für 1. Klasse Volksschule
   // bzw. ab Sekundarstufe I gedacht (siehe die entsprechenden Empfehlungs-Hinweise im
   // Erstellen-Formular sowie die Anleitung an Claude in generateWorksheet.ts/curriculum.ts) -
   // eine harte serverseitige Sperre dafür gibt es aber bewusst NICHT (mehr): die Lehrkraft kennt

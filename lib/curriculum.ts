@@ -186,17 +186,22 @@ export function guessSchulstufenCluster(schulstufeText: string): SchulstufenClus
 }
 
 /**
- * Schüler:innen der 1./2. Schulstufe (1./2. Klasse Volksschule) sind zu Schulbeginn noch nicht
- * lese-/schreibkundig - klassische Text-Aufgabentypen (Lückentext, offene Frage, ...) sind für
- * sie kaum nutzbar. Für diese Stufe werden bildbasierte Aufgabentypen (Ausmalbild,
- * Bildergeschichte mit Vorlesetext für die Lehrkraft) bevorzugt.
+ * Schüler:innen der 1. Schulstufe (1. Klasse Volksschule) sind zu Schulbeginn noch nicht
+ * lese-/schreibkundig - der formale Erstlese-/Erstschreibunterricht beginnt zwar direkt zu
+ * Schulstart, echte Lese-/Schreibfähigkeit entwickelt sich aber erst im Laufe des Schuljahres.
+ * Klassische Text-Aufgabentypen (Lückentext, offene Frage, ...) sind für diese Stufe daher kaum
+ * nutzbar - bevorzugt werden stattdessen Aufgabentypen ohne Lese-/Schreibvoraussetzung
+ * (Bewegungsaufgabe, Sortierkarten, Malaufgabe, Nachspurübung, siehe generateWorksheet.ts).
+ * NUR die 1. Schulstufe, NICHT die 2.: in der 2. Klasse Volksschule sind die meisten Kinder
+ * bereits funktional lese-/schreibfähig (auch wenn noch nicht geübt) und gelten hier als
+ * regulär, nicht mehr als "früh".
  */
 export function istFrueheVolksschulstufe(schulstufeText: string): boolean {
   const text = schulstufeText.toLowerCase();
   const zahl = parseInt(text.match(/\d+/)?.[0] ?? "", 10);
   if (!text.includes("volksschule") && !text.includes("grundschule")) return false;
   if (Number.isNaN(zahl)) return false;
-  return zahl <= 2;
+  return zahl <= 1;
 }
 
 /**
@@ -447,7 +452,7 @@ export function buildCurriculumSystemContext(
   const vorlesekundigHinweis = fruehLesend
     ? `
 
-WICHTIG - noch nicht lese-/schreibkundige Kinder (1./2. Schulstufe Volksschule):
+WICHTIG - noch nicht lese-/schreibkundige Kinder (1. Schulstufe Volksschule):
 Diese Schüler:innen können noch nicht (oder kaum) lesen und schreiben. Aufgaben mit viel
 Lesetext oder eigenständigem Schreiben (Lesetext, Lückentext, Wortsuche, Kreuzworträtsel, lange
 offene Fragen) sind für sie NICHT geeignet und sollen vermieden werden. Nutze stattdessen
