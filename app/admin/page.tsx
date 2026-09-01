@@ -11,7 +11,8 @@ import {
   GESCHAETZTE_KOSTEN_PRO_BILD_EUR,
   zaehleGenerierteBilder,
 } from "@/lib/quota";
-import { summeTokens } from "@/lib/usageLog";
+import { summeTokens, summeKostenEur } from "@/lib/usageLog";
+import { KOSTEN_BERECHNUNGSGRUNDLAGE } from "@/lib/pricing";
 import AdminUserTable, { AdminUserRow } from "@/components/AdminUserTable";
 
 export const dynamic = "force-dynamic";
@@ -74,13 +75,18 @@ export default async function AdminPage() {
     bilderDiesenMonat * GESCHAETZTE_KOSTEN_PRO_BILD_EUR;
   const geschaetzterGewinn = monatsumsatz - geschaetzteKosten;
 
-  // Echte Claude-Token-Nutzung (siehe lib/usageLog.ts) - im Unterschied zur Pauschalschätzung
-  // oben bleibt diese Zahl auch nach dem Löschen einzelner Arbeitsblätter unverändert korrekt,
-  // da UsageLog unabhängig vom Worksheet gespeichert wird. Erfasst erst Arbeitsblätter ab
-  // Einführung dieser Funktion - ältere haben keine UsageLog-Zeilen.
-  const [tokensMonat, tokensGesamt] = await Promise.all([
+  // Echte Claude-Token-Nutzung UND daraus berechnete echte Kosten (siehe lib/usageLog.ts,
+  // lib/pricing.ts) - im Unterschied zur Pauschalschätzung oben bleibt diese Zahl auch nach dem
+  // Löschen einzelner Arbeitsblätter unverändert korrekt, da UsageLog unabhängig vom Worksheet
+  // gespeichert wird. Erfasst erst Arbeitsblätter ab Einführung dieser Funktion - ältere haben
+  // keine UsageLog-Zeilen. Der €-Betrag ist eine Schätzung auf Basis von Anthropic-Listenpreisen
+  // und einem gerundeten Wechselkurs (siehe KOSTEN_BERECHNUNGSGRUNDLAGE), kein exakter
+  // Rechnungsbetrag.
+  const [tokensMonat, tokensGesamt, kostenMonat, kostenGesamt] = await Promise.all([
     summeTokens(monatsbeginn),
     summeTokens(),
+    summeKostenEur(monatsbeginn),
+    summeKostenEur(),
   ]);
 
   const offeneMeldungen = await prisma.meldung.count({ where: { bearbeitet: false } });
@@ -103,14 +109,14 @@ export default async function AdminPage() {
     },
     {
       icon: Cpu,
-      label: "Echte Tokens (Monat)",
-      wert: tokensMonat.gesamt.toLocaleString("de-AT"),
-      unterschrift: `${tokensMonat.anzahlAufrufe} API-Aufrufe`,
+      label: "Echte Kosten (Monat)",
+      wert: `${kostenMonat < 0.01 && kostenMonat > 0 ? "<0,01" : kostenMonat.toFixed(2)}€`,
+      unterschrift: `${tokensMonat.gesamt.toLocaleString("de-AT")} Tokens · ${tokensMonat.anzahlAufrufe} API-Aufrufe`,
     },
     {
       icon: Cpu,
-      label: "Echte Tokens (gesamt)",
-      wert: tokensGesamt.gesamt.toLocaleString("de-AT"),
+      label: "Echte Kosten (gesamt)",
+      wert: `${kostenGesamt < 0.01 && kostenGesamt > 0 ? "<0,01" : kostenGesamt.toFixed(2)}€`,
       unterschrift: "bleibt beim Löschen von Arbeitsblättern unverändert",
     },
   ];
@@ -165,6 +171,9 @@ export default async function AdminPage() {
           </div>
         ))}
       </div>
+      <p className="mb-6 -mt-3 text-xs text-slate-400">
+        "Echte Kosten": {KOSTEN_BERECHNUNGSGRUNDLAGE}.
+      </p>
 
       <AdminUserTable rows={rows} />
     </main>

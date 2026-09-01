@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/prisma";
 import type Anthropic from "@anthropic-ai/sdk";
+import { berechneKostenEur } from "@/lib/pricing";
 
 /**
  * Echte Claude-Token-Nutzung, persistiert unabhängig vom zugehörigen Worksheet (siehe
  * UsageLog in prisma/schema.prisma) - im Unterschied zur groben Pauschalschätzung in
  * lib/quota.ts (GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR) sind das die tatsächlich von Claude
- * zurückgemeldeten Tokenzahlen. Bewusst OHNE € umgerechnet: aktuelle, korrekte Preise pro
- * Modell/Token (inkl. Cache-Rabatt) müssten separat gepflegt werden und würden bei
- * Preisänderungen sonst leise falsch - reine Tokenzahlen bleiben immer exakt.
+ * zurückgemeldeten Tokenzahlen. Die €-Umrechnung (siehe summeKostenEur) nutzt echte
+ * Anthropic-Listenpreise pro Modell (lib/pricing.ts), ist aber trotzdem eine Schätzung
+ * (Listenpreis, gerundeter Wechselkurs) - bei einer Preisänderung dort aktualisieren.
  */
 export interface UsageEintrag {
   model: string;
@@ -95,4 +96,31 @@ export async function summeTokens(seit?: Date): Promise<TokenSumme> {
     gesamt: inputTokens + outputTokens + cacheCreationInputTokens + cacheReadInputTokens,
     anzahlAufrufe: ergebnis._count,
   };
+}
+
+/** Berechnet die echten Kosten in € seit einem Zeitpunkt (oder insgesamt) - GRUPPIERT nach
+ * Modell, da Erstellung (Opus) und Prüfung (Sonnet) unterschiedliche Preise haben (siehe
+ * lib/pricing.ts) und ein einzelner Mischpreis über die Summe hinweg falsch wäre. */
+export async function summeKostenEur(seit?: Date): Promise<number> {
+  const proModell = await prisma.usageLog.groupBy({
+    by: ["model"],
+    where: seit ? { createdAt: { gte: seit } } : undefined,
+    _sum: {
+      inputTokens: true,
+      outputTokens: true,
+      cacheCreationInputTokens: true,
+      cacheReadInputTokens: true,
+    },
+  });
+  return proModell.reduce(
+    (summe, gruppe) =>
+      summe +
+      berechneKostenEur(gruppe.model, {
+        inputTokens: gruppe._sum.inputTokens ?? 0,
+        outputTokens: gruppe._sum.outputTokens ?? 0,
+        cacheCreationInputTokens: gruppe._sum.cacheCreationInputTokens ?? 0,
+        cacheReadInputTokens: gruppe._sum.cacheReadInputTokens ?? 0,
+      }),
+    0,
+  );
 }
