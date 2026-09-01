@@ -300,9 +300,12 @@ export async function buildWorksheetDocx(
   children.push(
     new Paragraph({
       heading: HeadingLevel.TITLE,
-      border: {
-        bottom: { style: BorderStyle.SINGLE, size: 6, color: accentColor },
-      },
+      // Bei aktivem Musterband übernimmt das weiter unten die Trennfunktion zur Namenszeile
+      // statt einer zusätzlichen Linie hier (siehe WorksheetView.tsx für dieselbe Entscheidung
+      // im Web) - sonst wirkt Linie + Muster nacheinander "doppelt gemoppelt".
+      border: layout.zeigeMuster
+        ? undefined
+        : { bottom: { style: BorderStyle.SINGLE, size: 6, color: accentColor } },
       children: [new TextRun({ text: content.titel, color: accentColor, bold: true })],
       spacing: { after: 120 },
     }),

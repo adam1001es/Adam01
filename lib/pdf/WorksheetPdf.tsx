@@ -107,9 +107,11 @@ function buildStyles(layout: LayoutConfig) {
       backgroundColor: isModernFarbig ? headerColor : "transparent",
       color: isModernFarbig ? "#ffffff" : "#111111",
       padding: isModernFarbig ? 12 : 0,
-      marginBottom: isKompakt ? 10 : 18,
-      borderBottom: isModernFarbig ? undefined : "2px solid #111111",
-      paddingBottom: isModernFarbig ? 12 : 8,
+      // Bei aktivem Musterband übernimmt das die Trennfunktion zur Namenszeile statt einer
+      // zusätzlichen Linie (siehe WorksheetView.tsx für dieselbe Entscheidung im Web).
+      marginBottom: isModernFarbig ? (isKompakt ? 10 : 18) : layout.zeigeMuster ? 4 : isKompakt ? 10 : 18,
+      borderBottom: isModernFarbig || layout.zeigeMuster ? undefined : "2px solid #111111",
+      paddingBottom: isModernFarbig ? 12 : layout.zeigeMuster ? 0 : 8,
       paddingTop: isModernFarbig ? 12 : 0,
       paddingLeft: isModernFarbig ? 12 : 0,
       paddingRight: isModernFarbig ? 12 : 0,
@@ -134,7 +136,10 @@ function buildStyles(layout: LayoutConfig) {
       flexGrow: 1,
     },
     musterStreifen: {
-      marginTop: isModernFarbig ? 0 : 8,
+      // Der Abstand zum Kopftext wird über headerBar.marginBottom gesteuert (das Musterband
+      // übernimmt bei aktiviertem Muster die Trennfunktion statt einer Linie) - hier daher kein
+      // zusätzlicher marginTop mehr nötig.
+      marginTop: 0,
       marginBottom: isKompakt ? 8 : 14,
     },
     nameZeile: {
