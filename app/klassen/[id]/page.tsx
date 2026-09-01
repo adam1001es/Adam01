@@ -171,7 +171,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
               return (
                 <li
                   key={z.id}
-                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5"
+                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3.5 sm:flex-row sm:items-center"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -190,24 +190,26 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
                       </span>
                     </div>
                   </div>
-                  {z.worksheetId && (
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {z.worksheetId && (
+                      <Link
+                        href={`/worksheet/${z.worksheetId}`}
+                        className="shrink-0 text-xs font-medium text-brand-600 hover:underline"
+                      >
+                        Blatt ansehen
+                      </Link>
+                    )}
                     <Link
-                      href={`/worksheet/${z.worksheetId}`}
-                      className="shrink-0 text-xs font-medium text-brand-600 hover:underline"
+                      href={`/klassen/${klasse.id}/zuweisung/${z.id}`}
+                      className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
                     >
-                      Blatt ansehen
+                      Ergebnisse
                     </Link>
-                  )}
-                  <Link
-                    href={`/klassen/${klasse.id}/zuweisung/${z.id}`}
-                    className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
-                  >
-                    Ergebnisse
-                  </Link>
-                  <EinfacherLoeschButton
-                    url={`/api/klassen/${klasse.id}/zuweisungen/${z.id}`}
-                    bestaetigung={`Zuweisung "${z.titel}" wirklich löschen? Eingetragene Ergebnisse gehen dabei verloren.`}
-                  />
+                    <EinfacherLoeschButton
+                      url={`/api/klassen/${klasse.id}/zuweisungen/${z.id}`}
+                      bestaetigung={`Zuweisung "${z.titel}" wirklich löschen? Eingetragene Ergebnisse gehen dabei verloren.`}
+                    />
+                  </div>
                 </li>
               );
             })}
