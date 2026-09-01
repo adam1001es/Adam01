@@ -12,7 +12,11 @@ import { berechneKostenEur } from "@/lib/pricing";
  */
 export interface UsageEintrag {
   model: string;
-  phase: "generierung" | "pruefung";
+  // "zusammenstellung" = Prüfungs-Modus A (lib/pruefungZusammenstellen.ts) - deutlich günstiger
+  // als eine volle Neu-Generierung, da nur aus bereits vorhandenen Aufgaben ausgewählt statt neu
+  // formuliert wird, daher als eigene Phase geführt statt unter "generierung" mitgezählt (sonst
+  // würde die Admin-Kostenübersicht die beiden Größenordnungen vermischen).
+  phase: "generierung" | "pruefung" | "zusammenstellung";
   inputTokens: number;
   outputTokens: number;
   cacheCreationInputTokens: number;

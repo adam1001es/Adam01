@@ -82,6 +82,11 @@ export async function POST(request: NextRequest) {
         verification: JSON.stringify(verification),
         status: verification.status === "fehler" ? "verworfen" : "geprueft",
         userId: user.id,
+        // Prüfungs-Modus B (siehe app/klassen, lib/generateWorksheet.ts) - zählt bewusst wie ein
+        // normales Arbeitsblatt zum obigen Kontingent, im Unterschied zu Modus A
+        // (app/api/pruefung/zusammenstellen), das unmetered bleibt.
+        istPruefung: req.istPruefung,
+        punkteGesamt: req.punkteGesamt,
       },
     });
 

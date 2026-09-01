@@ -33,6 +33,13 @@ model Worksheet {
   // wird.
   geteilt     Boolean  @default(false)
   geteiltAm   DateTime?
+  // Prüfungs-Modus (siehe app/klassen, lib/generateWorksheet.ts): ein Worksheet mit
+  // istPruefung=true ist inhaltlich eine formelle Prüfung (nur prüfungstaugliche Aufgabentypen,
+  // Punkte pro Aufgabe statt reiner Übungsaufgaben) statt eines normalen Arbeitsblatts - bleibt
+  // bewusst dasselbe Modell statt einer eigenen Tabelle, damit PDF/Word/Kontingent/Community
+  // ohne Sonderfälle weiterlaufen. punkteGesamt ist nur bei istPruefung=true gesetzt.
+  istPruefung Boolean  @default(false)
+  punkteGesamt Int?
   createdAt   DateTime @default(now())
   // Optional, damit ältere Arbeitsblätter aus der Zeit vor dem Login-System gültig bleiben -
   // neue Arbeitsblätter bekommen immer einen Besitzer zugewiesen (siehe app/api/generate).
@@ -90,6 +97,7 @@ model User {
   themaIdeenNutzungen ThemaIdeenUsage[]
   communityFavoriten CommunityFavorit[]
   usageLogs    UsageLog[]
+  klassen      Klasse[]
 }
 
 model Session {
@@ -167,7 +175,7 @@ model UsageLog {
   user                    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   worksheetId             String? // lose Referenz ohne FK, siehe Kommentar oben
   model                   String // z.B. "claude-opus-5" (siehe lib/anthropic.ts)
-  phase                   String // "generierung" | "pruefung"
+  phase                   String // "generierung" | "pruefung" | "zusammenstellung" (Prüfungs-Modus A, siehe lib/pruefungZusammenstellen.ts)
   inputTokens             Int
   outputTokens            Int
   cacheCreationInputTokens Int @default(0)
@@ -205,4 +213,71 @@ model CommunityFavorit {
   createdAt   DateTime @default(now())
 
   @@unique([userId, worksheetId])
+}
+
+// Eine Klasse einer Lehrkraft (nur zahlende Konten, siehe istZahlendesKonto in lib/quota.ts) -
+// Grundlage für die Wissensstand-/Abdeckungs-Übersicht unter app/klassen. "name" ist frei
+// wählbar (z.B. "7A") und enthält bewusst keine Schülerdaten.
+model Klasse {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  schulstufe  String?
+  createdAt   DateTime    @default(now())
+  schueler    Schueler[]
+  zuweisungen Zuweisung[]
+}
+
+// Ein Schüler/eine Schülerin innerhalb einer Klasse - bewusst NUR als Pseudonym geführt
+// ("label", z.B. Default "Schüler 1"), kein Namensfeld. Damit bleibt die Funktion ohne
+// personenbezogene Daten Minderjähriger nutzbar; die Lehrkraft kennt die Zuordnung
+// Pseudonym -> echte Person nur in ihrem eigenen Kopf/eigenen Unterlagen.
+model Schueler {
+  id         String     @id @default(cuid())
+  klasseId   String
+  klasse     Klasse     @relation(fields: [klasseId], references: [id], onDelete: Cascade)
+  label      String
+  createdAt  DateTime   @default(now())
+  ergebnisse Ergebnis[]
+}
+
+// Ein Arbeitsblatt oder eine Prüfung, das/die einer Klasse an einem bestimmten Datum gegeben
+// wurde - eigenes/Community-Blatt (worksheetId gesetzt) oder ein manuell erfasstes, außerhalb
+// von Lernwerk entstandenes Blatt (worksheetId leer, nur die Snapshot-Felder). worksheetId ist
+// bewusst eine lose Referenz OHNE Fremdschlüssel-Constraint, exakt wie UsageLog.worksheetId
+// (siehe Kommentar dort) - ein späteres Löschen des Quell-Arbeitsblatts darf die
+// Zuweisungshistorie und die daraus berechnete Abdeckungs-/Notenübersicht nicht zerstören.
+// titel/themenbereich sind deshalb ebenfalls ein Snapshot zum Zeitpunkt der Zuweisung, keine
+// Live-Ableitung aus dem (möglicherweise inzwischen gelöschten oder geänderten) Worksheet.
+model Zuweisung {
+  id            String     @id @default(cuid())
+  klasseId      String
+  klasse        Klasse     @relation(fields: [klasseId], references: [id], onDelete: Cascade)
+  worksheetId   String?
+  titel         String
+  themenbereich String
+  istPruefung   Boolean    @default(false)
+  punkteGesamt  Int?
+  datum         DateTime
+  createdAt     DateTime   @default(now())
+  ergebnisse    Ergebnis[]
+}
+
+// Das Ergebnis eines Schülers/einer Schülerin zu einer Zuweisung - "prozent" (0-100) ist die
+// einzige gespeicherte Kennzahl; eine Schulnote wird daraus erst zur Anzeige abgeleitet (siehe
+// prozentZuNote in lib/noten.ts), nicht gespeichert, damit ein späterer Wechsel des
+// Notenschlüssels nicht rückwirkend alte Ergebnisse verfälscht.
+model Ergebnis {
+  id          String    @id @default(cuid())
+  zuweisungId String
+  zuweisung   Zuweisung @relation(fields: [zuweisungId], references: [id], onDelete: Cascade)
+  schuelerId  String
+  schueler    Schueler  @relation(fields: [schuelerId], references: [id], onDelete: Cascade)
+  prozent     Float?
+  notiz       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([zuweisungId, schuelerId])
 }

@@ -384,7 +384,12 @@ export async function buildWorksheetDocx(
     }
     children.push(
       new Paragraph({
-        children: [new TextRun({ text: `${a.nr}. ${a.frage}`, bold: true, size: baseSize })],
+        children: [
+          new TextRun({ text: `${a.nr}. ${a.frage}`, bold: true, size: baseSize }),
+          ...(a.punkte !== undefined
+            ? [new TextRun({ text: ` (${a.punkte} P.)`, size: baseSize, color: "666666" })]
+            : []),
+        ],
       }),
     );
     if (a.typ === "multiple_choice" && a.optionen) {

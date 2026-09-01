@@ -18,6 +18,10 @@ export const VERIFICATION_MODEL = "claude-sonnet-5";
 // Arbeitsblatt-Qualität - dieselbe Kostenlogik wie bei VERIFICATION_MODEL, eigener Name für
 // bessere Lesbarkeit an den Aufrufstellen und falls die Modelle künftig auseinanderlaufen sollen.
 export const IDEEN_MODEL = "claude-sonnet-5";
+// Prüfungs-Modus A (lib/pruefungZusammenstellen.ts): wählt/gewichtet nur aus bereits
+// generierten, bereits geprüften Aufgaben aus statt neue Inhalte zu formulieren - dieselbe
+// Kostenlogik wie VERIFICATION_MODEL/IDEEN_MODEL, eigener Name für Lesbarkeit.
+export const PRUEFUNG_ZUSAMMENSTELLEN_MODEL = "claude-sonnet-5";
 
 /** Extrahiert das erste { ... } JSON-Objekt aus einer Modellantwort, auch wenn Fließtext drumherum steht. */
 export function extractJson(text: string): unknown {

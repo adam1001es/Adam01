@@ -157,6 +157,9 @@ export default function WorksheetView({
                 )}
                 <div className="font-medium">
                   {a.nr}. {a.frage}
+                  {a.punkte !== undefined && (
+                    <span className="ml-1.5 font-normal text-slate-400">({a.punkte} P.)</span>
+                  )}
                 </div>
                 {a.typ === "multiple_choice" && a.optionen && (
                   <ul className="ml-5 mt-1 list-[lower-alpha] space-y-0.5">

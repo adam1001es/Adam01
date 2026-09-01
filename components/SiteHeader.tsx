@@ -11,6 +11,7 @@ import {
   Users,
   Gauge,
   MoonStar,
+  GraduationCap,
 } from "lucide-react";
 
 function LogoMark() {
@@ -121,6 +122,12 @@ export default function SiteHeader({
             <Link href="/community" className={navLinkClass(!!pathname?.startsWith("/community"))}>
               <Users size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Geteilte Arbeitsblätter</span>
+            </Link>
+          )}
+          {user?.istZahlend && (
+            <Link href="/klassen" className={navLinkClass(!!pathname?.startsWith("/klassen"))}>
+              <GraduationCap size={16} strokeWidth={2.25} />
+              <span className="hidden sm:inline">Klassen</span>
             </Link>
           )}
           {user?.role === "admin" && (

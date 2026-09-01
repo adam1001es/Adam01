@@ -164,6 +164,10 @@ function buildStyles(layout: LayoutConfig) {
       fontWeight: 700,
       marginBottom: 3,
     },
+    aufgabePunkte: {
+      fontWeight: 400,
+      opacity: 0.6,
+    },
     aufgabeTyp: {
       fontSize: baseFontSize - 2,
       opacity: 0.7,
@@ -504,6 +508,7 @@ function AufgabenListe({
           )}
           <Text style={styles.aufgabeKopf}>
             {a.nr}. {a.frage}
+            {a.punkte !== undefined && <Text style={styles.aufgabePunkte}> ({a.punkte} P.)</Text>}
           </Text>
           {a.typ === "multiple_choice" &&
             a.optionen?.map((opt, i) => (

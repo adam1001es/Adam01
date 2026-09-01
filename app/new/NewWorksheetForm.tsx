@@ -26,10 +26,12 @@ import {
   Sparkles,
   ChevronDown,
   Check,
+  GraduationCap,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN_AKTIV,
   AUFGABEN_TYP_MAXIMUM,
+  EXAM_GEEIGNETE_TYPEN,
   TEMPLATES,
   FARBMODI,
   Farbmodus,
@@ -160,6 +162,24 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
     "zuordnung",
     "offene_frage",
   ]);
+  // Prüfungs-Modus B (siehe app/klassen, lib/generateWorksheet.ts "istPruefung") - läuft durch
+  // dieselbe Generierungs-Pipeline, aber mit formellerem Ton, Punktevergabe pro Aufgabe und auf
+  // prüfungstaugliche Typen beschränkt (EXAM_GEEIGNETE_TYPEN). Zählt wie ein normales
+  // Arbeitsblatt zum Kontingent - für den kontingentfreien Weg "aus bestehenden Blättern
+  // zusammenstellen" siehe stattdessen app/klassen/[id]/pruefung-zusammenstellen.
+  const [istPruefung, setIstPruefung] = useState(false);
+  const [punkteGesamt, setPunkteGesamt] = useState(30);
+  const sichtbareTypen = istPruefung ? EXAM_GEEIGNETE_TYPEN : AUFGABEN_TYPEN_AKTIV;
+
+  function handlePruefungToggle(next: boolean) {
+    setIstPruefung(next);
+    if (next) {
+      // Nicht prüfungstaugliche Typen (Rätsel/Bewegungs-/Ausschneide-/Diskussionsformate)
+      // automatisch aus der aktuellen Auswahl entfernen, statt sie nur zu verstecken - sonst
+      // bliebe ein für die Prüfung ungeeigneter Typ unsichtbar, aber weiterhin ausgewählt.
+      setAufgabentypen((prev) => prev.filter((t) => (EXAM_GEEIGNETE_TYPEN as readonly string[]).includes(t)));
+    }
+  }
   // Nur für die Empfehlungs-Hinweise unten (z.B. "Malaufgabe empfohlen") - blockiert keine
   // Auswahl mehr; alle Aufgabentypen bleiben unabhängig von der Schulstufe wählbar, die
   // Lehrkraft kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik.
@@ -229,6 +249,8 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
           zieldauerMinuten,
           komplexitaet,
           aufgabentypen,
+          istPruefung,
+          punkteGesamt: istPruefung ? punkteGesamt : undefined,
           zusatzhinweise: zusatzhinweise || undefined,
           layout: {
             template,
@@ -444,9 +466,33 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
           akzent="gold"
           schritt={{ nr: 2, von: 3 }}
         >
+          <div className="mb-4 divide-y divide-slate-100 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
+            <ToggleSwitch
+              checked={istPruefung}
+              onChange={handlePruefungToggle}
+              label="Als Prüfung erstellen"
+              description="Formeller Ton, Aufgabentypen auf prüfungstaugliche Formate beschränkt, Punkte pro Aufgabe - z.B. für eine Schularbeit in einer Maturaklasse"
+            />
+          </div>
+          {istPruefung && (
+            <label className="mb-4 block max-w-xs">
+              <span className={labelClass}>Zielpunktzahl</span>
+              <input
+                type="number"
+                min={1}
+                max={200}
+                className={inputClass}
+                value={punkteGesamt}
+                onChange={(e) => setPunkteGesamt(Math.max(1, Number(e.target.value) || 1))}
+              />
+              <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                Die Punkte der einzelnen Aufgaben summieren sich auf diesen Wert.
+              </span>
+            </label>
+          )}
           <span className={labelClass}>Aufgabentypen</span>
           <div className="flex flex-wrap gap-2">
-            {AUFGABEN_TYPEN_AKTIV.map((typ) => {
+            {sichtbareTypen.map((typ) => {
               const meta = TYP_META[typ];
               const active = aufgabentypen.includes(typ);
               const fruehEmpfohlen = AUFGABEN_TYPEN_FRUEH_EMPFOHLEN.includes(typ);
@@ -478,10 +524,12 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               );
             })}
           </div>
-          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
-            Empfohlen für 1. Klasse Volksschule (noch nicht lese-/schreibkundig)
-          </p>
+          {!istPruefung && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+              Empfohlen für 1. Klasse Volksschule (noch nicht lese-/schreibkundig)
+            </p>
+          )}
           <div className="mb-5 mt-5 grid gap-4 sm:grid-cols-2">
             <div>
               <span className={labelClass}>Zieldauer im Unterricht</span>
@@ -557,7 +605,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               nicht dafür gedacht, innerhalb einer einzelnen Unterrichtseinheit fertig zu werden.
             </p>
           )}
-          {fruehStufe && (
+          {fruehStufe && !istPruefung && (
             <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
               <p className="text-xs leading-relaxed text-gold-700">
                 Kinder der 1. Klasse Volksschule können meist noch nicht lesen/schreiben.

@@ -94,6 +94,54 @@ Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock:
 - "fehler": das Arbeitsblatt sollte vor Verwendung überarbeitet werden (z.B. offensichtlich falsche/erfundene Zitate, Hadithe aus unbekannter/zweifelhafter Quelle, fehlende Lösungen, unpassende Altersstufe).
 Liste in "hinweise" konkrete, konstruktive Punkte auf (auch bei "ok" ruhig ein bis zwei Hinweise, z.B. "Sure X vor Verwendung gegenchecken").`;
 
+/** Zusätzlicher System-Textblock für den Prüfungsmodus B (siehe app/klassen, GenerateRequest.
+ * istPruefung) - wird bei istPruefung als weiterer, nicht gecachter Textblock NACH dem
+ * curriculumContext angehängt (analog dazu variiert er pro Anfrage, siehe Kommentar bei
+ * generiereUndPruefeEinmal). Ergänzt die Basis-Anweisungen, ersetzt sie nicht. */
+const PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ = `WICHTIGER ZUSATZ - dieses Arbeitsblatt ist eine formelle PRÜFUNG (Schularbeit/Test), KEINE Übung:
+- Formuliere Kopf/Einleitung entsprechend formell wie bei einer echten Schularbeit (kein motivierender Übungsblatt-Ton) - "einleitung" kann z.B. kurz Ablauf oder erlaubte Hilfsmittel nennen statt einzuleiten.
+- Vergib für JEDE Aufgabe zusätzlich ein Feld "punkte" (ganze Zahl, mindestens 1). Die Summe aller "punkte"-Werte MUSS exakt der vorgegebenen Zielpunktzahl entsprechen. Gewichte anspruchsvollere Aufgaben (höherer Anforderungsbereich, mehr Teilschritte) mit mehr Punkten als einfache Reproduktionsaufgaben.
+- Setze den Schwerpunkt klar auf AFB II (Reorganisation/Transfer) und AFB III (Reflexion/Urteil) statt überwiegend AFB I (Reproduktion) - eine Prüfung, die nur Auswendiggelerntes abfragt, prüft kein echtes Verständnis. Reine Reproduktionsaufgaben sollen deutlich in der Minderheit bleiben.
+- Nutze ausschließlich die vorgegebenen, prüfungstauglichen Aufgabentypen - keine spielerischen Formate (keine Rätsel-, Bewegungs-, Ausschneide- oder Diskussionsaufgaben).`;
+
+/**
+ * Skaliert die von Claude vergebenen "punkte"-Werte proportional so, dass ihre Summe exakt
+ * "punkteGesamt" ergibt - Sicherheitsnetz analog zu begrenzeAufgabenProTyp/loeseRaetselAuf:
+ * Claude hält die geforderte Punktesumme im Prompt zuverlässig ungefähr, aber nicht immer exakt
+ * ein, eine Prüfung mit "falscher" Gesamtpunktzahl wäre für die Lehrkraft aber unbrauchbar. Hat
+ * Claude gar keine Punkte vergeben (alle undefined/0), wird stattdessen gleichmäßig verteilt.
+ */
+export function normalisierePruefungspunkte(content: WorksheetContent, punkteGesamt: number): void {
+  const aufgaben = content.aufgaben;
+  if (aufgaben.length === 0) return;
+  const summe = aufgaben.reduce((s, a) => s + (a.punkte ?? 0), 0);
+
+  if (summe <= 0) {
+    const proAufgabe = Math.floor(punkteGesamt / aufgaben.length);
+    let rest = punkteGesamt - proAufgabe * aufgaben.length;
+    for (const a of aufgaben) {
+      a.punkte = proAufgabe + (rest > 0 ? 1 : 0);
+      if (rest > 0) rest--;
+    }
+    return;
+  }
+
+  let zugewiesen = 0;
+  let groessteIdx = 0;
+  aufgaben.forEach((a, i) => {
+    const skaliert = Math.max(1, Math.round(((a.punkte ?? 0) / summe) * punkteGesamt));
+    a.punkte = skaliert;
+    zugewiesen += skaliert;
+    if (skaliert > (aufgaben[groessteIdx].punkte ?? 0)) groessteIdx = i;
+  });
+  // Rundungsdifferenz auf die Aufgabe mit dem größten Punktewert ausgleichen - verzerrt dort am
+  // wenigsten sichtbar (relativ zu ihrem eigenen Wert).
+  const differenz = punkteGesamt - zugewiesen;
+  if (differenz !== 0) {
+    aufgaben[groessteIdx].punkte = Math.max(1, (aufgaben[groessteIdx].punkte ?? 1) + differenz);
+  }
+}
+
 /** Erzwingt AUFGABEN_TYP_MAXIMUM serverseitig, unabhängig davon, ob sich Claude an die
  * entsprechende Anweisung im System-Prompt gehalten hat: entfernt überzählige Aufgaben der
  * gedeckelten Typen (behält die jeweils ersten) und nummeriert Aufgaben/Lösungen danach lückenlos
@@ -138,6 +186,7 @@ function buildUserPrompt(
 - Komplexität: ${KOMPLEXITAET_LABEL[req.komplexitaet]}
 - Anzahl Aufgaben (aus der Zieldauer abgeleiteter Richtwert - Ziel ist, die Zieldauer zu treffen, nicht exakt diese Zahl): ${anzahlAufgaben}
 - Erlaubte Aufgabentypen (mische sinnvoll): ${req.aufgabentypen.join(", ")}
+${req.istPruefung ? `- Diese Erstellung ist eine formelle PRÜFUNG mit einer Zielpunktzahl von ${req.punkteGesamt} Punkten (siehe Zusatzanweisungen).` : ""}
 ${req.zusatzhinweise ? `- Zusätzliche Hinweise der Lehrkraft: ${req.zusatzhinweise}` : ""}${korrekturBlock}`;
 }
 
@@ -198,6 +247,7 @@ async function generiereUndPruefeEinmal(
         cache_control: { type: "ephemeral", ttl: "1h" },
       },
       { type: "text", text: curriculumContext },
+      ...(req.istPruefung ? [{ type: "text" as const, text: PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ }] : []),
     ],
     messages: [{ role: "user", content: buildUserPrompt(req, anzahlAufgaben, korrekturAuftrag) }],
   });
@@ -214,6 +264,7 @@ async function generiereUndPruefeEinmal(
   // damit die geprüfte und gespeicherte Version bereits die sicher darstellbare ist.
   content = vereinfacheArabischeTransliteration(content);
   begrenzeAufgabenProTyp(content);
+  if (req.istPruefung && req.punkteGesamt) normalisierePruefungspunkte(content, req.punkteGesamt);
   // Gitter-Auflösung (schnell, synchron, rein lokal) VOR der Verifikation, damit die
   // Kreuzworträtsel-Lösung dort schon final/korrekt nummeriert vorliegt.
   loeseRaetselAuf(content);

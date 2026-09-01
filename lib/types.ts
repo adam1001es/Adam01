@@ -66,6 +66,23 @@ export const AUFGABEN_TYPEN_AKTIV = [
   "recherche_auftrag",
 ] as const satisfies readonly (typeof AUFGABEN_TYPEN)[number][];
 
+/** Teilmenge von AUFGABEN_TYPEN_AKTIV, die für eine formelle Prüfung (siehe app/klassen,
+ * lib/generateWorksheet.ts "istPruefung"-Zweig, lib/pruefungZusammenstellen.ts) infrage kommt -
+ * ausgeschlossen sind "diskussion" (mündlich, nicht benotbar), die vier für frühe
+ * Volksschulstufen gedachten Methoden "malaufgabe"/"bewegungsaufgabe"/"sortierkarten"/
+ * "nachspuruebung" (für eine Prüfungssituation nicht gedacht), "recherche_auftrag"
+ * (längerfristige Projektarbeit, kein Prüfungsformat) sowie "wortsuche"/"kreuzwortraetsel"
+ * (Rätselformat, in einer Matura-/Schulprüfung unüblich). */
+export const EXAM_GEEIGNETE_TYPEN = [
+  "multiple_choice",
+  "wahr_falsch",
+  "zuordnung",
+  "lueckentext",
+  "reihenfolge",
+  "lesetext",
+  "offene_frage",
+] as const satisfies readonly (typeof AUFGABEN_TYPEN_AKTIV)[number][];
+
 /** Manche Aufgabentypen sind inhaltlich für sich schon umfangreich (Kreuzworträtsel/Wortsuche:
  * 4-8 Wörter samt Gitter; Recherche-/Referat-Auftrag: eigenständige, längerfristige Projektarbeit)
  * - davon macht daher pro Arbeitsblatt höchstens diese Anzahl Sinn, unabhängig von der insgesamt
@@ -237,6 +254,7 @@ export const AufgabeSchema = z.object({
   sortierKarten: z.array(SortierKarteSchema).optional(), // bei "sortierkarten": die Ausschneide-Kärtchen
   nachspurText: z.string().optional(), // bei "nachspuruebung": das kurze Wort/die Phrase zum Nachfahren
   anforderungsbereich: z.enum(ANFORDERUNGSBEREICHE_KEYS).optional(),
+  punkte: z.number().optional(), // NUR bei Worksheet.istPruefung gesetzt - Punktewert dieser Aufgabe, Summe aller Aufgaben ergibt punkteGesamt
 });
 export type Aufgabe = z.infer<typeof AufgabeSchema>;
 
@@ -296,33 +314,59 @@ export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
 
 export const ThemenbereichSchema = z.enum(THEMENBEREICH_KEYS);
 
-export const GenerateRequestSchema = z.object({
-  bereich: z.string().min(1),
-  thema: z.string().min(1),
-  schulstufe: z.string().min(1),
-  themenbereich: ThemenbereichSchema.default("gemischt"),
-  // Ersetzt eine direkte "Anzahl Aufgaben"-Eingabe: die tatsächliche Aufgabenanzahl wird daraus
-  // serverseitig abgeleitet (siehe schaetzeAufgabenAnzahl), weil eine reine Stückzahl nichts über
-  // die tatsächliche Bearbeitungszeit im Unterricht aussagt.
-  zieldauerMinuten: z
-    .number()
-    .int()
-    .refine((v) => (ZIELDAUER_OPTIONEN_MINUTEN as readonly number[]).includes(v), {
-      message: "Ungültige Zieldauer.",
-    })
-    .default(35),
-  komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
-  // "malaufgabe" und "recherche_auftrag" sind zwar in erster Linie für 1. Klasse Volksschule
-  // bzw. ab Sekundarstufe I gedacht (siehe die entsprechenden Empfehlungs-Hinweise im
-  // Erstellen-Formular sowie die Anleitung an Claude in generateWorksheet.ts/curriculum.ts) -
-  // eine harte serverseitige Sperre dafür gibt es aber bewusst NICHT (mehr): die Lehrkraft kennt
-  // ihre Klasse besser als eine grobe Schulstufen-Heuristik (z.B. eine leistungsstarke 3. Klasse
-  // Volksschule oder eine jahrgangsgemischte Gruppe) und soll frei wählen können, statt am
-  // Absenden mit einem Validierungsfehler auszusteigen.
-  aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN_AKTIV)).min(1),
-  zusatzhinweise: z.string().optional(),
-  layout: LayoutConfigSchema,
-});
+export const GenerateRequestSchema = z
+  .object({
+    bereich: z.string().min(1),
+    thema: z.string().min(1),
+    schulstufe: z.string().min(1),
+    themenbereich: ThemenbereichSchema.default("gemischt"),
+    // Ersetzt eine direkte "Anzahl Aufgaben"-Eingabe: die tatsächliche Aufgabenanzahl wird daraus
+    // serverseitig abgeleitet (siehe schaetzeAufgabenAnzahl), weil eine reine Stückzahl nichts über
+    // die tatsächliche Bearbeitungszeit im Unterricht aussagt.
+    zieldauerMinuten: z
+      .number()
+      .int()
+      .refine((v) => (ZIELDAUER_OPTIONEN_MINUTEN as readonly number[]).includes(v), {
+        message: "Ungültige Zieldauer.",
+      })
+      .default(35),
+    komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
+    // "malaufgabe" und "recherche_auftrag" sind zwar in erster Linie für 1. Klasse Volksschule
+    // bzw. ab Sekundarstufe I gedacht (siehe die entsprechenden Empfehlungs-Hinweise im
+    // Erstellen-Formular sowie die Anleitung an Claude in generateWorksheet.ts/curriculum.ts) -
+    // eine harte serverseitige Sperre dafür gibt es aber bewusst NICHT (mehr): die Lehrkraft kennt
+    // ihre Klasse besser als eine grobe Schulstufen-Heuristik (z.B. eine leistungsstarke 3. Klasse
+    // Volksschule oder eine jahrgangsgemischte Gruppe) und soll frei wählen können, statt am
+    // Absenden mit einem Validierungsfehler auszusteigen.
+    aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN_AKTIV)).min(1),
+    zusatzhinweise: z.string().optional(),
+    layout: LayoutConfigSchema,
+    // Prüfungs-Modus B (komplette Neu-Generierung als formelle Prüfung, siehe app/klassen und
+    // lib/generateWorksheet.ts) - im Unterschied zu Modus A (lib/pruefungZusammenstellen.ts,
+    // stellt aus bereits vorhandenen Arbeitsblättern zusammen) zählt dieser Weg wie ein normales
+    // Arbeitsblatt zum Kontingent (siehe app/api/generate/route.ts).
+    istPruefung: z.boolean().default(false),
+    punkteGesamt: z.number().int().min(1).max(200).optional(),
+  })
+  .superRefine((req, ctx) => {
+    if (!req.istPruefung) return;
+    if (req.punkteGesamt === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["punkteGesamt"],
+        message: "Für eine Prüfung ist eine Zielpunktzahl erforderlich.",
+      });
+    }
+    const erlaubt = new Set<string>(EXAM_GEEIGNETE_TYPEN);
+    const unerlaubt = req.aufgabentypen.filter((t) => !erlaubt.has(t));
+    if (unerlaubt.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["aufgabentypen"],
+        message: `Für eine Prüfung nicht geeignete Aufgabentypen ausgewählt: ${unerlaubt.join(", ")}.`,
+      });
+    }
+  });
 export type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
 
 /** Kategorien für eine Lehrkraft-Meldung zu einem Arbeitsblatt (siehe Prisma-Modell Meldung) -
