@@ -652,10 +652,6 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               );
             })}
           </div>
-          <p className="mb-5 -mt-3 text-xs leading-relaxed text-slate-400">
-            Schwarz-Weiß spart Toner/Tinte beim Ausdrucken in der Schule: farbiger Kopfbereich,
-            Muster und Akzente werden durch schwarz/grau ersetzt.
-          </p>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className={labelClass}>Schulname (optional, im Kopf)</span>
