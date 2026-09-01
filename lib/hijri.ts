@@ -52,5 +52,5 @@ export function formatDoppelDatum(date: Date): string {
     year: "numeric",
   });
   const hijri = toHijri(date);
-  return `${gregorianisch} · ${hijri.label} (berechnet, kann je nach Mondsichtung ±1 Tag abweichen)`;
+  return `${gregorianisch} · ${hijri.label}`;
 }

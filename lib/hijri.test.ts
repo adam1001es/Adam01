@@ -2,10 +2,11 @@ import { describe, it, expect } from "vitest";
 import { toHijri, formatDoppelDatum } from "./hijri";
 
 // Bewusst keine hartkodierten "richtigen" Hijri-Datumswerte - welcher Tag im islamischen
-// Kalender einem gregorianischen Datum entspricht, hängt vom verwendeten Berechnungsverfahren
-// ab (siehe Hinweis "kann je nach Mondsichtung ±1 Tag abweichen" in formatDoppelDatum) und lässt
-// sich nicht als einzelner unstrittiger Referenzwert einfrieren. Stattdessen: strukturelle
-// Invarianten, die für JEDES Datum gelten müssen, plus eine breite Stichprobe gegen Abstürze.
+// Kalender einem gregorianischen Datum entspricht, hängt vom verwendeten Berechnungsverfahren ab
+// (der tabellarische/zivile Kalender kann vom per Mondsichtung bestimmten Datum ±1 Tag abweichen,
+// siehe Kommentar bei HIJRI_FORMATTER) und lässt sich nicht als einzelner unstrittiger
+// Referenzwert einfrieren. Stattdessen: strukturelle Invarianten, die für JEDES Datum gelten
+// müssen, plus eine breite Stichprobe gegen Abstürze.
 describe("toHijri", () => {
   it("liefert Monat/Tag im gültigen Wertebereich", () => {
     const { tag, monat, jahr } = toHijri(new Date("2026-03-15"));
@@ -68,10 +69,10 @@ function vergleicheTupel(a: [number, number, number], b: [number, number, number
 }
 
 describe("formatDoppelDatum", () => {
-  it("enthält sowohl das gregorianische als auch das Hijri-Datum plus Unsicherheitshinweis", () => {
+  it("enthält sowohl das gregorianische als auch das Hijri-Datum, ohne Unsicherheitshinweis (der gehört nicht aufs gedruckte Arbeitsblatt)", () => {
     const text = formatDoppelDatum(new Date("2026-03-15"));
     expect(text).toContain("15. März 2026");
     expect(text).toContain("n. H.");
-    expect(text).toContain("±1 Tag abweichen");
+    expect(text).not.toContain("Mondsichtung");
   });
 });
