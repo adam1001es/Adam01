@@ -224,7 +224,7 @@ export default function Klassenzimmer({
           </p>
         </div>
       ) : (
-        <div className="rounded-3xl border border-slate-200 bg-gradient-to-b from-[#f6efe1] to-[#ece1cb] p-6 shadow-card-klassen sm:p-10">
+        <div className="papier-hell rounded-3xl border border-slate-200 bg-gradient-to-b from-[#f6efe1] to-[#ece1cb] p-6 shadow-card-klassen sm:p-10">
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}

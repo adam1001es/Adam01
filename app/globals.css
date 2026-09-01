@@ -52,12 +52,14 @@
   }
 
   /*
-   * Das eigentliche Arbeitsblatt (components/WorksheetView.tsx - "Papier"-Vorschau, auch als
-   * Grundlage für den Druck/PDF gedacht) soll unabhängig vom App-Theme immer wie bedrucktes
-   * Papier aussehen. Setzt die Variablen innerhalb dieser Klasse hart auf die Hellmodus-Werte
-   * zurück, statt WorksheetView von der globalen Dark-Mode-Kaskade auszunehmen (die Komponente
-   * nutzt bg-white bewusst unverändert plus ganz normal Slate-Text-/Rahmenfarben - ohne diesen
-   * Reset würde heller Text auf weißem Papier landen, sobald Dark Mode aktiv ist).
+   * Für Illustrationen mit fest verdrahteten hellen Hintergrundfarben, die unabhängig vom
+   * App-Theme immer gleich aussehen sollen - das eigentliche Arbeitsblatt
+   * (components/WorksheetView.tsx, "Papier"-Vorschau, auch Grundlage für Druck/PDF) und das
+   * Klassenzimmer-Illustration (components/Klassenzimmer.tsx, Tafel + Schülertische in Creme-/
+   * Beige-Tönen). Setzt die Variablen innerhalb dieser Klasse hart auf die Hellmodus-Werte
+   * zurück, statt die Komponente von der globalen Dark-Mode-Kaskade auszunehmen (beide nutzen
+   * feste helle Hintergründe bewusst unverändert plus ganz normal Slate-Text-/Rahmenfarben - ohne
+   * diesen Reset würde heller Text auf hellem Hintergrund landen, sobald Dark Mode aktiv ist).
    * Das explizite "color" hier ist nötig, weil geerbte Textfarbe (Elemente ohne eigene
    * text-slate-*-Klasse, z.B. <h1>{content.titel}</h1>) sonst den bereits im Dunkelmodus
    * berechneten Farbwert von <body> weiterreicht - eine neu gesetzte Variable allein wirkt sich
