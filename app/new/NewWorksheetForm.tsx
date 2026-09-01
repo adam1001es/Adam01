@@ -120,6 +120,18 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; i
   nachspuruebung: { label: "Nachspurübung", icon: PenTool },
 };
 
+/** Für 1./2. Klasse Volksschule (noch nicht lese-/schreibkundig) besonders geeignete Typen -
+ * bekommen im Formular IMMER einen grünen Marker (Punkt + Rahmenfarbe), unabhängig von der
+ * gerade gewählten Schulstufe, damit sofort erkennbar ist, welche Methoden dafür gedacht sind
+ * (siehe fruehEmpfohlen unten). Bewusst kein Ausblenden bei anderen Schulstufen mehr (siehe
+ * GenerateRequestSchema-Kommentar in lib/types.ts) - nur eine visuelle Einordnungshilfe. */
+const AUFGABEN_TYPEN_FRUEH_EMPFOHLEN: readonly (typeof AUFGABEN_TYPEN_AKTIV)[number][] = [
+  "bewegungsaufgabe",
+  "sortierkarten",
+  "malaufgabe",
+  "nachspuruebung",
+];
+
 const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {
   klassisch: { label: "Klassisch", swatch: "#9c7a2c" },
   modern: { label: "Modern", swatch: "#12704c" },
@@ -436,21 +448,32 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
             {AUFGABEN_TYPEN_AKTIV.map((typ) => {
               const meta = TYP_META[typ];
               const active = aufgabentypen.includes(typ);
+              const fruehEmpfohlen = AUFGABEN_TYPEN_FRUEH_EMPFOHLEN.includes(typ);
               return (
                 <button
                   type="button"
                   key={typ}
                   onClick={() => toggleTyp(typ)}
+                  title={fruehEmpfohlen ? "Empfohlen für 1./2. Klasse Volksschule" : undefined}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
-                    active ? SEKTION_FARBEN.gold.aktiv : CHIP_BASIS
+                    active
+                      ? SEKTION_FARBEN.gold.aktiv
+                      : fruehEmpfohlen
+                        ? "border-brand-300 text-brand-700 hover:border-brand-400"
+                        : CHIP_BASIS
                   }`}
                 >
+                  {fruehEmpfohlen && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />}
                   <meta.icon size={14} strokeWidth={2.25} />
                   {meta.label}
                 </button>
               );
             })}
           </div>
+          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+            Empfohlen für 1./2. Klasse Volksschule (noch nicht lese-/schreibkundig)
+          </p>
           <div className="mb-5 mt-5 grid gap-4 sm:grid-cols-2">
             <div>
               <span className={labelClass}>Zieldauer im Unterricht</span>
