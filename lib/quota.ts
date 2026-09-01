@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 /** Nur noch EIN bezahltes Abo (bewusst vereinfacht statt Starter/Pro-Staffelung) - Kontingent
  * wird privat bezahlt (kein Zahlungsanbieter im Code) und von einem Admin manuell zugewiesen
  * (siehe /admin, AdminTierForm bietet dafür nur noch "pro" als Paket an). null = kein bezahltes
- * Abo, aber automatisch KOSTENLOS_LIMIT Arbeitsblätter/Monat als Gratis-Basis (jedes Konto
- * braucht einen Login - siehe app/api/generate; zusätzlich pro IP/Browser begrenzt, siehe
- * lib/trial.ts, damit sich niemand durch mehrere Konten ein Vielfaches des Gratis-Kontingents
- * verschafft).
+ * Abo, aber automatisch KOSTENLOS_LIMIT Arbeitsblätter EINMALIG (nicht monatlich wiederkehrend,
+ * siehe Kommentar bei KOSTENLOS_LIMIT) als Gratis-Basis zum Ausprobieren (jedes Konto braucht
+ * einen Login - siehe app/api/generate; zusätzlich pro IP/Browser begrenzt, siehe lib/trial.ts,
+ * damit sich niemand durch mehrere Konten ein Vielfaches des Gratis-Kontingents verschafft).
  *
  * Kalkulation (Worst Case bei voller Ausschöpfung, Ziel: mindestens ~25-30% Marge - siehe
  * GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR): 18 × 0,10€ = 1,80€ Kosten bei 2,50€ Preis = 28% Marge.
@@ -29,8 +29,13 @@ export const TIER_LABEL: Record<string, string> = {
   pro: ABO_LABEL,
 };
 
-export const KOSTENLOS_LIMIT = 3;
-export const KOSTENLOS_LABEL = `Kostenlos (${KOSTENLOS_LIMIT} Arbeitsblätter im Monat)`;
+// EINMALIG fürs ganze Konto, NICHT monatlich wiederkehrend (anders als TIER_QUOTA beim Abo) -
+// bei 3/Monat dauerhaft würde die Gratis-Stufe bei wachsender Nutzerzahl zu einem unbegrenzt
+// mitwachsenden Kostenblock ohne Gegenfinanzierung (siehe getKontingent: für Konten ohne
+// aktives tier wird über die GESAMTE Kontolebenszeit gezählt statt nur im aktuellen Zyklus).
+// Wer mehr will, braucht das bezahlte Abo - kein "jeden Monat wieder gratis".
+export const KOSTENLOS_LIMIT = 5;
+export const KOSTENLOS_LABEL = `Kostenlos zum Ausprobieren (${KOSTENLOS_LIMIT} Arbeitsblätter insgesamt, einmalig)`;
 
 /** Grobe Kostenschätzung pro Arbeitsblatt (siehe Admin-Übersicht, "Geschätzte KI-Kosten") -
  * bewusst konservativ (eher zu hoch als zu niedrig geschätzt), da echte Token-Nutzung pro
@@ -90,6 +95,9 @@ export interface Kontingent {
   limit: number;
   verbraucht: number;
   verbleibend: number;
+  /** Für Konten ohne aktives Abo (siehe getKontingent) informativ, aber NICHT der Zeitpunkt, zu
+   * dem "verbraucht"/"verbleibend" zurückgesetzt werden - das einmalige Gratis-Kontingent kennt
+   * keinen Reset. Nur bei aktivem Abo markiert dieses Feld tatsächlich den nächsten Reset. */
   zyklusStart: Date;
   zyklusEnde: Date;
   /** Admin-Konten haben kein Kontingent-Limit - siehe app/api/generate, KontingentBanner. */
@@ -136,12 +144,6 @@ export async function getKontingent(user: {
 }): Promise<Kontingent> {
   const zyklusStart = aktuellerZyklusStart(user.createdAt);
   const zyklusEnde = new Date(zyklusStart.getTime() + ZYKLUS_MS);
-  // "erstattet: false" schließt vom Admin zurückerstattete Arbeitsblätter aus (siehe
-  // Prisma-Modell Worksheet.erstattet) - eine Lehrkraft bekommt ihr Kontingent für ein
-  // nachweislich fehlerhaftes Arbeitsblatt zurück, ohne dass das Arbeitsblatt selbst gelöscht
-  // werden muss.
-  const kontingentFilter = { userId: user.id, createdAt: { gte: zyklusStart }, erstattet: false };
-  const verbraucht = await prisma.worksheet.count({ where: kontingentFilter });
 
   // Außerhalb des zugewiesenen Gültigkeitszeitraums (falls gesetzt) zählt das Konto für die
   // Kontingent-Berechnung automatisch wieder als "kostenlos" - ohne dass ein Admin manuell
@@ -154,6 +156,23 @@ export async function getKontingent(user: {
   )
     ? user.tier
     : null;
+
+  // Bezahlte Konten (und Admins, rein informativ): rollierender 30-Tage-Zyklus, siehe
+  // TIER_QUOTA. Kostenlose Konten OHNE aktives Abo: KOSTENLOS_LIMIT ist eine EINMALIGE
+  // Gesamtsumme fürs ganze Konto (siehe Kommentar dort), daher hier über die gesamte
+  // Kontolebenszeit gezählt statt nur im aktuellen Zyklus - sonst würde das "einmalige"
+  // Gratis-Kontingent faktisch doch wieder jeden Zyklus neu verfügbar.
+  const lebenslangZaehlen = !effektiverTier && user.role !== "admin";
+  // "erstattet: false" schließt vom Admin zurückerstattete Arbeitsblätter aus (siehe
+  // Prisma-Modell Worksheet.erstattet) - eine Lehrkraft bekommt ihr Kontingent für ein
+  // nachweislich fehlerhaftes Arbeitsblatt zurück, ohne dass das Arbeitsblatt selbst gelöscht
+  // werden muss.
+  const kontingentFilter = {
+    userId: user.id,
+    erstattet: false,
+    ...(lebenslangZaehlen ? {} : { createdAt: { gte: zyklusStart } }),
+  };
+  const verbraucht = await prisma.worksheet.count({ where: kontingentFilter });
 
   if (user.role === "admin") {
     return {

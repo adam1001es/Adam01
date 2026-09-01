@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
   if (kontingent.verbleibend <= 0) {
     const grund = kontingent.tier
       ? `Dein Kontingent für diesen Zyklus (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
-      : `Dein kostenloses Kontingent (${kontingent.limit} Arbeitsblätter/Monat) ist für diesen Zyklus aufgebraucht. Für mehr: ein Abo bei der Person anfragen, die den Zugang verwaltet.`;
+      : `Dein einmaliges kostenloses Kontingent (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Für mehr: ein Abo bei der Person anfragen, die den Zugang verwaltet.`;
     return NextResponse.json({ error: grund }, { status: 403 });
   }
 
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error:
-          "Das kostenlose Kontingent für diesen Browser/dieses Netzwerk ist für diesen Monat aufgebraucht (unabhängig vom Konto). Für mehr: ein Abo anfragen.",
+          "Das einmalige kostenlose Kontingent für diesen Browser/dieses Netzwerk ist aufgebraucht (unabhängig vom Konto). Für mehr: ein Abo anfragen.",
       },
       { status: 403 },
     );

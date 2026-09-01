@@ -150,17 +150,20 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
   Admin-Rechte zu vergeben) - dieser Account sollte also der/die Betreiber:in sein. **Admin-Konten
   haben kein Kontingent-Limit** (weder persönlich noch über die Browser-/IP-Sperre) - `/new` und
   das Dashboard zeigen dafür ein eigenes „unbegrenztes Kontingent"-Banner statt einer Zahl.
-- **Zwei Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 3
-  Arbeitsblätter/Monat - automatisch, ohne Admin-Freischaltung) und ein einziges bezahltes „Abo"
-  (2,50€ / 18 Arbeitsblätter im Monat, ~28% Marge bei voller Kontingent-Ausschöpfung, siehe
-  Kommentar bei `TIER_QUOTA`). Bewusst nur ein Bezahl-Tarif statt einer Staffelung - einfacher zu
-  kommunizieren, ohne dass Lehrkräfte zwischen mehreren Paketen abwägen müssen. Jedes frisch
-  registrierte Konto startet automatisch auf „Kostenlos"; ein Admin schaltet unter `/admin` bei
-  Bedarf auf das Abo hoch. Intern bleibt der Datenbankwert `"pro"` (historisch gewachsen aus einer
-  früheren Zwei-Tarif-Version; `"starter"` existiert nur noch als Abwärtskompatibilitäts-Alias für
-  Konten von davor).
+- **Zwei Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 5
+  Arbeitsblätter EINMALIG fürs ganze Konto - automatisch, ohne Admin-Freischaltung, kein
+  monatlicher Reset) und ein einziges bezahltes „Abo" (2,50€ / 18 Arbeitsblätter **im Monat**,
+  ~28% Marge bei voller Kontingent-Ausschöpfung, siehe Kommentar bei `TIER_QUOTA`). Bewusst nur
+  ein Bezahl-Tarif statt einer Staffelung - einfacher zu kommunizieren, ohne dass Lehrkräfte
+  zwischen mehreren Paketen abwägen müssen. Jedes frisch registrierte Konto startet automatisch
+  auf „Kostenlos"; ein Admin schaltet unter `/admin` bei Bedarf auf das Abo hoch. Intern bleibt
+  der Datenbankwert `"pro"` (historisch gewachsen aus einer früheren Zwei-Tarif-Version;
+  `"starter"` existiert nur noch als Abwärtskompatibilitäts-Alias für Konten von davor).
 - **Rollierender 30-Tage-Zyklus** ab dem individuellen Konto-Erstellungsdatum (nicht ab dem
-  Kalendermonat) - jedes Konto hat also seinen eigenen Rhythmus.
+  Kalendermonat) gilt NUR fürs bezahlte Abo. Für Konten ohne aktives Abo zählt `getKontingent`
+  stattdessen über die gesamte Kontolebenszeit (`KOSTENLOS_LIMIT` ist einmalig, kein
+  wiederkehrendes Monats-Kontingent) - sonst würde die Gratis-Stufe bei wachsender Kontenzahl zu
+  einem unbegrenzt mitwachsenden Kostenblock ohne Gegenfinanzierung.
 - Ist das Kontingent aufgebraucht, wird das schon in `/new` sichtbar (Banner + deaktivierter
   „Arbeitsblatt erstellen"-Button) und serverseitig in `/api/generate` **vor** dem teuren
   Claude-Aufruf geprüft, damit ein blockiertes Konto keine API-Kosten verursacht.
@@ -176,14 +179,18 @@ schaltet danach manuell unter `/admin` das Kontingent frei.
 ### Missbrauchsschutz für das kostenlose Kontingent
 
 Ein Konto zu registrieren ist selbst kostenlos (nur E-Mail + Passwort) - ohne weitere Sperre
-könnte sich also jemand beliebig viele Konten anlegen, um ein Vielfaches des Gratis-Kontingents
-zu bekommen. Deshalb wird die **kostenlose** Stufe (nicht das Abo - das wurde von einem Admin
-manuell freigeschaltet) zusätzlich über zwei unabhängige, browser-/netzwerkbasierte Zähler
-begrenzt (`lib/trial.ts`) - blockiert wird, sobald **einer** der beiden das Limit erreicht,
-unabhängig davon, welches Konto gerade eingeloggt ist:
+könnte sich also jemand beliebig viele Konten anlegen, um ein Vielfaches des (seit der Umstellung
+auf einmalig ohnehin schon begrenzten) Gratis-Kontingents zu bekommen. Deshalb wird die
+**kostenlose** Stufe (nicht das Abo - das wurde von einem Admin manuell freigeschaltet)
+zusätzlich über zwei unabhängige, browser-/netzwerkbasierte Zähler begrenzt (`lib/trial.ts`) -
+blockiert wird, sobald **einer** der beiden das Limit erreicht, unabhängig davon, welches Konto
+gerade eingeloggt ist. Beide Zähler sind LEBENSLANG (nicht pro Monat), analog zu
+`KOSTENLOS_LIMIT` selbst - sonst könnte man über denselben Browser/dieselbe IP jeden Monat mit
+einem neuen Konto erneut das "einmalige" Gratis-Kontingent bekommen:
 - **Cookie** (Browser, `trial_usage`) - verhindert das naive "neues Konto, gleicher Browser".
-- **IP-Adresse** (Server, Tabelle `TrialUsage`, pro Monat) - verhindert, dass Cookies löschen,
-  ein privater Tab oder ein neues Gerät allein das Kontingent vervielfachen.
+- **IP-Adresse** (Server, Tabelle `TrialUsage`, weiterhin pro Monat abgelegt, aber beim Lesen
+  über ALLE Monate hinweg aufsummiert) - verhindert, dass Cookies löschen, ein privater Tab oder
+  ein neues Gerät allein das Kontingent vervielfachen.
 
 Kein Geräte-Fingerprinting. Bekannte, bewusst in Kauf genommene Grenze: mehrere Lehrpersonen im
 selben Schul-WLAN teilen sich oft dieselbe öffentliche IP-Adresse und damit faktisch ein

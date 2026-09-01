@@ -101,9 +101,12 @@ model Session {
   createdAt DateTime @default(now())
 }
 
-// Zählt die kostenlosen Testversion-Generierungen ohne Konto pro IP-Adresse und Kalendermonat
-// (siehe lib/trial.ts) - zusätzlich zum Cookie-Zähler, damit Cookies löschen/neues Gerät allein
-// nicht reicht, um das Kontingent zu umgehen. Nur zur Missbrauchsprävention gespeichert.
+// Zählt die kostenlosen Testversion-Generierungen ohne Konto pro IP-Adresse (siehe lib/trial.ts)
+// - zusätzlich zum Cookie-Zähler, damit Cookies löschen/neues Gerät allein nicht reicht, um das
+// Kontingent zu umgehen. Weiterhin nach Kalendermonat abgelegt (reine Schreib-Granularität, ein
+// Zeile pro IP+Monat), aber beim Lesen ÜBER ALLE Monate hinweg für diese IP aufsummiert
+// (lebenslanger Zähler, analog zu KOSTENLOS_LIMIT selbst - siehe lib/quota.ts). Nur zur
+// Missbrauchsprävention gespeichert.
 model TrialUsage {
   id        String   @id @default(cuid())
   ip        String

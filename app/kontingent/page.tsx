@@ -23,7 +23,7 @@ export default async function KontingentPage() {
         </span>
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800">Kontingent</h1>
-          <p className="text-sm text-slate-500">Dein monatliches Arbeitsblatt-Kontingent im Überblick.</p>
+          <p className="text-sm text-slate-500">Dein Arbeitsblatt-Kontingent im Überblick.</p>
         </div>
       </div>
       <KontingentBanner kontingent={kontingent} />

@@ -107,7 +107,7 @@ export default function LandingPage() {
             href="/register"
             className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-card transition hover:shadow-card-hover"
           >
-            <Gift size={16} /> {KOSTENLOS_LIMIT} Arbeitsblätter/Monat kostenlos registrieren
+            <Gift size={16} /> {KOSTENLOS_LIMIT} Arbeitsblätter kostenlos ausprobieren
           </Link>
           <Link
             href="/login"
@@ -209,9 +209,10 @@ export default function LandingPage() {
           Was du bekommst
         </h2>
         <p className="mb-6 text-center text-sm text-slate-500">
-          Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - nur die Anzahl der
-          Arbeitsblätter pro Monat unterscheidet sich, sowie der Zugang zur Community (geteilte
-          Arbeitsblätter anderer Lehrkräfte), die Abo-Konten vorbehalten ist.
+          Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist
+          die Anzahl der Arbeitsblätter ({KOSTENLOS_LIMIT} einmalig zum Ausprobieren vs.{" "}
+          {TIER_QUOTA.pro}/Monat im Abo) sowie der Zugang zur Community (geteilte Arbeitsblätter
+          anderer Lehrkräfte), die Abo-Konten vorbehalten ist.
         </p>
         <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
           {WAS_ENTHALTEN.map((punkt) => (
@@ -237,7 +238,9 @@ export default function LandingPage() {
         <div className="mx-auto mt-6 grid max-w-md gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">Kostenlos</div>
-            <div className="mt-1 text-xs text-slate-400">{KOSTENLOS_LIMIT} Arbeitsblätter/Monat</div>
+            <div className="mt-1 text-xs text-slate-400">
+              {KOSTENLOS_LIMIT} Arbeitsblätter insgesamt, einmalig
+            </div>
           </div>
           <div className="rounded-xl border border-brand-200 bg-brand-50/40 p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">

@@ -7,6 +7,10 @@ import { KOSTENLOS_LIMIT } from "@/lib/quota";
  * ist für jede Generierung Pflicht (app/api/generate), aber wer sich mehrere Konten anlegt,
  * würde sonst ein Vielfaches von KOSTENLOS_LIMIT bekommen. Deshalb wird die Gratis-Nutzung
  * ZUSÄTZLICH pro Browser/IP begrenzt - unabhängig davon, welches Konto gerade eingeloggt ist.
+ * LEBENSLANG gezählt (nicht pro Monat), analog zu KOSTENLOS_LIMIT selbst (siehe dortigen
+ * Kommentar) - sonst könnte man über denselben Browser/dieselbe IP jeden Monat mit einem neuen
+ * Konto erneut das "einmalige" Gratis-Kontingent bekommen, was den ganzen Sinn der Umstellung
+ * von "3/Monat" auf "einmalig insgesamt" untergraben würde.
  * Zwei unabhängige Zähler, jeweils der niedrigere gewinnt (blockiert also schon, wenn EINER
  * der beiden aufgebraucht ist):
  * - Cookie (Browser) - verhindert das naive "neues Konto, gleicher Browser".
@@ -17,11 +21,10 @@ import { KOSTENLOS_LIMIT } from "@/lib/quota";
  * (tier gesetzt) sind von dieser Zusatzsperre ausgenommen - siehe app/api/generate.
  */
 const TRIAL_COOKIE = "trial_usage";
-const TRIAL_COOKIE_TAGE = 60;
-
-function aktuellerMonat(): string {
-  return new Date().toISOString().slice(0, 7); // "YYYY-MM"
-}
+// 400 Tage statt kurzlebiger: Chrome/Firefox deckeln Cookie-Laufzeiten ohnehin bei ~400 Tagen -
+// das ist der praktische Maximalwert für einen möglichst lang wirksamen "lebenslangen" Zähler
+// per Cookie. Die IP-basierte DB-Sperre bleibt trotzdem die robustere der beiden Schranken.
+const TRIAL_COOKIE_TAGE = 400;
 
 /** x-forwarded-for kann eine Kette "client, proxy1, proxy2" sein - der erste Eintrag ist die
  * ursprüngliche Client-IP. Vercel setzt diesen Header zuverlässig. */
@@ -38,17 +41,19 @@ export function getClientIp(): string {
 function getCookieCount(): number {
   const raw = cookies().get(TRIAL_COOKIE)?.value;
   if (!raw) return 0;
-  const [monat, anzahlStr] = raw.split(":");
-  if (monat !== aktuellerMonat()) return 0; // Cookie ist aus einem früheren Monat
-  const n = parseInt(anzahlStr, 10);
+  const n = parseInt(raw, 10);
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
+/** Summiert ALLE bisherigen Monatszeilen für diese IP (siehe Prisma-Modell TrialUsage - weiterhin
+ * pro Monat gespeichert, rein als praktische Schreib-Granularität, aber lebenslang aufsummiert
+ * gelesen, siehe Kommentar oben). */
 async function getIpCount(ip: string): Promise<number> {
-  const eintrag = await prisma.trialUsage.findUnique({
-    where: { ip_monat: { ip, monat: aktuellerMonat() } },
+  const ergebnis = await prisma.trialUsage.aggregate({
+    where: { ip },
+    _sum: { anzahl: true },
   });
-  return eintrag?.anzahl ?? 0;
+  return ergebnis._sum.anzahl ?? 0;
 }
 
 export interface TrialStatus {
@@ -66,10 +71,10 @@ export async function getTrialStatus(): Promise<TrialStatus> {
 
 /** Nur aus Route Handlers aufrufbar (Server Components dürfen keine Cookies setzen). */
 export async function incrementTrialUsage(): Promise<void> {
-  const monat = aktuellerMonat();
+  const monat = new Date().toISOString().slice(0, 7); // "YYYY-MM" - reine Schreib-Granularität
   const ip = getClientIp();
 
-  cookies().set(TRIAL_COOKIE, `${monat}:${getCookieCount() + 1}`, {
+  cookies().set(TRIAL_COOKIE, String(getCookieCount() + 1), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

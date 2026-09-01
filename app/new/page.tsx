@@ -35,9 +35,8 @@ export default async function NewWorksheetPage() {
             <div className="font-medium">Gratis-Kontingent für diesen Browser/dieses Netzwerk aufgebraucht</div>
             <p className="mt-0.5">
               Dein Konto selbst hat noch Kontingent übrig, aber von diesem Browser/Netzwerk aus
-              wurde das kostenlose Kontingent diesen Monat bereits vollständig genutzt
-              (unabhängig vom Konto). Für mehr: ein Abo bei der Person anfragen, die den Zugang
-              verwaltet.
+              wurde das einmalige kostenlose Kontingent bereits vollständig genutzt (unabhängig
+              vom Konto). Für mehr: ein Abo bei der Person anfragen, die den Zugang verwaltet.
             </p>
           </div>
         </div>
