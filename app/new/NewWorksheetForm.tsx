@@ -25,6 +25,7 @@ import {
   PenTool,
   Sparkles,
   ChevronDown,
+  Check,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN_AKTIV,
@@ -454,16 +455,23 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
                   type="button"
                   key={typ}
                   onClick={() => toggleTyp(typ)}
+                  aria-pressed={active}
                   title={fruehEmpfohlen ? "Empfohlen für 1. Klasse Volksschule" : undefined}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
                     active
-                      ? SEKTION_FARBEN.gold.aktiv
+                      ? "border-gold-600 bg-gold-600 text-white shadow-sm shadow-gold-600/30"
                       : fruehEmpfohlen
                         ? "border-brand-300 text-brand-700 hover:border-brand-400"
                         : CHIP_BASIS
                   }`}
                 >
-                  {fruehEmpfohlen && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />}
+                  {active ? (
+                    <Check size={14} strokeWidth={3} />
+                  ) : (
+                    fruehEmpfohlen && (
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+                    )
+                  )}
                   <meta.icon size={14} strokeWidth={2.25} />
                   {meta.label}
                 </button>
