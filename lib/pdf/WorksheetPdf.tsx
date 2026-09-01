@@ -184,7 +184,7 @@ function buildStyles(layout: LayoutConfig) {
     },
     zuordnungZeile: {
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "flex-start",
       marginBottom: 3,
     },
     zuordnungBox: {
@@ -196,16 +196,29 @@ function buildStyles(layout: LayoutConfig) {
     },
     // Nur für "zuordnung": Kästchen NACH dem Text statt davor (anders als zuordnungBox oben,
     // die "reihenfolge" weiterhin nutzt) - man liest erst links das Item, dann rechts die
-    // passende Beschreibung, und trägt den Buchstaben erst danach ein.
+    // passende Beschreibung, und trägt den Buchstaben erst danach ein. Absolut positioniert
+    // (statt als Flex-Geschwister NACH dem Text) - @react-pdf/renderer/Yoga berechnet den
+    // Textumbruch nicht zuverlässig, wenn ein Element mit fester Breite dem Text in derselben
+    // Flex-Zeile folgt (führte zu Überlappung: der Text wurde nicht schmaler als die volle
+    // Spaltenbreite umbrochen, das Kästchen landete dadurch über dem Text bzw. der Nachbarspalte).
+    // Das gepolsterte zuordnungTextWrap (siehe unten) reserviert den Platz stattdessen über
+    // paddingRight, während der Text selbst wieder das letzte (einzige) Element seiner Zeile ist.
     zuordnungBoxNachText: {
+      position: "absolute",
+      top: 1,
+      right: 0,
       width: 12,
       height: 12,
       border: "1px solid #94a3b8",
       borderRadius: 2,
-      marginLeft: 8,
     },
     zuordnungNummer: {
       width: 16,
+    },
+    zuordnungTextWrap: {
+      flex: 1,
+      position: "relative",
+      paddingRight: 20,
     },
     zuordnungOption: {
       marginBottom: 3,
@@ -494,8 +507,10 @@ function AufgabenListe({
                   {zuordnungAnzeige(a)!.links.map((l) => (
                     <View key={l.nummer} style={styles.zuordnungZeile}>
                       <Text style={styles.zuordnungNummer}>{l.nummer}.</Text>
-                      <Text>{l.text}</Text>
-                      <View style={styles.zuordnungBoxNachText} />
+                      <View style={styles.zuordnungTextWrap}>
+                        <Text>{l.text}</Text>
+                        <View style={styles.zuordnungBoxNachText} />
+                      </View>
                     </View>
                   ))}
                 </View>
