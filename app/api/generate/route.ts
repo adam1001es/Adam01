@@ -5,6 +5,7 @@ import { generateAndVerifyWorksheet } from "@/lib/generateWorksheet";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
+import { speichereUsage } from "@/lib/usageLog";
 
 // Generierung + Verifikation (zwei nacheinander laufende Claude-Aufrufe) können zusammen länger
 // als das Standard-Zeitlimit dauern - ohne diese Erhöhung bricht Vercel die Funktion vorzeitig
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { content, verification } = await generateAndVerifyWorksheet(req);
+    const { content, verification, usage } = await generateAndVerifyWorksheet(req);
 
     const worksheet = await prisma.worksheet.create({
       data: {
@@ -79,6 +80,11 @@ export async function POST(request: NextRequest) {
         userId: user.id,
       },
     });
+
+    // Bewusst nach dem Worksheet-Create, aber unabhängig davon gespeichert (siehe UsageLog in
+    // prisma/schema.prisma) - ein späteres Löschen des Arbeitsblatts darf diese Statistik nicht
+    // rückwirkend verfälschen.
+    await speichereUsage(usage, user.id, worksheet.id);
 
     if (!kontingent.unbegrenzt && !kontingent.tier) await incrementTrialUsage();
 

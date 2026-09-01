@@ -18,6 +18,7 @@ import {
 import { buildCurriculumSystemContext } from "./curriculum";
 import { erzeugeWortsucheGitter } from "./wortsuche";
 import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
+import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 
 const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, aktueller Lehrplan der IGGÖ "Lehrplan IRU NEU"). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
 
@@ -140,6 +141,7 @@ ${req.zusatzhinweise ? `- Zusätzliche Hinweise der Lehrkraft: ${req.zusatzhinwe
 export interface GenerationResult {
   content: WorksheetContent;
   verification: Verification;
+  usage: UsageEintrag[];
 }
 
 export async function generateAndVerifyWorksheet(
@@ -157,7 +159,15 @@ export async function generateAndVerifyWorksheet(
   // von der eigenen Prüfung als fehlerhaft erkanntes Arbeitsblatt bisher trotzdem unverändert an
   // die Lehrkraft ausgeliefert (nur mit Status "verworfen" im Hintergrund).
   if (ersterVersuch.verification.status !== "fehler") return ersterVersuch;
-  return generiereUndPruefeEinmal(req, curriculumContext, anzahlAufgaben, ersterVersuch.verification);
+  const zweiterVersuch = await generiereUndPruefeEinmal(
+    req,
+    curriculumContext,
+    anzahlAufgaben,
+    ersterVersuch.verification,
+  );
+  // Tokens beider Versuche zählen für die Nutzungsstatistik (siehe lib/usageLog.ts) - der erste,
+  // verworfene Versuch hat trotzdem echte Kosten verursacht.
+  return { ...zweiterVersuch, usage: [...ersterVersuch.usage, ...zweiterVersuch.usage] };
 }
 
 async function generiereUndPruefeEinmal(
@@ -225,7 +235,12 @@ async function generiereUndPruefeEinmal(
   const rawVerification = extractJson(getTextFromMessage(verifyResponse));
   const verification = VerificationSchema.parse(rawVerification);
 
-  return { content, verification };
+  const usage = [
+    usageEintragAusAntwort(GENERATION_MODEL, "generierung", genResponse.usage),
+    usageEintragAusAntwort(VERIFICATION_MODEL, "pruefung", verifyResponse.usage),
+  ];
+
+  return { content, verification, usage };
 }
 
 /**

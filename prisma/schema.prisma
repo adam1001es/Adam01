@@ -89,6 +89,7 @@ model User {
   meldungen    Meldung[]
   themaIdeenNutzungen ThemaIdeenUsage[]
   communityFavoriten CommunityFavorit[]
+  usageLogs    UsageLog[]
 }
 
 model Session {
@@ -147,6 +148,28 @@ model Meldung {
   diagnose     String? // kurze, für den Admin verständliche Begründung/Diagnose der KI-Analyse
   bearbeitet   Boolean  @default(false) // vom Admin manuell als gesichtet/erledigt markiert
   createdAt    DateTime @default(now())
+}
+
+// Echte Claude-Token-Nutzung pro tatsächlichem API-Aufruf (Erstellung ODER Prüfung - bei einem
+// automatischen zweiten Versuch nach "fehler", siehe generateAndVerifyWorksheet, entsprechend
+// mehrere Zeilen pro Arbeitsblatt). BEWUSST UNABHÄNGIG vom Worksheet gespeichert: worksheetId ist
+// nur eine lose Referenz OHNE Fremdschlüssel-Constraint, kein onDelete: Cascade - wird ein
+// Arbeitsblatt später gelöscht (siehe app/api/worksheet/[id], DELETE), bleiben diese Zeilen und
+// damit die kumulierte Nutzungs-/Kostenstatistik unverändert bestehen. Die Tokens wurden bereits
+// verbraucht und bezahlt, unabhängig davon, ob das Arbeitsblatt danach noch existiert. userId hat
+// dieselbe SetNull-Logik wie Worksheet.userId (Konto-Löschung darf die Statistik nicht verfälschen).
+model UsageLog {
+  id                      String   @id @default(cuid())
+  userId                  String?
+  user                    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  worksheetId             String? // lose Referenz ohne FK, siehe Kommentar oben
+  model                   String // z.B. "claude-opus-5" (siehe lib/anthropic.ts)
+  phase                   String // "generierung" | "pruefung"
+  inputTokens             Int
+  outputTokens            Int
+  cacheCreationInputTokens Int @default(0)
+  cacheReadInputTokens    Int @default(0)
+  createdAt               DateTime @default(now())
 }
 
 // Zählt, wie oft eine Lehrkraft pro Tag die KI-Themenideen-Funktion nutzt (siehe

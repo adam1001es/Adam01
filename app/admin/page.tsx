@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag, BarChart3 } from "lucide-react";
+import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag, BarChart3, Cpu } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import {
@@ -11,6 +11,7 @@ import {
   GESCHAETZTE_KOSTEN_PRO_BILD_EUR,
   zaehleGenerierteBilder,
 } from "@/lib/quota";
+import { summeTokens } from "@/lib/usageLog";
 import AdminUserTable, { AdminUserRow } from "@/components/AdminUserTable";
 
 export const dynamic = "force-dynamic";
@@ -73,6 +74,15 @@ export default async function AdminPage() {
     bilderDiesenMonat * GESCHAETZTE_KOSTEN_PRO_BILD_EUR;
   const geschaetzterGewinn = monatsumsatz - geschaetzteKosten;
 
+  // Echte Claude-Token-Nutzung (siehe lib/usageLog.ts) - im Unterschied zur Pauschalschätzung
+  // oben bleibt diese Zahl auch nach dem Löschen einzelner Arbeitsblätter unverändert korrekt,
+  // da UsageLog unabhängig vom Worksheet gespeichert wird. Erfasst erst Arbeitsblätter ab
+  // Einführung dieser Funktion - ältere haben keine UsageLog-Zeilen.
+  const [tokensMonat, tokensGesamt] = await Promise.all([
+    summeTokens(monatsbeginn),
+    summeTokens(),
+  ]);
+
   const offeneMeldungen = await prisma.meldung.count({ where: { bearbeitet: false } });
 
   const STATS = [
@@ -90,6 +100,18 @@ export default async function AdminPage() {
       label: "Geschätzter Gewinn/Verlust (Monat)",
       wert: `${geschaetzterGewinn >= 0 ? "+" : ""}${geschaetzterGewinn.toFixed(2)}€`,
       farbe: geschaetzterGewinn >= 0 ? "text-brand-700" : "text-red-600",
+    },
+    {
+      icon: Cpu,
+      label: "Echte Tokens (Monat)",
+      wert: tokensMonat.gesamt.toLocaleString("de-AT"),
+      unterschrift: `${tokensMonat.anzahlAufrufe} API-Aufrufe`,
+    },
+    {
+      icon: Cpu,
+      label: "Echte Tokens (gesamt)",
+      wert: tokensGesamt.gesamt.toLocaleString("de-AT"),
+      unterschrift: "bleibt beim Löschen von Arbeitsblättern unverändert",
     },
   ];
 
