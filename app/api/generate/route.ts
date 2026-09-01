@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { GenerateRequestSchema } from "@/lib/types";
 import { generateAndVerifyWorksheet } from "@/lib/generateWorksheet";
 import { getSessionUser } from "@/lib/auth";
-import { getKontingent } from "@/lib/quota";
+import { getKontingent, istZahlendesKonto } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 import { speichereUsage } from "@/lib/usageLog";
 import { starteGenerierung, beendeGenerierung } from "@/lib/auslastung";
@@ -68,6 +68,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Prüfung direkt aus einer Klasse heraus (siehe app/klassen/[id]/pruefung-generieren) - vor dem
+  // teuren Claude-Aufruf validiert, damit ein manipulierter Request keine Kosten verursacht ohne
+  // je eine Zuweisung anlegen zu können.
+  let klasse: { id: string } | null = null;
+  if (req.klasseId) {
+    if (!istZahlendesKonto(user)) {
+      return NextResponse.json(
+        { error: "Klassen-Tracking ist nur in einem Abo verfügbar." },
+        { status: 403 },
+      );
+    }
+    const gefunden = await prisma.klasse.findUnique({ where: { id: req.klasseId } });
+    if (!gefunden || gefunden.userId !== user.id) {
+      return NextResponse.json({ error: "Klasse nicht gefunden." }, { status: 404 });
+    }
+    klasse = gefunden;
+  }
+
   const auslastungId = await starteGenerierung();
   try {
     const { content, verification, usage } = await generateAndVerifyWorksheet(req);
@@ -96,6 +114,23 @@ export async function POST(request: NextRequest) {
     // prisma/schema.prisma) - ein späteres Löschen des Arbeitsblatts darf diese Statistik nicht
     // rückwirkend verfälschen.
     await speichereUsage(usage, user.id, worksheet.id);
+
+    // Automatisch der Klasse zuweisen, aus deren Kontext heraus diese Prüfung erstellt wurde -
+    // spiegelt genau, wie Modus A (app/api/pruefung/zusammenstellen) das schon macht, damit die
+    // Klasse sofort in ihrer Zuweisungs-/Wissensstand-Übersicht auftaucht statt "lose" zu bleiben.
+    if (klasse) {
+      await prisma.zuweisung.create({
+        data: {
+          klasseId: klasse.id,
+          worksheetId: worksheet.id,
+          titel: content.titel,
+          themenbereich: req.themenbereich,
+          istPruefung: true,
+          punkteGesamt: req.punkteGesamt,
+          datum: new Date(),
+        },
+      });
+    }
 
     if (!kontingent.unbegrenzt && !kontingent.tier) await incrementTrialUsage();
 

@@ -27,6 +27,7 @@ import {
   ChevronDown,
   Check,
   GraduationCap,
+  FileCheck2,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN_AKTIV,
@@ -141,17 +142,43 @@ const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch:
   kompakt: { label: "Kompakt", swatch: "#64748b" },
 };
 
-export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boolean }) {
+/**
+ * Prüfungs-Modus B (komplette Neu-Generierung als formelle Prüfung, siehe lib/generateWorksheet.ts
+ * "istPruefung") läuft durch dieselbe Pipeline wie ein normales Arbeitsblatt, ist aber NUR aus dem
+ * Kontext einer Klasse heraus erreichbar (siehe app/klassen/[id]/pruefung-generieren) - eine
+ * Prüfung ohne Bezug dazu, was diese Klasse tatsächlich schon behandelt hat, ergibt inhaltlich
+ * keinen Sinn. Deshalb hier kein Umschalter mehr: klasseId gesetzt → Prüfungs-Modus fest an,
+ * sonst fest aus. Für den kontingentfreien Weg "aus bestehenden Blättern zusammenstellen" siehe
+ * stattdessen app/klassen/[id]/pruefung-zusammenstellen (Modus A).
+ */
+export default function NewWorksheetForm({
+  kannErstellen,
+  klasseId,
+  klasseName,
+  initialSchulstufe,
+  initialZusatzhinweise,
+}: {
+  kannErstellen: boolean;
+  klasseId?: string;
+  klasseName?: string;
+  initialSchulstufe?: string;
+  initialZusatzhinweise?: string;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const istPruefung = Boolean(klasseId);
 
   // Kein Formularfeld mehr (siehe Design-Feedback) - die App ist ausschließlich für islamischen
   // Religionsunterricht gebaut, eine Eingabemöglichkeit dafür bot Lehrkräften nie eine sinnvolle
   // Entscheidung. Wert bleibt im System/Prompt/Dashboard unverändert, nur fest statt editierbar.
   const bereich = "Islamischer Religionsunterricht";
   const [thema, setThema] = useState("");
-  const [schulstufeAuswahl, setSchulstufeAuswahl] = useState(SCHULSTUFEN_OPTIONEN[0]);
+  const [schulstufeAuswahl, setSchulstufeAuswahl] = useState(
+    initialSchulstufe && (SCHULSTUFEN_OPTIONEN as readonly string[]).includes(initialSchulstufe)
+      ? initialSchulstufe
+      : SCHULSTUFEN_OPTIONEN[0],
+  );
   const [schulstufeFrei, setSchulstufeFrei] = useState("");
   const schulstufe = schulstufeAuswahl === ANDERE_SCHULSTUFE ? schulstufeFrei : schulstufeAuswahl;
   const schulstufenThemen = holeSchulstufenThemen(schulstufe);
@@ -162,29 +189,13 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
     "zuordnung",
     "offene_frage",
   ]);
-  // Prüfungs-Modus B (siehe app/klassen, lib/generateWorksheet.ts "istPruefung") - läuft durch
-  // dieselbe Generierungs-Pipeline, aber mit formellerem Ton, Punktevergabe pro Aufgabe und auf
-  // prüfungstaugliche Typen beschränkt (EXAM_GEEIGNETE_TYPEN). Zählt wie ein normales
-  // Arbeitsblatt zum Kontingent - für den kontingentfreien Weg "aus bestehenden Blättern
-  // zusammenstellen" siehe stattdessen app/klassen/[id]/pruefung-zusammenstellen.
-  const [istPruefung, setIstPruefung] = useState(false);
   const [punkteGesamt, setPunkteGesamt] = useState(30);
   const sichtbareTypen = istPruefung ? EXAM_GEEIGNETE_TYPEN : AUFGABEN_TYPEN_AKTIV;
-
-  function handlePruefungToggle(next: boolean) {
-    setIstPruefung(next);
-    if (next) {
-      // Nicht prüfungstaugliche Typen (Rätsel/Bewegungs-/Ausschneide-/Diskussionsformate)
-      // automatisch aus der aktuellen Auswahl entfernen, statt sie nur zu verstecken - sonst
-      // bliebe ein für die Prüfung ungeeigneter Typ unsichtbar, aber weiterhin ausgewählt.
-      setAufgabentypen((prev) => prev.filter((t) => (EXAM_GEEIGNETE_TYPEN as readonly string[]).includes(t)));
-    }
-  }
   // Nur für die Empfehlungs-Hinweise unten (z.B. "Malaufgabe empfohlen") - blockiert keine
   // Auswahl mehr; alle Aufgabentypen bleiben unabhängig von der Schulstufe wählbar, die
   // Lehrkraft kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik.
   const fruehStufe = istFrueheVolksschulstufe(schulstufe);
-  const [zusatzhinweise, setZusatzhinweise] = useState("");
+  const [zusatzhinweise, setZusatzhinweise] = useState(initialZusatzhinweise ?? "");
   const [themenbereich, setThemenbereich] = useState<ThemenbereichKey>("gemischt");
   const [themenvorschlaegeOffen, setThemenvorschlaegeOffen] = useState(false);
   const [themaIdeen, setThemaIdeen] = useState<string[] | null>(null);
@@ -251,6 +262,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
           aufgabentypen,
           istPruefung,
           punkteGesamt: istPruefung ? punkteGesamt : undefined,
+          klasseId,
           zusatzhinweise: zusatzhinweise || undefined,
           layout: {
             template,
@@ -466,14 +478,15 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
           akzent="gold"
           schritt={{ nr: 2, von: 3 }}
         >
-          <div className="mb-4 divide-y divide-slate-100 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
-            <ToggleSwitch
-              checked={istPruefung}
-              onChange={handlePruefungToggle}
-              label="Als Prüfung erstellen"
-              description="Formeller Ton, Aufgabentypen auf prüfungstaugliche Formate beschränkt, Punkte pro Aufgabe - z.B. für eine Prüfung in einer Maturaklasse"
-            />
-          </div>
+          {istPruefung && (
+            <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3 text-sm text-gold-800">
+              <FileCheck2 size={16} className="mt-0.5 shrink-0" />
+              <span>
+                Prüfung für Klasse „{klasseName}" - formeller Ton, nur prüfungstaugliche
+                Aufgabentypen, Punkte pro Aufgabe.
+              </span>
+            </div>
+          )}
           {istPruefung && (
             <label className="mb-4 block max-w-xs">
               <span className={labelClass}>Zielpunktzahl</span>
@@ -792,7 +805,11 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-3.5 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
           >
             <Wand2 size={18} strokeWidth={2.25} />
-            {kannErstellen ? "Arbeitsblatt erstellen" : "Kontingent aufgebraucht"}
+            {kannErstellen
+              ? istPruefung
+                ? "Prüfung erstellen"
+                : "Arbeitsblatt erstellen"
+              : "Kontingent aufgebraucht"}
           </button>
         )}
       </form>

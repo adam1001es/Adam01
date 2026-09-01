@@ -347,8 +347,19 @@ export const GenerateRequestSchema = z
     // Arbeitsblatt zum Kontingent (siehe app/api/generate/route.ts).
     istPruefung: z.boolean().default(false),
     punkteGesamt: z.number().int().min(1).max(200).optional(),
+    // Nur gesetzt, wenn diese Prüfung direkt aus dem Kontext einer Klasse heraus erstellt wird
+    // (siehe app/klassen/[id]/pruefung-generieren) - die Route legt dann serverseitig automatisch
+    // eine Zuweisung an dieser Klasse an, statt das Arbeitsblatt "lose" zu erzeugen.
+    klasseId: z.string().optional(),
   })
   .superRefine((req, ctx) => {
+    if (req.klasseId && !req.istPruefung) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["klasseId"],
+        message: "klasseId ist nur zusammen mit istPruefung gültig.",
+      });
+    }
     if (!req.istPruefung) return;
     if (req.punkteGesamt === undefined) {
       ctx.addIssue({

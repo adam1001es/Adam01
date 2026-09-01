@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, FileCheck2, Users, LayoutGrid } from "lucide-react";
+import { Plus, FileCheck2, Wand2, Users, LayoutGrid } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
@@ -68,6 +68,12 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
               className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-white/20"
             >
               <FileCheck2 size={16} /> Prüfung zusammenstellen
+            </Link>
+            <Link
+              href={`/klassen/${klasse.id}/pruefung-generieren`}
+              className="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-semibold text-white shadow-card transition hover:bg-white/20"
+            >
+              <Wand2 size={16} /> Prüfung generieren
             </Link>
           </div>
         </div>
