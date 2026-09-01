@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag, BarChart3, Cpu } from "lucide-react";
+import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag, BarChart3, Cpu, Calculator } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import {
@@ -11,7 +11,7 @@ import {
   GESCHAETZTE_KOSTEN_PRO_BILD_EUR,
   zaehleGenerierteBilder,
 } from "@/lib/quota";
-import { summeTokens, summeKostenEur } from "@/lib/usageLog";
+import { summeTokens, summeKostenEur, durchschnittKostenProBlattEur } from "@/lib/usageLog";
 import { KOSTEN_BERECHNUNGSGRUNDLAGE } from "@/lib/pricing";
 import AdminUserTable, { AdminUserRow } from "@/components/AdminUserTable";
 
@@ -82,11 +82,12 @@ export default async function AdminPage() {
   // keine UsageLog-Zeilen. Der €-Betrag ist eine Schätzung auf Basis von Anthropic-Listenpreisen
   // und einem gerundeten Wechselkurs (siehe KOSTEN_BERECHNUNGSGRUNDLAGE), kein exakter
   // Rechnungsbetrag.
-  const [tokensMonat, tokensGesamt, kostenMonat, kostenGesamt] = await Promise.all([
+  const [tokensMonat, tokensGesamt, kostenMonat, kostenGesamt, durchschnittGesamt] = await Promise.all([
     summeTokens(monatsbeginn),
     summeTokens(),
     summeKostenEur(monatsbeginn),
     summeKostenEur(),
+    durchschnittKostenProBlattEur(),
   ]);
 
   const offeneMeldungen = await prisma.meldung.count({ where: { bearbeitet: false } });
@@ -118,6 +119,19 @@ export default async function AdminPage() {
       label: "Echte Kosten (gesamt)",
       wert: `${kostenGesamt < 0.01 && kostenGesamt > 0 ? "<0,01" : kostenGesamt.toFixed(2)}€`,
       unterschrift: "bleibt beim Löschen von Arbeitsblättern unverändert",
+    },
+    {
+      icon: Calculator,
+      label: "Ø Kosten pro Arbeitsblatt (echt)",
+      wert:
+        durchschnittGesamt.durchschnittEur === null
+          ? "–"
+          : `${durchschnittGesamt.durchschnittEur.toFixed(2)}€`,
+      unterschrift:
+        durchschnittGesamt.anzahlBlaetter === 0
+          ? "noch keine Daten"
+          : `Basis: ${durchschnittGesamt.anzahlBlaetter} Arbeitsblätter${durchschnittGesamt.anzahlBlaetter < 20 ? " - noch wenig Datenbasis" : ""}`,
+      farbe: durchschnittGesamt.anzahlBlaetter > 0 && durchschnittGesamt.anzahlBlaetter < 20 ? "text-amber-600" : undefined,
     },
   ];
 

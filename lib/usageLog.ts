@@ -124,3 +124,35 @@ export async function summeKostenEur(seit?: Date): Promise<number> {
     0,
   );
 }
+
+/** Zählt, für wie viele VERSCHIEDENE Arbeitsblätter seit einem Zeitpunkt (oder insgesamt)
+ * UsageLog-Zeilen existieren - Grundlage für einen echten Durchschnittspreis pro Arbeitsblatt
+ * (siehe durchschnittKostenProBlattEur). Zählt auch bereits gelöschte Arbeitsblätter mit, da
+ * worksheetId nur eine lose Referenz ist (siehe Schema-Kommentar). */
+async function zaehleBlaetterMitUsage(seit?: Date): Promise<number> {
+  const gruppen = await prisma.usageLog.groupBy({
+    by: ["worksheetId"],
+    where: { worksheetId: { not: null }, ...(seit ? { createdAt: { gte: seit } } : {}) },
+  });
+  return gruppen.length;
+}
+
+export interface DurchschnittsKosten {
+  /** null, solange noch keine Arbeitsblätter mit UsageLog-Daten existieren (Division durch 0). */
+  durchschnittEur: number | null;
+  anzahlBlaetter: number;
+}
+
+/** Echter Durchschnittspreis pro Arbeitsblatt in € - die belastbare Grundlage für die
+ * Preiskalkulation (siehe README/Abo-Kalkulation in lib/quota.ts), statt der bisherigen
+ * Pauschalschätzung GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR oder eines einzelnen Datenpunkts. Je
+ * mehr echte Arbeitsblätter eingeflossen sind (siehe "anzahlBlaetter"), desto verlässlicher der
+ * Wert - bei sehr wenigen Datenpunkten (z.B. unter 20-30) noch mit Vorsicht für eine endgültige
+ * Preisentscheidung nutzen. */
+export async function durchschnittKostenProBlattEur(seit?: Date): Promise<DurchschnittsKosten> {
+  const [kosten, anzahlBlaetter] = await Promise.all([
+    summeKostenEur(seit),
+    zaehleBlaetterMitUsage(seit),
+  ]);
+  return { durchschnittEur: anzahlBlaetter === 0 ? null : kosten / anzahlBlaetter, anzahlBlaetter };
+}
