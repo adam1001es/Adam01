@@ -6,6 +6,7 @@ import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 import { speichereUsage } from "@/lib/usageLog";
+import { starteGenerierung, beendeGenerierung } from "@/lib/auslastung";
 
 // Generierung + Verifikation (zwei nacheinander laufende Claude-Aufrufe, bei einem automatischen
 // zweiten Versuch nach "fehler" sogar vier, siehe generateAndVerifyWorksheet) können zusammen
@@ -67,6 +68,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const auslastungId = await starteGenerierung();
   try {
     const { content, verification, usage } = await generateAndVerifyWorksheet(req);
 
@@ -103,5 +105,7 @@ export async function POST(request: NextRequest) {
     const message =
       err instanceof Error ? err.message : "Unbekannter Fehler bei der Generierung.";
     return NextResponse.json({ error: message }, { status: 502 });
+  } finally {
+    await beendeGenerierung(auslastungId);
   }
 }

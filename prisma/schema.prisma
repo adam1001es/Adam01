@@ -109,6 +109,16 @@ model User {
   klassen      Klasse[]
 }
 
+// Ein Platzhalter-Eintrag pro GERADE LAUFENDEM Claude-Aufruf (siehe lib/auslastung.ts) - beim
+// Start der Generierung angelegt, danach (Erfolg wie Fehler, per finally) wieder gelöscht. Zählt
+// wie viele Lehrkräfte aktuell gleichzeitig eine KI-Anfrage laufen haben, damit die App bei
+// echtem Andrang einen dezenten Hinweis zeigen kann statt kommentarlos länger zu brauchen. Kein
+// Bezug zu einer einzelnen Person/einem Arbeitsblatt - bewusst anonym, nur die Anzahl zählt.
+model AktiveGenerierung {
+  id        String   @id @default(cuid())
+  startedAt DateTime @default(now())
+}
+
 model Session {
   id        String   @id @default(cuid())
   token     String   @unique

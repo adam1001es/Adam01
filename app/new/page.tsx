@@ -4,6 +4,8 @@ import NewWorksheetForm from "./NewWorksheetForm";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent } from "@/lib/quota";
 import { getTrialStatus } from "@/lib/trial";
+import { holeAuslastung } from "@/lib/auslastung";
+import AuslastungHinweis from "@/components/AuslastungHinweis";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +13,7 @@ export default async function NewWorksheetPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const kontingent = await getKontingent(user);
+  const [kontingent, auslastung] = await Promise.all([getKontingent(user), holeAuslastung()]);
   // Die Browser-/IP-Sperre (siehe lib/trial.ts) gilt zusätzlich zum persönlichen Kontingent,
   // aber nur für Konten ohne bezahltes Abo - sie verhindert, dass sich jemand mehrere
   // Gratis-Konten anlegt, um ein Vielfaches von KOSTENLOS_LIMIT zu bekommen.
@@ -28,6 +30,7 @@ export default async function NewWorksheetPage() {
           Alles auswählen und einstellen – der Inhalt wird automatisch generiert und geprüft.
         </p>
       </div>
+      {auslastung.viele && <AuslastungHinweis aktiv={auslastung.aktiv} />}
       {netzwerkBlockiert && (
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 shadow-sm">
           <AlertTriangle size={18} className="mt-0.5 shrink-0" />

@@ -6,6 +6,7 @@ import { istZahlendesKonto } from "@/lib/quota";
 import { LayoutConfigSchema, WorksheetContent } from "@/lib/types";
 import { stelleZusammen, QuellArbeitsblatt } from "@/lib/pruefungZusammenstellen";
 import { speichereUsage } from "@/lib/usageLog";
+import { starteGenerierung, beendeGenerierung } from "@/lib/auslastung";
 
 // Der Claude-Aufruf hier ist klein (Auswahl statt Neu-Formulierung), aber die Kandidatenliste
 // aus mehreren Quell-Arbeitsblättern als Input kann trotzdem etwas dauern - ähnliches Zeitlimit
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const auslastungId = await starteGenerierung();
   try {
     const { content, usage } = await stelleZusammen({
       quellen,
@@ -132,5 +134,7 @@ export async function POST(request: NextRequest) {
     console.error("Fehler beim Zusammenstellen der Prüfung:", err);
     const message = err instanceof Error ? err.message : "Unbekannter Fehler.";
     return NextResponse.json({ error: message }, { status: 502 });
+  } finally {
+    await beendeGenerierung(auslastungId);
   }
 }

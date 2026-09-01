@@ -2,6 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
+import { holeAuslastung } from "@/lib/auslastung";
+import AuslastungHinweis from "@/components/AuslastungHinweis";
 import PruefungZusammenstellenForm from "@/components/PruefungZusammenstellenForm";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +16,7 @@ export default async function PruefungZusammenstellenPage({ params }: { params: 
   const klasse = await prisma.klasse.findUnique({ where: { id: params.id } });
   if (!klasse || klasse.userId !== user.id) notFound();
 
-  const [eigene, community] = await Promise.all([
+  const [eigene, community, auslastung] = await Promise.all([
     prisma.worksheet.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
@@ -27,6 +29,7 @@ export default async function PruefungZusammenstellenPage({ params }: { params: 
       take: 200,
       select: { id: true, thema: true, themenbereich: true },
     }),
+    holeAuslastung(),
   ]);
 
   return (
@@ -39,6 +42,11 @@ export default async function PruefungZusammenstellenPage({ params }: { params: 
         wird - kein Neu-Erfinden von Inhalten, dadurch deutlich günstiger als eine komplette
         Neu-Generierung und ohne Kontingent-Verbrauch.
       </p>
+      {auslastung.viele && (
+        <div className="mt-6">
+          <AuslastungHinweis aktiv={auslastung.aktiv} />
+        </div>
+      )}
       <div className="mt-6 rounded-2xl border border-emerald-100 bg-surface p-6 shadow-card-klassen">
         <PruefungZusammenstellenForm klasseId={klasse.id} eigene={eigene} community={community} />
       </div>
