@@ -92,7 +92,7 @@ export default async function CommunityPage({
 
   return (
     <main>
-      <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
+      <div className="relative overflow-hidden rounded-2xl bg-community-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
         <div className="max-w-2xl">
           <h1 className="flex items-center gap-2.5 font-display text-3xl font-semibold text-white sm:text-4xl">
             <Users size={28} strokeWidth={2} /> Arbeitsblätter von anderen Lehrkräften
@@ -145,7 +145,7 @@ export default async function CommunityPage({
         </label>
         <button
           type="submit"
-          className="rounded-lg bg-brand-gradient px-4 py-2.5 text-sm font-medium text-white shadow-card transition hover:shadow-card-hover"
+          className="rounded-lg bg-community-gradient px-4 py-2.5 text-sm font-medium text-white shadow-card transition hover:shadow-card-hover"
         >
           Filtern
         </button>
