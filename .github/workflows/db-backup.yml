@@ -46,13 +46,18 @@ jobs:
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update
           sudo apt-get install -y postgresql-client-17
+          /usr/lib/postgresql/17/bin/pg_dump --version
 
+      # Explizit den Pfad des gerade installierten Pakets ansprechen statt "pg_dump" über PATH
+      # aufzulösen - der Runner bringt bereits eine ältere Version mit, und deren
+      # "update-alternatives"-Verweis gewinnt sonst weiterhin gegenüber der frisch installierten
+      # Version 17 (im zweiten Testlauf trotz vorherigem Fix noch genau daran gescheitert).
       - name: Datenbank-Dump erstellen
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           set -euo pipefail
-          pg_dump "$DATABASE_URL" --no-owner --no-acl --clean --if-exists > backup.sql
+          /usr/lib/postgresql/17/bin/pg_dump "$DATABASE_URL" --no-owner --no-acl --clean --if-exists > backup.sql
           gzip backup.sql
           echo "DATEINAME=backup-$(date -u +%a | tr '[:upper:]' '[:lower:]').sql.gz" >> "$GITHUB_ENV"
 
