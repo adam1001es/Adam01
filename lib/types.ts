@@ -32,30 +32,38 @@ export const AUFGABEN_TYPEN = [
 
 /** Aktuell im Formular anbietbare und für NEUE Arbeitsblätter generierbare Aufgabentypen -
  * schließt nur die Bild-KI-Typen aus (siehe Kommentar bei AUFGABEN_TYPEN). Alle Typen sind immer
- * im Erstellen-Formular sichtbar und wählbar, unabhängig von der gewählten Schulstufe - "malaufgabe"
- * und "recherche_auftrag" bekommen dort zwar eine Empfehlung für 1./2. Klasse Volksschule bzw.
- * ab Sekundarstufe I (siehe istFrueheVolksschulstufe in lib/curriculum.ts), das ist aber bewusst
- * nur eine Empfehlung, keine harte Sperre: die Lehrkraft kennt ihre Klasse besser als eine grobe
- * Schulstufen-Heuristik. Wird für GenerateRequestSchema.aufgabentypen sowie im
- * Erstellen-Formular verwendet. Bewusst als eigenes Array-Literal statt per .filter() von
- * AUFGABEN_TYPEN abgeleitet, damit z.enum() weiterhin ein literales Tupel (statt eines
- * generischen string[]) zur Typprüfung bekommt. */
+ * im Erstellen-Formular sichtbar und wählbar, unabhängig von der gewählten Schulstufe - die vier
+ * für 1./2. Klasse Volksschule empfohlenen Typen ("bewegungsaufgabe", "sortierkarten",
+ * "malaufgabe", "nachspuruebung") sowie "recherche_auftrag" (ab Sekundarstufe I) bekommen dort
+ * zwar eine Empfehlung (siehe istFrueheVolksschulstufe in lib/curriculum.ts), das ist aber
+ * bewusst nur eine Empfehlung, keine harte Sperre: die Lehrkraft kennt ihre Klasse besser als
+ * eine grobe Schulstufen-Heuristik.
+ *
+ * Reihenfolge ist bewusst NICHT alphabetisch, sondern logisch gruppiert (bestimmt auch die
+ * Chip-Reihenfolge im Erstellen-Formular): zuerst die für alle Schulstufen gedachten Typen, grob
+ * von geschlossenen/kurzen zu offeneren/umfangreicheren Formaten, danach als zusammenhängender
+ * Block die vier 1./2.-Klasse-Empfehlungen (im Formular farblich markiert - als Block sichtbar
+ * statt im Raster verstreut), zuletzt der für ältere Schulstufen gedachte Recherche-Auftrag.
+ *
+ * Wird für GenerateRequestSchema.aufgabentypen sowie im Erstellen-Formular verwendet. Bewusst
+ * als eigenes Array-Literal statt per .filter() von AUFGABEN_TYPEN abgeleitet, damit z.enum()
+ * weiterhin ein literales Tupel (statt eines generischen string[]) zur Typprüfung bekommt. */
 export const AUFGABEN_TYPEN_AKTIV = [
   "multiple_choice",
-  "lueckentext",
-  "zuordnung",
-  "offene_frage",
   "wahr_falsch",
+  "zuordnung",
+  "lueckentext",
   "reihenfolge",
   "lesetext",
+  "offene_frage",
   "diskussion",
   "wortsuche",
   "kreuzwortraetsel",
-  "malaufgabe",
-  "recherche_auftrag",
   "bewegungsaufgabe",
   "sortierkarten",
+  "malaufgabe",
   "nachspuruebung",
+  "recherche_auftrag",
 ] as const satisfies readonly (typeof AUFGABEN_TYPEN)[number][];
 
 /** Manche Aufgabentypen sind inhaltlich für sich schon umfangreich (Kreuzworträtsel/Wortsuche:
