@@ -90,6 +90,15 @@ model User {
   // gespeichert, damit die Zuweisung in der Verwaltung sichtbar bleibt.
   tierGueltigVon DateTime?
   tierGueltigBis DateTime?
+  // Profil-Anpassung in app/account (siehe lib/profil.ts für die kuratierte Auswahl - bewusst
+  // kein Freitext/Upload) - als Grundlage für das später geplante Forum gedacht, wo diese Felder
+  // öffentlich sichtbar werden sollen, siehe Kommentar dort.
+  avatarEmoji  String   @default("🧑‍🏫")
+  avatarFarbe  String   @default("#0f766e")
+  // Cluster-IDs aus lib/curriculum.ts SCHULSTUFEN_CLUSTER (z.B. "sek1"), welche Schulstufen die
+  // Lehrkraft unterrichtet - freiwillige Selbstauskunft fürs eigene Profil, aktuell nirgendwo
+  // sonst ausgewertet.
+  unterrichtsStufen String[] @default([])
   createdAt    DateTime @default(now()) // Anker für den rollierenden 30-Tage-Kontingent-Zyklus
   sessions     Session[]
   worksheets   Worksheet[]

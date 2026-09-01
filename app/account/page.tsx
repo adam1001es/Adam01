@@ -1,10 +1,30 @@
 import { redirect } from "next/navigation";
-import { UserCircle, KeyRound, Mail, MailCheck, AlertTriangle } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  KeyRound,
+  Mail,
+  MailCheck,
+  AlertTriangle,
+  Smile,
+  UserCircle,
+  GraduationCap,
+  BarChart3,
+  Gauge,
+  FileText,
+  Users,
+  School,
+} from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
+import { getKontingent, istZahlendesKonto, tierLabel } from "@/lib/quota";
+import { prisma } from "@/lib/prisma";
+import { SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
 import SectionCard from "@/components/SectionCard";
 import UsernameForm from "@/components/UsernameForm";
 import PasswordForm from "@/components/PasswordForm";
 import EmailForm from "@/components/EmailForm";
+import AvatarForm from "@/components/AvatarForm";
+import UnterrichtsprofilForm from "@/components/UnterrichtsprofilForm";
+import KontingentBanner from "@/components/KontingentBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -16,15 +36,61 @@ export default async function AccountPage({
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
+  const zahlend = istZahlendesKonto(user);
+  const [kontingent, worksheetStats, klassenAnzahl, schuelerAnzahl] = await Promise.all([
+    getKontingent(user),
+    prisma.worksheet.groupBy({
+      by: ["geteilt"],
+      where: { userId: user.id },
+      _count: { _all: true },
+    }),
+    zahlend ? prisma.klasse.count({ where: { userId: user.id } }) : Promise.resolve(0),
+    zahlend
+      ? prisma.schueler.count({ where: { klasse: { userId: user.id } } })
+      : Promise.resolve(0),
+  ]);
+
+  const arbeitsblaetterGesamt = worksheetStats.reduce((sum, g) => sum + g._count._all, 0);
+  const arbeitsblaetterGeteilt =
+    worksheetStats.find((g) => g.geteilt)?._count._all ?? 0;
+
+  const mitgliedSeit = user.createdAt.toLocaleDateString("de-AT", {
+    month: "long",
+    year: "numeric",
+  });
+
+  const unterrichtsStufenLabels = user.unterrichtsStufen
+    .map((id) => SCHULSTUFEN_CLUSTER.find((c) => c.id === id)?.label)
+    .filter((l): l is string => Boolean(l));
+
   return (
     <main className="mx-auto max-w-lg">
-      <div className="mb-6 flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-          <UserCircle size={18} strokeWidth={2} />
+      <div className="mb-6 flex items-center gap-4">
+        <span
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-2xl shadow-card ring-2 ring-white"
+          style={{ backgroundColor: user.avatarFarbe }}
+        >
+          {user.avatarEmoji}
         </span>
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">Mein Konto</h1>
-          <p className="text-sm text-slate-500">{user.email}</p>
+          <h1 className="font-display text-2xl font-semibold text-slate-800">
+            {user.username ?? "Mein Konto"}
+          </h1>
+          <p className="text-sm text-slate-500">
+            {user.email} · Mitglied seit {mitgliedSeit}
+          </p>
+          {unterrichtsStufenLabels.length > 0 && (
+            <p className="mt-1 flex flex-wrap gap-1.5">
+              {unterrichtsStufenLabels.map((label) => (
+                <span
+                  key={label}
+                  className="rounded-full bg-gold-50 px-2 py-0.5 text-[11px] font-medium text-gold-700"
+                >
+                  {label}
+                </span>
+              ))}
+            </p>
+          )}
         </div>
       </div>
 
@@ -43,7 +109,43 @@ export default async function AccountPage({
       )}
 
       <div className="space-y-5">
-        <SectionCard icon={UserCircle} title="Benutzername" subtitle="Schnellerer Login als mit der vollen E-Mail-Adresse">
+        <SectionCard
+          icon={Smile}
+          title="Avatar"
+          subtitle="Symbol und Farbe, mit denen man dich in der App wiedererkennt"
+        >
+          <AvatarForm initialEmoji={user.avatarEmoji} initialFarbe={user.avatarFarbe} />
+        </SectionCard>
+
+        <SectionCard
+          icon={GraduationCap}
+          title="Unterrichtsprofil"
+          subtitle="Welche Schulstufen unterrichtest du? Freiwillig, hilft später beim Austausch mit anderen Lehrkräften"
+          akzent="gold"
+        >
+          <UnterrichtsprofilForm initialStufen={user.unterrichtsStufen} />
+        </SectionCard>
+
+        <SectionCard icon={BarChart3} title="Deine Statistik" subtitle="Auf einen Blick">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <StatKachel icon={FileText} wert={arbeitsblaetterGesamt} label="Arbeitsblätter" />
+            <StatKachel icon={Users} wert={arbeitsblaetterGeteilt} label="Geteilt" />
+            {zahlend && <StatKachel icon={School} wert={klassenAnzahl} label="Klassen" />}
+            {zahlend && (
+              <StatKachel icon={GraduationCap} wert={schuelerAnzahl} label="Schüler:innen" />
+            )}
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          icon={Gauge}
+          title="Kontingent"
+          subtitle={tierLabel(kontingent.tier)}
+        >
+          <KontingentBanner kontingent={kontingent} />
+        </SectionCard>
+
+        <SectionCard title="Benutzername" subtitle="Schnellerer Login als mit der vollen E-Mail-Adresse" icon={UserCircle}>
           <UsernameForm initialUsername={user.username} />
         </SectionCard>
 
@@ -56,5 +158,23 @@ export default async function AccountPage({
         </SectionCard>
       </div>
     </main>
+  );
+}
+
+function StatKachel({
+  icon: Icon,
+  wert,
+  label,
+}: {
+  icon: LucideIcon;
+  wert: number;
+  label: string;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-canvas p-3 text-center">
+      <Icon size={16} strokeWidth={2} className="mx-auto text-brand-600" />
+      <p className="mt-1 font-display text-xl font-semibold text-slate-800">{wert}</p>
+      <p className="text-[11px] text-slate-500">{label}</p>
+    </div>
   );
 }

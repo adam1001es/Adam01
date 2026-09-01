@@ -7,9 +7,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   LogOut,
-  UserCircle,
   Users,
-  Gauge,
   MoonStar,
   GraduationCap,
 } from "lucide-react";
@@ -36,7 +34,8 @@ interface SiteHeaderUser {
   username: string | null;
   role: string;
   istZahlend: boolean;
-  kontingent: { verbraucht: number; limit: number; verbleibend: number; unbegrenzt: boolean } | null;
+  avatarEmoji: string;
+  avatarFarbe: string;
 }
 
 export default function SiteHeader({
@@ -129,23 +128,6 @@ export default function SiteHeader({
                 </Link>
               );
             })}
-          {user?.kontingent && (
-            <Link
-              href="/kontingent"
-              title="Kontingent"
-              className={navLinkClass(
-                !!pathname?.startsWith("/kontingent"),
-                !user.kontingent.unbegrenzt && user.kontingent.verbleibend === 0,
-              )}
-            >
-              <Gauge size={16} strokeWidth={2.25} />
-              <span>
-                {user.kontingent.unbegrenzt
-                  ? "∞"
-                  : `${user.kontingent.verbraucht}/${user.kontingent.limit}`}
-              </span>
-            </Link>
-          )}
           {user?.istZahlend && (
             <Link href="/community" className={navLinkClassCommunity(!!pathname?.startsWith("/community"))}>
               <Users size={16} strokeWidth={2.25} />
@@ -172,7 +154,12 @@ export default function SiteHeader({
                 aria-label="Mein Konto"
                 className={navLinkClass(!!pathname?.startsWith("/account"))}
               >
-                <UserCircle size={16} strokeWidth={2.25} />
+                <span
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] leading-none"
+                  style={{ backgroundColor: user.avatarFarbe }}
+                >
+                  {user.avatarEmoji}
+                </span>
                 <span className="hidden md:inline">{user.username ?? user.email}</span>
               </Link>
               <button

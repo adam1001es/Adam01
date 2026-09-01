@@ -14,6 +14,9 @@ export interface SessionUser {
   tier: string | null;
   tierGueltigVon: Date | null;
   tierGueltigBis: Date | null;
+  avatarEmoji: string;
+  avatarFarbe: string;
+  unterrichtsStufen: string[];
   createdAt: Date;
 }
 
@@ -87,6 +90,9 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     tier: session.user.tier,
     tierGueltigVon: session.user.tierGueltigVon,
     tierGueltigBis: session.user.tierGueltigBis,
+    avatarEmoji: session.user.avatarEmoji,
+    avatarFarbe: session.user.avatarFarbe,
+    unterrichtsStufen: session.user.unterrichtsStufen,
     createdAt: session.user.createdAt,
   };
 }
