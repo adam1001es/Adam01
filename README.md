@@ -111,7 +111,10 @@ die meisten Kinder sind dann bereits funktional lese-/schreibfähig, auch wenn n
 - **Musterstreifen**: ein Zierstreifen im Girih-Stil (wie klassische maurische/Alhambra-
   Randmuster) unter dem Kopfbereich, mit drei auswählbaren Varianten (`lib/patternStrip.ts`,
   Auswahl im Erstellen-Formular mit Live-Vorschau je Muster):
-  - **Sterne**: achtzackiger Stern mit innerem Kern, ineinandergreifende Rauten-/Vieleck-Formen.
+  - **Teppich** (intern `sterne`): achtzackiger Stern mit innerem Kern, ineinandergreifende
+    Rauten-/Vieleck-Formen - ein dichtes Girih-Gitter, das eher teppich-/kachelartig wirkt statt
+    einzelner erkennbarer Sterne (daher umbenannt, um Verwechslung mit "Stern"/`stern12` zu
+    vermeiden).
   - **Halbmond**: zwei Mondsicheln flankieren eine Raute, beide zur Mitte hin geöffnet. Die
     Mondsichel ist als ein einziger, geschlossener Pfad aus zwei gegenläufigen Kreisbögen
     gezeichnet - zwei separate, sich überlappende volle Kreise würden bei `fill="none"` nur als

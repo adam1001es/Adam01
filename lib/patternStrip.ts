@@ -23,7 +23,10 @@ export interface MusterDefinition {
 }
 
 export const MUSTER_LABEL: Record<MusterVariante, string> = {
-  sterne: "Sterne",
+  // "Sterne" (Plural) und "Stern" (stern12) klangen im Formular fast identisch und wurden
+  // verwechselt - "sterne" ist optisch ohnehin ein dichtes, ineinandergreifendes Girih-Gitter
+  // (eher teppich-/kachelartig) statt einzelner erkennbarer Sterne, daher der treffendere Name.
+  sterne: "Teppich",
   halbmond: "Halbmond",
   stern12: "Stern",
 };
