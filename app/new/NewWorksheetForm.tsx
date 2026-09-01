@@ -471,7 +471,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
               checked={istPruefung}
               onChange={handlePruefungToggle}
               label="Als Prüfung erstellen"
-              description="Formeller Ton, Aufgabentypen auf prüfungstaugliche Formate beschränkt, Punkte pro Aufgabe - z.B. für eine Schularbeit in einer Maturaklasse"
+              description="Formeller Ton, Aufgabentypen auf prüfungstaugliche Formate beschränkt, Punkte pro Aufgabe - z.B. für eine Prüfung in einer Maturaklasse"
             />
           </div>
           {istPruefung && (

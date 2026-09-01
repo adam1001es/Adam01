@@ -98,8 +98,9 @@ Liste in "hinweise" konkrete, konstruktive Punkte auf (auch bei "ok" ruhig ein b
  * istPruefung) - wird bei istPruefung als weiterer, nicht gecachter Textblock NACH dem
  * curriculumContext angehängt (analog dazu variiert er pro Anfrage, siehe Kommentar bei
  * generiereUndPruefeEinmal). Ergänzt die Basis-Anweisungen, ersetzt sie nicht. */
-const PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ = `WICHTIGER ZUSATZ - dieses Arbeitsblatt ist eine formelle PRÜFUNG (Schularbeit/Test), KEINE Übung:
-- Formuliere Kopf/Einleitung entsprechend formell wie bei einer echten Schularbeit (kein motivierender Übungsblatt-Ton) - "einleitung" kann z.B. kurz Ablauf oder erlaubte Hilfsmittel nennen statt einzuleiten.
+const PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ = `WICHTIGER ZUSATZ - dieses Arbeitsblatt ist eine formelle PRÜFUNG, KEINE Übung:
+- Formuliere Kopf/Einleitung entsprechend formell wie bei einer echten Prüfung (kein motivierender Übungsblatt-Ton) - "einleitung" kann z.B. kurz Ablauf oder erlaubte Hilfsmittel nennen statt einzuleiten.
+- Nenne es im Titel "Prüfung" oder "Test" - NICHT "Schularbeit": das ist in Österreich ein spezifischer, gesetzlich geregelter Begriff für bestimmte Fächer mit fixer Anzahl pro Schuljahr, den dieses Tool nicht für sich beanspruchen darf.
 - Vergib für JEDE Aufgabe zusätzlich ein Feld "punkte" (ganze Zahl, mindestens 1). Die Summe aller "punkte"-Werte MUSS exakt der vorgegebenen Zielpunktzahl entsprechen. Gewichte anspruchsvollere Aufgaben (höherer Anforderungsbereich, mehr Teilschritte) mit mehr Punkten als einfache Reproduktionsaufgaben.
 - Setze den Schwerpunkt klar auf AFB II (Reorganisation/Transfer) und AFB III (Reflexion/Urteil) statt überwiegend AFB I (Reproduktion) - eine Prüfung, die nur Auswendiggelerntes abfragt, prüft kein echtes Verständnis. Reine Reproduktionsaufgaben sollen deutlich in der Minderheit bleiben.
 - Nutze ausschließlich die vorgegebenen, prüfungstauglichen Aufgabentypen - keine spielerischen Formate (keine Rätsel-, Bewegungs-, Ausschneide- oder Diskussionsaufgaben).`;

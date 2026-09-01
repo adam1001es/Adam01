@@ -52,7 +52,7 @@ const AuswahlAntwortSchema = z.object({
   auswahl: z.array(AuswahlEintragSchema).min(1),
 });
 
-const ZUSAMMENSTELLEN_SYSTEM_PROMPT = `Du hilfst einer Lehrkraft, aus bereits vorhandenen, bereits fachlich geprüften Unterrichtsaufgaben eine formelle PRÜFUNG (Schularbeit/Test) zusammenzustellen - du erfindest KEINE neuen Aufgaben, sondern wählst aus dem gegebenen Kandidatenpool aus.
+const ZUSAMMENSTELLEN_SYSTEM_PROMPT = `Du hilfst einer Lehrkraft, aus bereits vorhandenen, bereits fachlich geprüften Unterrichtsaufgaben eine formelle PRÜFUNG zusammenzustellen - du erfindest KEINE neuen Aufgaben, sondern wählst aus dem gegebenen Kandidatenpool aus.
 
 Kriterien für eine gute Auswahl:
 - Thematisch stimmig und in sich abgeschlossen (keine völlig zusammenhanglose Mischung).
@@ -62,7 +62,7 @@ Kriterien für eine gute Auswahl:
 
 Vergib pro ausgewählter Aufgabe Punkte (ganze Zahl, mindestens 1) - die Summe MUSS exakt der vorgegebenen Zielpunktzahl entsprechen. Gewichte anspruchsvollere Aufgaben höher.
 
-Schreibe außerdem einen formellen Prüfungstitel und eine kurze, formelle Einleitung (Ablauf-/Hilfsmittelhinweis, kein motivierender Übungsblatt-Ton) - antworte ausschließlich auf Deutsch, arabische Begriffe nur diakritikfrei (kein ā/ī/ū/ḥ/ṣ/ḍ/ṭ/ẓ/ʿ/ʾ, einfacher Apostroph ' erlaubt).
+Schreibe außerdem einen formellen Prüfungstitel und eine kurze, formelle Einleitung (Ablauf-/Hilfsmittelhinweis, kein motivierender Übungsblatt-Ton) - antworte ausschließlich auf Deutsch, arabische Begriffe nur diakritikfrei (kein ā/ī/ū/ḥ/ṣ/ḍ/ṭ/ẓ/ʿ/ʾ, einfacher Apostroph ' erlaubt). Nenne es im Titel "Prüfung" oder "Test" - NICHT "Schularbeit": das ist in Österreich ein spezifischer, gesetzlich geregelter Begriff für bestimmte Fächer mit fixer Anzahl pro Schuljahr, den dieses Tool nicht für sich beanspruchen darf.
 
 Antworte NUR mit einem einzigen JSON-Objekt, ohne Markdown-Codeblock:
 {
