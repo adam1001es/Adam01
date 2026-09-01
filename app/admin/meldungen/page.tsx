@@ -57,7 +57,7 @@ export default async function AdminMeldungenPage() {
       </div>
 
       {meldungen.length === 0 ? (
-        <p className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-slate-200 bg-surface p-6 text-center text-sm text-slate-500">
           Noch keine Meldungen.
         </p>
       ) : (
@@ -75,7 +75,7 @@ export default async function AdminMeldungenPage() {
                 className={`rounded-xl border p-4 shadow-sm ${
                   !m.bearbeitet
                     ? "border-red-200 bg-red-50/40"
-                    : "border-slate-200 bg-white opacity-70"
+                    : "border-slate-200 bg-surface opacity-70"
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">

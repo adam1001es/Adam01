@@ -53,13 +53,13 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
           <div className="flex flex-wrap gap-2">
             <Link
               href={`/klassen/${klasse.id}/klassenzimmer`}
-              className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-white"
+              className="inline-flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-surface"
             >
               <LayoutGrid size={16} /> Klassenzimmer-Ansicht
             </Link>
             <Link
               href={`/klassen/${klasse.id}/zuweisen`}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-violet-50"
+              className="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-violet-50"
             >
               <Plus size={16} /> Blatt zuweisen
             </Link>
@@ -73,7 +73,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
         </div>
       </div>
 
-      <section className="mt-6 rounded-2xl border border-violet-100 bg-white p-6 shadow-card-klassen">
+      <section className="mt-6 rounded-2xl border border-violet-100 bg-surface p-6 shadow-card-klassen">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="font-display text-lg font-semibold text-slate-800">Schüler:innen</h2>
           <EinfacherLoeschButton
@@ -89,7 +89,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
         <SchuelerVerwaltung klasseId={klasse.id} schueler={schueler} />
       </section>
 
-      <section className="mt-6 rounded-2xl border border-violet-100 bg-white p-6 shadow-card-klassen">
+      <section className="mt-6 rounded-2xl border border-violet-100 bg-surface p-6 shadow-card-klassen">
         <h2 className="mb-1 font-display text-lg font-semibold text-slate-800">Wissensstand</h2>
         <p className="mb-4 text-xs leading-relaxed text-slate-400">
           Note ist ein Richtwert nach gängigem österreichischem Schlüssel (87/73/59/44%), keine
@@ -161,7 +161,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
         )}
       </section>
 
-      <section className="mt-6 rounded-2xl border border-violet-100 bg-white p-6 shadow-card-klassen">
+      <section className="mt-6 rounded-2xl border border-violet-100 bg-surface p-6 shadow-card-klassen">
         <h2 className="mb-4 font-display text-lg font-semibold text-slate-800">Zuweisungen</h2>
         {zuweisungen.length === 0 ? (
           <p className="text-sm text-slate-400">Noch keine Zuweisung erfasst.</p>
@@ -173,7 +173,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
               return (
                 <li
                   key={z.id}
-                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3.5 sm:flex-row sm:items-center"
+                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-surface p-3.5 sm:flex-row sm:items-center"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
@@ -203,7 +203,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
                     )}
                     <Link
                       href={`/klassen/${klasse.id}/zuweisung/${z.id}`}
-                      className="shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-violet-300 hover:text-violet-700"
+                      className="shrink-0 rounded-lg border border-slate-200 bg-surface px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-violet-300 hover:text-violet-700"
                     >
                       Ergebnisse
                     </Link>

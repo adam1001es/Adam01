@@ -17,7 +17,7 @@ export default async function KlassenPage() {
   if (!istZahlendesKonto(user)) {
     return (
       <main>
-        <div className="rounded-2xl border border-dashed border-violet-200 bg-white p-10 text-center shadow-card-klassen sm:p-14">
+        <div className="rounded-2xl border border-dashed border-violet-200 bg-surface p-10 text-center shadow-card-klassen sm:p-14">
           <Lock className="mx-auto mb-3 text-violet-300" size={32} strokeWidth={1.5} />
           <h1 className="font-display text-xl font-semibold text-slate-800">
             Klassen-Tracking für Abo-Konten
@@ -53,7 +53,7 @@ export default async function KlassenPage() {
       </div>
 
       {klassen.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-violet-200 bg-white p-12 text-center shadow-card-klassen">
+        <div className="mt-8 rounded-2xl border border-dashed border-violet-200 bg-surface p-12 text-center shadow-card-klassen">
           <GraduationCap className="mx-auto mb-3 text-violet-300" size={32} strokeWidth={1.5} />
           <p className="text-slate-600">Noch keine Klasse angelegt.</p>
         </div>
@@ -63,7 +63,7 @@ export default async function KlassenPage() {
             <li key={k.id}>
               <Link
                 href={`/klassen/${k.id}`}
-                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card-klassen transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-card-klassen-hover sm:p-5"
+                className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-surface p-4 shadow-card-klassen transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-card-klassen-hover sm:p-5"
               >
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-display text-base font-semibold text-slate-800 group-hover:text-violet-700">

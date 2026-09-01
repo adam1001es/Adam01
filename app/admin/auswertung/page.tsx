@@ -101,7 +101,7 @@ export default async function AuswertungPage() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+        <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-card">
           <h2 className="mb-4 font-display text-base font-semibold text-slate-800">
             Grundkompetenzen (alle Arbeitsblätter)
           </h2>
@@ -112,7 +112,7 @@ export default async function AuswertungPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+        <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-card">
           <h2 className="mb-4 font-display text-base font-semibold text-slate-800">
             Schulstufen (alle Arbeitsblätter)
           </h2>
@@ -124,7 +124,7 @@ export default async function AuswertungPage() {
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+      <div className="mt-5 rounded-2xl border border-slate-200 bg-surface p-5 shadow-card">
         <h2 className="mb-4 flex items-center gap-1.5 font-display text-base font-semibold text-slate-800">
           <Star size={16} className="text-amber-500" /> Meistfavorisiert in der Community
         </h2>

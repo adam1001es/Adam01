@@ -26,7 +26,7 @@ export default function KontingentBanner({ kontingent }: { kontingent: Kontingen
   return (
     <div
       className={`flex items-start gap-3 rounded-xl border p-4 text-sm shadow-sm ${
-        knapp ? "border-red-200 bg-red-50 text-red-800" : "border-slate-200 bg-white text-slate-600"
+        knapp ? "border-red-200 bg-red-50 text-red-800" : "border-slate-200 bg-surface text-slate-600"
       }`}
     >
       <Gauge size={18} className="mt-0.5 shrink-0" />

@@ -80,7 +80,7 @@ export default function WorksheetView({
   const akzentKlasse = isModernFarbig ? "text-brand-700" : "";
 
   return (
-    <div className={`relative rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
+    <div className={`papier-hell relative rounded-2xl border border-slate-200 bg-white p-6 shadow-card print:border-0 print:shadow-none ${fontClass} ${textSize}`}>
       <div
         className={
           isModernFarbig

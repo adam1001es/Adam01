@@ -39,7 +39,7 @@ export default async function ErgebnisseSeite({
           ? ` · Prüfung mit ${zuweisung.punkteGesamt} Punkten`
           : ""}
       </p>
-      <div className="mt-6 rounded-2xl border border-violet-100 bg-white p-6 shadow-card-klassen">
+      <div className="mt-6 rounded-2xl border border-violet-100 bg-surface p-6 shadow-card-klassen">
         {schueler.length === 0 ? (
           <p className="text-sm text-slate-400">
             Noch keine Schüler:innen in dieser Klasse erfasst.

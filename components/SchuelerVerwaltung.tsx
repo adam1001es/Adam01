@@ -151,7 +151,7 @@ export default function SchuelerVerwaltung({
         <button
           type="button"
           onClick={() => setHinzufuegen(true)}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-violet-300 hover:text-violet-700"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-surface px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-violet-300 hover:text-violet-700"
         >
           <Plus size={13} /> Schüler:in hinzufügen
         </button>

@@ -36,7 +36,7 @@ export default async function CommunityPage({
   if (!istZahlendesKonto(user)) {
     return (
       <main>
-        <div className="rounded-2xl border border-dashed border-brand-200 bg-white p-10 text-center shadow-card sm:p-14">
+        <div className="rounded-2xl border border-dashed border-brand-200 bg-surface p-10 text-center shadow-card sm:p-14">
           <Lock className="mx-auto mb-3 text-brand-300" size={32} strokeWidth={1.5} />
           <h1 className="font-display text-xl font-semibold text-slate-800">
             Geteilte Arbeitsblätter für Abo-Konten
@@ -106,7 +106,7 @@ export default async function CommunityPage({
 
       <form
         method="GET"
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
+        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-surface p-4 shadow-card"
       >
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-slate-500">Thema durchsuchen</span>
@@ -160,7 +160,7 @@ export default async function CommunityPage({
       </form>
 
       {geteilteWorksheets.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-brand-200 bg-white p-12 text-center shadow-card">
+        <div className="mt-8 rounded-2xl border border-dashed border-brand-200 bg-surface p-12 text-center shadow-card">
           <Users className="mx-auto mb-3 text-brand-300" size={32} strokeWidth={1.5} />
           <p className="text-slate-600">
             {filterAktiv ? (
@@ -188,7 +188,7 @@ export default async function CommunityPage({
                 <li key={w.id}>
                   <Link
                     href={`/worksheet/${w.id}`}
-                    className={`group flex items-center gap-3 rounded-xl border bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5 ${
+                    className={`group flex items-center gap-3 rounded-xl border bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5 ${
                       istEigenes ? "border-gold-200" : "border-slate-200"
                     }`}
                   >

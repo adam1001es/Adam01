@@ -13,6 +13,7 @@ import {
   MoonStar,
   GraduationCap,
 } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 function LogoMark() {
   return (
@@ -88,10 +89,13 @@ export default function SiteHeader({
 
   return (
     <header className="no-print sticky top-0 z-10 border-b border-slate-200/80 bg-canvas/85 backdrop-blur-md">
-      <div className="border-b border-gold-100 bg-gold-50/70 px-4 py-1 text-center text-[11px] font-medium text-gold-700 sm:px-6">
+      <div className="relative border-b border-gold-100 bg-gold-50/70 px-4 py-1 text-center text-[11px] font-medium text-gold-700 sm:px-6">
         <span className="inline-flex items-center gap-1.5">
           <MoonStar size={11} strokeWidth={2.25} />
           {hijriDatum}
+        </span>
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 sm:right-5">
+          <ThemeToggle />
         </span>
       </div>
       <div className="mx-auto flex max-w-6xl flex-col px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-y-1.5 sm:px-6">

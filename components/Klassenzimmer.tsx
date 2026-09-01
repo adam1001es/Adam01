@@ -106,7 +106,7 @@ function DetailPanel({ schueler, onClose }: { schueler: SchuelerFuerAnsicht; onC
         onClick={onClose}
       />
       <motion.div
-        className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-white p-6 shadow-card-klassen sm:inset-x-auto sm:right-0 sm:top-0 sm:h-full sm:max-h-none sm:w-[420px] sm:rounded-l-3xl sm:rounded-t-none"
+        className="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-surface p-6 shadow-card-klassen sm:inset-x-auto sm:right-0 sm:top-0 sm:h-full sm:max-h-none sm:w-[420px] sm:rounded-l-3xl sm:rounded-t-none"
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
@@ -203,7 +203,7 @@ export default function Klassenzimmer({
             Klassenzimmer
           </h1>
         </div>
-        <div className="flex flex-wrap items-center gap-3 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-[11px] text-slate-500 shadow-sm">
+        <div className="flex flex-wrap items-center gap-3 rounded-full border border-slate-200 bg-surface px-3.5 py-2 text-[11px] text-slate-500 shadow-sm">
           {([1, 2, 3, 4, 5] as Note[]).map((note) => (
             <span key={note} className="inline-flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: NOTE_FARBE[note] }} />
@@ -214,7 +214,7 @@ export default function Klassenzimmer({
       </div>
 
       {schueler.length === 0 ? (
-        <div className="rounded-2xl border border-violet-100 bg-white p-8 text-center shadow-card-klassen">
+        <div className="rounded-2xl border border-violet-100 bg-surface p-8 text-center shadow-card-klassen">
           <p className="text-sm text-slate-500">
             Noch keine Schüler:innen in dieser Klasse -{" "}
             <Link href={`/klassen/${klasseId}`} className="font-medium text-violet-600 hover:underline">

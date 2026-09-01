@@ -3,6 +3,83 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Dark-Mode-Farbwerte für die neutrale UI-Chrome (Seiten-Hintergrund, Karten-Fläche, Grau-
+   * Rampe für Text/Rahmen/Trenner) - siehe tailwind.config.ts (colors.canvas/surface/slate).
+   * "Slate" ist bewusst als UMGEDREHTE Rampe hinterlegt (dark[50] entspricht ungefähr light[900]
+   * usw.): eine Klasse wie text-slate-800, die im Hellmodus für dunkle Überschriften genutzt
+   * wird, wird im Dunkelmodus automatisch zu einem hellen Ton - ohne dass jede Komponente eine
+   * eigene "dark:"-Variante bräuchte. "canvas" (Seiten-Hintergrund) ist am dunkelsten, "surface"
+   * (Karten-Fläche) am hellsten der drei Ebenen, damit Karten wie im Hellmodus sichtbar über dem
+   * Hintergrund "schweben" statt zu verschwimmen.
+   */
+  :root {
+    --color-canvas: 251 250 247;
+    --color-surface: 255 255 255;
+    --color-slate-50: 248 250 252;
+    --color-slate-100: 241 245 249;
+    --color-slate-200: 226 232 240;
+    --color-slate-300: 203 213 225;
+    --color-slate-400: 148 163 184;
+    --color-slate-500: 100 116 139;
+    --color-slate-600: 71 85 105;
+    --color-slate-700: 51 65 85;
+    --color-slate-800: 30 41 59;
+    --color-slate-900: 15 23 42;
+  }
+
+  .dark {
+    --color-canvas: 2 6 23;
+    --color-surface: 30 41 59;
+    --color-slate-50: 22 30 50;
+    --color-slate-100: 40 53 75;
+    --color-slate-200: 51 65 85;
+    --color-slate-300: 71 85 105;
+    --color-slate-400: 100 116 139;
+    --color-slate-500: 148 163 184;
+    --color-slate-600: 203 213 225;
+    --color-slate-700: 226 232 240;
+    --color-slate-800: 241 245 249;
+    --color-slate-900: 250 250 252;
+  }
+
+  /* Verhindert, dass der Theme-Wechsel selbst wie ein Blitzen wirkt - siehe ThemeToggle.tsx. */
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /*
+   * Das eigentliche Arbeitsblatt (components/WorksheetView.tsx - "Papier"-Vorschau, auch als
+   * Grundlage für den Druck/PDF gedacht) soll unabhängig vom App-Theme immer wie bedrucktes
+   * Papier aussehen. Setzt die Variablen innerhalb dieser Klasse hart auf die Hellmodus-Werte
+   * zurück, statt WorksheetView von der globalen Dark-Mode-Kaskade auszunehmen (die Komponente
+   * nutzt bg-white bewusst unverändert plus ganz normal Slate-Text-/Rahmenfarben - ohne diesen
+   * Reset würde heller Text auf weißem Papier landen, sobald Dark Mode aktiv ist).
+   * Das explizite "color" hier ist nötig, weil geerbte Textfarbe (Elemente ohne eigene
+   * text-slate-*-Klasse, z.B. <h1>{content.titel}</h1>) sonst den bereits im Dunkelmodus
+   * berechneten Farbwert von <body> weiterreicht - eine neu gesetzte Variable allein wirkt sich
+   * nicht rückwirkend auf schon vererbte Farbwerte aus, nur auf neu ausgewertete var()-Zugriffe.
+   */
+  .papier-hell {
+    --color-canvas: 251 250 247;
+    --color-surface: 255 255 255;
+    --color-slate-50: 248 250 252;
+    --color-slate-100: 241 245 249;
+    --color-slate-200: 226 232 240;
+    --color-slate-300: 203 213 225;
+    --color-slate-400: 148 163 184;
+    --color-slate-500: 100 116 139;
+    --color-slate-600: 71 85 105;
+    --color-slate-700: 51 65 85;
+    --color-slate-800: 30 41 59;
+    --color-slate-900: 15 23 42;
+    color: rgb(var(--color-slate-900));
+    color-scheme: light;
+  }
+
   h1,
   h2,
   h3 {

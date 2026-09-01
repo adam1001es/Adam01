@@ -4,7 +4,7 @@ import PasswortVergessenForm from "@/components/PasswortVergessenForm";
 export default function PasswortVergessenPage() {
   return (
     <main className="mx-auto max-w-sm">
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-card">
+      <div className="rounded-2xl border border-slate-200 bg-surface p-8 shadow-card">
         <h1 className="mb-1 font-display text-2xl font-semibold text-slate-800">
           Passwort vergessen
         </h1>

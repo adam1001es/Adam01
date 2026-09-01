@@ -392,7 +392,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
                 type="button"
                 onClick={ideenVorschlagen}
                 disabled={ideenLaden || ideenVerbleibend === 0}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-surface px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
               >
                 <Sparkles size={13} className={ideenLaden ? "animate-pulse" : ""} />
                 {ideenLaden ? "Ideen werden erstellt …" : "KI-Ideen vorschlagen"}
@@ -624,7 +624,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
                     "nachspuruebung",
                   ])
                 }
-                className="shrink-0 whitespace-nowrap rounded-full border border-gold-300 bg-white px-3 py-1.5 text-xs font-medium text-gold-700 transition hover:bg-gold-100"
+                className="shrink-0 whitespace-nowrap rounded-full border border-gold-300 bg-surface px-3 py-1.5 text-xs font-medium text-gold-700 transition hover:bg-gold-100"
               >
                 Übernehmen
               </button>
@@ -650,7 +650,7 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
                 />
               </div>
             </div>
-            <div className="flex items-center gap-1.5 border-t border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-400">
+            <div className="flex items-center gap-1.5 border-t border-slate-200 bg-surface px-3 py-1.5 text-xs font-medium text-slate-400">
               <Eye size={12} />
               Live-Vorschau von Vorlage, Muster &amp; Druckfarbe
             </div>

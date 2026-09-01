@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
@@ -55,6 +56,15 @@ export default async function RootLayout({
   return (
     <html lang="de" className={`${display.variable} ${sans.variable}`}>
       <body className="min-h-screen bg-canvas font-sans text-slate-900">
+        {/* Setzt die .dark-Klasse VOR dem ersten Paint (siehe components/ThemeToggle.tsx) - ohne
+            das würde bei gespeichertem Dark-Mode-Wunsch kurz die helle Seite aufblitzen, bevor
+            React hydriert. "beforeInteractive" landet unabhängig von der Platzierung im
+            HTML-<head> (Next.js-Verhalten). Erster Besuch ohne gespeicherte Wahl: System-
+            Präferenz als schnelle, synchrone Näherung - der tatsächliche Wien-Sonnenstand
+            (suncalc) korrigiert das direkt nach der Hydration in ThemeToggle, falls nötig. */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function(){try{var s=localStorage.getItem("lernwerk-theme");var d=s==="dark"||(s!=="light"&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");}catch(e){}})();`}
+        </Script>
         <SiteHeader
           hijriDatum={hijriDatum}
           user={

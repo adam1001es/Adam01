@@ -37,7 +37,7 @@ export default function NeueKlasseForm() {
       <button
         type="button"
         onClick={() => setOffen(true)}
-        className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-violet-50"
+        className="mt-5 inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-violet-700 shadow-card transition hover:bg-violet-50"
       >
         <Plus size={17} strokeWidth={2.5} />
         Neue Klasse anlegen
@@ -48,7 +48,7 @@ export default function NeueKlasseForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card"
+      className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-surface p-4 shadow-card"
     >
       <label className="block">
         <span className={labelClass}>Name</span>

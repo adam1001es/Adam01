@@ -153,7 +153,7 @@ export default async function AdminPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/admin/auswertung"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
           >
             <BarChart3 size={15} />
             Auswertung
@@ -163,7 +163,7 @@ export default async function AdminPage() {
             className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium shadow-sm transition ${
               offeneMeldungen > 0
                 ? "border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
-                : "border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-700"
+                : "border-slate-200 bg-surface text-slate-600 hover:border-brand-300 hover:text-brand-700"
             }`}
           >
             <Flag size={15} />
@@ -174,7 +174,7 @@ export default async function AdminPage() {
 
       <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {STATS.map(({ icon: Icon, label, wert, unterschrift, farbe }) => (
-          <div key={label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-card">
+          <div key={label} className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-card">
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-400">
               <Icon size={14} />
               {label}

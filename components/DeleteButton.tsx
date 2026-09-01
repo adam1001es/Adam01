@@ -42,7 +42,7 @@ export default function DeleteButton({
         type="button"
         onClick={handleDelete}
         disabled={isPending}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-red-300 hover:text-red-600"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-red-300 hover:text-red-600"
       >
         <Trash2 size={15} /> Löschen
       </button>

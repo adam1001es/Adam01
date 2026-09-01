@@ -65,7 +65,7 @@ export default function MeldungButton({ worksheetId }: { worksheetId: string }) 
     }
     if (ergebnis.status === "kein_fehler_gefunden") {
       return (
-        <div className="no-print max-w-md rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600">
+        <div className="no-print max-w-md rounded-xl border border-slate-200 bg-surface p-4 text-sm text-slate-600">
           <p className="flex items-center gap-1.5 font-medium text-slate-700">
             <HelpCircle size={15} /> Kein Fehler gefunden
           </p>
@@ -91,7 +91,7 @@ export default function MeldungButton({ worksheetId }: { worksheetId: string }) 
       <button
         type="button"
         onClick={() => setOffen(true)}
-        className="no-print inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-red-300 hover:text-red-700"
+        className="no-print inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-red-300 hover:text-red-700"
       >
         <Flag size={15} /> Problem melden
       </button>
@@ -99,7 +99,7 @@ export default function MeldungButton({ worksheetId }: { worksheetId: string }) 
   }
 
   return (
-    <div className="no-print w-full max-w-md rounded-xl border border-slate-200 bg-white p-4 text-sm shadow-card">
+    <div className="no-print w-full max-w-md rounded-xl border border-slate-200 bg-surface p-4 text-sm shadow-card">
       <p className="font-medium text-slate-700">Was stimmt bei diesem Arbeitsblatt nicht?</p>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {MELDUNG_KATEGORIEN.map((k) => (

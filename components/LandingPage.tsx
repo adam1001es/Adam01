@@ -161,7 +161,7 @@ export default function LandingPage() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/register"
-            className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-card transition hover:shadow-card-hover"
+            className="inline-flex items-center gap-2 rounded-full bg-surface px-6 py-3 text-sm font-semibold text-brand-700 shadow-card transition hover:shadow-card-hover"
           >
             <Gift size={16} /> {KOSTENLOS_LIMIT} Arbeitsblätter kostenlos ausprobieren
           </Link>
@@ -220,7 +220,7 @@ export default function LandingPage() {
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map(({ icon: Icon, titel, text, akzent }) => (
-          <div key={titel} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-card">
+          <div key={titel} className="rounded-2xl border border-slate-200 bg-surface p-6 shadow-card">
             <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${FEATURE_BADGE[akzent]}`}>
               <Icon size={20} strokeWidth={2} />
             </span>
@@ -372,7 +372,7 @@ export default function LandingPage() {
           {WAS_ENTHALTEN.map((punkt) => (
             <div
               key={punkt}
-              className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-card"
+              className="flex items-start gap-2.5 rounded-xl border border-slate-200 bg-surface p-4 text-sm text-slate-600 shadow-card"
             >
               <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-500" />
               <span>{punkt}</span>
@@ -397,7 +397,7 @@ export default function LandingPage() {
         </div>
 
         <div className="mx-auto mt-6 grid max-w-md gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 bg-white p-4 text-center">
+          <div className="rounded-xl border border-slate-200 bg-surface p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">Kostenlos</div>
             <div className="mt-1 text-xs text-slate-400">
               {KOSTENLOS_LIMIT} Arbeitsblätter insgesamt, einmalig

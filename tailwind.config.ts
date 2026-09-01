@@ -5,9 +5,32 @@ const config: Config = {
   // lib/sectionFarben.ts) stehen nur dort als Literal - ohne diesen Pfad im Content-Scan würde
   // der JIT-Compiler sie beim Build als "ungenutzt" verwerfen.
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
+  // Klassenbasierter statt medienabfrage-basierter Dark Mode: die .dark-Klasse landet auf <html>
+  // (siehe app/layout.tsx Inline-Script + components/ThemeToggle.tsx), damit die gespeicherte
+  // Nutzer-Präferenz (nicht nur die System-Einstellung) den Ausschlag gibt.
+  darkMode: "class",
   theme: {
     extend: {
       colors: {
+        // Neutrale UI-Farben (Seiten-Hintergrund, Karten-Fläche, Grautöne für Text/Rahmen) sind
+        // bewusst über CSS-Variablen an :root/.dark gebunden (siehe app/globals.css) statt fixer
+        // Hex-Werte - so passt sich praktisch die GESAMTE App an den Dark Mode an, ohne dass jede
+        // einzelne Komponente eine "dark:"-Variante pro Klasse braucht. Die "rgb(var(...) /
+        // <alpha-value>)"-Schreibweise erhält dabei Tailwinds Opacity-Modifier (z.B. bg-white/90).
+        canvas: "rgb(var(--color-canvas) / <alpha-value>)",
+        surface: "rgb(var(--color-surface) / <alpha-value>)",
+        slate: {
+          50: "rgb(var(--color-slate-50) / <alpha-value>)",
+          100: "rgb(var(--color-slate-100) / <alpha-value>)",
+          200: "rgb(var(--color-slate-200) / <alpha-value>)",
+          300: "rgb(var(--color-slate-300) / <alpha-value>)",
+          400: "rgb(var(--color-slate-400) / <alpha-value>)",
+          500: "rgb(var(--color-slate-500) / <alpha-value>)",
+          600: "rgb(var(--color-slate-600) / <alpha-value>)",
+          700: "rgb(var(--color-slate-700) / <alpha-value>)",
+          800: "rgb(var(--color-slate-800) / <alpha-value>)",
+          900: "rgb(var(--color-slate-900) / <alpha-value>)",
+        },
         brand: {
           50: "#f0fbf6",
           100: "#dcf5e7",
@@ -30,7 +53,6 @@ const config: Config = {
           600: "#8c6624",
           700: "#6f4f1e",
         },
-        canvas: "#fbfaf7",
       },
       fontFamily: {
         display: ["var(--font-display)", "Georgia", "serif"],

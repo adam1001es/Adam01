@@ -64,7 +64,7 @@ export default async function WorksheetPage({ params }: { params: { id: string }
           {istBesitzer && (
             <Link
               href={`/worksheet/${worksheet.id}/edit`}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
             >
               <Pencil size={15} /> Bearbeiten
             </Link>
@@ -78,7 +78,7 @@ export default async function WorksheetPage({ params }: { params: { id: string }
           </a>
           <a
             href={`/api/worksheet/${worksheet.id}/docx`}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-3.5 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700"
           >
             <FileType2 size={15} /> Word (.docx)
           </a>

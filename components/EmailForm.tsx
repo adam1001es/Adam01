@@ -85,7 +85,7 @@ export default function EmailForm({ aktuelleEmail }: { aktuelleEmail: string }) 
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-surface px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
         >
           {isPending ? "…" : "Bestätigungs-Mail senden"}
         </button>

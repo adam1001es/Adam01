@@ -479,7 +479,7 @@ export default function EditWorksheetForm({
                 <div className="mb-3 space-y-2">
                   <span className={labelClass}>Bildschritte</span>
                   {(a.bildergeschichteSchritte ?? []).map((schritt, i) => (
-                    <div key={i} className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white p-2.5">
+                    <div key={i} className="flex items-start gap-2 rounded-lg border border-slate-200 bg-surface p-2.5">
                       {schritt.bildGeneriertId ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img

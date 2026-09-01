@@ -49,7 +49,7 @@ export default async function DashboardPage({
           </p>
           <Link
             href="/new"
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-brand-800 shadow-card transition hover:bg-gold-50"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-brand-800 shadow-card transition hover:bg-gold-50"
           >
             <Plus size={17} strokeWidth={2.5} />
             Neues Arbeitsblatt erstellen
@@ -61,7 +61,7 @@ export default async function DashboardPage({
       </div>
 
       {worksheets.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-dashed border-brand-200 bg-white p-12 text-center shadow-card">
+        <div className="mt-8 rounded-2xl border border-dashed border-brand-200 bg-surface p-12 text-center shadow-card">
           <BookMarked className="mx-auto mb-3 text-brand-300" size={32} strokeWidth={1.5} />
           <p className="text-slate-600">
             Noch keine Arbeitsblätter vorhanden.{" "}
@@ -84,7 +84,7 @@ export default async function DashboardPage({
                 <li key={w.id}>
                   <Link
                     href={`/worksheet/${w.id}`}
-                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5"
+                    className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5"
                   >
                     <FavoritButton worksheetId={w.id} initialFavorit={w.favorit} />
                     <div className="min-w-0 flex-1">

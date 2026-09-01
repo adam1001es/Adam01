@@ -26,7 +26,7 @@ export default function SectionCard({
   const stil = SEKTION_FARBEN[akzent];
   return (
     <section
-      className={`rounded-2xl border border-slate-200 border-l-4 bg-white p-6 shadow-card ${stil.kante}`}
+      className={`rounded-2xl border border-slate-200 border-l-4 bg-surface p-6 shadow-card ${stil.kante}`}
     >
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">

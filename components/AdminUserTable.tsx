@@ -59,7 +59,7 @@ function AdminKontoZeile({ r }: { r: AdminUserRow }) {
   const [offen, setOffen] = useState(false);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white shadow-card">
+    <div className="rounded-2xl border border-slate-200 bg-surface shadow-card">
       <button
         type="button"
         onClick={() => setOffen((v) => !v)}
@@ -123,7 +123,7 @@ export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
           value={suche}
           onChange={(e) => setSuche(e.target.value)}
           placeholder="Konto suchen (E-Mail) …"
-          className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+          className="w-full rounded-lg border border-slate-300 bg-surface py-2 pl-9 pr-3 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
         />
       </label>
 
