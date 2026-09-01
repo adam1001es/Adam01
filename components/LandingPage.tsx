@@ -49,7 +49,7 @@ const FEATURES = [
   {
     icon: Baby,
     titel: "Altersgerecht bis Klasse 1",
-    text: "Für noch nicht lese-/schreibkundige Kinder automatisch die Malaufgabe (Schüler:innen zeichnen selbst) sowie besonders einfache, mündlich vorlesbare Aufgaben statt ungeeigneter Lesetext-Aufgaben.",
+    text: "Für noch nicht lese-/schreibkundige Kinder vier eigene Aufgabentypen: Bewegungsaufgabe (körperlich reagieren statt lesen), Sortierkarten (ausschneiden & einordnen), Malaufgabe (selbst zeichnen) und Nachspurübung (Schreibmotorik) - statt ungeeigneter Lesetext-Aufgaben.",
     akzent: "brand",
   },
   {
@@ -81,7 +81,7 @@ const VERGLEICH_UNS = [
 
 const WAS_ENTHALTEN = [
   "Bewusst didaktisch bewährte Aufgabentypen statt Nonsens-Vielfalt: Multiple Choice, Lückentext, Zuordnung, Offene Frage, Wahr/Falsch mit Begründung, Reihenfolge, Lesetext, Diskussionsimpuls, Kreuzworträtsel, Wortsuche",
-  "Speziell für die Kleinsten: die Malaufgabe (Schüler:innen zeichnen selbst) sowie besonders einfache, mündlich vorlesbare Aufgaben für Kinder, die noch nicht lesen/schreiben können",
+  "Speziell für die Kleinsten: Bewegungsaufgabe, Sortierkarten, Malaufgabe und Nachspurübung - vier Aufgabentypen ganz ohne Lese-/Schreibkompetenz für Kinder, die noch nicht lesen/schreiben können",
   "Ab Sekundarstufe I: Recherche-/Referatsaufträge mit Leitfaden, Bewertungskriterien und Quellenhinweis",
   "Fertiges, druckreifes PDF oder Word-Dokument - direkt zum Ausdrucken",
   "Eine zweite, unabhängige KI-Prüfung für jedes einzelne Arbeitsblatt",

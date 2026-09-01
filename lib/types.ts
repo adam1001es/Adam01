@@ -25,6 +25,9 @@ export const AUFGABEN_TYPEN = [
   "kreuzwortraetsel",
   "malaufgabe",
   "recherche_auftrag",
+  "bewegungsaufgabe",
+  "sortierkarten",
+  "nachspuruebung",
 ] as const;
 
 /** Aktuell im Formular anbietbare und für NEUE Arbeitsblätter generierbare Aufgabentypen -
@@ -50,6 +53,9 @@ export const AUFGABEN_TYPEN_AKTIV = [
   "kreuzwortraetsel",
   "malaufgabe",
   "recherche_auftrag",
+  "bewegungsaufgabe",
+  "sortierkarten",
+  "nachspuruebung",
 ] as const satisfies readonly (typeof AUFGABEN_TYPEN)[number][];
 
 /** Manche Aufgabentypen sind inhaltlich für sich schon umfangreich (Kreuzworträtsel/Wortsuche:
@@ -61,6 +67,7 @@ export const AUFGABEN_TYP_MAXIMUM: Partial<Record<(typeof AUFGABEN_TYPEN)[number
   kreuzwortraetsel: 1,
   wortsuche: 1,
   recherche_auftrag: 1,
+  sortierkarten: 1, // viele Ausschneide-/Klebe-Kärtchen - für sich schon umfangreich, siehe unten
 };
 
 /** Harte Obergrenze für die Anzahl Schritte (= Bilder) einer einzelnen Bildergeschichte-Aufgabe -
@@ -92,6 +99,9 @@ export const AUFGABEN_TYP_RICHTZEIT_MINUTEN: Record<(typeof AUFGABEN_TYPEN)[numb
   recherche_auftrag: 10,
   kreuzwortraetsel: 10,
   bildergeschichte: 12,
+  bewegungsaufgabe: 8, // Vorlesen + Reagieren der ganzen Klasse (Total Physical Response)
+  nachspuruebung: 8, // mehrfaches Nachfahren eines Wortes/einer Phrase
+  sortierkarten: 12, // Ausschneiden + Zuordnen dauert bei Kleinkindern erfahrungsgemäß länger
 };
 
 export const KOMPLEXITAET_STUFEN = ["einfach", "mittel", "anspruchsvoll"] as const;
@@ -182,6 +192,15 @@ export const KreuzwortEintragSchema = z.object({
   antwort: z.string(),
 });
 
+/** Eine einzelne Ausschneide-Karte bei "sortierkarten" - "kategorie" MUSS einem Eintrag in
+ * "sortierKategorien" der Aufgabe entsprechen, wird aber NUR in der Lösung verwendet (siehe
+ * WorksheetView.tsx): auf dem eigentlichen Arbeitsblatt zeigt die Karte nur "text", die
+ * richtige Zuordnung ist schließlich der Kern der Übung. */
+export const SortierKarteSchema = z.object({
+  text: z.string(),
+  kategorie: z.string(),
+});
+
 export const AufgabeSchema = z.object({
   nr: z.number(),
   typ: z.enum(AUFGABEN_TYPEN),
@@ -205,6 +224,10 @@ export const AufgabeSchema = z.object({
   leitfaden: z.array(z.string()).optional(), // bei "recherche_auftrag": konkrete Recherchefragen/Gliederungspunkte für die Präsentation
   bewertungskriterien: z.array(z.string()).optional(), // bei "recherche_auftrag": woran eine gute Bearbeitung erkennbar ist (statt fixer "Lösung" bei offener Recherche)
   quellenhinweis: z.string().optional(), // bei "recherche_auftrag": Hinweis zu vertrauenswürdigen Quellenarten ODER kurzer Sachtext als Recherchebasis ohne Internetzugang
+  bewegungsElemente: z.array(z.string()).optional(), // bei "bewegungsaufgabe": Begriffe/Sätze, die die Lehrkraft nacheinander vorliest (Mischung aus passenden und nicht-passenden Elementen, siehe "loesung")
+  sortierKategorien: z.array(z.string()).optional(), // bei "sortierkarten": die Kategorie-Spalten, in die die Karten sortiert werden
+  sortierKarten: z.array(SortierKarteSchema).optional(), // bei "sortierkarten": die Ausschneide-Kärtchen
+  nachspurText: z.string().optional(), // bei "nachspuruebung": das kurze Wort/die Phrase zum Nachfahren
   anforderungsbereich: z.enum(ANFORDERUNGSBEREICHE_KEYS).optional(),
 });
 export type Aufgabe = z.infer<typeof AufgabeSchema>;

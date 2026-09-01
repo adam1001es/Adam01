@@ -20,6 +20,9 @@ import {
   Hash,
   Palette,
   FileSearch,
+  PersonStanding,
+  LayoutGrid,
+  PenTool,
   Sparkles,
   ChevronDown,
 } from "lucide-react";
@@ -112,6 +115,9 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; i
   kreuzwortraetsel: { label: "Kreuzworträtsel", icon: Hash },
   malaufgabe: { label: "Malaufgabe", icon: Palette },
   recherche_auftrag: { label: "Recherche-/Referat-Auftrag", icon: FileSearch },
+  bewegungsaufgabe: { label: "Bewegungsaufgabe", icon: PersonStanding },
+  sortierkarten: { label: "Sortierkarten", icon: LayoutGrid },
+  nachspuruebung: { label: "Nachspurübung", icon: PenTool },
 };
 
 const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {
@@ -508,10 +514,10 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
           )}
           {aufgabentypen.some((typ) => typ in AUFGABEN_TYP_MAXIMUM) && (
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
-              Hinweis: „Kreuzworträtsel", „Wortsuche" und „Recherche-/Referat-Auftrag" sind für
-              sich schon umfangreich - davon wird höchstens 1 Aufgabe pro Arbeitsblatt erstellt,
-              auch wenn oben eine höhere Anzahl gewählt ist. Das fertige Blatt kann dadurch
-              weniger Aufgaben enthalten als hier eingestellt.
+              Hinweis: „Kreuzworträtsel", „Wortsuche", „Recherche-/Referat-Auftrag" und
+              „Sortierkarten" sind für sich schon umfangreich - davon wird höchstens 1 Aufgabe
+              pro Arbeitsblatt erstellt, auch wenn oben eine höhere Anzahl gewählt ist. Das
+              fertige Blatt kann dadurch weniger Aufgaben enthalten als hier eingestellt.
             </p>
           )}
           {aufgabentypen.includes("recherche_auftrag") && (
@@ -524,13 +530,20 @@ export default function NewWorksheetForm({ kannErstellen }: { kannErstellen: boo
             <div className="mt-4 flex items-start justify-between gap-3 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3">
               <p className="text-xs leading-relaxed text-gold-700">
                 Kinder der 1./2. Klasse Volksschule können meist noch nicht lesen/schreiben.
-                Empfehlung: „Malaufgabe" (Schüler:innen zeichnen selbst) sowie „Wahr oder Falsch",
-                „Multiple Choice" und „Zuordnung" mit ganz kurzen, mündlich vorlesbaren Aufgaben.
+                Empfehlung: „Bewegungsaufgabe" (körperlich reagieren statt lesen), „Sortierkarten"
+                (ausschneiden &amp; einordnen), „Malaufgabe" (selbst zeichnen) und „Nachspurübung"
+                (Schreibmotorik) sowie ergänzend „Wahr oder Falsch", „Multiple Choice" und
+                „Zuordnung" mit ganz kurzen, mündlich vorlesbaren Aufgaben.
               </p>
               <button
                 type="button"
                 onClick={() =>
-                  setAufgabentypen(["malaufgabe", "wahr_falsch", "multiple_choice", "zuordnung"])
+                  setAufgabentypen([
+                    "bewegungsaufgabe",
+                    "sortierkarten",
+                    "malaufgabe",
+                    "nachspuruebung",
+                  ])
                 }
                 className="shrink-0 whitespace-nowrap rounded-full border border-gold-300 bg-white px-3 py-1.5 text-xs font-medium text-gold-700 transition hover:bg-gold-100"
               >

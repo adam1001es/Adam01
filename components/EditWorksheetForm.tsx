@@ -26,6 +26,9 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   kreuzwortraetsel: "Kreuzworträtsel",
   malaufgabe: "Malaufgabe",
   recherche_auftrag: "Recherche-/Referat-Auftrag",
+  bewegungsaufgabe: "Bewegungsaufgabe",
+  sortierkarten: "Sortierkarten",
+  nachspuruebung: "Nachspurübung",
 };
 
 function IconSelect({
@@ -578,6 +581,83 @@ export default function EditWorksheetForm({
                     />
                   </label>
                 </div>
+              )}
+
+              {a.typ === "bewegungsaufgabe" && (
+                <label className="mb-3 block">
+                  <span className={labelClass}>Vorzulesende Begriffe (eine Zeile pro Begriff)</span>
+                  <textarea
+                    className={inputClass}
+                    rows={Math.max(3, (a.bewegungsElemente ?? []).length)}
+                    value={(a.bewegungsElemente ?? []).join("\n")}
+                    onChange={(e) => {
+                      const bewegungsElemente = e.target.value
+                        .split("\n")
+                        .map((w) => w.trim())
+                        .filter((w) => w.length > 0);
+                      updateAufgabe(a.nr, { bewegungsElemente });
+                    }}
+                  />
+                  <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                    Mischung aus passenden und nicht-passenden Begriffen - welche eine Reaktion
+                    auslösen sollen, steht im Feld "Lösung" unten.
+                  </span>
+                </label>
+              )}
+
+              {a.typ === "sortierkarten" && (
+                <div className="mb-3 space-y-2">
+                  <label className="block">
+                    <span className={labelClass}>Kategorien (durch Komma getrennt)</span>
+                    <input
+                      className={inputClass}
+                      value={(a.sortierKategorien ?? []).join(", ")}
+                      onChange={(e) => {
+                        const sortierKategorien = e.target.value
+                          .split(",")
+                          .map((w) => w.trim())
+                          .filter((w) => w.length > 0);
+                        updateAufgabe(a.nr, { sortierKategorien });
+                      }}
+                    />
+                  </label>
+                  <span className={labelClass}>Ausschneide-Karten (Text und zugehörige Kategorie)</span>
+                  {(a.sortierKarten ?? []).map((karte, i) => (
+                    <div key={i} className="flex gap-2">
+                      <input
+                        className={`${inputClass} w-2/3`}
+                        placeholder="Kartentext"
+                        value={karte.text}
+                        onChange={(e) => {
+                          const sortierKarten = [...(a.sortierKarten ?? [])];
+                          sortierKarten[i] = { ...sortierKarten[i], text: e.target.value };
+                          updateAufgabe(a.nr, { sortierKarten });
+                        }}
+                      />
+                      <input
+                        className={`${inputClass} w-1/3`}
+                        placeholder="Kategorie"
+                        value={karte.kategorie}
+                        onChange={(e) => {
+                          const sortierKarten = [...(a.sortierKarten ?? [])];
+                          sortierKarten[i] = { ...sortierKarten[i], kategorie: e.target.value };
+                          updateAufgabe(a.nr, { sortierKarten });
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {a.typ === "nachspuruebung" && (
+                <label className="mb-3 block max-w-xs">
+                  <span className={labelClass}>Wort/Phrase zum Nachfahren</span>
+                  <input
+                    className={inputClass}
+                    value={a.nachspurText ?? ""}
+                    onChange={(e) => updateAufgabe(a.nr, { nachspurText: e.target.value })}
+                  />
+                </label>
               )}
 
               <label className="block">

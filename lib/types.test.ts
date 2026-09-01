@@ -71,4 +71,18 @@ describe("AUFGABEN_TYP_MAXIMUM", () => {
   it("deckelt 'recherche_auftrag' wie Kreuzworträtsel/Wortsuche auf 1 pro Arbeitsblatt", () => {
     expect(AUFGABEN_TYP_MAXIMUM.recherche_auftrag).toBe(1);
   });
+
+  it("deckelt 'sortierkarten' ebenfalls auf 1 pro Arbeitsblatt", () => {
+    expect(AUFGABEN_TYP_MAXIMUM.sortierkarten).toBe(1);
+  });
+});
+
+describe("GenerateRequestSchema - neue Aufgabentypen für 1./2. Klasse (bewegungsaufgabe/sortierkarten/nachspuruebung)", () => {
+  it("akzeptiert 'bewegungsaufgabe', 'sortierkarten' und 'nachspuruebung'", () => {
+    const req = baseRequest({
+      schulstufe: "1. Klasse Volksschule",
+      aufgabentypen: ["bewegungsaufgabe", "sortierkarten", "nachspuruebung"],
+    });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
+  });
 });

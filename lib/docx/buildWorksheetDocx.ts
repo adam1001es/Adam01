@@ -184,6 +184,73 @@ function baueKreuzwortTabelle(gitter: (KreuzwortZelle | null)[][]): Table {
   });
 }
 
+/** Baut eine einzeilige Tabelle mit den Kategorie-Spalten bei "sortierkarten" - leere, umrandete
+ * Boxen zum Hineinkleben der ausgeschnittenen Kärtchen. */
+function baueSortierKategorienTabelle(kategorien: string[], baseSize: number): Table {
+  const rahmen = { style: BorderStyle.SINGLE, size: 6, color: "94A3B8" };
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: kategorien.map(
+          (kategorie) =>
+            new TableCell({
+              borders: { top: rahmen, bottom: rahmen, left: rahmen, right: rahmen },
+              margins: { top: 100, bottom: 400, left: 100, right: 100 },
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [new TextRun({ text: kategorie, bold: true, size: baseSize, color: "64748B" })],
+                }),
+              ],
+            }),
+        ),
+      }),
+    ],
+  });
+}
+
+/** Baut ein Gitter aus Ausschneide-Kärtchen bei "sortierkarten" (gestrichelter Rand) - drei pro
+ * Zeile, letzte Zeile ggf. mit leeren, randlosen Zellen aufgefüllt, damit die Tabelle gültig
+ * bleibt. Zeigt NUR den Kartentext, nie die (Lösungs-)Kategorie. */
+function baueSortierKartenTabelle(kartenTexte: string[], baseSize: number): Table {
+  const rahmen = { style: BorderStyle.DASHED, size: 4, color: "94A3B8" };
+  const SPALTEN = 3;
+  const zeilen: string[][] = [];
+  for (let i = 0; i < kartenTexte.length; i += SPALTEN) {
+    zeilen.push(kartenTexte.slice(i, i + SPALTEN));
+  }
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: zeilen.map(
+      (zeile) =>
+        new TableRow({
+          children: [
+            ...zeile.map(
+              (text) =>
+                new TableCell({
+                  borders: { top: rahmen, bottom: rahmen, left: rahmen, right: rahmen },
+                  margins: { top: 100, bottom: 100, left: 100, right: 100 },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [new TextRun({ text, size: baseSize })],
+                    }),
+                  ],
+                }),
+            ),
+            ...Array.from({ length: SPALTEN - zeile.length }, () =>
+              new TableCell({
+                borders: { top: OHNE_RAHMEN, bottom: OHNE_RAHMEN, left: OHNE_RAHMEN, right: OHNE_RAHMEN },
+                children: [new Paragraph({ children: [] })],
+              }),
+            ),
+          ],
+        }),
+    ),
+  });
+}
+
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
   lueckentext: "Lückentext",
@@ -199,6 +266,9 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   kreuzwortraetsel: "Kreuzworträtsel",
   malaufgabe: "Malaufgabe",
   recherche_auftrag: "Recherche-/Referat-Auftrag",
+  bewegungsaufgabe: "Bewegungsaufgabe",
+  sortierkarten: "Sortierkarten",
+  nachspuruebung: "Nachspurübung",
 };
 
 const ACCENT = "0f9d58";
@@ -571,6 +641,54 @@ export async function buildWorksheetDocx(
             indent: { left: 360 },
             children: [
               new TextRun({ text: schritt.vorlesetext, italics: true, size: baseSize - 2, color: "475569" }),
+            ],
+          }),
+        );
+      });
+    }
+    if (a.typ === "bewegungsaufgabe" && a.bewegungsElemente && a.bewegungsElemente.length > 0) {
+      children.push(
+        new Paragraph({
+          indent: { left: 360 },
+          spacing: { before: 60 },
+          children: [
+            new TextRun({
+              text: "Nacheinander vorlesen - Auflösung, bei welchen Begriffen reagiert werden soll, siehe Lösungsblatt.",
+              italics: true,
+              size: baseSize - 2,
+              color: "94A3B8",
+            }),
+          ],
+        }),
+      );
+      a.bewegungsElemente.forEach((element) => {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            children: [new TextRun({ text: `• ${element}`, size: baseSize })],
+          }),
+        );
+      });
+    }
+    if (a.typ === "sortierkarten" && a.sortierKategorien && a.sortierKarten) {
+      children.push(baueSortierKategorienTabelle(a.sortierKategorien, baseSize));
+      children.push(
+        new Paragraph({ indent: { left: 360 }, children: [], spacing: { before: 100, after: 60 } }),
+        baueSortierKartenTabelle(
+          a.sortierKarten.map((k) => k.text),
+          baseSize,
+        ),
+      );
+    }
+    if (a.typ === "nachspuruebung" && a.nachspurText) {
+      [0, 1, 2].forEach((i) => {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: i === 0 ? 100 : 200 },
+            border: { bottom: { style: BorderStyle.DOTTED, size: 4, color: "94A3B8" } },
+            children: [
+              new TextRun({ text: a.nachspurText, size: baseSize + 14, color: "CBD5E1", characterSpacing: 40 }),
             ],
           }),
         );

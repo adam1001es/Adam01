@@ -25,6 +25,9 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   kreuzwortraetsel: "Kreuzworträtsel",
   malaufgabe: "Malaufgabe",
   recherche_auftrag: "Recherche-/Referat-Auftrag",
+  bewegungsaufgabe: "Bewegungsaufgabe",
+  sortierkarten: "Sortierkarten",
+  nachspuruebung: "Nachspurübung",
 };
 
 /** Feste Icons als Base64-Data-URIs statt Dateipfad, beim Modul-Laden EINMAL eingelesen -
@@ -331,6 +334,65 @@ function buildStyles(layout: LayoutConfig) {
       fontStyle: "italic",
       color: "#475569",
     },
+    bewegungHinweis: {
+      marginLeft: 12,
+      marginTop: 2,
+      fontSize: baseFontSize - 2,
+      fontStyle: "italic",
+      color: "#94a3b8",
+    },
+    bewegungListe: {
+      marginLeft: 12,
+      marginTop: 2,
+    },
+    bewegungZeile: {
+      marginBottom: 2,
+    },
+    sortierKategorienReihe: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginTop: 6,
+      marginLeft: 12,
+      gap: 8,
+    },
+    sortierKategorie: {
+      flexGrow: 1,
+      minWidth: 100,
+      minHeight: 40,
+      border: "1.5px solid #94a3b8",
+      borderRadius: 6,
+      padding: 6,
+      textAlign: "center",
+      fontSize: baseFontSize - 1,
+      fontWeight: 700,
+      color: "#64748b",
+    },
+    sortierKartenReihe: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginTop: 8,
+      marginLeft: 12,
+      gap: 6,
+    },
+    sortierKarte: {
+      border: "1.5px dashed #94a3b8",
+      borderRadius: 4,
+      backgroundColor: "#f8fafc",
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      fontSize: baseFontSize - 1,
+    },
+    nachspurZeile: {
+      marginLeft: 12,
+      marginTop: 8,
+      paddingBottom: 4,
+      borderBottom: "1px dotted #94a3b8",
+    },
+    nachspurText: {
+      fontSize: baseFontSize + 6,
+      letterSpacing: 2,
+      color: "#cbd5e1",
+    },
   });
 }
 
@@ -568,6 +630,47 @@ function AufgabenListe({
               {a.quellenhinweis && (
                 <Text style={styles.rechercheHinweis}>Hinweis zu Quellen: {a.quellenhinweis}</Text>
               )}
+            </View>
+          )}
+          {a.typ === "bewegungsaufgabe" && a.bewegungsElemente && a.bewegungsElemente.length > 0 && (
+            <View>
+              <Text style={styles.bewegungHinweis}>
+                Nacheinander vorlesen - Auflösung, bei welchen Begriffen reagiert werden soll, siehe Lösungsblatt.
+              </Text>
+              <View style={styles.bewegungListe}>
+                {a.bewegungsElemente.map((element, i) => (
+                  <Text key={i} style={styles.bewegungZeile}>
+                    • {element}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          )}
+          {a.typ === "sortierkarten" && a.sortierKategorien && a.sortierKarten && (
+            <View>
+              <View style={styles.sortierKategorienReihe}>
+                {a.sortierKategorien.map((kategorie, i) => (
+                  <Text key={i} style={styles.sortierKategorie}>
+                    {kategorie}
+                  </Text>
+                ))}
+              </View>
+              <View style={styles.sortierKartenReihe}>
+                {a.sortierKarten.map((karte, i) => (
+                  <Text key={i} style={styles.sortierKarte}>
+                    {karte.text}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          )}
+          {a.typ === "nachspuruebung" && a.nachspurText && (
+            <View>
+              {[0, 1, 2].map((i) => (
+                <View key={i} style={styles.nachspurZeile}>
+                  <Text style={styles.nachspurText}>{a.nachspurText}</Text>
+                </View>
+              ))}
             </View>
           )}
         </View>

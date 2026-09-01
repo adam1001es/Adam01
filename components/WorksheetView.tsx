@@ -21,6 +21,9 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   kreuzwortraetsel: "Kreuzworträtsel",
   malaufgabe: "Malaufgabe",
   recherche_auftrag: "Recherche-/Referat-Auftrag",
+  bewegungsaufgabe: "Bewegungsaufgabe",
+  sortierkarten: "Sortierkarten",
+  nachspuruebung: "Nachspurübung",
 };
 
 /** Zeigt entweder ein festes Icon aus der kuratierten Bibliothek oder ein live per Bild-KI
@@ -321,6 +324,52 @@ export default function WorksheetView({
                         {a.quellenhinweis}
                       </p>
                     )}
+                  </div>
+                )}
+                {a.typ === "bewegungsaufgabe" && a.bewegungsElemente && a.bewegungsElemente.length > 0 && (
+                  <div className="ml-5 mt-1.5">
+                    <p className="mb-1 text-xs italic text-slate-400">
+                      Nacheinander vorlesen - Auflösung, bei welchen Begriffen reagiert werden soll, siehe Lösungsblatt.
+                    </p>
+                    <ul className="list-disc space-y-0.5 pl-4 text-sm">
+                      {a.bewegungsElemente.map((element, i) => (
+                        <li key={i}>{element}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {a.typ === "sortierkarten" && a.sortierKategorien && a.sortierKarten && (
+                  <div className="mt-2 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {a.sortierKategorien.map((kategorie, i) => (
+                        <div
+                          key={i}
+                          className="min-h-[3.5rem] flex-1 rounded-lg border-2 border-slate-300 p-2 text-center text-sm font-medium text-slate-500"
+                          style={{ minWidth: 120 }}
+                        >
+                          {kategorie}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {a.sortierKarten.map((karte, i) => (
+                        <span
+                          key={i}
+                          className="rounded-md border-2 border-dashed border-slate-400 bg-slate-50 px-3 py-1.5 text-sm"
+                        >
+                          {karte.text}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {a.typ === "nachspuruebung" && a.nachspurText && (
+                  <div className="mt-3 space-y-3">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="border-b border-dotted border-slate-400 pb-1">
+                        <span className="text-2xl tracking-widest text-slate-300">{a.nachspurText}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </li>
