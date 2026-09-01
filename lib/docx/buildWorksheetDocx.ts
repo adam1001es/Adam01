@@ -270,7 +270,7 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   nachspuruebung: "Nachspurübung",
 };
 
-const ACCENT = "0f9d58";
+const ACCENT = "0d9488";
 
 export async function buildWorksheetDocx(
   content: WorksheetContent,

@@ -31,17 +31,22 @@ const config: Config = {
           800: "rgb(var(--color-slate-800) / <alpha-value>)",
           900: "rgb(var(--color-slate-900) / <alpha-value>)",
         },
+        // Türkis/Teal ist die neue Hauptfarbe der App (vorher Waldgrün) - entspricht Tailwinds
+        // eigener "teal"-Skala, damit sie exakt zu den bereits eingeführten Community-/Klassen-
+        // Tönen passt (die literal teal-*/emerald-* referenzieren). brand-700/800/900 sind damit
+        // bewusst dieselben Werte wie teal-700/800/900 - kein Konflikt, sondern Absicht: "brand"
+        // ist jetzt schlicht die Teal-Familie.
         brand: {
-          50: "#f0fbf6",
-          100: "#dcf5e7",
-          200: "#b8e8cd",
-          300: "#87d3ac",
-          400: "#4fb384",
-          500: "#1e8c60",
-          600: "#12704c",
-          700: "#0f5940",
-          800: "#0e4735",
-          900: "#0c3b2d",
+          50: "#f0fdfa",
+          100: "#ccfbf1",
+          200: "#99f6e4",
+          300: "#5eead4",
+          400: "#2dd4bf",
+          500: "#14b8a6",
+          600: "#0d9488",
+          700: "#0f766e",
+          800: "#115e59",
+          900: "#134e4a",
         },
         gold: {
           50: "#fbf7ee",
@@ -59,8 +64,10 @@ const config: Config = {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       boxShadow: {
-        card: "0 1px 2px rgba(15, 89, 64, 0.04), 0 8px 24px -12px rgba(15, 89, 64, 0.18)",
-        "card-hover": "0 4px 10px rgba(15, 89, 64, 0.06), 0 16px 32px -14px rgba(15, 89, 64, 0.28)",
+        // Schatten-Basisfarbe an die neue Teal-Hauptfarbe angepasst (Mittelwert aus
+        // brand-gradient 700/900, siehe backgroundImage hier drunter).
+        card: "0 1px 2px rgba(17, 98, 92, 0.04), 0 8px 24px -12px rgba(17, 98, 92, 0.18)",
+        "card-hover": "0 4px 10px rgba(17, 98, 92, 0.06), 0 16px 32px -14px rgba(17, 98, 92, 0.28)",
         // Türkis getönte Variante für den Klassen-Bereich (siehe backgroundImage.klassen-gradient
         // hier drunter) - bewusst nah am Teal von Community (siehe community-gradient), aber
         // heller, damit beide Bereiche als verwandt statt identisch wirken. Gleiche Alpha-Werte
@@ -70,16 +77,14 @@ const config: Config = {
         "card-klassen-hover": "0 4px 10px rgba(18, 151, 138, 0.06), 0 16px 32px -14px rgba(18, 151, 138, 0.28)",
       },
       backgroundImage: {
-        "brand-gradient": "linear-gradient(135deg, #12704c 0%, #0f5940 100%)",
-        // Für "Geteilte Arbeitsblätter" (Community) - bewusst nur ein leichter Ton-Unterschied
-        // zum brand-gradient der Übersicht (etwas kühler/türkiser statt waldgrün), damit beide
-        // Bereiche auf den ersten Blick unterscheidbar sind, aber klar in derselben grünen
-        // Farbfamilie bleiben statt wie ein eigener Modus wie Klassen zu wirken.
+        // Hauptfarbe der App: dunkelstes/"seriösestes" Teal (700->900) - Übersicht, Logo,
+        // Landingpage, Standard-Buttons. Community und Klassen nutzen jeweils eine Stufe hellere
+        // Teal-Bereiche (siehe direkt drunter), damit alle drei als verwandte Familie wirken, aber
+        // im Nav trotzdem auf einen Blick unterscheidbar bleiben (dunkel -> mittel -> hell).
+        "brand-gradient": "linear-gradient(135deg, #0f766e 0%, #134e4a 100%)",
+        // "Geteilte Arbeitsblätter": eine Stufe heller als die Hauptfarbe (600->800 statt 700->900).
         "community-gradient": "linear-gradient(135deg, #0d9488 0%, #115e59 100%)",
-        // Türkis für den Klassen-Bereich - bewusst ähnlich zum Teal von Community (verwandte
-        // Farbfamilie, beide "türkis"), aber eine Stufe heller/frischer (500er statt 600/800er),
-        // damit die beiden Bereiche sich nah, aber nicht 1:1 gleich anfühlen und im Nav dennoch
-        // unterscheidbar bleiben.
+        // Klassen: nochmal eine Stufe heller/frischer (500->700), das hellste der drei Teal-Bänder.
         "klassen-gradient": "linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)",
       },
       keyframes: {

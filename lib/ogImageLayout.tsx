@@ -14,7 +14,7 @@ export function OgImageLayout() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #12704c 0%, #0f5940 100%)",
+        background: "linear-gradient(135deg, #0f766e 0%, #134e4a 100%)",
       }}
     >
       <div
@@ -36,7 +36,7 @@ export function OgImageLayout() {
       <div style={{ display: "flex", fontSize: 66, fontWeight: 700, color: "#ffffff" }}>
         Lernwerk
       </div>
-      <div style={{ display: "flex", fontSize: 30, color: "#dcf5e7", marginTop: 20 }}>
+      <div style={{ display: "flex", fontSize: 30, color: "#ccfbf1", marginTop: 20 }}>
         Islamischer Religionsunterricht · Österreich
       </div>
     </div>

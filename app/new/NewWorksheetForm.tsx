@@ -137,7 +137,7 @@ const AUFGABEN_TYPEN_FRUEH_EMPFOHLEN: readonly (typeof AUFGABEN_TYPEN_AKTIV)[num
 
 const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {
   klassisch: { label: "Klassisch", swatch: "#9c7a2c" },
-  modern: { label: "Modern", swatch: "#12704c" },
+  modern: { label: "Modern", swatch: "#0f766e" },
   kompakt: { label: "Kompakt", swatch: "#64748b" },
 };
 

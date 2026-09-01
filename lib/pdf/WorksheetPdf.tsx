@@ -93,7 +93,7 @@ function buildStyles(layout: LayoutConfig) {
   // Bei Schwarz-Weiß-Druck macht der farbige "modern"-Kopfbereich keinen Sinn (viel Toner/Tinte).
   const isModernFarbig = isModern && !istSchwarzweiss;
   const fontFamily = isModern || isKompakt ? "Helvetica" : "Times-Roman";
-  const headerColor = isModernFarbig ? "#0f9d58" : "#111111";
+  const headerColor = isModernFarbig ? "#0d9488" : "#111111";
 
   return StyleSheet.create({
     page: {

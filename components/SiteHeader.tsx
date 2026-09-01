@@ -68,10 +68,9 @@ export default function SiteHeader({
           : "text-slate-600 hover:bg-brand-50 hover:text-brand-700"
     }`;
 
-  // Der Klassen-Bereich hat eine eigene, aber weiterhin grün-türkise Farbidentität (helleres
-  // Grün-zu-Türkis statt Marken-Waldgrün, siehe tailwind.config klassen-gradient) - er fühlt sich
-  // dadurch in der Navigation wie ein eigener "Modus" innerhalb von Lernwerk an, ohne die Farbe
-  // der App zu verlassen.
+  // Der Klassen-Bereich nutzt die hellste Stufe des Teal-Bandes (siehe tailwind.config
+  // klassen-gradient) - eine Nuance heller als die Marke selbst, damit er sich in der Navigation
+  // wie ein eigener "Modus" innerhalb von Lernwerk anfühlt, ohne die Farbfamilie zu verlassen.
   const navLinkClassKlassen = (active: boolean) =>
     `flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium transition active:scale-95 sm:px-3.5 ${
       active
@@ -79,14 +78,15 @@ export default function SiteHeader({
         : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
     }`;
 
-  // Geteilte Arbeitsblätter (Community) bekommt nur einen LEICHTEN, weiterhin grünen Ton-
-  // Unterschied zur Übersicht (siehe tailwind.config community-gradient) - keine eigene
-  // Farbidentität wie Klassen, nur zur besseren Unterscheidbarkeit der beiden Bereiche.
+  // Geteilte Arbeitsblätter (Community) bekommt nur einen LEICHTEN Ton-Unterschied zur Übersicht
+  // (siehe tailwind.config community-gradient) - keine eigene Farbidentität wie Klassen. Der
+  // Hover-Akzent ist bewusst Cyan statt Teal, da "brand" (Übersicht/Standard-Hover) jetzt selbst
+  // Teal ist - sonst wären beide Hover-Zustände ununterscheidbar.
   const navLinkClassCommunity = (active: boolean) =>
     `flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium transition active:scale-95 sm:px-3.5 ${
       active
         ? "bg-community-gradient text-white shadow-card"
-        : "text-slate-600 hover:bg-teal-50 hover:text-teal-700"
+        : "text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
     }`;
 
   return (
