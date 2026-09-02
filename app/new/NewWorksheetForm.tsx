@@ -257,11 +257,10 @@ export default function NewWorksheetForm({
   const [schulstufeFrei, setSchulstufeFrei] = useState("");
   const schulstufe = schulstufeAuswahl === ANDERE_SCHULSTUFE ? schulstufeFrei : schulstufeAuswahl;
   const schulstufenThemen = holeSchulstufenThemen(schulstufe);
-  const [zieldauerMinuten, setZieldauerMinuten] = useState<(typeof ZIELDAUER_OPTIONEN_MINUTEN)[number]>(35);
+  const [zieldauerMinuten, setZieldauerMinuten] = useState<(typeof ZIELDAUER_OPTIONEN_MINUTEN)[number]>(30);
   const [komplexitaet, setKomplexitaet] = useState<Komplexitaet>("mittel");
   const [aufgabentypen, setAufgabentypen] = useState<string[]>([
     "multiple_choice",
-    "zuordnung",
     "offene_frage",
   ]);
   const [punkteGesamt, setPunkteGesamt] = useState(30);
@@ -1042,9 +1041,9 @@ export default function NewWorksheetForm({
               Aufgaben enthalten als hier eingestellt.
             </p>
           )}
-          {aufgabentypen.length > 2 && zieldauerMinuten === 50 && (
+          {aufgabentypen.length > 2 && zieldauerMinuten === 40 && (
             <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs leading-relaxed text-slate-500">
-              Viele verschiedene Aufgabentypen gleichzeitig + 50 Minuten Zieldauer kann die
+              Viele verschiedene Aufgabentypen gleichzeitig + 40 Minuten Zieldauer kann die
               Erstellung etwas länger dauern lassen. Sollte sie in seltenen Fällen fehlschlagen,
               hilft meist ein erneuter Versuch, notfalls mit weniger Aufgabentypen gleichzeitig.
             </p>

@@ -171,7 +171,7 @@ export const KOMPLEXITAET_FAKTOR: Record<Komplexitaet, number> = {
   anspruchsvoll: 1.3,
 };
 
-export const ZIELDAUER_OPTIONEN_MINUTEN = [20, 35, 50] as const;
+export const ZIELDAUER_OPTIONEN_MINUTEN = [20, 30, 40] as const;
 
 /** Fixer Puffer für Einstieg (Begrüßung/Wiederholung) und Abschluss (Reflexion) einer
  * Unterrichtseinheit, angelehnt an den üblichen Ablauf einer 50-minütigen österreichischen
@@ -401,7 +401,7 @@ export const GenerateRequestSchema = z
       .refine((v) => (ZIELDAUER_OPTIONEN_MINUTEN as readonly number[]).includes(v), {
         message: "Ungültige Zieldauer.",
       })
-      .default(35),
+      .default(30),
     komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
     // "malaufgabe" und "recherche_auftrag" sind zwar in erster Linie für 1. Klasse Volksschule
     // bzw. ab Sekundarstufe I gedacht (siehe die entsprechenden Empfehlungs-Hinweise im

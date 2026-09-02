@@ -310,7 +310,7 @@ async function generiereUndPruefeEinmal(
       // Bewusst deutlich über dem tatsächlichen Bedarf (siehe AUFGABEN_TYP_MAXIMUM: max. 10
       // Aufgaben gesamt, "große" Typen wie Kreuzworträtsel/Wortsuche schon auf 1 pro Blatt
       // gedeckelt) - reiner Sicherheitsspielraum für den Fall vieler gleichzeitig gewählter,
-      // inhaltsreicher Aufgabentypen bei 50 Minuten Zieldauer. War bereits einmal von 8000 auf
+      // inhaltsreicher Aufgabentypen bei 40 Minuten Zieldauer. War bereits einmal von 8000 auf
       // 16000 angehoben, weil das alte Limit die Antwort mitten im JSON abschnitt
       // ("Keine JSON-Struktur in der Modellantwort gefunden").
       max_tokens: 24000,

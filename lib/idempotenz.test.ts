@@ -10,7 +10,7 @@ function baueRequest(overrides: Partial<GenerateRequest> = {}): GenerateRequest 
     themenbereich: "gemischt",
     inhaltsquelle: "frei",
     ausgabeform: "arbeitsblatt",
-    zieldauerMinuten: 35,
+    zieldauerMinuten: 30,
     komplexitaet: "mittel",
     aufgabentypen: ["multiple_choice", "wahr_falsch"],
     istPruefung: false,
