@@ -333,3 +333,19 @@ model WissensEintrag {
   geprueftAm        DateTime?
   createdAt         DateTime @default(now())
 }
+
+// Verhindert ein doppelt erzeugtes Arbeitsblatt, wenn dieselbe Anfrage nach einem
+// Verbindungsabbruch (siehe NewWorksheetForm.tsx) erneut abgeschickt wird (siehe
+// app/api/generate/route.ts, lib/idempotenz.ts) - kurzlebige Merker-Tabelle, kein dauerhafter
+// Datensatz. requestHash identifiziert einen inhaltlich identischen Versuch (gleiche
+// Einstellungen); ein anderer Hash (z.B. andere Schulstufe) gilt als eigenständiger, neuer Wunsch.
+model GenerierungsAnfrage {
+  id          String   @id @default(cuid())
+  userId      String
+  requestHash String
+  status      String // "laeuft" | "fertig" | "fehlgeschlagen"
+  worksheetId String? // lose Referenz ohne FK, siehe Kommentar bei UsageLog oben
+  createdAt   DateTime @default(now())
+
+  @@index([userId, requestHash])
+}

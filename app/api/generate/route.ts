@@ -7,6 +7,12 @@ import { getKontingent, istZahlendesKonto } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 import { speichereUsage } from "@/lib/usageLog";
 import { starteGenerierung, beendeGenerierung } from "@/lib/auslastung";
+import {
+  berechneRequestHash,
+  starteOderErkenneDuplikat,
+  markiereAnfrageFertig,
+  markiereAnfrageFehlgeschlagen,
+} from "@/lib/idempotenz";
 
 // Generierung + Verifikation (zwei nacheinander laufende Claude-Aufrufe, bei einem automatischen
 // zweiten Versuch nach "fehler" sogar vier, siehe generateAndVerifyWorksheet) können zusammen
@@ -86,6 +92,25 @@ export async function POST(request: NextRequest) {
     klasse = gefunden;
   }
 
+  // Verhindert ein doppelt erzeugtes Arbeitsblatt, wenn dieselbe Anfrage nach einem
+  // Verbindungsabbruch erneut abgeschickt wird (siehe lib/idempotenz.ts, real beobachtet: "Load
+  // failed" nach Netzwerkfehler, erneuter Klick mit unveränderten Einstellungen).
+  const requestHash = berechneRequestHash(req, user.id);
+  const dedup = await starteOderErkenneDuplikat(user.id, requestHash);
+  if (dedup.art === "fertig") {
+    return NextResponse.json({ id: dedup.worksheetId });
+  }
+  if (dedup.art === "laeuft") {
+    return NextResponse.json(
+      {
+        error:
+          "Eine identische Erstellung läuft gerade schon (gleiche Einstellungen wie eben) - bitte kurz warten und in der Übersicht nachsehen, statt erneut zu klicken.",
+      },
+      { status: 409 },
+    );
+  }
+  const anfrageId = dedup.anfrageId;
+
   const auslastungId = await starteGenerierung();
   try {
     const { content, verification, usage } = await generateAndVerifyWorksheet(req);
@@ -134,8 +159,10 @@ export async function POST(request: NextRequest) {
 
     if (!kontingent.unbegrenzt && !kontingent.tier) await incrementTrialUsage();
 
+    await markiereAnfrageFertig(anfrageId, worksheet.id);
     return NextResponse.json({ id: worksheet.id });
   } catch (err) {
+    await markiereAnfrageFehlgeschlagen(anfrageId);
     console.error("Fehler bei der Arbeitsblatt-Generierung:", err);
     const message =
       err instanceof Error ? err.message : "Unbekannter Fehler bei der Generierung.";
