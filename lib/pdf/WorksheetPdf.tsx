@@ -1,7 +1,7 @@
 import React from "react";
 import fs from "fs";
 import path from "path";
-import { Document, Page, View, Text, Image, StyleSheet } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, Font, StyleSheet } from "@react-pdf/renderer";
 import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, IconKey } from "@/lib/icons";
@@ -43,6 +43,17 @@ function liesIconAlsDataUri(dateiname: string): string {
   const buffer = fs.readFileSync(path.join(process.cwd(), "public/icons", dateiname));
   return `data:image/png;base64,${buffer.toString("base64")}`;
 }
+
+// Nur für echten arabischen Fließtext (siehe KoranVerseListe unten, ausgabeform "text") - die
+// eingebauten PDF-Standardschriften (Times-Roman/Helvetica) unterstützen nur WinAnsi-Kodierung
+// und können arabische Schriftzeichen NICHT darstellen (dasselbe Problem, das die diakritikfreie
+// Transliteration in generateWorksheet.ts für arabische BEGRIFFE umgeht - hier geht es aber um
+// den tatsächlichen Koran-Urtext selbst, der nicht transliteriert werden darf). Noto Naskh Arabic
+// (SIL Open Font License) als statische Datei registriert, analog zu den Icons oben.
+Font.register({
+  family: "NotoNaskhArabic",
+  src: path.join(process.cwd(), "public/fonts/NotoNaskhArabic-Regular.ttf"),
+});
 
 const ICON_DATA_URIS: Record<IconKey, string> = {
   halbmond: liesIconAlsDataUri("halbmond.png"),
@@ -432,6 +443,22 @@ function buildStyles(layout: LayoutConfig) {
       letterSpacing: 2,
       color: "#cbd5e1",
     },
+    koranVers: {
+      marginBottom: isKompakt ? 10 : 16,
+      paddingBottom: isKompakt ? 10 : 16,
+      borderBottom: "1px solid #f1f5f9",
+    },
+    koranArabisch: {
+      fontFamily: "NotoNaskhArabic",
+      direction: "rtl",
+      textAlign: "right",
+      fontSize: baseFontSize + 7,
+      lineHeight: 1.9,
+      marginBottom: 5,
+    },
+    koranDeutsch: {
+      fontSize: baseFontSize,
+    },
   });
 }
 
@@ -504,6 +531,7 @@ function AufgabenListe({
   generierteBilder: Record<string, string>;
 }) {
   const styles = buildStyles(layout);
+  if (content.aufgaben.length === 0) return null;
   return (
     <View>
       <Text style={styles.sectionTitel}>Aufgaben</Text>
@@ -747,6 +775,24 @@ function AufgabenListe({
   );
 }
 
+/** ausgabeform "text" (siehe koranVerse in lib/types.ts, buildKoranTextContent in
+ * lib/quranApi.ts) - reiner Vers-Wortlaut ohne Aufgaben, Arabisch (rechtsbündig, siehe
+ * registrierte NotoNaskhArabic-Schrift oben) direkt über der deutschen Übersetzung. */
+function KoranVerseListe({ content, layout }: { content: WorksheetContent; layout: LayoutConfig }) {
+  const styles = buildStyles(layout);
+  if (!content.koranVerse || content.koranVerse.length === 0) return null;
+  return (
+    <View>
+      {content.koranVerse.map((v) => (
+        <View key={v.versNummer} style={styles.koranVers} wrap={false}>
+          <Text style={styles.koranArabisch}>{v.arabisch}</Text>
+          <Text style={styles.koranDeutsch}>{v.deutsch}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function QuellenListe({
   content,
   layout,
@@ -824,18 +870,23 @@ export function WorksheetPdfDocument({
           )}
           <Text style={styles.sectionTitel}>Einleitung</Text>
           <Text style={styles.einleitung}>{content.einleitung}</Text>
+          <KoranVerseListe content={content} layout={layout} />
           <AufgabenListe content={content} layout={layout} generierteBilder={generierteBilder} />
           <QuellenListe content={content} layout={layout} />
         </View>
       </Page>
       {/* Lösungen erscheinen bewusst NIE auf dem Arbeitsblatt selbst - immer auf einer eigenen,
-          separaten Seite, damit sie nicht versehentlich mit an Schüler:innen geht. */}
-      <Page size="A4" style={styles.page}>
-        <View style={styles.seiteInhalt}>
-          <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
-          <LoesungenSeite content={content} layout={layout} />
-        </View>
-      </Page>
+          separaten Seite, damit sie nicht versehentlich mit an Schüler:innen geht. Bei reinem
+          Koran-Text (ausgabeform "text", siehe koranVerse oben) gibt es keine Aufgaben/Lösungen -
+          die ganze Lösungsseite entfällt dann. */}
+      {content.loesungen.length > 0 && (
+        <Page size="A4" style={styles.page}>
+          <View style={styles.seiteInhalt}>
+            <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
+            <LoesungenSeite content={content} layout={layout} />
+          </View>
+        </Page>
+      )}
     </Document>
   );
 }

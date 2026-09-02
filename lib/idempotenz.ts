@@ -30,6 +30,8 @@ export function berechneRequestHash(req: GenerateRequest, userId: string): strin
     thema: req.thema,
     schulstufe: req.schulstufe,
     themenbereich: req.themenbereich,
+    inhaltsquelle: req.inhaltsquelle,
+    ausgabeform: req.ausgabeform,
     zieldauerMinuten: req.zieldauerMinuten,
     komplexitaet: req.komplexitaet,
     aufgabentypen: [...req.aufgabentypen].sort(),

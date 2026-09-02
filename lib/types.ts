@@ -288,6 +288,19 @@ export const QuelleSchema = z.object({
 });
 export type Quelle = z.infer<typeof QuelleSchema>;
 
+// Ein einzelner Koran-Vers innerhalb eines "reiner Text"-Arbeitsblatts (siehe koranVerse unten,
+// GenerateRequestSchema.ausgabeform "text") - dieselben Felder wie QuranVers (lib/quranApi.ts),
+// hier separat definiert, damit lib/types.ts (Basis-Schema-Datei) nicht von lib/quranApi.ts
+// abhängen muss.
+export const KoranVersSchema = z.object({
+  sureNummer: z.number(),
+  sureNameTransliteriert: z.string(),
+  versNummer: z.number(),
+  arabisch: z.string(),
+  deutsch: z.string(),
+});
+export type KoranVersEintrag = z.infer<typeof KoranVersSchema>;
+
 export const WorksheetContentSchema = z.object({
   titel: z.string(),
   fach: z.string(),
@@ -298,6 +311,11 @@ export const WorksheetContentSchema = z.object({
   aufgaben: z.array(AufgabeSchema),
   loesungen: z.array(z.object({ nr: z.number(), loesung: z.string() })),
   quellen: z.array(QuelleSchema).default([]),
+  // NUR bei ausgabeform "text" gesetzt (siehe GenerateRequestSchema) - der reine, live
+  // abgerufene Koran-Wortlaut ohne KI-generierte Aufgaben drumherum. "aufgaben"/"loesungen"
+  // bleiben dabei leer; WorksheetView/WorksheetPdf/buildWorksheetDocx blenden den Aufgaben-/
+  // Lösungsblatt-Bereich entsprechend aus und zeigen stattdessen diese Verse.
+  koranVerse: z.array(KoranVersSchema).optional(),
 });
 export type WorksheetContent = z.infer<typeof WorksheetContentSchema>;
 
@@ -337,12 +355,43 @@ export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
 
 export const ThemenbereichSchema = z.enum(THEMENBEREICH_KEYS);
 
+// Woher der Inhalt eines Arbeitsblatts kommt - eigenständige erste Wahl im Erstellen-Formular
+// (siehe NewWorksheetForm.tsx), NICHT nur eine Zusatzoption zu einem freien Thema: manche
+// Lehrkräfte wollen gezielt einen Koran-Vers/eine Sure bearbeiten, statt "irgendein Thema, das
+// zufällig einen Koran-Bezug hat". "hadith" bewusst noch nicht enthalten (fehlt noch eine
+// verlässliche Quelle, siehe lib/linkImport.ts) - Struktur ist aber bereit, das später zu
+// ergänzen, ohne GenerateRequestSchema selbst nochmal umbauen zu müssen.
+export const INHALTSQUELLEN = ["frei", "koran"] as const;
+export type Inhaltsquelle = (typeof INHALTSQUELLEN)[number];
+export const INHALTSQUELLE_LABEL: Record<Inhaltsquelle, string> = {
+  frei: "Freies Thema",
+  koran: "Koran (Sure/Verse)",
+};
+
+// Nur bei inhaltsquelle "koran" wählbar (siehe NewWorksheetForm.tsx) - "text" braucht keinen
+// Claude-Aufruf (siehe app/api/generate/route.ts) und zählt daher auch nicht zum Kontingent,
+// analog zu Prüfungs-Modus A (lib/pruefungZusammenstellen.ts): der Vers-Wortlaut selbst kommt
+// bereits fertig und geprüft von der Koran-API, es gibt nichts zu generieren.
+export const AUSGABEFORMEN = ["arbeitsblatt", "text"] as const;
+export type Ausgabeform = (typeof AUSGABEFORMEN)[number];
+export const AUSGABEFORM_LABEL: Record<Ausgabeform, string> = {
+  arbeitsblatt: "Arbeitsblatt mit Aufgaben",
+  text: "Nur Text (zum Ausdrucken)",
+};
+
 export const GenerateRequestSchema = z
   .object({
     bereich: z.string().min(1),
-    thema: z.string().min(1),
+    // Bei inhaltsquelle "koran" optional: der Titel kommt dann entweder von Claude selbst
+    // (ausgabeform "arbeitsblatt") oder wird serverseitig aus der Sure/Vers-Angabe abgeleitet
+    // (ausgabeform "text") - ein leeres Thema-Feld ist in diesem Fall kein fehlender Wunsch,
+    // sondern schlicht nicht nötig. Pflicht bleibt es nur bei inhaltsquelle "frei" (siehe
+    // superRefine unten).
+    thema: z.string().default(""),
     schulstufe: z.string().min(1),
     themenbereich: ThemenbereichSchema.default("gemischt"),
+    inhaltsquelle: z.enum(INHALTSQUELLEN).default("frei"),
+    ausgabeform: z.enum(AUSGABEFORMEN).default("arbeitsblatt"),
     // Ersetzt eine direkte "Anzahl Aufgaben"-Eingabe: die tatsächliche Aufgabenanzahl wird daraus
     // serverseitig abgeleitet (siehe schaetzeAufgabenAnzahl), weil eine reine Stückzahl nichts über
     // die tatsächliche Bearbeitungszeit im Unterricht aussagt.
@@ -361,7 +410,9 @@ export const GenerateRequestSchema = z
     // ihre Klasse besser als eine grobe Schulstufen-Heuristik (z.B. eine leistungsstarke 3. Klasse
     // Volksschule oder eine jahrgangsgemischte Gruppe) und soll frei wählen können, statt am
     // Absenden mit einem Validierungsfehler auszusteigen.
-    aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN_AKTIV)).min(1),
+    // Nur bei ausgabeform "arbeitsblatt" Pflicht (siehe superRefine unten) - bei "text" gibt es
+    // keine Aufgaben, nur den reinen Vers-Wortlaut.
+    aufgabentypen: z.array(z.enum(AUFGABEN_TYPEN_AKTIV)).default([]),
     zusatzhinweise: z.string().optional(),
     layout: LayoutConfigSchema,
     // Prüfungs-Modus B (komplette Neu-Generierung als formelle Prüfung, siehe app/klassen und
@@ -396,6 +447,29 @@ export const GenerateRequestSchema = z
         path: ["klasseId"],
         message: "klasseId ist nur zusammen mit istPruefung gültig.",
       });
+    }
+    if ((req.inhaltsquelle === "koran" || req.ausgabeform === "text") && !req.koranFokus) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["koranFokus"],
+        message: "Für die Inhaltsquelle „Koran“ ist eine Sure-/Versauswahl erforderlich.",
+      });
+    }
+    if (req.ausgabeform === "arbeitsblatt") {
+      if (req.aufgabentypen.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["aufgabentypen"],
+          message: "Bitte mindestens einen Aufgabentyp auswählen.",
+        });
+      }
+      if (req.inhaltsquelle === "frei" && !req.thema) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["thema"],
+          message: "Bitte ein Thema angeben.",
+        });
+      }
     }
     if (!req.istPruefung) return;
     if (req.punkteGesamt === undefined) {

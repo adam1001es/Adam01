@@ -4,6 +4,7 @@ import {
   gleicheQuellenMitKoranApiAb,
   buildKoranFokusSystemContext,
   buildKoranVerifikationsHinweis,
+  buildKoranTextContent,
   holeAlleSuren,
   type QuranVers,
 } from "./quranApi";
@@ -235,6 +236,28 @@ describe("gleicheQuellenMitKoranApiAb", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(content.quellen[0].sicherheit).toBe("gesichert");
+  });
+});
+
+describe("buildKoranTextContent", () => {
+  it("baut einen gültigen WorksheetContent ohne Aufgaben/Lösungen, mit koranVerse-Feld", () => {
+    const vers: QuranVers = {
+      sureNummer: 78,
+      sureNameTransliteriert: "An-Naba",
+      versNummer: 1,
+      arabisch: "عَمَّ يَتَسَاءَلُونَ",
+      deutsch: "1. Wonach fragen sie sich?",
+    };
+
+    const content = buildKoranTextContent([vers], "5. Klasse AHS-Oberstufe/BMHS (9. Schulstufe)");
+
+    expect(content.aufgaben).toEqual([]);
+    expect(content.loesungen).toEqual([]);
+    expect(content.koranVerse).toEqual([vers]);
+    expect(content.titel).toBe("Sure 78 (An-Naba), Vers 1");
+    expect(content.quellen).toEqual([
+      { bezeichnung: "Sure 78 (An-Naba), Vers 1", sicherheit: "gesichert" },
+    ]);
   });
 });
 

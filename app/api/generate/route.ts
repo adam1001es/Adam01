@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { GenerateRequestSchema } from "@/lib/types";
+import { GenerateRequestSchema, GenerateRequest } from "@/lib/types";
 import { generateAndVerifyWorksheet } from "@/lib/generateWorksheet";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent, istZahlendesKonto } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 import { speichereUsage } from "@/lib/usageLog";
 import { starteGenerierung, beendeGenerierung } from "@/lib/auslastung";
+import { holeVersBereich, buildKoranTextContent } from "@/lib/quranApi";
 import {
   berechneRequestHash,
   starteOderErkenneDuplikat,
@@ -49,6 +50,14 @@ export async function POST(request: NextRequest) {
     );
   }
   const req = parsed.data;
+
+  // ausgabeform "text" (reiner, live abgerufener Koran-Wortlaut ohne KI-generierte Aufgaben,
+  // siehe GenerateRequestSchema/NewWorksheetForm.tsx) braucht keinen Claude-Aufruf und damit auch
+  // keine Kontingent-/Kosten-Prüfung - eigener, deutlich einfacherer Pfad statt den Rest dieser
+  // Funktion mit Verzweigungen zu durchziehen.
+  if (req.ausgabeform === "text") {
+    return erzeugeKoranText(req, user.id);
+  }
 
   // Kontingent VOR dem teuren Claude-Aufruf prüfen, damit ein blockiertes Konto keine
   // API-Kosten verursacht.
@@ -118,7 +127,10 @@ export async function POST(request: NextRequest) {
     const worksheet = await prisma.worksheet.create({
       data: {
         bereich: req.bereich,
-        thema: req.thema,
+        // req.thema kann bei inhaltsquelle "koran" leer sein (Claude wählt dann selbst einen
+        // Titel/Thema, siehe content.thema) - für die Übersicht/Auswertung trotzdem nie ein
+        // leeres Feld speichern.
+        thema: req.thema || content.thema,
         schulstufe: req.schulstufe,
         themenbereich: req.themenbereich,
         template: req.layout.template,
@@ -132,6 +144,8 @@ export async function POST(request: NextRequest) {
         // (app/api/pruefung/zusammenstellen), das unmetered bleibt.
         istPruefung: req.istPruefung,
         punkteGesamt: req.punkteGesamt,
+        inhaltsquelle: req.inhaltsquelle,
+        ausgabeform: req.ausgabeform,
       },
     });
 
@@ -169,5 +183,72 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 502 });
   } finally {
     await beendeGenerierung(auslastungId);
+  }
+}
+
+/** ausgabeform "text" (siehe GenerateRequestSchema) - reiner, live von der Koran-API abgerufener
+ * Vers-Wortlaut ohne KI-Aufgaben (siehe buildKoranTextContent in lib/quranApi.ts). Kein
+ * Claude-Aufruf, kein Kontingent-Verbrauch, aber derselbe Wiederholungsschutz wie beim normalen
+ * Pfad (siehe lib/idempotenz.ts) - unwahrscheinlich, aber ein Verbindungsabbruch kann hier genauso
+ * passieren. */
+async function erzeugeKoranText(req: GenerateRequest, userId: string) {
+  if (!req.koranFokus) {
+    return NextResponse.json({ error: "Sure-/Versauswahl fehlt." }, { status: 400 });
+  }
+
+  const requestHash = berechneRequestHash(req, userId);
+  const dedup = await starteOderErkenneDuplikat(userId, requestHash);
+  if (dedup.art === "fertig") {
+    return NextResponse.json({ id: dedup.worksheetId });
+  }
+  if (dedup.art === "laeuft") {
+    return NextResponse.json(
+      {
+        error:
+          "Eine identische Erstellung läuft gerade schon (gleiche Einstellungen wie eben) - bitte kurz warten und in der Übersicht nachsehen, statt erneut zu klicken.",
+      },
+      { status: 409 },
+    );
+  }
+  const anfrageId = dedup.anfrageId;
+
+  try {
+    const verse = await holeVersBereich(
+      req.koranFokus.sureNummer,
+      req.koranFokus.vonVers,
+      req.koranFokus.bisVers,
+    );
+    const content = buildKoranTextContent(verse, req.schulstufe);
+
+    const worksheet = await prisma.worksheet.create({
+      data: {
+        bereich: req.bereich,
+        thema: content.titel,
+        schulstufe: req.schulstufe,
+        themenbereich: req.themenbereich,
+        template: req.layout.template,
+        layoutConfig: JSON.stringify(req.layout),
+        contentJson: JSON.stringify(content),
+        verification: JSON.stringify({
+          status: "ok",
+          zusammenfassung:
+            "Reiner, live von der Koran-API abgerufener Vers-Wortlaut - keine inhaltliche Prüfung nötig, da kein KI-generierter Inhalt.",
+          hinweise: [],
+        }),
+        status: "geprueft",
+        userId,
+        inhaltsquelle: req.inhaltsquelle,
+        ausgabeform: req.ausgabeform,
+      },
+    });
+
+    await markiereAnfrageFertig(anfrageId, worksheet.id);
+    return NextResponse.json({ id: worksheet.id });
+  } catch (err) {
+    await markiereAnfrageFehlgeschlagen(anfrageId);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Abruf fehlgeschlagen." },
+      { status: 502 },
+    );
   }
 }

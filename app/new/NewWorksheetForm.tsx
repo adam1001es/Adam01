@@ -43,6 +43,12 @@ import {
   KOMPLEXITAET_LABEL,
   Komplexitaet,
   schaetzeAufgabenAnzahl,
+  INHALTSQUELLEN,
+  INHALTSQUELLE_LABEL,
+  Inhaltsquelle,
+  AUSGABEFORMEN,
+  AUSGABEFORM_LABEL,
+  Ausgabeform,
 } from "@/lib/types";
 import {
   THEMENBEREICHE,
@@ -160,7 +166,8 @@ interface FormDraft {
   punkteGesamt: number;
   zusatzhinweise: string;
   themenbereich: ThemenbereichKey;
-  koranFokusAktiv: boolean;
+  inhaltsquelle: Inhaltsquelle;
+  ausgabeform: Ausgabeform;
   koranSureNummer: number;
   koranGanzeSure: boolean;
   koranVonVers: number;
@@ -267,10 +274,18 @@ export default function NewWorksheetForm({
   const [ideenFehler, setIdeenFehler] = useState<string | null>(null);
   const [ideenVerbleibend, setIdeenVerbleibend] = useState<number | null>(null);
 
-  // Optionaler Koran-Fokus (siehe GenerateRequestSchema.koranFokus, lib/quranApi.ts) - Lehrkraft
-  // möchte eine konkrete Sure/einen Versbereich mit der Klasse lernen. Default Sure 1 (Al-Fatiha,
-  // 7 Verse) als sinnvoller, sofort "ganze Sure"-fähiger Startpunkt, sobald die Liste geladen ist.
-  const [koranFokusAktiv, setKoranFokusAktiv] = useState(false);
+  // Inhaltsquelle (siehe lib/types.ts INHALTSQUELLEN) - eigenständige erste Wahl, NICHT nur eine
+  // Zusatzoption zu einem freien Thema: manche Lehrkräfte wollen gezielt einen Koran-Vers/eine
+  // Sure bearbeiten, statt "irgendein Thema, das zufällig einen Koran-Bezug hat". Nur bei "koran"
+  // relevant: ausgabeform steuert, ob daraus ein Arbeitsblatt mit KI-Aufgaben entsteht oder nur
+  // der reine, live abgerufene Vers-Wortlaut zum Ausdrucken (kein Claude-Aufruf, kein
+  // Kontingent-Verbrauch, siehe app/api/generate/route.ts). Bei einer Prüfung (istPruefung, aus
+  // einem Klassen-Kontext heraus) bleibt bewusst nur "frei"/"arbeitsblatt" möglich - die
+  // Auswahl-UI dafür wird dann gar nicht erst angezeigt (siehe unten).
+  const [inhaltsquelle, setInhaltsquelle] = useState<Inhaltsquelle>("frei");
+  const [ausgabeform, setAusgabeform] = useState<Ausgabeform>("arbeitsblatt");
+  // Default Sure 1 (Al-Fatiha, 7 Verse) als sinnvoller, sofort "ganze Sure"-fähiger Startpunkt,
+  // sobald die Liste geladen ist.
   const [suren, setSuren] = useState<SurahMeta[] | null>(null);
   const [surenLaden, setSurenLaden] = useState(false);
   const [surenFehler, setSurenFehler] = useState<string | null>(null);
@@ -312,6 +327,13 @@ export default function NewWorksheetForm({
     }
   }
 
+  // Suren-Liste erst laden, sobald sie tatsächlich gebraucht wird (Inhaltsquelle "koran"
+  // gewählt) - nicht schon beim ersten Rendern des Formulars.
+  useEffect(() => {
+    if (inhaltsquelle === "koran" && !suren && !surenLaden) ladeSuren();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inhaltsquelle]);
+
   const [template, setTemplate] = useState<(typeof TEMPLATES)[number]>("klassisch");
   const [schulname, setSchulname] = useState("");
   const [schriftgroesse, setSchriftgroesse] = useState<"normal" | "gross">("normal");
@@ -347,7 +369,8 @@ export default function NewWorksheetForm({
     if (entwurf.punkteGesamt !== undefined) setPunkteGesamt(entwurf.punkteGesamt);
     if (entwurf.zusatzhinweise !== undefined) setZusatzhinweise(entwurf.zusatzhinweise);
     if (entwurf.themenbereich !== undefined) setThemenbereich(entwurf.themenbereich);
-    if (entwurf.koranFokusAktiv !== undefined) setKoranFokusAktiv(entwurf.koranFokusAktiv);
+    if (entwurf.inhaltsquelle !== undefined) setInhaltsquelle(entwurf.inhaltsquelle);
+    if (entwurf.ausgabeform !== undefined) setAusgabeform(entwurf.ausgabeform);
     if (entwurf.koranSureNummer !== undefined) setKoranSureNummer(entwurf.koranSureNummer);
     if (entwurf.koranGanzeSure !== undefined) setKoranGanzeSure(entwurf.koranGanzeSure);
     if (entwurf.koranVonVers !== undefined) setKoranVonVers(entwurf.koranVonVers);
@@ -398,12 +421,12 @@ export default function NewWorksheetForm({
     e.preventDefault();
     setError(null);
 
-    if (aufgabentypen.length === 0) {
+    if (ausgabeform === "arbeitsblatt" && aufgabentypen.length === 0) {
       setError("Bitte mindestens einen Aufgabentyp auswählen.");
       return;
     }
-    if (koranFokusAktiv && koranBisVers - koranVonVers + 1 > MAX_VERSE_PRO_ABFRAGE) {
-      setError(`Für den Koran-Fokus bitte höchstens ${MAX_VERSE_PRO_ABFRAGE} Verse auswählen.`);
+    if (inhaltsquelle === "koran" && koranBisVers - koranVonVers + 1 > MAX_VERSE_PRO_ABFRAGE) {
+      setError(`Bitte höchstens ${MAX_VERSE_PRO_ABFRAGE} Verse auswählen.`);
       return;
     }
 
@@ -421,7 +444,8 @@ export default function NewWorksheetForm({
       punkteGesamt,
       zusatzhinweise,
       themenbereich,
-      koranFokusAktiv,
+      inhaltsquelle,
+      ausgabeform,
       koranSureNummer,
       koranGanzeSure,
       koranVonVers,
@@ -445,18 +469,21 @@ export default function NewWorksheetForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             bereich,
-            thema,
+            thema: inhaltsquelle === "frei" ? thema : undefined,
             schulstufe,
             themenbereich,
             zieldauerMinuten,
             komplexitaet,
-            aufgabentypen,
+            aufgabentypen: ausgabeform === "arbeitsblatt" ? aufgabentypen : undefined,
             istPruefung,
             punkteGesamt: istPruefung ? punkteGesamt : undefined,
             klasseId,
-            koranFokus: koranFokusAktiv
-              ? { sureNummer: koranSureNummer, vonVers: koranVonVers, bisVers: koranBisVers }
-              : undefined,
+            inhaltsquelle,
+            ausgabeform,
+            koranFokus:
+              inhaltsquelle === "koran"
+                ? { sureNummer: koranSureNummer, vonVers: koranVonVers, bisVers: koranBisVers }
+                : undefined,
             zusatzhinweise: zusatzhinweise || undefined,
             layout: {
               template,
@@ -519,6 +546,19 @@ export default function NewWorksheetForm({
     farbmodus,
   };
 
+  // Dynamische Schrittanzeige (siehe SectionCard "schritt") - der Aufgaben-Schritt entfällt bei
+  // ausgabeform "text" (reiner, live abgerufener Vers-Wortlaut ohne KI-Aufgaben), Layout rückt
+  // dann von Schritt 3 auf Schritt 2.
+  const zeigeAufgabenSchritt = ausgabeform === "arbeitsblatt";
+  const gesamtSchritte = zeigeAufgabenSchritt ? 3 : 2;
+  const layoutSchritt = zeigeAufgabenSchritt ? 3 : 2;
+
+  // ausgabeform "text" braucht keinen Claude-Aufruf und zählt daher nicht zum Kontingent (siehe
+  // app/api/generate/route.ts) - der Erstellen-Button bleibt in diesem Fall auch dann aktiv, wenn
+  // das normale Kontingent (kannErstellen-Prop, von der Elternkomponente anhand des Kontingents
+  // berechnet) aufgebraucht ist.
+  const kannAbsenden = kannErstellen || ausgabeform === "text";
+
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -555,23 +595,53 @@ export default function NewWorksheetForm({
           title="Inhalt"
           subtitle="Worum geht es, für wen"
           akzent="blau"
-          schritt={{ nr: 1, von: 3 }}
+          schritt={{ nr: 1, von: gesamtSchritte }}
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className={labelClass}>Thema</span>
-              <input
-                className={inputClass}
-                value={thema}
-                onChange={(e) => setThema(e.target.value)}
-                placeholder="z.B. Die 5 Säulen des Islam"
-                required
-              />
+          {!istPruefung && (
+            <div className="mb-5">
+              <span className={labelClass}>Wie möchtest du starten?</span>
+              <div className="flex flex-wrap gap-2">
+                {INHALTSQUELLEN.map((quelle) => {
+                  const active = inhaltsquelle === quelle;
+                  return (
+                    <button
+                      type="button"
+                      key={quelle}
+                      onClick={() => setInhaltsquelle(quelle)}
+                      className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
+                        active ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                      }`}
+                    >
+                      {quelle === "koran" && <BookOpenText size={15} />}
+                      {INHALTSQUELLE_LABEL[quelle]}
+                    </button>
+                  );
+                })}
+              </div>
               <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-                Je spezifischer (z.B. „Die 5 Säulen des Islam" statt nur „Islam"), desto besser
-                passen die Aufgaben.
+                {inhaltsquelle === "koran"
+                  ? "Eine bestimmte Sure/Verse steht im Mittelpunkt - live abgerufener, garantiert korrekter Text."
+                  : "Ein frei gewähltes Thema (z.B. „Die 5 Säulen des Islam“)."}
               </span>
-            </label>
+            </div>
+          )}
+          <div className={`grid gap-4 ${inhaltsquelle === "frei" ? "sm:grid-cols-2" : ""}`}>
+            {inhaltsquelle === "frei" && (
+              <label className="block">
+                <span className={labelClass}>Thema</span>
+                <input
+                  className={inputClass}
+                  value={thema}
+                  onChange={(e) => setThema(e.target.value)}
+                  placeholder="z.B. Die 5 Säulen des Islam"
+                  required
+                />
+                <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                  Je spezifischer (z.B. „Die 5 Säulen des Islam" statt nur „Islam"), desto besser
+                  passen die Aufgaben.
+                </span>
+              </label>
+            )}
             <label className="block">
               <span className={labelClass}>Schulstufe</span>
               <select
@@ -601,7 +671,7 @@ export default function NewWorksheetForm({
               </span>
             </label>
           </div>
-          {schulstufenThemen && (
+          {inhaltsquelle === "frei" && schulstufenThemen && (
             <div className="mt-3">
               <button
                 type="button"
@@ -632,199 +702,207 @@ export default function NewWorksheetForm({
               )}
             </div>
           )}
-          <div className="mt-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-medium text-slate-500">
-                Noch keine Idee für ein Thema?
-              </span>
-              <button
-                type="button"
-                onClick={ideenVorschlagen}
-                disabled={ideenLaden || ideenVerbleibend === 0}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-surface px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
-              >
-                <Sparkles size={13} className={ideenLaden ? "animate-pulse" : ""} />
-                {ideenLaden ? "Ideen werden erstellt …" : "KI-Ideen vorschlagen"}
-              </button>
-            </div>
-            {ideenFehler && <p className="mt-1.5 text-xs text-red-600">{ideenFehler}</p>}
-            {themaIdeen && themaIdeen.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {themaIdeen.map((idee) => (
-                  <button
-                    type="button"
-                    key={idee}
-                    onClick={() => setThema(idee)}
-                    className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition ${
-                      thema === idee ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
-                    }`}
-                  >
-                    <Sparkles size={11} />
-                    {idee}
-                  </button>
-                ))}
+          {inhaltsquelle === "frei" && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-slate-500">
+                  Noch keine Idee für ein Thema?
+                </span>
+                <button
+                  type="button"
+                  onClick={ideenVorschlagen}
+                  disabled={ideenLaden || ideenVerbleibend === 0}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-surface px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition hover:border-brand-300 hover:text-brand-700 disabled:opacity-60"
+                >
+                  <Sparkles size={13} className={ideenLaden ? "animate-pulse" : ""} />
+                  {ideenLaden ? "Ideen werden erstellt …" : "KI-Ideen vorschlagen"}
+                </button>
               </div>
-            )}
-            {ideenVerbleibend !== null && (
-              <p className="mt-1.5 text-[11px] text-slate-400">
-                {ideenVerbleibend > 0
-                  ? `Noch ${ideenVerbleibend}× heute verfügbar.`
-                  : "Tageslimit für Themenideen erreicht - morgen wieder verfügbar."}
-              </p>
-            )}
-          </div>
-          <label className="mt-4 block">
-            <span className={labelClass}>Themenbereich (Grundkompetenz laut Lehrplan IRU NEU)</span>
-            <p className="mb-1.5 text-xs leading-relaxed text-slate-400">
-              Ordnet das oben angegebene Thema einer der sieben Grundkompetenzen des aktuellen
-              Lehrplans zu - beeinflusst, welcher fachliche Schwerpunkt und welche Quellenarten
-              bei der Prüfung erwartet werden. Unsicher? Einfach „Grundkompetenz passend zum
-              Thema wählen" lassen.
-            </p>
-            <select
-              className={inputClass}
-              value={themenbereich}
-              onChange={(e) => setThemenbereich(e.target.value as ThemenbereichKey)}
-            >
-              {THEMENBEREICH_KEYS.map((key) => (
-                <option key={key} value={key}>
-                  {THEMENBEREICHE[key].label}
-                </option>
-              ))}
-            </select>
-            <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-              {THEMENBEREICHE[themenbereich].beschreibung}
-            </span>
-          </label>
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={() => {
-                const next = !koranFokusAktiv;
-                setKoranFokusAktiv(next);
-                if (next && !suren && !surenLaden) ladeSuren();
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
-                koranFokusAktiv ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
-              }`}
-            >
-              <BookOpenText size={15} />
-              Koran-Fokus: eine Sure/Verse gezielt lernen (optional)
-            </button>
-
-            {koranFokusAktiv && (
-              <div className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-                <p className="text-xs leading-relaxed text-slate-500">
-                  Das Arbeitsblatt dreht sich gezielt um den live abgerufenen, garantiert
-                  korrekten Text (Arabisch + deutsche Übersetzung von Bubenheim &amp; Elyas)
-                  dieser Sure/dieser Verse - z.B. für eine Auswendiglern-Einheit. Ersetzt nicht
-                  das oben angegebene Thema, ergänzt es.
-                </p>
-                {surenLaden && <p className="text-xs text-slate-400">Suren-Liste wird geladen …</p>}
-                {surenFehler && (
-                  <p className="text-xs text-red-600">
-                    {surenFehler}{" "}
-                    <button type="button" onClick={ladeSuren} className="underline">
-                      Erneut versuchen
+              {ideenFehler && <p className="mt-1.5 text-xs text-red-600">{ideenFehler}</p>}
+              {themaIdeen && themaIdeen.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {themaIdeen.map((idee) => (
+                    <button
+                      type="button"
+                      key={idee}
+                      onClick={() => setThema(idee)}
+                      className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        thema === idee ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                      }`}
+                    >
+                      <Sparkles size={11} />
+                      {idee}
                     </button>
-                  </p>
-                )}
-                {suren && (
-                  <>
-                    <label className="block max-w-sm">
-                      <span className={labelClass}>Sure</span>
-                      <select
-                        className={inputClass}
-                        value={koranSureNummer}
-                        onChange={(e) => onSureChange(Number(e.target.value))}
-                      >
-                        {suren.map((s) => (
-                          <option key={s.nummer} value={s.nummer}>
-                            {s.nummer}. {s.nameTransliteriert} ({s.verseAnzahl} Verse)
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    {ausgewaehlteSure && ausgewaehlteSure.verseAnzahl <= MAX_VERSE_PRO_ABFRAGE && (
-                      <label className="flex items-center gap-2 text-sm text-slate-600">
-                        <input
-                          type="checkbox"
-                          checked={koranGanzeSure}
-                          onChange={(e) => {
-                            setKoranGanzeSure(e.target.checked);
-                            if (e.target.checked && ausgewaehlteSure) {
-                              setKoranVonVers(1);
-                              setKoranBisVers(ausgewaehlteSure.verseAnzahl);
-                            }
-                          }}
-                        />
-                        Ganze Sure verwenden ({ausgewaehlteSure.verseAnzahl} Verse)
-                      </label>
-                    )}
-                    {ausgewaehlteSure && ausgewaehlteSure.verseAnzahl > MAX_VERSE_PRO_ABFRAGE && (
-                      <p className="text-xs leading-relaxed text-amber-700">
-                        Diese Sure hat {ausgewaehlteSure.verseAnzahl} Verse - für ein einzelnes
-                        Arbeitsblatt bitte einen Ausschnitt von höchstens{" "}
-                        {MAX_VERSE_PRO_ABFRAGE} Versen wählen.
-                      </p>
-                    )}
-                    {(!koranGanzeSure || (ausgewaehlteSure?.verseAnzahl ?? 0) > MAX_VERSE_PRO_ABFRAGE) && (
-                      <div className="flex flex-wrap items-end gap-2">
-                        <label className="block">
-                          <span className={labelClass}>Vers von</span>
-                          <input
-                            type="number"
-                            min={1}
-                            max={ausgewaehlteSure?.verseAnzahl}
-                            className={`${inputClass} w-24`}
-                            value={koranVonVers}
-                            onChange={(e) => setKoranVonVers(Math.max(1, Number(e.target.value) || 1))}
-                          />
-                        </label>
-                        <label className="block">
-                          <span className={labelClass}>bis</span>
-                          <input
-                            type="number"
-                            min={koranVonVers}
-                            max={ausgewaehlteSure?.verseAnzahl}
-                            className={`${inputClass} w-24`}
-                            value={koranBisVers}
-                            onChange={(e) =>
-                              setKoranBisVers(Math.max(koranVonVers, Number(e.target.value) || koranVonVers))
-                            }
-                          />
-                        </label>
-                      </div>
-                    )}
-                    {koranBisVers - koranVonVers + 1 > MAX_VERSE_PRO_ABFRAGE && (
-                      <p className="text-xs text-red-600">
-                        Höchstens {MAX_VERSE_PRO_ABFRAGE} Verse pro Arbeitsblatt - bitte den
-                        Bereich verkleinern.
-                      </p>
-                    )}
-                  </>
-                )}
+                  ))}
+                </div>
+              )}
+              {ideenVerbleibend !== null && (
+                <p className="mt-1.5 text-[11px] text-slate-400">
+                  {ideenVerbleibend > 0
+                    ? `Noch ${ideenVerbleibend}× heute verfügbar.`
+                    : "Tageslimit für Themenideen erreicht - morgen wieder verfügbar."}
+                </p>
+              )}
+            </div>
+          )}
+          {inhaltsquelle === "koran" && (
+            <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+              <p className="text-xs leading-relaxed text-slate-500">
+                Der live abgerufene, garantiert korrekte Text (Arabisch + deutsche Übersetzung
+                von Bubenheim &amp; Elyas) dieser Sure/dieser Verse steht im Mittelpunkt.
+              </p>
+              <div>
+                <span className={labelClass}>Ausgabeform</span>
+                <div className="flex flex-wrap gap-2">
+                  {AUSGABEFORMEN.map((form) => (
+                    <button
+                      type="button"
+                      key={form}
+                      onClick={() => setAusgabeform(form)}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                        ausgabeform === form ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                      }`}
+                    >
+                      {AUSGABEFORM_LABEL[form]}
+                    </button>
+                  ))}
+                </div>
+                <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                  {ausgabeform === "text"
+                    ? "Nur der reine Vers-Wortlaut zum Ausdrucken - kein KI-Aufruf, kostet kein Kontingent."
+                    : "Ein vollständiges Arbeitsblatt mit Methoden/Aufgaben rund um diesen Text - zählt wie gewohnt zum Kontingent."}
+                </span>
               </div>
-            )}
-          </div>
-          <label className="mt-4 block">
-            <span className={labelClass}>Zusätzliche Hinweise (optional)</span>
-            <textarea
-              className={inputClass}
-              rows={2}
-              value={zusatzhinweise}
-              onChange={(e) => setZusatzhinweise(e.target.value)}
-              placeholder="z.B. Bezug zum Ramadan herstellen, einfache Sprache"
-            />
-          </label>
+              {surenLaden && <p className="text-xs text-slate-400">Suren-Liste wird geladen …</p>}
+              {surenFehler && (
+                <p className="text-xs text-red-600">
+                  {surenFehler}{" "}
+                  <button type="button" onClick={ladeSuren} className="underline">
+                    Erneut versuchen
+                  </button>
+                </p>
+              )}
+              {suren && (
+                <>
+                  <label className="block max-w-sm">
+                    <span className={labelClass}>Sure</span>
+                    <select
+                      className={inputClass}
+                      value={koranSureNummer}
+                      onChange={(e) => onSureChange(Number(e.target.value))}
+                    >
+                      {suren.map((s) => (
+                        <option key={s.nummer} value={s.nummer}>
+                          {s.nummer}. {s.nameTransliteriert} ({s.verseAnzahl} Verse)
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {ausgewaehlteSure && ausgewaehlteSure.verseAnzahl <= MAX_VERSE_PRO_ABFRAGE && (
+                    <label className="flex items-center gap-2 text-sm text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={koranGanzeSure}
+                        onChange={(e) => {
+                          setKoranGanzeSure(e.target.checked);
+                          if (e.target.checked && ausgewaehlteSure) {
+                            setKoranVonVers(1);
+                            setKoranBisVers(ausgewaehlteSure.verseAnzahl);
+                          }
+                        }}
+                      />
+                      Ganze Sure verwenden ({ausgewaehlteSure.verseAnzahl} Verse)
+                    </label>
+                  )}
+                  {ausgewaehlteSure && ausgewaehlteSure.verseAnzahl > MAX_VERSE_PRO_ABFRAGE && (
+                    <p className="text-xs leading-relaxed text-amber-700">
+                      Diese Sure hat {ausgewaehlteSure.verseAnzahl} Verse - bitte einen Ausschnitt
+                      von höchstens {MAX_VERSE_PRO_ABFRAGE} Versen wählen.
+                    </p>
+                  )}
+                  {(!koranGanzeSure || (ausgewaehlteSure?.verseAnzahl ?? 0) > MAX_VERSE_PRO_ABFRAGE) && (
+                    <div className="flex flex-wrap items-end gap-2">
+                      <label className="block">
+                        <span className={labelClass}>Vers von</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={ausgewaehlteSure?.verseAnzahl}
+                          className={`${inputClass} w-24`}
+                          value={koranVonVers}
+                          onChange={(e) => setKoranVonVers(Math.max(1, Number(e.target.value) || 1))}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className={labelClass}>bis</span>
+                        <input
+                          type="number"
+                          min={koranVonVers}
+                          max={ausgewaehlteSure?.verseAnzahl}
+                          className={`${inputClass} w-24`}
+                          value={koranBisVers}
+                          onChange={(e) =>
+                            setKoranBisVers(Math.max(koranVonVers, Number(e.target.value) || koranVonVers))
+                          }
+                        />
+                      </label>
+                    </div>
+                  )}
+                  {koranBisVers - koranVonVers + 1 > MAX_VERSE_PRO_ABFRAGE && (
+                    <p className="text-xs text-red-600">
+                      Höchstens {MAX_VERSE_PRO_ABFRAGE} Verse - bitte den Bereich verkleinern.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+          {(inhaltsquelle === "frei" || ausgabeform === "arbeitsblatt") && (
+            <label className="mt-4 block">
+              <span className={labelClass}>Themenbereich (Grundkompetenz laut Lehrplan IRU NEU)</span>
+              <p className="mb-1.5 text-xs leading-relaxed text-slate-400">
+                Ordnet das oben angegebene Thema einer der sieben Grundkompetenzen des aktuellen
+                Lehrplans zu - beeinflusst, welcher fachliche Schwerpunkt und welche Quellenarten
+                bei der Prüfung erwartet werden. Unsicher? Einfach „Grundkompetenz passend zum
+                Thema wählen" lassen.
+              </p>
+              <select
+                className={inputClass}
+                value={themenbereich}
+                onChange={(e) => setThemenbereich(e.target.value as ThemenbereichKey)}
+              >
+                {THEMENBEREICH_KEYS.map((key) => (
+                  <option key={key} value={key}>
+                    {THEMENBEREICHE[key].label}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                {THEMENBEREICHE[themenbereich].beschreibung}
+              </span>
+            </label>
+          )}
+          {ausgabeform === "arbeitsblatt" && (
+            <label className="mt-4 block">
+              <span className={labelClass}>Zusätzliche Hinweise (optional)</span>
+              <textarea
+                className={inputClass}
+                rows={2}
+                value={zusatzhinweise}
+                onChange={(e) => setZusatzhinweise(e.target.value)}
+                placeholder="z.B. Bezug zum Ramadan herstellen, einfache Sprache"
+              />
+            </label>
+          )}
         </SectionCard>
 
+        {zeigeAufgabenSchritt && (
         <SectionCard
           icon={ListChecks}
           title="Aufgaben"
           subtitle="Aufgabentypen, Umfang und Anspruch"
           akzent="gold"
-          schritt={{ nr: 2, von: 3 }}
+          schritt={{ nr: 2, von: gesamtSchritte }}
         >
           {istPruefung && (
             <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-gold-200 bg-gold-50 px-4 py-3 text-sm text-gold-800">
@@ -999,13 +1077,14 @@ export default function NewWorksheetForm({
             </div>
           )}
         </SectionCard>
+        )}
 
         <SectionCard
           icon={LayoutTemplate}
           title="Layout"
           subtitle="So sieht das fertige Blatt aus"
           akzent="brand"
-          schritt={{ nr: 3, von: 3 }}
+          schritt={{ nr: layoutSchritt, von: gesamtSchritte }}
         >
           <div className="mb-5 overflow-hidden rounded-xl border border-slate-200">
             <div className="h-[110px] overflow-hidden bg-slate-50">
@@ -1156,14 +1235,16 @@ export default function NewWorksheetForm({
         ) : (
           <button
             type="submit"
-            disabled={!kannErstellen}
+            disabled={!kannAbsenden}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-brand-gradient px-4 py-3.5 font-medium text-white shadow-card transition hover:shadow-card-hover disabled:opacity-60"
           >
             <Wand2 size={18} strokeWidth={2.25} />
-            {kannErstellen
+            {kannAbsenden
               ? istPruefung
                 ? "Prüfung erstellen"
-                : "Arbeitsblatt erstellen"
+                : ausgabeform === "text"
+                  ? "Text erstellen"
+                  : "Arbeitsblatt erstellen"
               : "Kontingent aufgebraucht"}
           </button>
         )}

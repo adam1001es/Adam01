@@ -378,9 +378,33 @@ export async function buildWorksheetDocx(
   children.push(
     sectionHeading("Einleitung", accentColor, baseSize),
     new Paragraph({ children: [new TextRun({ text: content.einleitung, size: baseSize })], spacing: { after: 200 } }),
-    sectionHeading("Aufgaben", accentColor, baseSize),
   );
 
+  // ausgabeform "text" (siehe koranVerse in lib/types.ts, buildKoranTextContent in
+  // lib/quranApi.ts) - reiner Vers-Wortlaut ohne Aufgaben. rightToLeft/bidirectional lassen Word
+  // den arabischen Text rechtsbündig und in korrekter Leserichtung darstellen; anders als bei der
+  // PDF-Ausgabe (siehe WorksheetPdf.tsx) braucht es dafür keine eingebettete Schriftart - Word
+  // übernimmt die Komplexschrift-Darstellung über die auf dem lesenden Gerät installierten
+  // Schriften selbst.
+  if (content.koranVerse && content.koranVerse.length > 0) {
+    for (const v of content.koranVerse) {
+      children.push(
+        new Paragraph({
+          bidirectional: true,
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: 160 },
+          children: [new TextRun({ text: v.arabisch, rightToLeft: true, size: baseSize + 10 })],
+        }),
+        new Paragraph({
+          spacing: { after: 120 },
+          children: [new TextRun({ text: v.deutsch, size: baseSize })],
+        }),
+      );
+    }
+  }
+
+  if (content.aufgaben.length > 0) {
+  children.push(sectionHeading("Aufgaben", accentColor, baseSize));
   for (const a of content.aufgaben) {
     // AFB-Angabe ("Reproduktion"/"Transfer"/...) ist Lehrkraft-Jargon und würde Schüler:innen
     // nur irritieren - bewusst nicht mit auf dem Blatt (siehe gleiche Entscheidung in
@@ -731,6 +755,7 @@ export async function buildWorksheetDocx(
       });
     }
   }
+  }
 
   if (content.quellen.length > 0) {
     children.push(sectionHeading("Quellenangaben", accentColor, baseSize));
@@ -751,18 +776,22 @@ export async function buildWorksheetDocx(
   const sections = [{ children }];
 
   // Lösungen erscheinen bewusst NIE auf dem Arbeitsblatt selbst - immer in einer eigenen,
-  // separaten Dokument-Section, damit sie nicht versehentlich mit an Schüler:innen geht.
-  const loesungChildren: (Paragraph | Table)[] = [];
-  loesungChildren.push(
-    new Paragraph({
-      heading: HeadingLevel.HEADING_1,
-      alignment: AlignmentType.LEFT,
-      children: [new TextRun({ text: `${content.titel} — Lösungsblatt`, color: accentColor, bold: true })],
-      spacing: { after: 240 },
-    }),
-  );
-  pushLoesungen(loesungChildren, content, baseSize);
-  sections.push({ children: loesungChildren });
+  // separaten Dokument-Section, damit sie nicht versehentlich mit an Schüler:innen geht. Bei
+  // reinem Koran-Text (ausgabeform "text", siehe koranVerse oben) gibt es keine Aufgaben/
+  // Lösungen - die ganze Lösungsblatt-Section entfällt dann.
+  if (content.loesungen.length > 0) {
+    const loesungChildren: (Paragraph | Table)[] = [];
+    loesungChildren.push(
+      new Paragraph({
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.LEFT,
+        children: [new TextRun({ text: `${content.titel} — Lösungsblatt`, color: accentColor, bold: true })],
+        spacing: { after: 240 },
+      }),
+    );
+    pushLoesungen(loesungChildren, content, baseSize);
+    sections.push({ children: loesungChildren });
+  }
 
   const doc = new Document({ sections });
   return Packer.toBuffer(doc);

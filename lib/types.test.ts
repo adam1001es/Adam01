@@ -102,3 +102,48 @@ describe("GenerateRequestSchema - neue Aufgabentypen für 1. Klasse (bewegungsau
     expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
   });
 });
+
+describe("GenerateRequestSchema - inhaltsquelle/ausgabeform (Koran als eigenständige Inhaltsquelle)", () => {
+  const koranFokus = { sureNummer: 78, vonVers: 1, bisVers: 5 };
+
+  it("akzeptiert inhaltsquelle 'frei' ohne koranFokus (Standardfall)", () => {
+    const req = baseRequest();
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
+  });
+
+  it("lehnt inhaltsquelle 'koran' ohne koranFokus ab", () => {
+    const req = baseRequest({ inhaltsquelle: "koran", thema: undefined });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
+  });
+
+  it("akzeptiert inhaltsquelle 'koran' mit ausgabeform 'arbeitsblatt' und koranFokus, auch ohne Thema", () => {
+    const req = baseRequest({ inhaltsquelle: "koran", thema: undefined, koranFokus });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
+  });
+
+  it("akzeptiert ausgabeform 'text' ohne aufgabentypen und ohne thema, solange koranFokus gesetzt ist", () => {
+    const req = baseRequest({
+      inhaltsquelle: "koran",
+      ausgabeform: "text",
+      thema: undefined,
+      aufgabentypen: undefined,
+      koranFokus,
+    });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
+  });
+
+  it("lehnt ausgabeform 'text' ohne koranFokus ab", () => {
+    const req = baseRequest({ ausgabeform: "text", aufgabentypen: undefined });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
+  });
+
+  it("lehnt ausgabeform 'arbeitsblatt' ohne aufgabentypen ab", () => {
+    const req = baseRequest({ aufgabentypen: [] });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
+  });
+
+  it("lehnt inhaltsquelle 'frei' mit ausgabeform 'arbeitsblatt' ohne Thema ab", () => {
+    const req = baseRequest({ thema: undefined });
+    expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
+  });
+});

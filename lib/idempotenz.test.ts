@@ -8,6 +8,8 @@ function baueRequest(overrides: Partial<GenerateRequest> = {}): GenerateRequest 
     thema: "Halal oder haram",
     schulstufe: "3. Klasse Mittelschule/AHS-Unterstufe (7. Schulstufe)",
     themenbereich: "gemischt",
+    inhaltsquelle: "frei",
+    ausgabeform: "arbeitsblatt",
     zieldauerMinuten: 35,
     komplexitaet: "mittel",
     aufgabentypen: ["multiple_choice", "wahr_falsch"],

@@ -198,7 +198,7 @@ function buildUserPrompt(
 
   return `Erstelle ein Arbeitsblatt mit folgenden Vorgaben:
 - Bereich/Fach: ${req.bereich}
-- Thema: ${req.thema}
+${req.thema ? `- Thema: ${req.thema}` : ""}
 - Schulstufe: ${req.schulstufe}
 - Zieldauer für die Bearbeitung im Unterricht: ${req.zieldauerMinuten} Minuten (Richtwert, keine exakte Messung möglich)
 - Komplexität: ${KOMPLEXITAET_LABEL[req.komplexitaet]}

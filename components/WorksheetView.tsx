@@ -142,6 +142,20 @@ export default function WorksheetView({
           <h2 className={`mb-1 font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>Einleitung</h2>
           <p>{content.einleitung}</p>
         </div>
+        {content.koranVerse && content.koranVerse.length > 0 && (
+          <div className={spacing}>
+            {content.koranVerse.map((v) => (
+              <div key={v.versNummer} className="border-b border-slate-100 pb-3 last:border-0">
+                <p dir="rtl" className="mb-1.5 text-right text-2xl leading-loose">
+                  {v.arabisch}
+                </p>
+                <p>{v.deutsch}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {content.aufgaben.length > 0 && (
         <div>
           <h2 className={`mb-2 font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>Aufgaben</h2>
           <ol className={spacing}>
@@ -413,6 +427,7 @@ export default function WorksheetView({
             ))}
           </ol>
         </div>
+        )}
 
         {content.quellen.length > 0 && (
           <div>
@@ -442,13 +457,17 @@ export default function WorksheetView({
       </p>
 
       {/* Lösungen erscheinen bewusst NIE auf dem eigentlichen Arbeitsblatt (siehe oben) - immer
-          erst hier, klar abgetrennt, damit sie nicht versehentlich mit an Schüler:innen geht. */}
-      <div className="mt-8 border-t-2 border-dashed border-slate-300 pt-6">
-        <h2 className={`mb-2 text-lg font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>
-          {content.titel} — Lösungsblatt
-        </h2>
-        <LoesungenBlock content={content} isModernFarbig={isModernFarbig} />
-      </div>
+          erst hier, klar abgetrennt, damit sie nicht versehentlich mit an Schüler:innen geht.
+          Bei reinem Koran-Text (ausgabeform "text", siehe koranVerse oben) gibt es keine
+          Aufgaben/Lösungen - das ganze Lösungsblatt entfällt dann. */}
+      {content.loesungen.length > 0 && (
+        <div className="mt-8 border-t-2 border-dashed border-slate-300 pt-6">
+          <h2 className={`mb-2 text-lg font-semibold ${isModernFarbig ? "text-brand-700" : ""}`}>
+            {content.titel} — Lösungsblatt
+          </h2>
+          <LoesungenBlock content={content} isModernFarbig={isModernFarbig} />
+        </div>
+      )}
     </div>
   );
 }

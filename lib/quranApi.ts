@@ -257,3 +257,28 @@ export function buildKoranVerifikationsHinweis(liveGeprueft: string[]): string {
   if (liveGeprueft.length === 0) return "";
   return `Folgende Quellenangaben wurden NICHT vom Modell erinnert, sondern mechanisch live gegen die Koran-API abgeglichen - ihr Wortlaut ist garantiert exakt korrekt und muss NICHT auf Zitattreue hinterfragt werden, auch wenn die generelle Anweisung zu "sicherheit": "gesichert" oben das sonst nahelegt: ${liveGeprueft.join("; ")}. Prüfe bei diesen nur die thematische/pädagogische Passung zu den Aufgaben, nicht die Textgenauigkeit selbst.`;
 }
+
+/**
+ * Baut den "reiner Text"-Inhalt für ausgabeform "text" (siehe GenerateRequestSchema) - KEIN
+ * Claude-Aufruf, rein deterministisch aus dem live abgerufenen Vers-Ergebnis. Bewusst als
+ * vollständiges WorksheetContent-Objekt (aufgaben/loesungen leer, koranVerse gefüllt) statt eines
+ * eigenen Datentyps: dadurch funktionieren Übersicht, Detailseite, PDF-/Word-Export, Teilen und
+ * Favoriten unverändert weiter, ohne jeweils einen eigenen Sonderfall für diese Ausgabeform zu
+ * brauchen - nur die eigentlichen Render-Stellen (WorksheetView, WorksheetPdf,
+ * buildWorksheetDocx) müssen `koranVerse` zusätzlich kennen.
+ */
+export function buildKoranTextContent(verse: QuranVers[], schulstufe: string): WorksheetContent {
+  const { bezeichnung } = formatiereKoranZitat(verse);
+  return {
+    titel: bezeichnung,
+    fach: "Islamischer Religionsunterricht",
+    schulstufe,
+    thema: bezeichnung,
+    lernziel: `Den Wortlaut von ${bezeichnung} im Original und in deutscher Übersetzung kennenlernen.`,
+    einleitung: `${bezeichnung} - Originaltext (Bubenheim & Elyas) live von der Koran-API abgerufen.`,
+    aufgaben: [],
+    loesungen: [],
+    quellen: [{ bezeichnung, sicherheit: "gesichert" }],
+    koranVerse: verse,
+  };
+}
