@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, XCircle, Trash2, RefreshCw, Plus, Loader2, BookOpenText } from "lucide-react";
+import { CheckCircle2, XCircle, Trash2, RefreshCw, Plus, Loader2, BookOpenText, Link2 } from "lucide-react";
 import { THEMENBEREICHE, THEMENBEREICH_KEYS, SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
 import { WISSENS_STATUS_LABEL } from "@/lib/wissensbasis";
 import type { AufgabentypAnalyseZeile } from "@/lib/wissensbasis";
@@ -46,6 +46,7 @@ export default function WissensbasisClient({
   const [scanErgebnis, setScanErgebnis] = useState<string | null>(null);
   const [formOffen, setFormOffen] = useState(false);
   const [koranOffen, setKoranOffen] = useState(false);
+  const [linkOffen, setLinkOffen] = useState(false);
 
   const gefiltert = eintraege.filter((e) => e.typ === tab);
   const entwuerfeAnzahl = (typ: Tab) =>
@@ -121,6 +122,15 @@ export default function WissensbasisClient({
                 <BookOpenText size={15} /> Aus dem Koran nachschlagen
               </button>
             )}
+            {tab === "zitat" && (
+              <button
+                type="button"
+                onClick={() => setLinkOffen((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold-300 bg-gold-50 px-3.5 py-2 text-sm font-medium text-gold-700 shadow-sm transition hover:bg-gold-100"
+              >
+                <Link2 size={15} /> Hadith/Tafsir von Link importieren
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setFormOffen((v) => !v)}
@@ -135,6 +145,15 @@ export default function WissensbasisClient({
             <KoranNachschlagen
               onDone={() => {
                 setKoranOffen(false);
+                router.refresh();
+              }}
+            />
+          )}
+
+          {linkOffen && tab === "zitat" && (
+            <LinkImportieren
+              onDone={() => {
+                setLinkOffen(false);
                 router.refresh();
               }}
             />
@@ -529,6 +548,152 @@ function KoranNachschlagen({ onDone }: { onDone: () => void }) {
               type="button"
               onClick={uebernehmen}
               disabled={uebernehmenLaeuft}
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+            >
+              Als Entwurf übernehmen
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Gegenstück zu KoranNachschlagen für Hadith/Tafsir, für die es (recherchiert, siehe
+ * lib/linkImport.ts) keine geprüfte deutsche Live-API gibt: der Admin gibt eine URL zu einer ihm
+ * bekannten, vertrauenswürdigen Quelle an, wir übernehmen nur das mechanische Abschreiben
+ * (Zitat + Quellenangabe extrahieren). Im Unterschied zum Koran-Tool ist das Ergebnis NICHT
+ * automatisch verlässlich - Bezeichnung/Text sind deshalb bewusst editierbar, und die
+ * Verantwortung für die Quellenauswahl bleibt beim Admin. */
+function LinkImportieren({ onDone }: { onDone: () => void }) {
+  const [url, setUrl] = useState("");
+  const [bezeichnung, setBezeichnung] = useState("");
+  const [text, setText] = useState("");
+  const [hinweis, setHinweis] = useState("");
+  const [themenbereich, setThemenbereich] = useState<string>(THEMENBEREICH_KEYS[0]);
+  const [importLaeuft, setImportLaeuft] = useState(false);
+  const [uebernehmenLaeuft, setUebernehmenLaeuft] = useState(false);
+  const [ergebnisDa, setErgebnisDa] = useState(false);
+  const [fehler, setFehler] = useState<string | null>(null);
+
+  async function importieren() {
+    setImportLaeuft(true);
+    setFehler(null);
+    setErgebnisDa(false);
+    try {
+      const res = await fetch("/api/admin/wissensbasis/link-importieren", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Import fehlgeschlagen.");
+      setBezeichnung(data.bezeichnung);
+      setText(data.text);
+      setHinweis(data.hinweis ?? "");
+      setErgebnisDa(true);
+    } catch (err) {
+      setFehler(err instanceof Error ? err.message : "Import fehlgeschlagen.");
+    } finally {
+      setImportLaeuft(false);
+    }
+  }
+
+  async function uebernehmen() {
+    setUebernehmenLaeuft(true);
+    setFehler(null);
+    try {
+      const res = await fetch("/api/admin/wissensbasis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          typ: "zitat",
+          themenbereich,
+          inhalt: { bezeichnung, text },
+          rechercheNotiz: `Automatisch von ${url} extrahiert - KEINE geprüfte API-Quelle wie beim Koran-Tool, die Verlässlichkeit hängt vollständig von dieser Webseite ab. Vor Freigabe inhaltlich UND anhand einer Referenz-Ausgabe gegenchecken.${hinweis ? ` Hinweis von der Seite selbst: ${hinweis}` : ""}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Anlegen fehlgeschlagen.");
+      setErgebnisDa(false);
+      setUrl("");
+      onDone();
+    } catch (err) {
+      setFehler(err instanceof Error ? err.message : "Anlegen fehlgeschlagen.");
+    } finally {
+      setUebernehmenLaeuft(false);
+    }
+  }
+
+  return (
+    <div className="mb-4 space-y-3 rounded-xl border border-gold-200 bg-gold-50/40 p-4">
+      <p className="text-xs leading-relaxed text-gold-700">
+        Für Hadith/Tafsir gibt es (anders als beim Koran) keine geprüfte deutsche Live-API - gib
+        stattdessen den Link zu einer dir bekannten, vertrauenswürdigen Seite an. Übernimmt nur
+        das mechanische Abschreiben (Zitat + Quellenangabe), NICHT die inhaltliche Prüfung - das
+        Ergebnis ist editierbar und muss vor Freigabe wie jeder andere Entwurf gegengecheckt werden.
+      </p>
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="block min-w-[280px] flex-1">
+          <span className={labelClass}>Link zur Quelle</span>
+          <input
+            className={inputClass}
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://..."
+          />
+        </label>
+        <button
+          type="button"
+          onClick={importieren}
+          disabled={importLaeuft || !url.trim()}
+          className="rounded-lg bg-gold-600 px-4 py-2 text-sm font-medium text-white hover:bg-gold-700 disabled:opacity-60"
+        >
+          {importLaeuft ? "Importiere..." : "Importieren"}
+        </button>
+      </div>
+
+      {fehler && <p className="text-xs text-red-600">{fehler}</p>}
+
+      {ergebnisDa && (
+        <div className="space-y-3 rounded-lg bg-white/70 p-3">
+          <label className="block">
+            <span className={labelClass}>Quellenangabe</span>
+            <input className={inputClass} value={bezeichnung} onChange={(e) => setBezeichnung(e.target.value)} />
+          </label>
+          <label className="block">
+            <span className={labelClass}>Zitat-Text</span>
+            <textarea
+              className={inputClass}
+              rows={5}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+          </label>
+          {hinweis && (
+            <p className="text-xs leading-relaxed text-slate-500">
+              Hinweis von der Seite selbst: {hinweis}
+            </p>
+          )}
+          <div className="flex flex-wrap items-end gap-2 border-t border-slate-200 pt-3">
+            <label className="block">
+              <span className={labelClass}>Grundkompetenz</span>
+              <select
+                className={inputClass}
+                value={themenbereich}
+                onChange={(e) => setThemenbereich(e.target.value)}
+              >
+                {THEMENBEREICH_KEYS.map((k) => (
+                  <option key={k} value={k}>
+                    {THEMENBEREICHE[k].label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={uebernehmen}
+              disabled={uebernehmenLaeuft || !bezeichnung.trim() || !text.trim()}
               className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
             >
               Als Entwurf übernehmen
