@@ -175,15 +175,23 @@ export async function importiereZitateVonLink(url: string): Promise<LinkImportEr
   const seitentext = await holeSeitenText(url);
 
   const client = getAnthropicClient();
-  const response = await client.messages.create({
-    model: IDEEN_MODEL,
-    // Deutlich mehr als bei einer Einzel-Extraktion (war 2000) - eine Sammlung von z.B. 40
-    // Hadithen mit jeweils längerem Text erzeugt entsprechend viel JSON-Output; real beobachtet,
-    // dass 8000 dafür bereits zu knapp war (Antwort brach mitten in einem Zitat ab).
-    max_tokens: 20000,
-    system: EXTRAKTIONS_SYSTEM_PROMPT,
-    messages: [{ role: "user", content: `Seitentext:\n\n${seitentext}` }],
-  });
+  // Als Stream statt als einzelne Antwort angefordert (wie in generateWorksheet.ts bei ähnlich
+  // hohem max_tokens): die Anthropic-SDK lehnt eine Nicht-Stream-Anfrage ab, sobald max_tokens
+  // rechnerisch über der 10-Minuten-Grenze liegen könnte ("Streaming is required for operations
+  // that may take longer than 10 minutes") - .stream(...).finalMessage() liefert dieselbe
+  // vollständige Message wie .create(), nur ohne dieses künstliche Limit.
+  const response = await client.messages
+    .stream({
+      model: IDEEN_MODEL,
+      // Deutlich mehr als bei einer Einzel-Extraktion (war 2000) - eine Sammlung von z.B. 40
+      // Hadithen mit jeweils längerem Text erzeugt entsprechend viel JSON-Output; real beobachtet,
+      // dass sowohl 8000 als auch 20000 dafür schon zu knapp waren (Antwort brach mitten in einem
+      // Zitat ab, bei 20000 fehlten bei einer 40er-Sammlung noch ca. 5 Einträge).
+      max_tokens: 64000,
+      system: EXTRAKTIONS_SYSTEM_PROMPT,
+      messages: [{ role: "user", content: `Seitentext:\n\n${seitentext}` }],
+    })
+    .finalMessage();
 
   const antwortText = getTextFromMessage(response);
   const abgeschnitten = response.stop_reason === "max_tokens";

@@ -7,7 +7,14 @@ vi.mock("./anthropic", async () => {
   const actual = await vi.importActual<typeof import("./anthropic")>("./anthropic");
   return {
     ...actual,
-    getAnthropicClient: () => ({ messages: { create: createMock } }),
+    // importiereZitateVonLink ruft client.messages.stream(...).finalMessage() auf (siehe
+    // lib/linkImport.ts - hohes max_tokens braucht laut Anthropic-SDK Streaming statt .create()),
+    // createMock liefert dieselbe Antwort wie zuvor, nur über den finalMessage()-Umweg.
+    getAnthropicClient: () => ({
+      messages: {
+        stream: (params: unknown) => ({ finalMessage: () => createMock(params) }),
+      },
+    }),
   };
 });
 
