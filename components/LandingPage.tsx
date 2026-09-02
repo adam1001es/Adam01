@@ -6,6 +6,7 @@ import {
   GraduationCap,
   BookOpenCheck,
   Baby,
+  FileSearch,
   CheckCircle2,
   XCircle,
   Gift,
@@ -58,6 +59,12 @@ const FEATURES = [
     akzent: "brand",
   },
   {
+    icon: FileSearch,
+    titel: "Recherche- und Referatsaufträge",
+    text: "Ab der Sekundarstufe I: eigenständige Recherche-/Präsentationsaufgaben zu Personen, Orten oder Themen - mit Leitfaden, Bewertungskriterien und Quellenhinweis statt vager Freitext-Anweisung.",
+    akzent: "gold",
+  },
+  {
     icon: BarChart3,
     titel: "Wissensstand auf einen Blick",
     text: "Jede Klasse zeigt Klassendurchschnitt, Abdeckung nach Grundkompetenz und die Entwicklung pro Schüler:in - automatisch aus den zugewiesenen Arbeitsblättern und eingetragenen Ergebnissen berechnet.",
@@ -96,6 +103,7 @@ const VERGLEICH_UNS = [
 const WAS_ENTHALTEN = [
   "Bewusst nur Aufgabentypen, deren Inhalt sich zuverlässig bewerten lässt statt Nonsens-Vielfalt: Multiple Choice, Lückentext, Zuordnung, Offene Frage, Wahr/Falsch mit Begründung, Reihenfolge, Lesetext",
   "Speziell für die Kleinsten: Bewegungsaufgabe, Sortierkarten, Malaufgabe und Nachspurübung - vier Aufgabentypen ganz ohne Lese-/Schreibkompetenz für Kinder, die noch nicht lesen/schreiben können",
+  "Ab Sekundarstufe I: Recherche-/Referatsaufträge mit Leitfaden, Bewertungskriterien und Quellenhinweis",
   "Fertiges, druckreifes PDF oder Word-Dokument - direkt zum Ausdrucken",
   "Eine zweite, unabhängige KI-Prüfung für jedes einzelne Arbeitsblatt",
   "Eigene Bibliothek: alle bisher erstellten Arbeitsblätter jederzeit wieder abrufbar",

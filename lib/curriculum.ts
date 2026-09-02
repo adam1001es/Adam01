@@ -469,7 +469,9 @@ Ergänzend weiterhin einsetzbar: "wahr_falsch" und "multiple_choice" mit ganz we
 Antwortoptionen (die die Lehrkraft vorliest und die Kinder mündlich oder durch Zeigen
 beantworten) sowie "zuordnung" mit wenigen, sehr kurzen Begriffen. Halte "frage"-Texte auf einen
 einzigen, ganz kurzen Satz beschränkt. Setze "anforderungsbereich" bei diesen Aufgaben auf "afb1"
-(Wahrnehmen/Wiedererkennen).`
+(Wahrnehmen/Wiedererkennen). "recherche_auftrag" ist für diese Stufe nur geeignet, wenn die
+Lehrkraft ihn ausdrücklich gewählt hat (setzt sonst eigenständige Recherche voraus) - dann stark
+vereinfachen (z.B. als gemeinsame Klassenaktivität statt Einzelarbeit).`
     : "";
 
   const afbSpanne =

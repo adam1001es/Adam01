@@ -58,7 +58,9 @@ isolierter Ein-Wort-Lücke), Zuordnung, Offene Frage (schriftliche Reflexion), W
 (MIT Pflicht-Begründung statt reinem Raten), Reihenfolge, Lesetext mit Verständnisfrage. Vier
 weitere Typen sind speziell für noch nicht lese-/schreibkundige Kinder gedacht (siehe unten),
 aber unabhängig von der Schulstufe immer wählbar - bei ihnen zählt "verlässlich bewertbar" im
-Sinne einer klaren, objektiven Lösung statt einer klassischen schriftlichen Korrektur:
+Sinne einer klaren, objektiven Lösung statt einer klassischen schriftlichen Korrektur. Ein
+weiterer Typ ist speziell für ältere Schulstufen gedacht, ebenfalls unabhängig von der
+Schulstufe immer wählbar:
 
 - **Bewegungsaufgabe** (Total Physical Response, empfohlen für 1. Klasse Volksschule): die
   Lehrkraft liest eine Mischung aus passenden und nicht-passenden Begriffen vor, die Klasse
@@ -73,9 +75,18 @@ Sinne einer klaren, objektiven Lösung statt einer klassischen schriftlichen Kor
   (kein KI-generiertes Bild, siehe Hinweis unten).
 - **Nachspurübung** (empfohlen für 1. Klasse Volksschule): ein kurzes, thematisch passendes
   Wort mehrfach in heller Schrift zum Nachfahren - klassische Schreibmotorik-Übung.
+- **Recherche-/Referatsauftrag** (empfohlen ab Sekundarstufe I): eine längerfristige Projekt-/
+  Hausaufgabe zu einer Person, einem Ort, Gegenstand oder Konzept aus dem Thema, mit von Claude
+  generiertem Leitfaden (konkrete Recherchefragen), Bewertungskriterien und einem Hinweis zu
+  vertrauenswürdigen Quellenarten (oder einem kurzen Sachtext als Basis ohne Internetzugang) -
+  nicht für eine einzelne Unterrichtseinheit gedacht. Entscheidend ist hier nicht, ob die App das
+  Ergebnis der Schülerrecherche prüfen kann (kann sie nicht, wie bei jedem anderen Typ das
+  ausgefüllte Blatt selbst auch nicht) - sondern dass sich die Aufgabenstellung selbst (Leitfaden,
+  Kriterien, Quellenhinweis) verlässlich generieren und prüfen lässt.
 
-Sortierkarten ist inhaltlich schon für sich umfangreich und wird serverseitig auf höchstens 1
-Aufgabe pro Arbeitsblatt begrenzt, unabhängig von der insgesamt gewählten Aufgabenzahl.
+Sortierkarten und Recherche-/Referatsauftrag sind inhaltlich schon für sich umfangreich und
+werden serverseitig auf höchstens 1 Aufgabe pro Arbeitsblatt begrenzt, unabhängig von der
+insgesamt gewählten Aufgabenzahl.
 
 ### Aufgaben für noch nicht lese-/schreibkundige Kinder (1. Klasse Volksschule)
 
@@ -97,12 +108,13 @@ die meisten Kinder sind dann bereits funktional lese-/schreibfähig, auch wenn n
 > bearbeitbar.
 
 > Ebenfalls aus der Neu-Generierung entfernt: „Diskussionsimpuls“ (rein mündlich - es entsteht
-> kein schriftliches Ergebnis, das sich inhaltlich prüfen lässt), „Wortsuche“/„Kreuzworträtsel“
+> kein schriftliches Ergebnis, das sich inhaltlich prüfen lässt) sowie „Wortsuche“/„Kreuzworträtsel“
 > (zwar objektiv auswertbar, aber pädagogisch dünn - reine Wiedererkennung/Rechtschreibung statt
-> Verständnisnachweis) sowie „Recherche-/Referatsauftrag“ (die App sieht die tatsächliche
-> Schülerrecherche nie, nur ein Kriterienraster - keine echte Inhaltsprüfung möglich). Auch hier
-> bleiben bereits erstellte Arbeitsblätter mit diesen Typen unverändert ansehbar, druckbar und
-> bearbeitbar.
+> Verständnisnachweis). „Recherche-/Referatsauftrag“ wurde aus demselben Grund kurzzeitig ebenfalls
+> entfernt, dann aber zurückgeholt: anders als bei den beiden anderen Typen lässt sich hier die
+> Aufgabenstellung selbst (Leitfaden, Bewertungskriterien, Quellenhinweis) verlässlich prüfen, und
+> die Methode ist ab Sekundarstufe I fest etabliert. Auch für die entfernten Typen gilt: bereits
+> erstellte Arbeitsblätter damit bleiben unverändert ansehbar, druckbar und bearbeitbar.
 
 ## Layout-Extras
 
