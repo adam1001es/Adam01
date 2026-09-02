@@ -48,11 +48,22 @@ function liesIconAlsDataUri(dateiname: string): string {
 // eingebauten PDF-Standardschriften (Times-Roman/Helvetica) unterstützen nur WinAnsi-Kodierung
 // und können arabische Schriftzeichen NICHT darstellen (dasselbe Problem, das die diakritikfreie
 // Transliteration in generateWorksheet.ts für arabische BEGRIFFE umgeht - hier geht es aber um
-// den tatsächlichen Koran-Urtext selbst, der nicht transliteriert werden darf). Noto Naskh Arabic
-// (SIL Open Font License) als statische Datei registriert, analog zu den Icons oben.
+// den tatsächlichen Koran-Urtext selbst, der nicht transliteriert werden darf). Amiri (SIL Open
+// Font License) als statische Datei registriert, analog zu den Icons oben - eine klassische,
+// speziell für Korantypografie entwickelte Naskh-Schrift.
+//
+// WICHTIG: bewusst NICHT Noto Naskh Arabic und NICHT Noto Sans Arabic - real beobachtet: mit
+// beiden Schriften verschwanden bestimmte Buchstaben (u.a. ب/Beh, إ/Alif mit Hamza) spurlos aus
+// dem PDF, sobald direkt ein Harakat-Zeichen (Kasra/Fatha/Sukun) daran hängt (z.B. wurde "بِسْمِ"
+// zu "ِسْمِ") - der Buchstabe selbst blieb nur als reine Textzeichenfolge korrekt (Web-Ansicht und
+// Word-Export zeigten denselben Text richtig). Ursache: eine Inkompatibilität zwischen der
+// Schrift-Engine von @react-pdf/renderer (fontkit) und der Markierungs-/Glyphformung dieser
+// beiden Schriftdateien für genau diese Buchstaben-Harakat-Kombination - kein Bug in diesem
+// Projekt-Code. Amiri ist davon nicht betroffen (mit vollständigem Sure-1-Text inkl. Harakat
+// gegengeprüft, auch isolierte Einzelbuchstaben-Fälle).
 Font.register({
-  family: "NotoNaskhArabic",
-  src: path.join(process.cwd(), "public/fonts/NotoNaskhArabic-Regular.ttf"),
+  family: "Amiri",
+  src: path.join(process.cwd(), "public/fonts/Amiri-Regular.ttf"),
 });
 
 const ICON_DATA_URIS: Record<IconKey, string> = {
@@ -449,7 +460,7 @@ function buildStyles(layout: LayoutConfig) {
       borderBottom: "1px solid #f1f5f9",
     },
     koranArabisch: {
-      fontFamily: "NotoNaskhArabic",
+      fontFamily: "Amiri",
       direction: "rtl",
       textAlign: "right",
       fontSize: baseFontSize + 7,
@@ -775,7 +786,7 @@ function AufgabenListe({
 
 /** ausgabeform "text" (siehe koranVerse in lib/types.ts, buildKoranTextContent in
  * lib/quranApi.ts) - reiner Vers-Wortlaut ohne Aufgaben, Arabisch (rechtsbündig, siehe
- * registrierte NotoNaskhArabic-Schrift oben) direkt über der deutschen Übersetzung. */
+ * registrierte Amiri-Schrift oben) direkt über der deutschen Übersetzung. */
 function KoranVerseListe({ content, layout }: { content: WorksheetContent; layout: LayoutConfig }) {
   const styles = buildStyles(layout);
   if (!content.koranVerse || content.koranVerse.length === 0) return null;
