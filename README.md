@@ -50,23 +50,16 @@ Unterricht und Lebensweltbezug. Details in `lib/curriculum.ts`.
 ### Aufgabentypen
 
 Bewusst wenige, aber didaktisch bewährte Aufgabentypen statt einer breiten, beliebigen Auswahl -
-"lieber gute Methoden als Nonsens-Vielfalt". Zehn Typen stehen für alle Schulstufen zur
-Verfügung: Multiple Choice, Lückentext (mit inhaltlichem Satzkontext statt isolierter
-Ein-Wort-Lücke), Zuordnung, Offene Frage (schriftliche Reflexion), Wahr oder Falsch (MIT
-Pflicht-Begründung statt reinem Raten), Reihenfolge, Lesetext mit Verständnisfrage,
-Diskussionsimpuls (echtes Dilemma/mehrere Perspektiven statt einer Frage mit offensichtlicher
-Antwort), Kreuzworträtsel, Wortsuche. Zwei weitere Typen sind IMMER wählbar, bekommen aber je nach
-Schulstufe nur eine Empfehlung im Erstellen-Formular statt einer harten Sperre - die Lehrkraft
-kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik:
+"lieber gute Methoden als Nonsens-Vielfalt". Ausschlaggebend ist dabei nicht nur pädagogischer
+Wert, sondern auch: lässt sich der tatsächliche Inhalt zuverlässig bewerten (schriftlich durch
+die Lehrkraft, oder anhand einer klaren, objektiven Lösung)? Sieben Typen stehen für alle
+Schulstufen zur Verfügung: Multiple Choice, Lückentext (mit inhaltlichem Satzkontext statt
+isolierter Ein-Wort-Lücke), Zuordnung, Offene Frage (schriftliche Reflexion), Wahr oder Falsch
+(MIT Pflicht-Begründung statt reinem Raten), Reihenfolge, Lesetext mit Verständnisfrage. Vier
+weitere Typen sind speziell für noch nicht lese-/schreibkundige Kinder gedacht (siehe unten),
+aber unabhängig von der Schulstufe immer wählbar - bei ihnen zählt "verlässlich bewertbar" im
+Sinne einer klaren, objektiven Lösung statt einer klassischen schriftlichen Korrektur:
 
-- **Malaufgabe** (empfohlen für 1. Klasse Volksschule): eine kurze, mündlich vorlesbare
-  Zeichenanweisung zum Thema - die Schüler:innen zeichnen selbst auf dem ausgedruckten Blatt
-  (kein KI-generiertes Bild, siehe Hinweis unten).
-- **Recherche-/Referatsauftrag** (empfohlen ab Sekundarstufe I): eine längerfristige Projekt-/
-  Hausaufgabe zu einer Person, einem Ort, Gegenstand oder Konzept aus dem Thema, mit von Claude
-  generiertem Leitfaden (konkrete Recherchefragen), Bewertungskriterien und einem Hinweis zu
-  vertrauenswürdigen Quellenarten (oder einem kurzen Sachtext als Basis ohne Internetzugang) -
-  nicht für eine einzelne Unterrichtseinheit gedacht.
 - **Bewegungsaufgabe** (Total Physical Response, empfohlen für 1. Klasse Volksschule): die
   Lehrkraft liest eine Mischung aus passenden und nicht-passenden Begriffen vor, die Klasse
   reagiert körperlich (aufstehen/zeigen/klatschen) bei den passenden - prüft Verständnis ganz
@@ -75,12 +68,14 @@ kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik:
   vorgegebene Kategorien einsortiert und geklebt werden - haptisch, fördert echtes
   Kategorienverständnis statt nur Motorik. Die richtige Zuordnung erscheint bewusst nur in der
   Lösung, nicht auf den Karten selbst.
+- **Malaufgabe** (empfohlen für 1. Klasse Volksschule): eine kurze, mündlich vorlesbare
+  Zeichenanweisung zum Thema - die Schüler:innen zeichnen selbst auf dem ausgedruckten Blatt
+  (kein KI-generiertes Bild, siehe Hinweis unten).
 - **Nachspurübung** (empfohlen für 1. Klasse Volksschule): ein kurzes, thematisch passendes
   Wort mehrfach in heller Schrift zum Nachfahren - klassische Schreibmotorik-Übung.
 
-Kreuzworträtsel, Wortsuche, Recherche-/Referatsauftrag und Sortierkarten sind inhaltlich schon
-für sich umfangreich und werden serverseitig auf höchstens 1 Aufgabe pro Arbeitsblatt begrenzt,
-unabhängig von der insgesamt gewählten Aufgabenzahl.
+Sortierkarten ist inhaltlich schon für sich umfangreich und wird serverseitig auf höchstens 1
+Aufgabe pro Arbeitsblatt begrenzt, unabhängig von der insgesamt gewählten Aufgabenzahl.
 
 ### Aufgaben für noch nicht lese-/schreibkundige Kinder (1. Klasse Volksschule)
 
@@ -99,6 +94,14 @@ die meisten Kinder sind dann bereits funktional lese-/schreibfähig, auch wenn n
 > wurde entfernt (zu kosten- und wartungsintensiv) und durch die reine Zeichen-Anweisung
 > „Malaufgabe“ ersetzt (kein KI-Bild, kein zusätzlicher Kostenfaktor). Bereits erstellte
 > Arbeitsblätter mit den alten Bild-Aufgaben bleiben aber unverändert ansehbar, druckbar und
+> bearbeitbar.
+
+> Ebenfalls aus der Neu-Generierung entfernt: „Diskussionsimpuls“ (rein mündlich - es entsteht
+> kein schriftliches Ergebnis, das sich inhaltlich prüfen lässt), „Wortsuche“/„Kreuzworträtsel“
+> (zwar objektiv auswertbar, aber pädagogisch dünn - reine Wiedererkennung/Rechtschreibung statt
+> Verständnisnachweis) sowie „Recherche-/Referatsauftrag“ (die App sieht die tatsächliche
+> Schülerrecherche nie, nur ein Kriterienraster - keine echte Inhaltsprüfung möglich). Auch hier
+> bleiben bereits erstellte Arbeitsblätter mit diesen Typen unverändert ansehbar, druckbar und
 > bearbeitbar.
 
 ## Layout-Extras

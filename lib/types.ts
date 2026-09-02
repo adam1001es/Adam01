@@ -30,20 +30,31 @@ export const AUFGABEN_TYPEN = [
   "nachspuruebung",
 ] as const;
 
-/** Aktuell im Formular anbietbare und für NEUE Arbeitsblätter generierbare Aufgabentypen -
- * schließt nur die Bild-KI-Typen aus (siehe Kommentar bei AUFGABEN_TYPEN). Alle Typen sind immer
- * im Erstellen-Formular sichtbar und wählbar, unabhängig von der gewählten Schulstufe - die vier
- * für 1. Klasse Volksschule empfohlenen Typen ("bewegungsaufgabe", "sortierkarten",
- * "malaufgabe", "nachspuruebung") sowie "recherche_auftrag" (ab Sekundarstufe I) bekommen dort
- * zwar eine Empfehlung (siehe istFrueheVolksschulstufe in lib/curriculum.ts), das ist aber
- * bewusst nur eine Empfehlung, keine harte Sperre: die Lehrkraft kennt ihre Klasse besser als
- * eine grobe Schulstufen-Heuristik.
+/** Aktuell im Formular anbietbare und für NEUE Arbeitsblätter generierbare Aufgabentypen.
+ * Bewusst auf zwei Gruppen begrenzt: die 7 Kern-Typen, deren Inhalt sich zuverlässig schriftlich
+ * bewerten lässt (kein mündliches oder rein motorisches Format), plus die 4 Typen, die als
+ * EINZIGE für noch nicht lese-/schreibkundige Erstklässler überhaupt nutzbar sind (siehe
+ * istFrueheVolksschulstufe in lib/curriculum.ts) - bei denen zählt "verlässlich bewertbar" im
+ * Sinne einer klaren, objektiven Lösung statt einer klassischen schriftlichen Korrektur.
+ * "diskussion" (rein mündlich, es entsteht kein prüfbares schriftliches Ergebnis), die
+ * Rätselformate "wortsuche"/"kreuzwortraetsel" (objektiv auswertbar, aber pädagogisch dünn -
+ * reine Wiedererkennung/Rechtschreibung statt Verständnisnachweis) sowie "recherche_auftrag"
+ * (die App sieht die tatsächliche Schülerrecherche nie, nur ein Kriterienraster) sind DESHALB
+ * NICHT mehr Teil dieser Liste - schließt daneben weiterhin nur die Bild-KI-Typen aus (siehe
+ * Kommentar bei AUFGABEN_TYPEN). Bereits bestehende Arbeitsblätter mit diesen vier Typen bleiben
+ * unverändert ansehbar, druckbar und bearbeitbar (siehe AUFGABEN_TYPEN, AufgabeSchema).
+ *
+ * Alle Typen sind immer im Erstellen-Formular sichtbar und wählbar, unabhängig von der gewählten
+ * Schulstufe - die vier für 1. Klasse Volksschule empfohlenen Typen ("bewegungsaufgabe",
+ * "sortierkarten", "malaufgabe", "nachspuruebung") bekommen dort zwar eine Empfehlung, das ist
+ * aber bewusst nur eine Empfehlung, keine harte Sperre: die Lehrkraft kennt ihre Klasse besser
+ * als eine grobe Schulstufen-Heuristik.
  *
  * Reihenfolge ist bewusst NICHT alphabetisch, sondern logisch gruppiert (bestimmt auch die
- * Chip-Reihenfolge im Erstellen-Formular): zuerst die für alle Schulstufen gedachten Typen, grob
- * von geschlossenen/kurzen zu offeneren/umfangreicheren Formaten, danach als zusammenhängender
- * Block die vier 1.-Klasse-Empfehlungen (im Formular farblich markiert - als Block sichtbar
- * statt im Raster verstreut), zuletzt der für ältere Schulstufen gedachte Recherche-Auftrag.
+ * Chip-Reihenfolge im Erstellen-Formular): zuerst die für alle Schulstufen gedachten Kern-Typen,
+ * grob von geschlossenen/kurzen zu offeneren Formaten, zuletzt als zusammenhängender Block die
+ * vier 1.-Klasse-Empfehlungen (im Formular farblich markiert - als Block sichtbar statt im
+ * Raster verstreut).
  *
  * Wird für GenerateRequestSchema.aufgabentypen sowie im Erstellen-Formular verwendet. Bewusst
  * als eigenes Array-Literal statt per .filter() von AUFGABEN_TYPEN abgeleitet, damit z.enum()
@@ -56,23 +67,22 @@ export const AUFGABEN_TYPEN_AKTIV = [
   "reihenfolge",
   "lesetext",
   "offene_frage",
-  "diskussion",
-  "wortsuche",
-  "kreuzwortraetsel",
   "bewegungsaufgabe",
   "sortierkarten",
   "malaufgabe",
   "nachspuruebung",
-  "recherche_auftrag",
 ] as const satisfies readonly (typeof AUFGABEN_TYPEN)[number][];
 
 /** Teilmenge von AUFGABEN_TYPEN_AKTIV, die für eine formelle Prüfung (siehe app/klassen,
  * lib/generateWorksheet.ts "istPruefung"-Zweig, lib/pruefungZusammenstellen.ts) infrage kommt -
- * ausgeschlossen sind "diskussion" (mündlich, nicht benotbar), die vier für frühe
- * Volksschulstufen gedachten Methoden "malaufgabe"/"bewegungsaufgabe"/"sortierkarten"/
- * "nachspuruebung" (für eine Prüfungssituation nicht gedacht), "recherche_auftrag"
- * (längerfristige Projektarbeit, kein Prüfungsformat) sowie "wortsuche"/"kreuzwortraetsel"
- * (Rätselformat, in einer Matura-/Schulprüfung unüblich). */
+ * ausgeschlossen sind die vier für frühe Volksschulstufen gedachten Methoden
+ * "malaufgabe"/"bewegungsaufgabe"/"sortierkarten"/"nachspuruebung" (für eine Prüfungssituation
+ * nicht gedacht) - "diskussion", "wortsuche"/"kreuzwortraetsel" und "recherche_auftrag" sind
+ * mittlerweile ohnehin nicht mehr Teil von AUFGABEN_TYPEN_AKTIV (siehe dortiger Kommentar), diese
+ * Liste ist also aktuell deckungsgleich mit AUFGABEN_TYPEN_AKTIV minus der vier VS1-Typen. Bleibt
+ * trotzdem ein eigener, benannter Typ statt einer reinen Ableitung, damit der Prüfungs-Kontext
+ * (lib/pruefungZusammenstellen.ts, generateWorksheet.ts "istPruefung") unabhängig von künftigen
+ * Änderungen an AUFGABEN_TYPEN_AKTIV explizit bleibt. */
 export const EXAM_GEEIGNETE_TYPEN = [
   "multiple_choice",
   "wahr_falsch",
@@ -87,7 +97,12 @@ export const EXAM_GEEIGNETE_TYPEN = [
  * 4-8 Wörter samt Gitter; Recherche-/Referat-Auftrag: eigenständige, längerfristige Projektarbeit)
  * - davon macht daher pro Arbeitsblatt höchstens diese Anzahl Sinn, unabhängig von der insgesamt
  * gewählten "Anzahl Aufgaben". Wird sowohl beim Prompt-Bau als auch als harte serverseitige
- * Grenze verwendet (siehe begrenzeAufgabenProTyp in lib/generateWorksheet.ts). */
+ * Grenze verwendet (siehe begrenzeAufgabenProTyp in lib/generateWorksheet.ts). Kreuzworträtsel/
+ * Wortsuche/Recherche-Auftrag sind seit der Einschränkung auf zuverlässig bewertbare Typen (siehe
+ * AUFGABEN_TYPEN_AKTIV) für NEUE Arbeitsblätter nicht mehr wählbar - ihre Einträge hier bleiben
+ * trotzdem bestehen, weil begrenzeAufgabenProTyp auch beim automatischen Beheben gemeldeter
+ * Probleme an ÄLTEREN Arbeitsblättern läuft (siehe lib/meldungFix.ts), die diese Typen noch
+ * enthalten können. */
 export const AUFGABEN_TYP_MAXIMUM: Partial<Record<(typeof AUFGABEN_TYPEN)[number], number>> = {
   kreuzwortraetsel: 1,
   wortsuche: 1,

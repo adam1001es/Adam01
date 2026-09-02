@@ -454,9 +454,9 @@ export function buildCurriculumSystemContext(
 
 WICHTIG - noch nicht lese-/schreibkundige Kinder (1. Schulstufe Volksschule):
 Diese Schüler:innen können noch nicht (oder kaum) lesen und schreiben. Aufgaben mit viel
-Lesetext oder eigenständigem Schreiben (Lesetext, Lückentext, Wortsuche, Kreuzworträtsel, lange
-offene Fragen) sind für sie NICHT geeignet und sollen vermieden werden. Nutze stattdessen
-bevorzugt diese für die Stufe geeigneten Typen:
+Lesetext oder eigenständigem Schreiben (Lesetext, Lückentext, lange offene Fragen) sind für sie
+NICHT geeignet und sollen vermieden werden. Nutze stattdessen bevorzugt diese für die Stufe
+geeigneten Typen:
 - "bewegungsaufgabe" (Total Physical Response): die Klasse reagiert körperlich auf Vorgelesenes -
   keine Lese-/Schreibkompetenz nötig, prüft Verständnis durch aktives Zuhören und Reagieren.
 - "sortierkarten": Ausschneide-Kärtchen in Kategorien einordnen - haptisch, fördert echtes
@@ -469,9 +469,7 @@ Ergänzend weiterhin einsetzbar: "wahr_falsch" und "multiple_choice" mit ganz we
 Antwortoptionen (die die Lehrkraft vorliest und die Kinder mündlich oder durch Zeigen
 beantworten) sowie "zuordnung" mit wenigen, sehr kurzen Begriffen. Halte "frage"-Texte auf einen
 einzigen, ganz kurzen Satz beschränkt. Setze "anforderungsbereich" bei diesen Aufgaben auf "afb1"
-(Wahrnehmen/Wiedererkennen). "recherche_auftrag" ist für diese Stufe nur geeignet, wenn die
-Lehrkraft ihn ausdrücklich gewählt hat (setzt sonst eigenständige Recherche voraus) - dann stark
-vereinfachen (z.B. als gemeinsame Klassenaktivität statt Einzelarbeit).`
+(Wahrnehmen/Wiedererkennen).`
     : "";
 
   const afbSpanne =

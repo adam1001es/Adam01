@@ -15,11 +15,7 @@ import {
   Eye,
   ListOrdered,
   BookOpenText,
-  MessagesSquare,
-  Grid3x3,
-  Hash,
   Palette,
-  FileSearch,
   PersonStanding,
   LayoutGrid,
   PenTool,
@@ -114,11 +110,7 @@ const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; i
   wahr_falsch: { label: "Wahr oder Falsch (mit Begründung)", icon: ToggleLeft },
   reihenfolge: { label: "Reihenfolge", icon: ListOrdered },
   lesetext: { label: "Lesetext", icon: BookOpenText },
-  diskussion: { label: "Diskussionsimpuls", icon: MessagesSquare },
-  wortsuche: { label: "Wortsuche", icon: Grid3x3 },
-  kreuzwortraetsel: { label: "Kreuzworträtsel", icon: Hash },
   malaufgabe: { label: "Malaufgabe", icon: Palette },
-  recherche_auftrag: { label: "Recherche-/Referat-Auftrag", icon: FileSearch },
   bewegungsaufgabe: { label: "Bewegungsaufgabe", icon: PersonStanding },
   sortierkarten: { label: "Sortierkarten", icon: LayoutGrid },
   nachspuruebung: { label: "Nachspurübung", icon: PenTool },
@@ -601,15 +593,14 @@ export default function NewWorksheetForm({
               Richtwert für {zieldauerMinuten} Minuten - Aufgabenzahl statt fixer Stückzahl wählen
               ist hier bewusst nicht möglich, weil einzelne Typen sehr unterschiedlich lange
               dauern; Genauigkeit auf die Minute ist dabei nicht erreichbar, besonders bei „Offene
-              Frage"/„Diskussion".
+              Frage".
             </p>
           )}
           {aufgabentypen.some((typ) => typ in AUFGABEN_TYP_MAXIMUM) && (
             <p className="mt-3 text-xs leading-relaxed text-slate-400">
-              Hinweis: „Kreuzworträtsel", „Wortsuche", „Recherche-/Referat-Auftrag" und
-              „Sortierkarten" sind für sich schon umfangreich - davon wird höchstens 1 Aufgabe
-              pro Arbeitsblatt erstellt, auch wenn oben eine höhere Anzahl gewählt ist. Das
-              fertige Blatt kann dadurch weniger Aufgaben enthalten als hier eingestellt.
+              Hinweis: „Sortierkarten" ist für sich schon umfangreich - davon wird höchstens 1
+              Aufgabe pro Arbeitsblatt erstellt, auch wenn oben eine höhere Anzahl gewählt ist.
+              Das fertige Blatt kann dadurch weniger Aufgaben enthalten als hier eingestellt.
             </p>
           )}
           {aufgabentypen.length > 2 && zieldauerMinuten === 50 && (
@@ -617,12 +608,6 @@ export default function NewWorksheetForm({
               Viele verschiedene Aufgabentypen gleichzeitig + 50 Minuten Zieldauer kann die
               Erstellung etwas länger dauern lassen. Sollte sie in seltenen Fällen fehlschlagen,
               hilft meist ein erneuter Versuch, notfalls mit weniger Aufgabentypen gleichzeitig.
-            </p>
-          )}
-          {aufgabentypen.includes("recherche_auftrag") && (
-            <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs leading-relaxed text-slate-500">
-              „Recherche-/Referat-Auftrag" eignet sich als längerfristige Projekt-/Hausaufgabe -
-              nicht dafür gedacht, innerhalb einer einzelnen Unterrichtseinheit fertig zu werden.
             </p>
           )}
           {fruehStufe && !istPruefung && (

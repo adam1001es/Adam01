@@ -50,21 +50,29 @@ function baseRequest(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
-describe("GenerateRequestSchema - malaufgabe/recherche_auftrag sind für jede Schulstufe wählbar", () => {
-  // "malaufgabe" (Schüler:innen zeichnen selbst) und "recherche_auftrag" (eigenständige
-  // Recherche) sind zwar in erster Linie für 1. Klasse Volksschule bzw. ab Sekundarstufe I
-  // gedacht (siehe Empfehlungs-Hinweise im Erstellen-Formular), es gibt dafür aber bewusst KEINE
-  // harte serverseitige Sperre - die Lehrkraft soll frei wählen können, statt am Absenden mit
-  // einem Validierungsfehler auszusteigen (siehe Kommentar bei GenerateRequestSchema).
+describe("GenerateRequestSchema - malaufgabe ist für jede Schulstufe wählbar", () => {
+  // "malaufgabe" (Schüler:innen zeichnen selbst) ist zwar in erster Linie für 1. Klasse
+  // Volksschule gedacht (siehe Empfehlungs-Hinweise im Erstellen-Formular), es gibt dafür aber
+  // bewusst KEINE harte serverseitige Sperre - die Lehrkraft soll frei wählen können, statt am
+  // Absenden mit einem Validierungsfehler auszusteigen (siehe Kommentar bei GenerateRequestSchema).
   it("akzeptiert 'malaufgabe' unabhängig von der Schulstufe", () => {
     const req = baseRequest({ schulstufe: "4. Klasse Volksschule", aufgabentypen: ["malaufgabe"] });
     expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
   });
+});
 
-  it("akzeptiert 'recherche_auftrag' unabhängig von der Schulstufe", () => {
-    const req = baseRequest({ schulstufe: "2. Klasse Volksschule", aufgabentypen: ["recherche_auftrag"] });
-    expect(GenerateRequestSchema.safeParse(req).success).toBe(true);
-  });
+describe("GenerateRequestSchema - nicht mehr für NEUE Arbeitsblätter wählbare Typen", () => {
+  // "diskussion" (rein mündlich, nicht schriftlich bewertbar), "wortsuche"/"kreuzwortraetsel"
+  // (pädagogisch dünn) und "recherche_auftrag" (App sieht die Schülerrecherche nie) wurden aus
+  // AUFGABEN_TYPEN_AKTIV entfernt (siehe Kommentar dort) - bestehende Arbeitsblätter mit diesen
+  // Typen bleiben aber gültig (siehe AUFGABEN_TYPEN), nur eine NEUE Anfrage damit wird abgelehnt.
+  it.each(["diskussion", "wortsuche", "kreuzwortraetsel", "recherche_auftrag"])(
+    "lehnt '%s' für neue Arbeitsblätter ab",
+    (typ) => {
+      const req = baseRequest({ aufgabentypen: [typ] });
+      expect(GenerateRequestSchema.safeParse(req).success).toBe(false);
+    },
+  );
 });
 
 describe("AUFGABEN_TYP_MAXIMUM", () => {
