@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookOpen,
@@ -138,6 +138,72 @@ const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch:
 };
 
 /**
+ * Automatische Zwischenspeicherung der Formulareingaben im Browser (localStorage) - real
+ * beobachtet: nach einem fehlgeschlagenen Erstellen-Versuch war die Lehrkraft zur Übersicht
+ * gewechselt und beim Zurückkommen war das Formular wieder auf die Standardwerte zurückgesprungen
+ * (Schulstufe fälschlich neu gewählt, versehentlich ein zweites, ungewolltes Arbeitsblatt erzeugt).
+ * Läuft unabhängig davon, WARUM die Eingabe verlassen wird (Fehler, Navigation, Tab
+ * geschlossen) - kein Sonderfall nur für den Fehlerpfad, einfach immer der zuletzt eingegebene
+ * Stand. Pro Klasse (bzw. "allgemein" ohne Klassenkontext) ein eigener Entwurf, damit sich
+ * Prüfungs- und normale Arbeitsblatt-Entwürfe nicht gegenseitig überschreiben.
+ */
+interface FormDraft {
+  thema: string;
+  schulstufeAuswahl: string;
+  schulstufeFrei: string;
+  zieldauerMinuten: (typeof ZIELDAUER_OPTIONEN_MINUTEN)[number];
+  komplexitaet: Komplexitaet;
+  aufgabentypen: string[];
+  punkteGesamt: number;
+  zusatzhinweise: string;
+  themenbereich: ThemenbereichKey;
+  koranFokusAktiv: boolean;
+  koranSureNummer: number;
+  koranGanzeSure: boolean;
+  koranVonVers: number;
+  koranBisVers: number;
+  template: (typeof TEMPLATES)[number];
+  schulname: string;
+  schriftgroesse: "normal" | "gross";
+  zeigeIslamischesDatum: boolean;
+  zeigeMuster: boolean;
+  musterVariante: MusterVariante;
+  zeigeLernziel: boolean;
+  farbmodus: Farbmodus;
+}
+
+function entwurfSchluessel(klasseId?: string): string {
+  return `lernwerk-entwurf-neues-arbeitsblatt-${klasseId ?? "allgemein"}`;
+}
+
+function ladeEntwurf(klasseId?: string): Partial<FormDraft> | null {
+  try {
+    const roh = localStorage.getItem(entwurfSchluessel(klasseId));
+    return roh ? (JSON.parse(roh) as Partial<FormDraft>) : null;
+  } catch {
+    return null;
+  }
+}
+
+function speichereEntwurf(klasseId: string | undefined, entwurf: FormDraft) {
+  try {
+    localStorage.setItem(entwurfSchluessel(klasseId), JSON.stringify(entwurf));
+  } catch {
+    // localStorage kann in seltenen Fällen nicht verfügbar sein (z.B. privater Modus mit
+    // deaktiviertem Speicher) - die Zwischenspeicherung ist dann einfach nicht aktiv, kein Grund
+    // die Eingabe selbst zu unterbrechen.
+  }
+}
+
+function loescheEntwurf(klasseId?: string) {
+  try {
+    localStorage.removeItem(entwurfSchluessel(klasseId));
+  } catch {
+    // siehe speichereEntwurf
+  }
+}
+
+/**
  * Prüfungs-Modus B (komplette Neu-Generierung als formelle Prüfung, siehe lib/generateWorksheet.ts
  * "istPruefung") läuft durch dieselbe Pipeline wie ein normales Arbeitsblatt, ist aber NUR aus dem
  * Kontext einer Klasse heraus erreichbar (siehe app/klassen/[id]/pruefung-generieren) - eine
@@ -252,6 +318,92 @@ export default function NewWorksheetForm({
   const [zeigeLernziel, setZeigeLernziel] = useState(false);
   const [farbmodus, setFarbmodus] = useState<Farbmodus>("schwarzweiss");
 
+  // Entwurf beim ersten Laden wiederherstellen (siehe FormDraft oben) - läuft nur EINMAL nach dem
+  // Mounten (nicht serverseitig möglich, da localStorage nur im Browser existiert), überschreibt
+  // dabei bewusst auch die initialSchulstufe/initialZusatzhinweise-Props, falls ein Entwurf
+  // vorliegt: der zuletzt eingegebene Stand ist verlässlicher als die grobe Vorbelegung.
+  useEffect(() => {
+    const entwurf = ladeEntwurf(klasseId);
+    if (!entwurf) return;
+    if (entwurf.thema !== undefined) setThema(entwurf.thema);
+    if (entwurf.schulstufeAuswahl !== undefined) setSchulstufeAuswahl(entwurf.schulstufeAuswahl);
+    if (entwurf.schulstufeFrei !== undefined) setSchulstufeFrei(entwurf.schulstufeFrei);
+    if (entwurf.zieldauerMinuten !== undefined) setZieldauerMinuten(entwurf.zieldauerMinuten);
+    if (entwurf.komplexitaet !== undefined) setKomplexitaet(entwurf.komplexitaet);
+    if (entwurf.aufgabentypen !== undefined) setAufgabentypen(entwurf.aufgabentypen);
+    if (entwurf.punkteGesamt !== undefined) setPunkteGesamt(entwurf.punkteGesamt);
+    if (entwurf.zusatzhinweise !== undefined) setZusatzhinweise(entwurf.zusatzhinweise);
+    if (entwurf.themenbereich !== undefined) setThemenbereich(entwurf.themenbereich);
+    if (entwurf.koranFokusAktiv !== undefined) setKoranFokusAktiv(entwurf.koranFokusAktiv);
+    if (entwurf.koranSureNummer !== undefined) setKoranSureNummer(entwurf.koranSureNummer);
+    if (entwurf.koranGanzeSure !== undefined) setKoranGanzeSure(entwurf.koranGanzeSure);
+    if (entwurf.koranVonVers !== undefined) setKoranVonVers(entwurf.koranVonVers);
+    if (entwurf.koranBisVers !== undefined) setKoranBisVers(entwurf.koranBisVers);
+    if (entwurf.template !== undefined) setTemplate(entwurf.template);
+    if (entwurf.schulname !== undefined) setSchulname(entwurf.schulname);
+    if (entwurf.schriftgroesse !== undefined) setSchriftgroesse(entwurf.schriftgroesse);
+    if (entwurf.zeigeIslamischesDatum !== undefined) setZeigeIslamischesDatum(entwurf.zeigeIslamischesDatum);
+    if (entwurf.zeigeMuster !== undefined) setZeigeMuster(entwurf.zeigeMuster);
+    if (entwurf.musterVariante !== undefined) setMusterVariante(entwurf.musterVariante);
+    if (entwurf.zeigeLernziel !== undefined) setZeigeLernziel(entwurf.zeigeLernziel);
+    if (entwurf.farbmodus !== undefined) setFarbmodus(entwurf.farbmodus);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Läuft bei JEDER Änderung eines Formularfelds mit - sichert immer den zuletzt eingegebenen
+  // Stand, unabhängig davon, ob später ein Fehler auftritt, die Seite verlassen oder der Tab
+  // geschlossen wird (siehe FormDraft oben).
+  useEffect(() => {
+    speichereEntwurf(klasseId, {
+      thema,
+      schulstufeAuswahl,
+      schulstufeFrei,
+      zieldauerMinuten,
+      komplexitaet,
+      aufgabentypen,
+      punkteGesamt,
+      zusatzhinweise,
+      themenbereich,
+      koranFokusAktiv,
+      koranSureNummer,
+      koranGanzeSure,
+      koranVonVers,
+      koranBisVers,
+      template,
+      schulname,
+      schriftgroesse,
+      zeigeIslamischesDatum,
+      zeigeMuster,
+      musterVariante,
+      zeigeLernziel,
+      farbmodus,
+    });
+  }, [
+    klasseId,
+    thema,
+    schulstufeAuswahl,
+    schulstufeFrei,
+    zieldauerMinuten,
+    komplexitaet,
+    aufgabentypen,
+    punkteGesamt,
+    zusatzhinweise,
+    themenbereich,
+    koranFokusAktiv,
+    koranSureNummer,
+    koranGanzeSure,
+    koranVonVers,
+    koranBisVers,
+    template,
+    schulname,
+    schriftgroesse,
+    zeigeIslamischesDatum,
+    zeigeMuster,
+    musterVariante,
+    zeigeLernziel,
+    farbmodus,
+  ]);
+
   function toggleTyp(typ: string) {
     setAufgabentypen((prev) =>
       prev.includes(typ) ? prev.filter((t) => t !== typ) : [...prev, typ],
@@ -353,6 +505,9 @@ export default function NewWorksheetForm({
       if (!res.ok || !data.id) {
         throw new Error(data.error ?? "Generierung fehlgeschlagen.");
       }
+      // Entwurf erst NACH erfolgreicher Erstellung löschen - bei jedem Fehlschlag (auch dem
+      // Verbindungsabbruch oben) bleibt er bewusst erhalten.
+      loescheEntwurf(klasseId);
       router.push(`/worksheet/${data.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler.");
