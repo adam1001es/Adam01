@@ -94,41 +94,54 @@ function SectionHeading({
 // auch ein tatsächlich erstelltes Arbeitsblatt zeigt (siehe app/worksheet/[id]) - garantiert, dass
 // die Vorschau im Hero exakt wie das echte Produkt aussieht, statt eine geschönte Attrappe zu sein.
 const HERO_VORSCHAU_INHALT: WorksheetContent = {
-  titel: "Die 5 Säulen des Islam",
+  titel: "Idschtihad und die Rechtsschulen (Madhahib)",
   fach: "Islamischer Religionsunterricht",
-  schulstufe: "4. Klasse Volksschule",
-  thema: "Die 5 Säulen des Islam",
-  lernziel: "Die Schüler:innen können die fünf Säulen des Islam benennen und kurz erklären.",
-  einleitung: "Der Islam beruht auf fünf Grundpfeilern, die das gläubige Leben prägen.",
+  schulstufe: "7. Klasse AHS-Oberstufe/BMHS (11. Schulstufe)",
+  thema: "Idschtihad und die Rechtsschulen (Madhahib)",
+  lernziel:
+    "Die Schüler:innen können den Begriff Idschtihad erklären und die methodischen Unterschiede der sunnitischen Rechtsschulen einordnen.",
+  einleitung:
+    "Aus der eigenständigen juristischen Auslegung des Korans und der Sunna durch Gelehrte entwickelten sich ab dem 8. Jahrhundert unterschiedliche Rechtsschulen mit je eigener Methodik.",
   aufgaben: [
     {
       nr: 1,
       typ: "multiple_choice",
-      frage: "Welche Aussage gehört zu den 5 Säulen?",
-      optionen: ["Das Fasten im Ramadan", "Das Feiern von Weihnachten", "Der Besuch im Zoo"],
-      anforderungsbereich: "afb1",
+      frage: "Was versteht man unter Idschtihad?",
+      optionen: [
+        "Die eigenständige juristische Auslegungsanstrengung eines Gelehrten zur Herleitung eines Rechtsurteils",
+        "Die wortgetreue Übersetzung des Korans in eine andere Sprache",
+        "Die konsensuale Übernahme eines bereits bestehenden Rechtsurteils ohne eigene Prüfung",
+      ],
+      anforderungsbereich: "afb2",
     },
     {
       nr: 2,
       typ: "zuordnung",
-      frage: "Ordne die Begriffe ihrer Bedeutung zu.",
-      zuordnungLinks: ["Sawm", "Zakat", "Hadsch"],
-      zuordnungRechts: ["Das Fasten", "Die Pflichtabgabe", "Die Pilgerfahrt"],
+      frage: "Ordne jede Rechtsschule ihrem Gründer zu.",
+      zuordnungLinks: ["Hanafitische Rechtsschule", "Malikitische Rechtsschule", "Schafiitische Rechtsschule"],
+      zuordnungRechts: ["Abu Hanifa", "Malik ibn Anas", "Muhammad ibn Idris asch-Schafii"],
       anforderungsbereich: "afb1",
     },
     {
       nr: 3,
       typ: "offene_frage",
-      frage: "Warum ist die Zakat für die Gemeinschaft wichtig?",
+      frage:
+        "Erörtere, welche Herausforderungen sich für zeitgenössische Idschtihad-Bemühungen in einer pluralistischen Gesellschaft wie Österreich ergeben.",
       anforderungsbereich: "afb3",
     },
   ],
   loesungen: [
-    { nr: 1, loesung: "Das Fasten im Ramadan" },
-    { nr: 2, loesung: "Sawm - Das Fasten, Zakat - Die Pflichtabgabe, Hadsch - Die Pilgerfahrt" },
+    {
+      nr: 1,
+      loesung: "Die eigenständige juristische Auslegungsanstrengung eines Gelehrten zur Herleitung eines Rechtsurteils",
+    },
+    {
+      nr: 2,
+      loesung: "Hanafitisch - Abu Hanifa, Malikitisch - Malik ibn Anas, Schafiitisch - Muhammad ibn Idris asch-Schafii",
+    },
     { nr: 3, loesung: "Individuelle Antwort" },
   ],
-  quellen: [{ bezeichnung: "Sure 2 (Al-Baqara), Vers 177", sicherheit: "gesichert" }],
+  quellen: [{ bezeichnung: "Ibn Ruschd, Bidayat al-Mudschtahid", sicherheit: "gesichert" }],
 };
 
 const HERO_VORSCHAU_LAYOUT: LayoutConfig = {
