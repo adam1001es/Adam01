@@ -802,6 +802,20 @@ function KoranVerseListe({ content, layout }: { content: WorksheetContent; layou
   );
 }
 
+/** Gegenstück zu KoranVerseListe für ausgabeform "text" bei inhaltsquelle "hadith" (siehe
+ * hadithZitat in lib/types.ts, buildHadithTextContent in lib/wissensbasis.ts) - ein einzelner,
+ * bereits geprüfter Hadith-Text statt einer Liste arabischer Verse, daher ohne Amiri-Schrift. */
+function HadithZitatBlock({ content, layout }: { content: WorksheetContent; layout: LayoutConfig }) {
+  const styles = buildStyles(layout);
+  if (!content.hadithZitat) return null;
+  return (
+    <View>
+      <Text style={styles.einleitung}>{content.hadithZitat.text}</Text>
+      {content.hadithZitat.kontext && <Text style={styles.einleitung}>{content.hadithZitat.kontext}</Text>}
+    </View>
+  );
+}
+
 function QuellenListe({
   content,
   layout,
@@ -880,6 +894,7 @@ export function WorksheetPdfDocument({
           <Text style={styles.sectionTitel}>Einleitung</Text>
           <Text style={styles.einleitung}>{content.einleitung}</Text>
           <KoranVerseListe content={content} layout={layout} />
+          <HadithZitatBlock content={content} layout={layout} />
           <AufgabenListe content={content} layout={layout} generierteBilder={generierteBilder} />
           <QuellenListe content={content} layout={layout} />
         </View>

@@ -27,6 +27,7 @@ import {
   FileCheck2,
   History,
   X,
+  Quote,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN_AKTIV,
@@ -73,6 +74,17 @@ import { MAX_VERSE_PRO_ABFRAGE, type SurahMeta } from "@/lib/quranApi";
 const CHIP_BASIS = "border-slate-200 text-slate-500 hover:border-slate-300";
 
 const ANDERE_SCHULSTUFE = "__andere__";
+
+/** Ein geprüfter Hadith-Zitat-Eintrag aus der Wissensbasis (siehe app/api/hadithe/route.ts,
+ * lib/wissensbasis.ts geprüfteHadithe) - eigener, schlanker Typ statt ZitatInhalt direkt zu
+ * importieren, damit dieses Formular nicht von lib/wissensbasis.ts (Prisma-Zugriff) abhängen muss. */
+interface HadithMeta {
+  id: string;
+  themenbereich: string;
+  bezeichnung: string;
+  text?: string;
+  kontext?: string;
+}
 
 const VORSCHAU_INHALT: WorksheetContent = {
   titel: "Die 5 Säulen des Islam",
@@ -176,6 +188,7 @@ interface FormDraft {
   koranGanzeSure: boolean;
   koranVonVers: number;
   koranBisVers: number;
+  hadithEintragId: string;
   template: (typeof TEMPLATES)[number];
   schulname: string;
   schriftgroesse: "normal" | "gross";
@@ -337,6 +350,35 @@ export default function NewWorksheetForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inhaltsquelle]);
 
+  const [hadithe, setHadithe] = useState<HadithMeta[] | null>(null);
+  const [hadithLaden, setHadithLaden] = useState(false);
+  const [hadithFehler, setHadithFehler] = useState<string | null>(null);
+  const [hadithEintragId, setHadithEintragId] = useState("");
+
+  async function ladeHadithe() {
+    setHadithLaden(true);
+    setHadithFehler(null);
+    try {
+      const res = await fetch("/api/hadithe");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Hadith-Liste konnte nicht geladen werden.");
+      const liste = data.hadithe as HadithMeta[];
+      setHadithe(liste);
+      if (!hadithEintragId && liste.length > 0) setHadithEintragId(liste[0].id);
+    } catch (err) {
+      setHadithFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
+    } finally {
+      setHadithLaden(false);
+    }
+  }
+
+  // Hadith-Liste erst laden, sobald sie tatsächlich gebraucht wird (Inhaltsquelle "hadith"
+  // gewählt) - analog zur Suren-Liste oben.
+  useEffect(() => {
+    if (inhaltsquelle === "hadith" && !hadithe && !hadithLaden) ladeHadithe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inhaltsquelle]);
+
   const [template, setTemplate] = useState<(typeof TEMPLATES)[number]>("klassisch");
   const [schulname, setSchulname] = useState("");
   const [schriftgroesse, setSchriftgroesse] = useState<"normal" | "gross">("normal");
@@ -390,6 +432,7 @@ export default function NewWorksheetForm({
     if (entwurf.koranGanzeSure !== undefined) setKoranGanzeSure(entwurf.koranGanzeSure);
     if (entwurf.koranVonVers !== undefined) setKoranVonVers(entwurf.koranVonVers);
     if (entwurf.koranBisVers !== undefined) setKoranBisVers(entwurf.koranBisVers);
+    if (entwurf.hadithEintragId !== undefined) setHadithEintragId(entwurf.hadithEintragId);
     if (entwurf.template !== undefined) setTemplate(entwurf.template);
     if (entwurf.schulname !== undefined) setSchulname(entwurf.schulname);
     if (entwurf.schriftgroesse !== undefined) setSchriftgroesse(entwurf.schriftgroesse);
@@ -444,6 +487,10 @@ export default function NewWorksheetForm({
       setError(`Bitte höchstens ${MAX_VERSE_PRO_ABFRAGE} Verse auswählen.`);
       return;
     }
+    if (inhaltsquelle === "hadith" && !hadithEintragId) {
+      setError("Bitte einen Hadith aus der Wissensbasis auswählen.");
+      return;
+    }
 
     // Entwurf-Schnappschuss GENAU in dem Moment, in dem tatsächlich ein Versuch gestartet wird -
     // nicht schon bei jedem Tippen (siehe FormDraft oben): das Wiederherstellen-Banner soll nur
@@ -465,6 +512,7 @@ export default function NewWorksheetForm({
       koranGanzeSure,
       koranVonVers,
       koranBisVers,
+      hadithEintragId,
       template,
       schulname,
       schriftgroesse,
@@ -499,6 +547,7 @@ export default function NewWorksheetForm({
               inhaltsquelle === "koran"
                 ? { sureNummer: koranSureNummer, vonVers: koranVonVers, bisVers: koranBisVers }
                 : undefined,
+            hadithFokus: inhaltsquelle === "hadith" ? { wissensEintragId: hadithEintragId } : undefined,
             zusatzhinweise: zusatzhinweise || undefined,
             layout: {
               template,
@@ -628,6 +677,7 @@ export default function NewWorksheetForm({
                       }`}
                     >
                       {quelle === "koran" && <BookOpenText size={15} />}
+                      {quelle === "hadith" && <Quote size={15} />}
                       {INHALTSQUELLE_LABEL[quelle]}
                     </button>
                   );
@@ -636,7 +686,9 @@ export default function NewWorksheetForm({
               <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
                 {inhaltsquelle === "koran"
                   ? "Eine bestimmte Sure/Verse steht im Mittelpunkt - live abgerufener, garantiert korrekter Text."
-                  : "Ein frei gewähltes Thema (z.B. „Die 5 Säulen des Islam“)."}
+                  : inhaltsquelle === "hadith"
+                    ? "Ein bereits von einem Admin geprüftes Hadith-Zitat aus der Wissensbasis steht im Mittelpunkt."
+                    : "Ein frei gewähltes Thema (z.B. „Die 5 Säulen des Islam“)."}
               </span>
             </div>
           )}
@@ -869,6 +921,71 @@ export default function NewWorksheetForm({
                     </p>
                   )}
                 </>
+              )}
+            </div>
+          )}
+          {inhaltsquelle === "hadith" && (
+            <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+              <p className="text-xs leading-relaxed text-slate-500">
+                Ein bereits von einem Admin geprüftes Hadith-Zitat aus der Wissensbasis steht im
+                Mittelpunkt.
+              </p>
+              <div>
+                <span className={labelClass}>Ausgabeform</span>
+                <div className="flex flex-wrap gap-2">
+                  {AUSGABEFORMEN.map((form) => (
+                    <button
+                      type="button"
+                      key={form}
+                      onClick={() => setAusgabeform(form)}
+                      className={`rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
+                        ausgabeform === form ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                      }`}
+                    >
+                      {AUSGABEFORM_LABEL[form]}
+                    </button>
+                  ))}
+                </div>
+                <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
+                  {ausgabeform === "text"
+                    ? "Nur das reine Hadith-Zitat zum Ausdrucken - kein KI-Aufruf, kostet kein Kontingent."
+                    : "Ein vollständiges Arbeitsblatt mit Methoden/Aufgaben rund um diesen Hadith - zählt wie gewohnt zum Kontingent."}
+                </span>
+              </div>
+              {hadithLaden && <p className="text-xs text-slate-400">Hadith-Liste wird geladen …</p>}
+              {hadithFehler && (
+                <p className="text-xs text-red-600">
+                  {hadithFehler}{" "}
+                  <button type="button" onClick={ladeHadithe} className="underline">
+                    Erneut versuchen
+                  </button>
+                </p>
+              )}
+              {hadithe && hadithe.length === 0 && (
+                <p className="text-xs leading-relaxed text-slate-500">
+                  Noch keine geprüften Hadithe in der Wissensbasis hinterlegt.
+                </p>
+              )}
+              {hadithe && hadithe.length > 0 && (
+                <label className="block">
+                  <span className={labelClass}>Hadith</span>
+                  <select
+                    className={inputClass}
+                    value={hadithEintragId}
+                    onChange={(e) => setHadithEintragId(e.target.value)}
+                  >
+                    {hadithe.map((h) => (
+                      <option key={h.id} value={h.id}>
+                        {h.bezeichnung}
+                      </option>
+                    ))}
+                  </select>
+                  {hadithe.find((h) => h.id === hadithEintragId)?.text && (
+                    <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+                      {hadithe.find((h) => h.id === hadithEintragId)?.text}
+                    </p>
+                  )}
+                </label>
               )}
             </div>
           )}

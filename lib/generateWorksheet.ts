@@ -20,7 +20,7 @@ import { erzeugeWortsucheGitter } from "./wortsuche";
 import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 import { vereinfacheArabischeTransliteration } from "./transliteration";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
-import { buildWissensbasisSystemContext } from "./wissensbasis";
+import { buildWissensbasisSystemContext, holeHadithEintrag, buildHadithFokusSystemContext } from "./wissensbasis";
 import {
   gleicheQuellenMitKoranApiAb,
   holeVersBereich,
@@ -226,17 +226,25 @@ export async function generateAndVerifyWorksheet(
     req.themenbereich,
     guessSchulstufenCluster(req.schulstufe).id,
   );
-  // Optionaler Koran-Fokus (siehe GenerateRequestSchema.koranFokus): die Lehrkraft möchte eine
-  // konkrete Sure/einen Versbereich mit der Klasse lernen. VOR dem Claude-Aufruf abgerufen (statt
-  // erst hinterher zu korrigieren wie bei gleicheQuellenMitKoranApiAb weiter unten), damit sich
-  // die Aufgaben inhaltlich tatsächlich um den echten Text drehen können. Absichtlich NICHT
-  // abgefangen - ein fehlgeschlagener Abruf soll die Generierung klar mit Fehlermeldung abbrechen
-  // statt den expliziten Wunsch der Lehrkraft stillschweigend zu ignorieren.
-  const koranFokusContext = req.koranFokus
-    ? buildKoranFokusSystemContext(
-        await holeVersBereich(req.koranFokus.sureNummer, req.koranFokus.vonVers, req.koranFokus.bisVers),
-      )
-    : "";
+  // Optionaler Koran- oder Hadith-Fokus (siehe GenerateRequestSchema.koranFokus/hadithFokus,
+  // gegenseitig ausschließend): die Lehrkraft möchte eine konkrete Sure/einen Versbereich bzw.
+  // einen bestimmten geprüften Hadith mit der Klasse lernen. VOR dem Claude-Aufruf abgerufen
+  // (statt erst hinterher zu korrigieren wie bei gleicheQuellenMitKoranApiAb weiter unten), damit
+  // sich die Aufgaben inhaltlich tatsächlich um den echten Text drehen können. Absichtlich NICHT
+  // abgefangen - ein fehlgeschlagener Abruf/eine ungültige Hadith-ID soll die Generierung klar mit
+  // Fehlermeldung abbrechen statt den expliziten Wunsch der Lehrkraft stillschweigend zu ignorieren.
+  let fokusContext = "";
+  if (req.koranFokus) {
+    fokusContext = buildKoranFokusSystemContext(
+      await holeVersBereich(req.koranFokus.sureNummer, req.koranFokus.vonVers, req.koranFokus.bisVers),
+    );
+  } else if (req.hadithFokus) {
+    const hadithEintrag = await holeHadithEintrag(req.hadithFokus.wissensEintragId);
+    if (!hadithEintrag) {
+      throw new Error("Dieser Hadith-Eintrag ist nicht (mehr) verfügbar oder nicht geprüft.");
+    }
+    fokusContext = buildHadithFokusSystemContext(hadithEintrag);
+  }
   const anzahlAufgaben = schaetzeAufgabenAnzahl(req.zieldauerMinuten, req.aufgabentypen, req.komplexitaet);
 
   let ersterVersuch: GenerationResult;
@@ -245,7 +253,7 @@ export async function generateAndVerifyWorksheet(
       req,
       curriculumContext,
       wissensbasisContext,
-      koranFokusContext,
+      fokusContext,
       anzahlAufgaben,
     );
   } catch (err) {
@@ -259,7 +267,7 @@ export async function generateAndVerifyWorksheet(
       req,
       curriculumContext,
       wissensbasisContext,
-      koranFokusContext,
+      fokusContext,
       anzahlAufgaben,
       undefined,
       true,
@@ -277,7 +285,7 @@ export async function generateAndVerifyWorksheet(
     req,
     curriculumContext,
     wissensbasisContext,
-    koranFokusContext,
+    fokusContext,
     anzahlAufgaben,
     ersterVersuch.verification,
   );
@@ -290,7 +298,7 @@ async function generiereUndPruefeEinmal(
   req: GenerateRequest,
   curriculumContext: string,
   wissensbasisContext: string,
-  koranFokusContext: string,
+  fokusContext: string,
   anzahlAufgaben: number,
   korrekturAuftrag?: Verification,
   formatErinnerung?: boolean,
@@ -326,7 +334,7 @@ async function generiereUndPruefeEinmal(
         },
         { type: "text", text: curriculumContext },
         ...(wissensbasisContext ? [{ type: "text" as const, text: wissensbasisContext }] : []),
-        ...(koranFokusContext ? [{ type: "text" as const, text: koranFokusContext }] : []),
+        ...(fokusContext ? [{ type: "text" as const, text: fokusContext }] : []),
         ...(req.istPruefung ? [{ type: "text" as const, text: PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ }] : []),
       ],
       messages: [

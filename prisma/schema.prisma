@@ -41,10 +41,10 @@ model Worksheet {
   istPruefung Boolean  @default(false)
   punkteGesamt Int?
   // Woher der Inhalt kommt (siehe lib/types.ts INHALTSQUELLEN/AUSGABEFORMEN, NewWorksheetForm.tsx)
-  // - "koran" + ausgabeform "text" bedeutet: reiner, live abgerufener Vers-Wortlaut ohne
-  // KI-generierte Aufgaben (siehe contentJson.koranVerse), kein Claude-Aufruf nötig gewesen.
-  // Bewusst als eigene Felder statt nur implizit aus contentJson ablesbar, damit z.B. Übersicht/
-  // Auswertung später ohne JSON-Parsing danach filtern können.
+  // - "koran"/"hadith" + ausgabeform "text" bedeutet: reiner, bereits geprüfter Wortlaut ohne
+  // KI-generierte Aufgaben (siehe contentJson.koranVerse bzw. contentJson.hadithZitat), kein
+  // Claude-Aufruf nötig gewesen. Bewusst als eigene Felder statt nur implizit aus contentJson
+  // ablesbar, damit z.B. Übersicht/Auswertung später ohne JSON-Parsing danach filtern können.
   inhaltsquelle String @default("frei")
   ausgabeform String @default("arbeitsblatt")
   createdAt   DateTime @default(now())

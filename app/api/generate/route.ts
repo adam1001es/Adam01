@@ -8,6 +8,7 @@ import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 import { speichereUsage } from "@/lib/usageLog";
 import { starteGenerierung, beendeGenerierung } from "@/lib/auslastung";
 import { holeVersBereich, buildKoranTextContent } from "@/lib/quranApi";
+import { holeHadithEintrag, buildHadithTextContent } from "@/lib/wissensbasis";
 import {
   berechneRequestHash,
   starteOderErkenneDuplikat,
@@ -51,12 +52,13 @@ export async function POST(request: NextRequest) {
   }
   const req = parsed.data;
 
-  // ausgabeform "text" (reiner, live abgerufener Koran-Wortlaut ohne KI-generierte Aufgaben,
-  // siehe GenerateRequestSchema/NewWorksheetForm.tsx) braucht keinen Claude-Aufruf und damit auch
-  // keine Kontingent-/Kosten-Prüfung - eigener, deutlich einfacherer Pfad statt den Rest dieser
-  // Funktion mit Verzweigungen zu durchziehen.
+  // ausgabeform "text" (reiner, bereits fertig geprüfter Wortlaut ohne KI-generierte Aufgaben -
+  // live von der Koran-API bzw. aus der eigenen Wissensbasis, siehe GenerateRequestSchema/
+  // NewWorksheetForm.tsx) braucht keinen Claude-Aufruf und damit auch keine Kontingent-/
+  // Kosten-Prüfung - eigener, deutlich einfacherer Pfad statt den Rest dieser Funktion mit
+  // Verzweigungen zu durchziehen.
   if (req.ausgabeform === "text") {
-    return erzeugeKoranText(req, user.id);
+    return req.inhaltsquelle === "hadith" ? erzeugeHadithText(req, user.id) : erzeugeKoranText(req, user.id);
   }
 
   // Kontingent VOR dem teuren Claude-Aufruf prüfen, damit ein blockiertes Konto keine
@@ -233,6 +235,71 @@ async function erzeugeKoranText(req: GenerateRequest, userId: string) {
           status: "ok",
           zusammenfassung:
             "Reiner, live von der Koran-API abgerufener Vers-Wortlaut - keine inhaltliche Prüfung nötig, da kein KI-generierter Inhalt.",
+          hinweise: [],
+        }),
+        status: "geprueft",
+        userId,
+        inhaltsquelle: req.inhaltsquelle,
+        ausgabeform: req.ausgabeform,
+      },
+    });
+
+    await markiereAnfrageFertig(anfrageId, worksheet.id);
+    return NextResponse.json({ id: worksheet.id });
+  } catch (err) {
+    await markiereAnfrageFehlgeschlagen(anfrageId);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Abruf fehlgeschlagen." },
+      { status: 502 },
+    );
+  }
+}
+
+/** Gegenstück zu erzeugeKoranText für inhaltsquelle "hadith" - liest statt eines Live-API-Abrufs
+ * einen bereits admin-geprüften Eintrag aus der eigenen Wissensbasis (siehe
+ * lib/wissensbasis.ts holeHadithEintrag/buildHadithTextContent). Kein Claude-Aufruf, kein
+ * Kontingent-Verbrauch, derselbe Wiederholungsschutz wie bei erzeugeKoranText. */
+async function erzeugeHadithText(req: GenerateRequest, userId: string) {
+  if (!req.hadithFokus) {
+    return NextResponse.json({ error: "Hadith-Auswahl fehlt." }, { status: 400 });
+  }
+
+  const requestHash = berechneRequestHash(req, userId);
+  const dedup = await starteOderErkenneDuplikat(userId, requestHash);
+  if (dedup.art === "fertig") {
+    return NextResponse.json({ id: dedup.worksheetId });
+  }
+  if (dedup.art === "laeuft") {
+    return NextResponse.json(
+      {
+        error:
+          "Eine identische Erstellung läuft gerade schon (gleiche Einstellungen wie eben) - bitte kurz warten und in der Übersicht nachsehen, statt erneut zu klicken.",
+      },
+      { status: 409 },
+    );
+  }
+  const anfrageId = dedup.anfrageId;
+
+  try {
+    const eintrag = await holeHadithEintrag(req.hadithFokus.wissensEintragId);
+    if (!eintrag) {
+      throw new Error("Dieser Hadith-Eintrag ist nicht (mehr) verfügbar oder nicht geprüft.");
+    }
+    const content = buildHadithTextContent(eintrag, req.schulstufe);
+
+    const worksheet = await prisma.worksheet.create({
+      data: {
+        bereich: req.bereich,
+        thema: content.titel,
+        schulstufe: req.schulstufe,
+        themenbereich: req.themenbereich,
+        template: req.layout.template,
+        layoutConfig: JSON.stringify(req.layout),
+        contentJson: JSON.stringify(content),
+        verification: JSON.stringify({
+          status: "ok",
+          zusammenfassung:
+            "Bereits admin-geprüfter Hadith-Text aus der Wissensbasis - keine inhaltliche Prüfung nötig, da kein KI-generierter Inhalt.",
           hinweise: [],
         }),
         status: "geprueft",

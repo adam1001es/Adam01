@@ -154,6 +154,14 @@ export default function WorksheetView({
             ))}
           </div>
         )}
+        {content.hadithZitat && (
+          <div>
+            <p>{content.hadithZitat.text}</p>
+            {content.hadithZitat.kontext && (
+              <p className="mt-2 text-sm text-slate-500">{content.hadithZitat.kontext}</p>
+            )}
+          </div>
+        )}
 
         {content.aufgaben.length > 0 && (
         <div>

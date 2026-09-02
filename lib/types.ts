@@ -301,6 +301,17 @@ export const KoranVersSchema = z.object({
 });
 export type KoranVersEintrag = z.infer<typeof KoranVersSchema>;
 
+// Ein einzelnes Hadith-Zitat innerhalb eines "reiner Text"-Arbeitsblatts (siehe hadithZitat
+// unten, GenerateRequestSchema.ausgabeform "text") - Gegenstück zu KoranVerseSchema, aber ein
+// einzelner Eintrag statt einer Liste: ein Hadith-Zitat aus der Wissensbasis ist bereits EIN
+// zusammenhängender Text, keine Abfolge nummerierter Verse.
+export const HadithZitatSchema = z.object({
+  bezeichnung: z.string(),
+  text: z.string(),
+  kontext: z.string().optional(),
+});
+export type HadithZitatEintrag = z.infer<typeof HadithZitatSchema>;
+
 export const WorksheetContentSchema = z.object({
   titel: z.string(),
   fach: z.string(),
@@ -316,6 +327,9 @@ export const WorksheetContentSchema = z.object({
   // bleiben dabei leer; WorksheetView/WorksheetPdf/buildWorksheetDocx blenden den Aufgaben-/
   // Lösungsblatt-Bereich entsprechend aus und zeigen stattdessen diese Verse.
   koranVerse: z.array(KoranVersSchema).optional(),
+  // NUR bei ausgabeform "text" UND inhaltsquelle "hadith" gesetzt - Gegenstück zu koranVerse,
+  // siehe HadithZitatSchema oben.
+  hadithZitat: HadithZitatSchema.optional(),
 });
 export type WorksheetContent = z.infer<typeof WorksheetContentSchema>;
 
@@ -357,21 +371,20 @@ export const ThemenbereichSchema = z.enum(THEMENBEREICH_KEYS);
 
 // Woher der Inhalt eines Arbeitsblatts kommt - eigenständige erste Wahl im Erstellen-Formular
 // (siehe NewWorksheetForm.tsx), NICHT nur eine Zusatzoption zu einem freien Thema: manche
-// Lehrkräfte wollen gezielt einen Koran-Vers/eine Sure bearbeiten, statt "irgendein Thema, das
-// zufällig einen Koran-Bezug hat". "hadith" bewusst noch nicht enthalten (fehlt noch eine
-// verlässliche Quelle, siehe lib/linkImport.ts) - Struktur ist aber bereit, das später zu
-// ergänzen, ohne GenerateRequestSchema selbst nochmal umbauen zu müssen.
-export const INHALTSQUELLEN = ["frei", "koran"] as const;
+// Lehrkräfte wollen gezielt einen Koran-Vers/eine Sure oder einen bereits geprüften Hadith aus der
+// Wissensbasis bearbeiten, statt "irgendein Thema, das zufällig einen Koran-/Hadith-Bezug hat".
+export const INHALTSQUELLEN = ["frei", "koran", "hadith"] as const;
 export type Inhaltsquelle = (typeof INHALTSQUELLEN)[number];
 export const INHALTSQUELLE_LABEL: Record<Inhaltsquelle, string> = {
   frei: "Freies Thema",
   koran: "Koran (Sure/Verse)",
+  hadith: "Hadith (geprüftes Zitat)",
 };
 
-// Nur bei inhaltsquelle "koran" wählbar (siehe NewWorksheetForm.tsx) - "text" braucht keinen
-// Claude-Aufruf (siehe app/api/generate/route.ts) und zählt daher auch nicht zum Kontingent,
-// analog zu Prüfungs-Modus A (lib/pruefungZusammenstellen.ts): der Vers-Wortlaut selbst kommt
-// bereits fertig und geprüft von der Koran-API, es gibt nichts zu generieren.
+// Nur bei inhaltsquelle "koran"/"hadith" wählbar (siehe NewWorksheetForm.tsx) - "text" braucht
+// keinen Claude-Aufruf (siehe app/api/generate/route.ts) und zählt daher auch nicht zum
+// Kontingent, analog zu Prüfungs-Modus A (lib/pruefungZusammenstellen.ts): der Wortlaut selbst
+// kommt bereits fertig und geprüft (Koran-API bzw. Wissensbasis), es gibt nichts zu generieren.
 export const AUSGABEFORMEN = ["arbeitsblatt", "text"] as const;
 export type Ausgabeform = (typeof AUSGABEFORMEN)[number];
 export const AUSGABEFORM_LABEL: Record<Ausgabeform, string> = {
@@ -439,6 +452,11 @@ export const GenerateRequestSchema = z
       })
       .refine((v) => v.bisVers >= v.vonVers, { message: "„Bis Vers“ darf nicht kleiner als „Von Vers“ sein." })
       .optional(),
+    // Analog zu koranFokus, aber für inhaltsquelle "hadith": die Lehrkraft wählt EINEN bereits
+    // admin-geprüften Hadith-Zitat-Eintrag aus der Wissensbasis (siehe lib/wissensbasis.ts
+    // geprüfteHadithe/holeHadithEintrag) statt einen Live-API-Abruf wie beim Koran-Fokus - es gibt
+    // keine externe Hadith-Quelle, der Text kommt bereits fertig geprüft aus der eigenen DB.
+    hadithFokus: z.object({ wissensEintragId: z.string().min(1) }).optional(),
   })
   .superRefine((req, ctx) => {
     if (req.klasseId && !req.istPruefung) {
@@ -448,11 +466,25 @@ export const GenerateRequestSchema = z
         message: "klasseId ist nur zusammen mit istPruefung gültig.",
       });
     }
-    if ((req.inhaltsquelle === "koran" || req.ausgabeform === "text") && !req.koranFokus) {
+    if (req.inhaltsquelle === "koran" && !req.koranFokus) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["koranFokus"],
         message: "Für die Inhaltsquelle „Koran“ ist eine Sure-/Versauswahl erforderlich.",
+      });
+    }
+    if (req.inhaltsquelle === "hadith" && !req.hadithFokus) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["hadithFokus"],
+        message: "Für die Inhaltsquelle „Hadith“ ist eine Auswahl aus der Wissensbasis erforderlich.",
+      });
+    }
+    if (req.ausgabeform === "text" && req.inhaltsquelle !== "koran" && req.inhaltsquelle !== "hadith") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["ausgabeform"],
+        message: "„Nur Text“ ist nur bei Inhaltsquelle „Koran“ oder „Hadith“ möglich.",
       });
     }
     if (req.ausgabeform === "arbeitsblatt") {

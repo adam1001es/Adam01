@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { prisma } from "./prisma";
 import { THEMENBEREICH_KEYS, ThemenbereichKey } from "./curriculum";
-import { AufgabeSchema, Aufgabe } from "./types";
+import { AufgabeSchema, Aufgabe, WorksheetContent } from "./types";
 
 /**
  * Admin-only "Wissensbasis" (siehe prisma/schema.prisma Modell WissensEintrag, app/admin/wissensbasis,
@@ -35,8 +35,27 @@ export const ZitatInhaltSchema = z.object({
   bezeichnung: z.string(), // z.B. "Sure 2 (Al-Baqara), Vers 255 - Ayat al-Kursi"
   text: z.string().optional(), // kurze sinngemäße Wiedergabe/Übersetzung, KEIN vollständiges Rechtszitat
   kontext: z.string().optional(), // wofür/in welchem thematischen Zusammenhang einsetzbar
+  // Optional, weil viele bereits bestehende Einträge VOR Einführung dieses Felds angelegt wurden
+  // (siehe ermittleZitatQuellenart unten für den Umgang mit diesen Alt-Einträgen) - bei jedem NEU
+  // angelegten Eintrag setzt die Admin-UI (WissensbasisClient.tsx) es aber verpflichtend, damit
+  // der Hadith-Bereich im Erstellen-Formular (siehe geprüfteHadithe) nicht versehentlich einen
+  // Koran-Vers als "Hadith" anbietet.
+  quellenart: z.enum(["koran", "hadith"]).optional(),
 });
 export type ZitatInhalt = z.infer<typeof ZitatInhaltSchema>;
+
+/** Erkennt Koran- vs. Hadith-Zitate: das explizite quellenart-Feld (siehe oben) gewinnt immer,
+ * für ältere Einträge OHNE dieses Feld greift eine Bezeichnungs-Heuristik. Koran-Zitate dieses
+ * Projekts folgen durchgängig dem Muster "Sure X ... Vers(e) Y" (siehe formatiereKoranZitat in
+ * lib/quranApi.ts) - alles andere (Hadith-Sammlungen wie Bukhari/Muslim/Tirmidhi, oder generische
+ * Bezeichnungen wie "Hadith über ...") gilt als Hadith. Bewusst konservativ zugunsten "koran" bei
+ * einem erkennbaren Sure/Vers-Muster, da ein fälschlich als Hadith eingestuftes Koran-Zitat im
+ * Hadith-Picker (Formular) irreführender wäre als der umgekehrte Fall. */
+export function ermittleZitatQuellenart(inhalt: ZitatInhalt): "koran" | "hadith" {
+  if (inhalt.quellenart) return inhalt.quellenart;
+  const istKoranMuster = /sure\s+\d{1,3}\b.{0,20}?vers/i.test(inhalt.bezeichnung);
+  return istKoranMuster ? "koran" : "hadith";
+}
 
 /** Inhalt eines "musteraufgabe"-Eintrags - exakt das bestehende Aufgabe-Schema, damit ein
  * geprüfter Eintrag später unverändert als Few-Shot-Beispiel ins Generierungs-Prompt übernommen
@@ -190,6 +209,73 @@ export async function geprüfteZitate(themenbereich: ThemenbereichKey): Promise<
     orderBy: { geprueftAm: "desc" },
   });
   return eintraege.map((e) => ({ id: e.id, inhalt: JSON.parse(e.inhalt) as ZitatInhalt }));
+}
+
+/** Liefert alle GEPRÜFTEN Hadith-Zitate - optional auf einen Themenbereich eingeschränkt (Filter
+ * im Picker des Erstellen-Formulars, siehe NewWorksheetForm.tsx), sonst über alle Grundkompetenzen
+ * hinweg. Teilt sich die Tabelle mit Koran-Zitaten (siehe WISSENS_TYP_LABEL.zitat), daher hier
+ * zusätzlich per ermittleZitatQuellenart auf "hadith" gefiltert. */
+export async function geprüfteHadithe(
+  themenbereich?: ThemenbereichKey,
+): Promise<{ id: string; themenbereich: string; inhalt: ZitatInhalt }[]> {
+  const eintraege = await prisma.wissensEintrag.findMany({
+    where: { typ: "zitat", status: "geprueft", ...(themenbereich ? { themenbereich } : {}) },
+    orderBy: { geprueftAm: "desc" },
+  });
+  return eintraege
+    .map((e) => ({ id: e.id, themenbereich: e.themenbereich, inhalt: JSON.parse(e.inhalt) as ZitatInhalt }))
+    .filter((e) => ermittleZitatQuellenart(e.inhalt) === "hadith");
+}
+
+/** Holt EIN bestimmtes, per ID ausgewähltes Hadith-Zitat (siehe GenerateRequestSchema.hadithFokus)
+ * - liefert bewusst nur bei tatsächlich geprüftem, als Hadith klassifiziertem Eintrag ein
+ * Ergebnis, nie bei einem Entwurf/abgelehnten Eintrag oder einem Koran-Zitat: die Lehrkraft könnte
+ * sonst über eine manipulierte Anfrage einen ungeprüften Text in die Generierung einschleusen. */
+export async function holeHadithEintrag(id: string): Promise<{ id: string; inhalt: ZitatInhalt } | null> {
+  const eintrag = await prisma.wissensEintrag.findUnique({ where: { id } });
+  if (!eintrag || eintrag.typ !== "zitat" || eintrag.status !== "geprueft") return null;
+  const inhalt = JSON.parse(eintrag.inhalt) as ZitatInhalt;
+  if (ermittleZitatQuellenart(inhalt) !== "hadith") return null;
+  return { id: eintrag.id, inhalt };
+}
+
+/**
+ * Baut den System-Prompt-Baustein für den optionalen Hadith-Fokus im Erstellen-Formular (siehe
+ * GenerateRequestSchema.hadithFokus) - analog zu buildKoranFokusSystemContext in lib/quranApi.ts,
+ * aber ohne Live-Abruf: der Text kommt bereits fertig geprüft aus der eigenen Wissensbasis, es
+ * gibt keine externe Quelle zum Nachschlagen.
+ */
+export function buildHadithFokusSystemContext(eintrag: { inhalt: ZitatInhalt }): string {
+  const { bezeichnung, text, kontext } = eintrag.inhalt;
+  return `FOKUS-VORGABE DER LEHRKRAFT: Dieses Arbeitsblatt soll sich gezielt um den folgenden, bereits von einem Admin geprüften Hadith drehen, den die Lehrkraft mit der Klasse behandeln möchte. Nutze AUSSCHLIESSLICH diese Angabe als Grundlage, erfinde keinen zusätzlichen Wortlaut hinzu und weiche nicht davon ab:
+
+${bezeichnung}${text ? `\n${text}` : ""}${kontext ? `\n(Kontext: ${kontext})` : ""}
+
+Baue die Aufgaben gezielt um diesen Hadith herum (z.B. inhaltliche Verständnisfragen, Zuordnung von Kernaussagen, Lückentext mit Schlüsselbegriffen) statt eines allgemeinen Themas zur Grundkompetenz. Übernimm die Angabe als eigenen Eintrag in "quellen" mit "bezeichnung": "${bezeichnung}" (exakt in diesem Format) und "sicherheit": "gesichert".`;
+}
+
+/**
+ * Baut den "reiner Text"-Inhalt für ausgabeform "text" bei inhaltsquelle "hadith" (siehe
+ * GenerateRequestSchema) - KEIN Claude-Aufruf, rein deterministisch aus dem bereits geprüften
+ * Wissensbasis-Eintrag. Analog zu buildKoranTextContent in lib/quranApi.ts.
+ */
+export function buildHadithTextContent(
+  eintrag: { inhalt: ZitatInhalt },
+  schulstufe: string,
+): WorksheetContent {
+  const { bezeichnung, text, kontext } = eintrag.inhalt;
+  return {
+    titel: bezeichnung,
+    fach: "Islamischer Religionsunterricht",
+    schulstufe,
+    thema: bezeichnung,
+    lernziel: `Den Inhalt von ${bezeichnung} kennenlernen.`,
+    einleitung: `${bezeichnung} - geprüfter Hadith aus der Wissensbasis.`,
+    aufgaben: [],
+    loesungen: [],
+    quellen: [{ bezeichnung, sicherheit: "gesichert" as const }],
+    hadithZitat: { bezeichnung, text: text ?? "", kontext },
+  };
 }
 
 /** Liefert alle GEPRÜFTEN Musteraufgaben zu Grundkompetenz + optional Schulstufen-Cluster. */

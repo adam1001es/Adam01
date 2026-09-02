@@ -403,6 +403,26 @@ export async function buildWorksheetDocx(
     }
   }
 
+  // Gegenstück zu koranVerse für ausgabeform "text" bei inhaltsquelle "hadith" (siehe hadithZitat
+  // in lib/types.ts, buildHadithTextContent in lib/wissensbasis.ts) - ein einzelner, bereits
+  // geprüfter Hadith-Text ohne Aufgaben.
+  if (content.hadithZitat) {
+    children.push(
+      new Paragraph({
+        spacing: { before: 160, after: 120 },
+        children: [new TextRun({ text: content.hadithZitat.text, size: baseSize })],
+      }),
+    );
+    if (content.hadithZitat.kontext) {
+      children.push(
+        new Paragraph({
+          spacing: { after: 120 },
+          children: [new TextRun({ text: content.hadithZitat.kontext, size: baseSize - 2, italics: true })],
+        }),
+      );
+    }
+  }
+
   if (content.aufgaben.length > 0) {
   children.push(sectionHeading("Aufgaben", accentColor, baseSize));
   for (const a of content.aufgaben) {
