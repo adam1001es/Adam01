@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const zitate = await importiereZitateVonLink(url.trim());
-    return NextResponse.json({ zitate });
+    const ergebnis = await importiereZitateVonLink(url.trim());
+    return NextResponse.json(ergebnis);
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Import fehlgeschlagen." },

@@ -11,8 +11,8 @@ vi.mock("./anthropic", async () => {
   };
 });
 
-function claudeResponse(text: string) {
-  return { content: [{ type: "text", text }] };
+function claudeResponse(text: string, stop_reason: string = "end_turn") {
+  return { content: [{ type: "text", text }], stop_reason };
 }
 
 describe("importiereZitateVonLink", () => {
@@ -71,7 +71,8 @@ describe("importiereZitateVonLink", () => {
 
     const ergebnis = await importiereZitateVonLink("https://example.com/hadith");
 
-    expect(ergebnis).toEqual([
+    expect(ergebnis.abgeschnitten).toBe(false);
+    expect(ergebnis.zitate).toEqual([
       {
         bezeichnung: "Sahih al-Bukhari, Buch 2, Nr. 15",
         text: "Die Taten werden nur nach den Absichten beurteilt.",
@@ -100,8 +101,8 @@ describe("importiereZitateVonLink", () => {
 
     const ergebnis = await importiereZitateVonLink("https://example.com/40-hadith");
 
-    expect(ergebnis).toHaveLength(3);
-    expect(ergebnis.map((z) => z.bezeichnung)).toEqual([
+    expect(ergebnis.zitate).toHaveLength(3);
+    expect(ergebnis.zitate.map((z) => z.bezeichnung)).toEqual([
       "40 Hadith An-Nawawi, Hadith 1",
       "40 Hadith An-Nawawi, Hadith 2",
       "40 Hadith An-Nawawi, Hadith 3",
@@ -123,7 +124,7 @@ describe("importiereZitateVonLink", () => {
 
     const ergebnis = await importiereZitateVonLink("https://example.com/hadith");
 
-    expect(ergebnis[0].themenbereich).toBe("gemischt");
+    expect(ergebnis.zitate[0].themenbereich).toBe("gemischt");
   });
 
   it("überspringt Einträge ohne bezeichnung/text statt den ganzen Import fehlschlagen zu lassen", async () => {
@@ -144,8 +145,8 @@ describe("importiereZitateVonLink", () => {
 
     const ergebnis = await importiereZitateVonLink("https://example.com/hadith");
 
-    expect(ergebnis).toHaveLength(1);
-    expect(ergebnis[0].bezeichnung).toBe("Vollständiger Eintrag");
+    expect(ergebnis.zitate).toHaveLength(1);
+    expect(ergebnis.zitate[0].bezeichnung).toBe("Vollständiger Eintrag");
   });
 
   it("wirft, wenn auf der Seite kein Zitat erkannt wurde", async () => {
@@ -156,5 +157,38 @@ describe("importiereZitateVonLink", () => {
     createMock.mockResolvedValue(claudeResponse(JSON.stringify({ zitate: [] })));
 
     await expect(importiereZitateVonLink("https://example.com/leer")).rejects.toThrow(/keine Zitate/);
+  });
+
+  it("rettet bei einer wegen max_tokens abgeschnittenen Antwort alle bereits vollständigen Zitate", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      text: async () => "<html><body>Sehr lange Sammlung mit vielen, langen Hadithen ...</body></html>",
+    });
+    // Simuliert eine mitten im dritten Objekt abgebrochene Antwort - kein gültiges Gesamt-JSON
+    // mehr (schließende Klammern fehlen), aber die ersten zwei Objekte sind vollständig.
+    const abgeschnittenerText =
+      '{ "zitate": [' +
+      '{ "bezeichnung": "Hadith 1", "text": "Text 1", "hinweis": "", "themenbereich": "ibada" }, ' +
+      '{ "bezeichnung": "Hadith 2", "text": "Text 2", "hinweis": "", "themenbereich": "glaubensbasis" }, ' +
+      '{ "bezeichnung": "Hadith 3", "text": "Text 3, mitten im Satz abgebroch';
+    createMock.mockResolvedValue(claudeResponse(abgeschnittenerText, "max_tokens"));
+
+    const ergebnis = await importiereZitateVonLink("https://example.com/lange-sammlung");
+
+    expect(ergebnis.abgeschnitten).toBe(true);
+    expect(ergebnis.zitate).toHaveLength(2);
+    expect(ergebnis.zitate.map((z) => z.bezeichnung)).toEqual(["Hadith 1", "Hadith 2"]);
+  });
+
+  it("wirft trotzdem den 'keine Zitate erkannt'-Fehler, wenn selbst nach Abschneiden nichts Vollständiges übrig bleibt", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      text: async () => "<html><body>Ein sehr langer, direkt abbrechender Hadith</body></html>",
+    });
+    createMock.mockResolvedValue(
+      claudeResponse('{ "zitate": [{ "bezeichnung": "Hadith 1", "text": "mitten im ersten Objekt abg', "max_tokens"),
+    );
+
+    await expect(importiereZitateVonLink("https://example.com/sehr-lang")).rejects.toThrow(/keine Zitate/);
   });
 });

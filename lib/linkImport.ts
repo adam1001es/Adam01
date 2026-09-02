@@ -124,37 +124,90 @@ export interface LinkImportZitat {
   themenbereich: ThemenbereichKey;
 }
 
+export interface LinkImportErgebnis {
+  zitate: LinkImportZitat[];
+  // true, wenn die Modellantwort wegen max_tokens mitten in einem Zitat abgeschnitten wurde
+  // (siehe extrahiereVollstaendigeZitate) - "zitate" enthält dann trotzdem alle bis dahin
+  // VOLLSTÄNDIGEN Einträge, nur das letzte, angeschnittene ging verloren. Die UI zeigt in diesem
+  // Fall einen Hinweis, damit der Admin weiß, dass die Sammlung ggf. nicht komplett ist.
+  abgeschnitten: boolean;
+}
+
+/** Recovery-Extraktion für den Fall, dass die Modellantwort wegen max_tokens mitten in einem
+ * Zitat abgeschnitten wurde: anstatt bei einer sehr langen Sammlung (z.B. 40+ Hadithe mit langen
+ * Texten) die GESAMTE Antwort zu verwerfen, werden alle bereits vollständigen
+ * "{ ... }"-Zitat-Objekte per Klammer-Tiefenzählung eingesammelt - nur das letzte, angeschnittene
+ * Objekt geht verloren. Kein vollwertiger JSON-Parser (z.B. verwirrt sich an einer öffnenden
+ * Klammer INNERHALB eines String-Werts), aber für den hier vorkommenden Inhalt (Zitat-Texte ohne
+ * literale geschweifte Klammern) ein robuster Kompromiss. */
+function extrahiereVollstaendigeZitate(text: string): unknown[] {
+  const arrayStart = text.indexOf("[");
+  if (arrayStart === -1) return [];
+  const zitate: unknown[] = [];
+  let tiefe = 0;
+  let objektStart = -1;
+  for (let i = arrayStart; i < text.length; i++) {
+    const zeichen = text[i];
+    if (zeichen === "{") {
+      if (tiefe === 0) objektStart = i;
+      tiefe++;
+    } else if (zeichen === "}") {
+      tiefe--;
+      if (tiefe === 0 && objektStart !== -1) {
+        try {
+          zitate.push(JSON.parse(text.slice(objektStart, i + 1)));
+        } catch {
+          // dieses eine Objekt ist selbst kaputt (z.B. Klammer in einem String-Wert) - überspringen
+          // statt die restlichen, davor bereits erfolgreich geparsten Objekte zu verwerfen
+        }
+        objektStart = -1;
+      }
+    }
+  }
+  return zitate;
+}
+
 /** Holt die Seite und lässt ein günstiges Modell ALLE Zitate + Quellenangaben daraus extrahieren
  * und grob nach Grundkompetenz einordnen - KEIN Ersatz für eine geprüfte Quelle wie die Koran-API,
  * sondern reine Abschreib-/Sortierhilfe: der Admin bleibt dafür verantwortlich, dass die gewählte
  * Seite selbst inhaltlich vertrauenswürdig ist, und muss jeden Eintrag vor Freigabe gegenchecken. */
-export async function importiereZitateVonLink(url: string): Promise<LinkImportZitat[]> {
+export async function importiereZitateVonLink(url: string): Promise<LinkImportErgebnis> {
   const seitentext = await holeSeitenText(url);
 
   const client = getAnthropicClient();
   const response = await client.messages.create({
     model: IDEEN_MODEL,
     // Deutlich mehr als bei einer Einzel-Extraktion (war 2000) - eine Sammlung von z.B. 40
-    // Hadithen erzeugt entsprechend viel JSON-Output.
-    max_tokens: 8000,
+    // Hadithen mit jeweils längerem Text erzeugt entsprechend viel JSON-Output; real beobachtet,
+    // dass 8000 dafür bereits zu knapp war (Antwort brach mitten in einem Zitat ab).
+    max_tokens: 20000,
     system: EXTRAKTIONS_SYSTEM_PROMPT,
     messages: [{ role: "user", content: `Seitentext:\n\n${seitentext}` }],
   });
 
-  let raw: unknown;
-  try {
-    raw = extractJson(getTextFromMessage(response));
-  } catch {
-    throw new Error("Die Seite konnte nicht ausgewertet werden.");
-  }
-  const ergebnis = raw as { zitate?: unknown };
-  if (!Array.isArray(ergebnis.zitate)) {
-    throw new Error("Auf dieser Seite konnten keine Zitate mit Quellenangabe erkannt werden.");
+  const antwortText = getTextFromMessage(response);
+  const abgeschnitten = response.stop_reason === "max_tokens";
+
+  let rohZitate: unknown[];
+  if (abgeschnitten) {
+    rohZitate = extrahiereVollstaendigeZitate(antwortText);
+  } else {
+    let raw: unknown;
+    try {
+      raw = extractJson(antwortText);
+    } catch {
+      throw new Error("Die Seite konnte nicht ausgewertet werden.");
+    }
+    const ergebnis = raw as { zitate?: unknown };
+    if (!Array.isArray(ergebnis.zitate)) {
+      throw new Error("Auf dieser Seite konnten keine Zitate mit Quellenangabe erkannt werden.");
+    }
+    rohZitate = ergebnis.zitate;
   }
 
   const themenbereichSet = new Set<string>(THEMENBEREICH_KEYS);
   const zitate: LinkImportZitat[] = [];
-  for (const eintrag of ergebnis.zitate) {
+  for (const eintrag of rohZitate) {
     const z = eintrag as {
       bezeichnung?: string;
       text?: string;
@@ -171,5 +224,5 @@ export async function importiereZitateVonLink(url: string): Promise<LinkImportZi
   if (zitate.length === 0) {
     throw new Error("Auf dieser Seite konnten keine Zitate mit Quellenangabe erkannt werden.");
   }
-  return zitate;
+  return { zitate, abgeschnitten };
 }

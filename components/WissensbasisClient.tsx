@@ -582,12 +582,14 @@ function LinkImportieren({ onDone }: { onDone: () => void }) {
   const [uebernehmenLaeuft, setUebernehmenLaeuft] = useState(false);
   const [fortschritt, setFortschritt] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
+  const [abgeschnitten, setAbgeschnitten] = useState(false);
 
   async function importieren() {
     setImportLaeuft(true);
     setFehler(null);
     setZeilen([]);
     setFortschritt(null);
+    setAbgeschnitten(false);
     try {
       const res = await fetch("/api/admin/wissensbasis/link-importieren", {
         method: "POST",
@@ -598,6 +600,7 @@ function LinkImportieren({ onDone }: { onDone: () => void }) {
       if (!res.ok) throw new Error(data.error ?? "Import fehlgeschlagen.");
       const gefunden = data.zitate as { bezeichnung: string; text: string; hinweis: string; themenbereich: string }[];
       setZeilen(gefunden.map((z) => ({ ...z, uebernehmen: true })));
+      setAbgeschnitten(Boolean(data.abgeschnitten));
     } catch (err) {
       setFehler(err instanceof Error ? err.message : "Import fehlgeschlagen.");
     } finally {
@@ -684,6 +687,14 @@ function LinkImportieren({ onDone }: { onDone: () => void }) {
             {zeilen.length} Zitat{zeilen.length === 1 ? "" : "e"} gefunden - bitte kurz
             gegenchecken, ggf. abwählen/anpassen, dann gesammelt übernehmen.
           </p>
+          {abgeschnitten && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-700">
+              Die Seite hatte offenbar mehr Inhalt, als in einem Durchgang verarbeitet werden
+              konnte - die Liste unten ist deshalb möglicherweise nicht vollständig (das letzte
+              erkannte Zitat könnte fehlen). Bei Bedarf fehlende Einträge einzeln über „Eintrag
+              anlegen" ergänzen.
+            </p>
+          )}
           <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
             {zeilen.map((z, i) => (
               <div
