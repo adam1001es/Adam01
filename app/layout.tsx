@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
 import { toHijri } from "@/lib/hijri";
@@ -88,6 +89,7 @@ export default async function RootLayout({
           }
         />
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
+        <SiteFooter />
       </body>
     </html>
   );

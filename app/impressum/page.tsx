@@ -5,9 +5,10 @@ export const metadata = {
 /**
  * Bewusst nur die eindeutig verpflichtenden Angaben (§5 ECG: Name/Anschrift des
  * Diensteanbieters + Kontaktmöglichkeit; EU-Verordnung 524/2013: Link zur OS-Plattform bei
- * Online-Dienstleistungsverträgen mit Verbraucher:innen). Eine vertretungsbefugte Person fehlt
- * hier bewusst noch (Rückfrage offen, ob das bei einem Verein zwingend auf dieser Seite stehen
- * muss) - vor Live-Gang mit der WKO/einer Rechtsberatung klären und ergänzen.
+ * Online-Dienstleistungsverträgen mit Verbraucher:innen). Absichtlich nicht in der
+ * Seitennavigation verlinkt, sondern nur über den kleinen Footer-Link erreichbar (siehe
+ * components/SiteFooter.tsx) - bleibt trotzdem mit einem Klick von jeder Seite aus erreichbar
+ * (§5 ECG: "leicht und unmittelbar erreichbar").
  */
 export default function ImpressumPage() {
   return (
@@ -24,6 +25,8 @@ export default function ImpressumPage() {
             1010 Wien
             <br />
             Österreich
+            <br />
+            Vertreten durch: Adam Es
           </p>
         </section>
 
