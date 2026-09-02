@@ -117,6 +117,34 @@ describe("holeAlleSuren", () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("down"));
     await expect(holeAlleSuren()).rejects.toThrow(/Netzwerkfehler/);
   });
+
+  it("wiederholt einmal bei einem 429 (Rate-Limit) und liefert bei Erfolg im zweiten Versuch das Ergebnis", async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+    fetchMock
+      .mockResolvedValueOnce({ ok: false, status: 429, json: async () => ({}) })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          code: 200,
+          status: "OK",
+          data: [
+            { number: 1, name: "الفاتحة", englishName: "Al-Faatiha", englishNameTranslation: "The Opening", numberOfAyahs: 7 },
+          ],
+        }),
+      });
+
+    const suren = await holeAlleSuren();
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(suren).toEqual([
+      { nummer: 1, nameArabisch: "الفاتحة", nameTransliteriert: "Al-Faatiha", bedeutung: "The Opening", verseAnzahl: 7 },
+    ]);
+  });
+
+  it("gibt nach einem zweiten 429 in Folge eine verständliche Überlastungs-Meldung zurück statt es endlos zu versuchen", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: false, status: 429, json: async () => ({}) });
+    await expect(holeAlleSuren()).rejects.toThrow(/überlastet/);
+  });
 });
 
 describe("gleicheQuellenMitKoranApiAb", () => {

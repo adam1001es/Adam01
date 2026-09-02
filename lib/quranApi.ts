@@ -36,21 +36,42 @@ interface AlquranCloudAyahResponse {
   data: AlquranCloudAyahEdition[];
 }
 
+function warte(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Läuft jedem Aufruf gegen diese API voran, statt direkt fetch() zu nutzen: Vercel-Funktionen
+ * teilen sich Ausgangs-IPs mit vielen fremden, unabhängigen Projekten, ein 429 (Rate-Limit) dieses
+ * kostenlosen Fremddienstes kann daher auch bei geringer eigener Last auftreten (real beobachtet)
+ * und ist praktisch immer nach kurzer Zeit wieder verschwunden - ein einziger Wiederholungsversuch
+ * genügt dafür, ohne im Fall einer echten längeren Störung unnötig lange zu blockieren. */
+async function fetchKoranApi(url: string): Promise<Response> {
+  for (let versuch = 1; versuch <= 2; versuch++) {
+    let res: Response;
+    try {
+      res = await fetch(url, { next: { revalidate: 60 * 60 * 24 * 30 }, signal: AbortSignal.timeout(8000) });
+    } catch (err) {
+      if (versuch === 2) throw err;
+      await warte(600);
+      continue;
+    }
+    if (res.status === 429 && versuch === 1) {
+      await warte(600);
+      continue;
+    }
+    return res;
+  }
+  // Unerreichbar (die Schleife kehrt in jedem Fall über return oder throw zurück) - nur für TS.
+  throw new Error("fetchKoranApi: unerwarteter Zustand.");
+}
+
 /** Holt einen einzelnen Vers (Arabisch + deutsche Übersetzung) live von der API. Wirft bei
  * ungültiger Referenz oder Netzwerkfehler eine Error mit für Admins verständlicher Meldung. */
 export async function holeVers(sureNummer: number, versNummer: number): Promise<QuranVers> {
   const referenz = `${sureNummer}:${versNummer}`;
   let res: Response;
   try {
-    res = await fetch(`${API_BASIS}/ayah/${referenz}/editions/${ARABISCHE_EDITION},${DEUTSCHE_EDITION}`, {
-      // Korantext ändert sich nicht - 30 Tage cachen spart wiederholte Anfragen an Fremdserver.
-      next: { revalidate: 60 * 60 * 24 * 30 },
-      // Läuft seit dem automatischen Abgleich (siehe gleicheQuellenMitKoranApiAb) bei JEDER
-      // Arbeitsblatt-Generierung im Hintergrund mit - ein hängender/sehr langsamer Fremdserver
-      // darf die Generierung nicht unbegrenzt verzögern, daher hartes Zeitlimit statt der
-      // Standard-Zeitüberschreitung von fetch (die es praktisch nicht gibt).
-      signal: AbortSignal.timeout(8000),
-    });
+    res = await fetchKoranApi(`${API_BASIS}/ayah/${referenz}/editions/${ARABISCHE_EDITION},${DEUTSCHE_EDITION}`);
   } catch {
     throw new Error(`Vers ${referenz} konnte nicht abgerufen werden (Netzwerkfehler).`);
   }
@@ -58,7 +79,9 @@ export async function holeVers(sureNummer: number, versNummer: number): Promise<
     throw new Error(
       res.status === 404
         ? `Vers ${referenz} existiert nicht (Sure hat weniger Verse, oder Sure-Nummer ungültig).`
-        : `Vers ${referenz} konnte nicht abgerufen werden (Status ${res.status}).`,
+        : res.status === 429
+          ? `Vers ${referenz} konnte gerade nicht abgerufen werden, weil der Koran-Dienst kurzzeitig überlastet ist. Bitte in ein bis zwei Minuten erneut versuchen.`
+          : `Vers ${referenz} konnte nicht abgerufen werden (Status ${res.status}).`,
     );
   }
   const json = (await res.json()) as AlquranCloudAyahResponse;
@@ -115,15 +138,16 @@ interface AlquranCloudSurahListResponse {
 export async function holeAlleSuren(): Promise<SurahMeta[]> {
   let res: Response;
   try {
-    res = await fetch(`${API_BASIS}/surah`, {
-      next: { revalidate: 60 * 60 * 24 * 30 },
-      signal: AbortSignal.timeout(8000),
-    });
+    res = await fetchKoranApi(`${API_BASIS}/surah`);
   } catch {
     throw new Error("Suren-Liste konnte nicht abgerufen werden (Netzwerkfehler).");
   }
   if (!res.ok) {
-    throw new Error(`Suren-Liste konnte nicht abgerufen werden (Status ${res.status}).`);
+    throw new Error(
+      res.status === 429
+        ? "Suren-Liste konnte gerade nicht abgerufen werden, weil der Koran-Dienst kurzzeitig überlastet ist. Bitte in ein bis zwei Minuten erneut versuchen."
+        : `Suren-Liste konnte nicht abgerufen werden (Status ${res.status}).`,
+    );
   }
   const json = (await res.json()) as AlquranCloudSurahListResponse;
   if (json.code !== 200 || !Array.isArray(json.data)) {
