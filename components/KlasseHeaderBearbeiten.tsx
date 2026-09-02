@@ -4,10 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GraduationCap, Pencil, Check, X } from "lucide-react";
 import { SCHULSTUFEN_OPTIONEN } from "@/lib/curriculum";
+import EinfacherLoeschButton from "./EinfacherLoeschButton";
 
 /** Klassenname/-schulstufe direkt im Kopfbereich der Detailseite umbenennbar (analog zum
  * Schüler-Umbenennen in SchuelerVerwaltung.tsx) - PATCH /api/klassen/[id] existierte bisher nur
- * ohne UI-Zugang. */
+ * ohne UI-Zugang. Zeigt außerdem den Löschen-Button direkt neben dem Bearbeiten-Stift (real
+ * beobachtet: an der ursprünglichen Stelle weiter unten bei "Schüler:innen" wurde er nicht
+ * gefunden - "kein Lösch-Button überhaupt, nur Bearbeiten der Klasse" - naheliegender ist genau
+ * diese Stelle direkt beim Klassennamen). */
 export default function KlasseHeaderBearbeiten({
   klasseId,
   name,
@@ -101,6 +105,12 @@ export default function KlasseHeaderBearbeiten({
         >
           <Pencil size={16} />
         </button>
+        <EinfacherLoeschButton
+          url={`/api/klassen/${klasseId}`}
+          bestaetigung={`Klasse "${name}" wirklich unwiderruflich löschen? Alle Schüler:innen, Zuweisungen und Ergebnisse gehen dabei verloren.`}
+          redirectTo="/klassen"
+          variant="icon-light"
+        />
       </h1>
       {schulstufe && <p className="mt-1 text-sm text-emerald-50/90">{schulstufe}</p>}
     </div>

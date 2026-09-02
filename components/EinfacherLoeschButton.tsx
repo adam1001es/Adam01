@@ -16,7 +16,10 @@ export default function EinfacherLoeschButton({
   url: string;
   bestaetigung: string;
   redirectTo?: string;
-  variant?: "icon" | "button";
+  /** "icon-light" - wie "icon", aber für helle Schrift auf farbigem Verlaufs-Hintergrund (z.B.
+   * neben dem Bearbeiten-Stift im Klassen-Kopfbereich, siehe KlasseHeaderBearbeiten.tsx) statt
+   * dunkler Schrift auf hellem Kartenhintergrund. */
+  variant?: "icon" | "icon-light" | "button";
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -62,7 +65,11 @@ export default function EinfacherLoeschButton({
       disabled={isPending}
       title="Löschen"
       aria-label="Löschen"
-      className="rounded-full p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
+      className={
+        variant === "icon-light"
+          ? "rounded-full p-1.5 text-white/60 transition hover:bg-red-500/25 hover:text-white"
+          : "rounded-full p-1.5 text-slate-300 transition hover:bg-red-50 hover:text-red-500"
+      }
     >
       <Trash2 size={16} />
     </button>

@@ -80,15 +80,7 @@ export default async function KlassenDetailPage({ params }: { params: { id: stri
       </div>
 
       <section className="mt-6 rounded-2xl border border-emerald-100 bg-surface p-6 shadow-card-klassen">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="font-display text-lg font-semibold text-slate-800">Schüler:innen</h2>
-          <EinfacherLoeschButton
-            url={`/api/klassen/${klasse.id}`}
-            bestaetigung={`Klasse "${klasse.name}" wirklich unwiderruflich löschen? Alle Schüler:innen, Zuweisungen und Ergebnisse gehen dabei verloren.`}
-            redirectTo="/klassen"
-            variant="button"
-          />
-        </div>
+        <h2 className="mb-4 font-display text-lg font-semibold text-slate-800">Schüler:innen</h2>
         <p className="mb-3 text-xs leading-relaxed text-slate-400">
           Nur mit Kürzel geführt (z.B. "Schüler 1") - keine echten Namen nötig.
         </p>
