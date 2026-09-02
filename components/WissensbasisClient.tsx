@@ -619,6 +619,7 @@ function LinkImportieren({ onDone }: { onDone: () => void }) {
     setFehler(null);
     const ausgewaehlt = zeilen.filter((z) => z.uebernehmen);
     let erfolgreich = 0;
+    let duplikate = 0;
     for (const z of ausgewaehlt) {
       try {
         const res = await fetch("/api/admin/wissensbasis", {
@@ -631,15 +632,28 @@ function LinkImportieren({ onDone }: { onDone: () => void }) {
             rechercheNotiz: `Automatisch von ${url} extrahiert und der Grundkompetenz zugeordnet - KEINE geprüfte API-Quelle wie beim Koran-Tool, die Verlässlichkeit hängt vollständig von dieser Webseite ab. Vor Freigabe inhaltlich UND anhand einer Referenz-Ausgabe gegenchecken.${z.hinweis ? ` Hinweis von der Seite selbst: ${z.hinweis}` : ""}`,
           }),
         });
+        // 409 = Zitat mit dieser Bezeichnung existiert bereits (siehe
+        // app/api/admin/wissensbasis/route.ts) - bewusst nicht als Fehlschlag gezählt, sondern
+        // separat: verhindert doppelte Einträge z.B. bei einem zweiten Import-Anlauf über
+        // denselben Link, ohne den Admin mit einer Fehlermeldung zu verunsichern.
         if (res.ok) erfolgreich++;
+        else if (res.status === 409) duplikate++;
       } catch {
         // ein einzelner Fehlschlag soll die restlichen Übernahmen nicht abbrechen
       }
-      setFortschritt(`${erfolgreich}/${ausgewaehlt.length} übernommen …`);
+      setFortschritt(
+        `${erfolgreich}/${ausgewaehlt.length} übernommen …${duplikate > 0 ? ` (${duplikate} bereits vorhanden, übersprungen)` : ""}`,
+      );
     }
     setUebernehmenLaeuft(false);
-    if (erfolgreich === 0) {
+    if (erfolgreich === 0 && duplikate === 0) {
       setFehler("Keiner der ausgewählten Einträge konnte angelegt werden.");
+      return;
+    }
+    if (erfolgreich === 0 && duplikate > 0) {
+      setFehler(
+        `Alle ${duplikate} ausgewählten Einträge waren bereits in der Wissensbasis vorhanden - nichts Neues angelegt.`,
+      );
       return;
     }
     setZeilen([]);

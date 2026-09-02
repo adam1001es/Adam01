@@ -51,10 +51,51 @@ export interface WissensEintragCreateInput {
   quellWorksheetIds?: string[];
 }
 
+/** Grober, tolerant vergleichbarer Schlüssel für eine Zitat-Bezeichnung (Kleinschreibung, nur
+ * alphanumerische Zeichen) - macht "Sure 2, Vers 255" und "sure 2 vers 255" als dasselbe Zitat
+ * erkennbar. Ursprünglich nur in lib/wissensMining.ts (Duplikat-Erkennung beim automatischen
+ * Scan) - hierher verschoben, damit dieselbe Prüfung auch beim direkten Anlegen greift (siehe
+ * findeVorhandenesZitat unten), nicht nur beim Scan. */
+export function normalisiereBezeichnung(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/** Prüft, ob bereits EIN "zitat"-Eintrag mit (grob normalisiert) derselben Bezeichnung existiert -
+ * unabhängig vom Status (auch ein "entwurf" oder "abgelehnt" zählt als vorhanden, es soll ja
+ * gerade keine zweite Kopie geben). Wird vor dem Anlegen aufgerufen (siehe
+ * app/api/admin/wissensbasis/route.ts), damit derselbe Hadith/Vers nicht mehrfach in der
+ * Wissensbasis landet - z.B. wenn ein Link-Import (siehe lib/linkImport.ts) nach einer
+ * Grundkompetenz-Korrektur oder einem zweiten Anlauf erneut übernommen wird. */
+export async function findeVorhandenesZitat(
+  bezeichnung: string,
+): Promise<{ id: string; status: WissensStatus } | null> {
+  const gesucht = normalisiereBezeichnung(bezeichnung);
+  if (!gesucht) return null;
+  const bestehende = await prisma.wissensEintrag.findMany({
+    where: { typ: "zitat" },
+    select: { id: true, inhalt: true, status: true },
+  });
+  for (const e of bestehende) {
+    let inhalt: ZitatInhalt;
+    try {
+      inhalt = JSON.parse(e.inhalt);
+    } catch {
+      continue;
+    }
+    if (normalisiereBezeichnung(inhalt.bezeichnung ?? "") === gesucht) {
+      return { id: e.id, status: e.status as WissensStatus };
+    }
+  }
+  return null;
+}
+
 /** Legt einen neuen Wissens-Eintrag IMMER als "entwurf" an - unabhängig davon, wer/was den
  * Eintrag erzeugt hat (KI-Recherche, Mining aus Arbeitsblättern, o.ä.). Es gibt bewusst KEINEN
  * Parameter, um direkt mit Status "geprueft" anzulegen: die Freigabe ist ausschließlich ein
- * manueller Schritt eines Admins (siehe setzeStatus). */
+ * manueller Schritt eines Admins (siehe setzeStatus). Prüft selbst KEIN Duplikat (siehe
+ * findeVorhandenesZitat) - das bleibt Sache der aufrufenden Route, damit z.B. der automatische
+ * Scan (lib/wissensMining.ts) seine eigene, andersartige Logik (Konsistenz über mehrere
+ * Arbeitsblätter) weiter verwenden kann. */
 export async function legeWissensEntwurfAn(input: WissensEintragCreateInput) {
   return prisma.wissensEintrag.create({
     data: {

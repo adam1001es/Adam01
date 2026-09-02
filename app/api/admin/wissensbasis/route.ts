@@ -4,7 +4,9 @@ import { getSessionUser } from "@/lib/auth";
 import { THEMENBEREICH_KEYS } from "@/lib/curriculum";
 import {
   legeWissensEntwurfAn,
+  findeVorhandenesZitat,
   WISSENS_TYPEN,
+  WISSENS_STATUS_LABEL,
   ZitatInhaltSchema,
   MusteraufgabeInhaltSchema,
 } from "@/lib/wissensbasis";
@@ -49,6 +51,25 @@ export async function POST(request: NextRequest) {
       { error: `Ungültiger Inhalt: ${inhaltParsed.error.errors[0]?.message}` },
       { status: 400 },
     );
+  }
+
+  // Verhindert doppelt angelegte Zitate - z.B. wenn ein Link-Import (lib/linkImport.ts) nach
+  // Anpassungen erneut übernommen wird, oder dasselbe Koran-Nachschlage-Ergebnis zweimal auf
+  // "Als Entwurf übernehmen" geklickt wird. Nur für "zitat" relevant (siehe
+  // findeVorhandenesZitat) - bei "musteraufgabe" gibt es kein vergleichbares
+  // Bezeichnungs-Feld, mehrere ähnliche Beispielaufgaben sind dort auch kein Problem.
+  if (parsed.data.typ === "zitat") {
+    const bezeichnung = (inhaltParsed.data as { bezeichnung?: string }).bezeichnung ?? "";
+    const vorhanden = await findeVorhandenesZitat(bezeichnung);
+    if (vorhanden) {
+      return NextResponse.json(
+        {
+          error: `Ein Zitat mit dieser Bezeichnung existiert bereits in der Wissensbasis (Status: ${WISSENS_STATUS_LABEL[vorhanden.status]}).`,
+          duplikatId: vorhanden.id,
+        },
+        { status: 409 },
+      );
+    }
   }
 
   const eintrag = await legeWissensEntwurfAn({

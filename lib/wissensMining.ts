@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { legeWissensEntwurfAn } from "./wissensbasis";
+import { legeWissensEntwurfAn, normalisiereBezeichnung } from "./wissensbasis";
 import { THEMENBEREICH_KEYS, ThemenbereichKey } from "./curriculum";
 import { WorksheetContent } from "./types";
 
@@ -11,10 +11,6 @@ import { WorksheetContent } from "./types";
  * (siehe legeWissensEntwurfAn) - nie direkt "geprueft", das bleibt immer ein manueller
  * Admin-Schritt.
  */
-
-function normalisiereBezeichnung(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
 
 async function holeQuellArbeitsblaetter(adminUserId: string) {
   return prisma.worksheet.findMany({
