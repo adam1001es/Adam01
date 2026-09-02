@@ -21,7 +21,12 @@ import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 import { vereinfacheArabischeTransliteration } from "./transliteration";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 import { buildWissensbasisSystemContext } from "./wissensbasis";
-import { gleicheQuellenMitKoranApiAb, holeVersBereich, buildKoranFokusSystemContext } from "./quranApi";
+import {
+  gleicheQuellenMitKoranApiAb,
+  holeVersBereich,
+  buildKoranFokusSystemContext,
+  buildKoranVerifikationsHinweis,
+} from "./quranApi";
 
 /** Markiert einen Fehlschlag beim Auslesen der Modellantwort selbst (keine oder keine gültige
  * JSON-Struktur gefunden bzw. Struktur entsprach nicht dem erwarteten Schema) - im Unterschied zu
@@ -361,7 +366,8 @@ async function generiereUndPruefeEinmal(
   // tatsächlich korrekten Vers-Text sehen. Ersetzt Claudes Selbsteinschätzung ("sicherheit") durch
   // einen echten Abgleich und deckt damit praktisch jeden der 6236 Verse ab, ohne dass wir sie
   // vorab manuell kuratieren müssten.
-  await gleicheQuellenMitKoranApiAb(content);
+  const liveGeprueft = await gleicheQuellenMitKoranApiAb(content);
+  const koranVerifikationsHinweis = buildKoranVerifikationsHinweis(liveGeprueft);
 
   const verifyResponse = await client.messages.create({
     model: VERIFICATION_MODEL,
@@ -376,6 +382,7 @@ async function generiereUndPruefeEinmal(
       },
       { type: "text", text: curriculumContext },
       ...(wissensbasisContext ? [{ type: "text" as const, text: wissensbasisContext }] : []),
+      ...(koranVerifikationsHinweis ? [{ type: "text" as const, text: koranVerifikationsHinweis }] : []),
     ],
     messages: [
       {

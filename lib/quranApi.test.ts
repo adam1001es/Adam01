@@ -3,6 +3,7 @@ import {
   formatiereKoranZitat,
   gleicheQuellenMitKoranApiAb,
   buildKoranFokusSystemContext,
+  buildKoranVerifikationsHinweis,
   holeAlleSuren,
   type QuranVers,
 } from "./quranApi";
@@ -168,11 +169,12 @@ describe("gleicheQuellenMitKoranApiAb", () => {
       { bezeichnung: "Koran, Sure 2, Vers 255", text: "irgendein von Claude erinnerter Text", sicherheit: "gesichert" },
     ]);
 
-    await gleicheQuellenMitKoranApiAb(content);
+    const liveGeprueft = await gleicheQuellenMitKoranApiAb(content);
 
     expect(content.quellen[0].text).toBe("255. Allah - der wahrhaftige Text.");
     expect(content.quellen[0].bezeichnung).toBe("Sure 2 (Al-Baqarah), Vers 255");
     expect(content.quellen[0].sicherheit).toBe("gesichert");
+    expect(liveGeprueft).toEqual(["Sure 2 (Al-Baqarah), Vers 255"]);
   });
 
   it("erkennt auch die Doppelpunkt-Schreibweise 'Sure X:Y'", async () => {
@@ -233,5 +235,17 @@ describe("gleicheQuellenMitKoranApiAb", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(content.quellen[0].sicherheit).toBe("gesichert");
+  });
+});
+
+describe("buildKoranVerifikationsHinweis", () => {
+  it("gibt einen leeren String zurück, wenn keine Quelle live geprüft wurde", () => {
+    expect(buildKoranVerifikationsHinweis([])).toBe("");
+  });
+
+  it("nennt die live geprüften Quellen und weist darauf hin, dass der Wortlaut nicht hinterfragt werden muss", () => {
+    const hinweis = buildKoranVerifikationsHinweis(["Sure 78 (An-Naba), Verse 1-20"]);
+    expect(hinweis).toContain("Sure 78 (An-Naba), Verse 1-20");
+    expect(hinweis).toContain("NICHT");
   });
 });

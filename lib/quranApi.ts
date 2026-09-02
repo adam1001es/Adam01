@@ -221,9 +221,13 @@ function parseKoranReferenz(bezeichnung: string): { sure: number; von: number; b
  * nicht = erfundene Angabe, oder Netzwerkfehler), wird "sicherheit" immer auf "bitte_pruefen"
  * heruntergestuft - nie umgekehrt, eine ungeprüfte Angabe wird nie automatisch als "gesichert"
  * markiert. Mutiert `content.quellen` direkt, analog zu den übrigen Nachbearbeitungsschritten in
- * generiereUndPruefeEinmal (lib/generateWorksheet.ts).
+ * generiereUndPruefeEinmal (lib/generateWorksheet.ts). Gibt die Bezeichnungen der erfolgreich
+ * live geprüften Quellen zurück, damit die anschließende Verifikation (siehe
+ * buildKoranVerifikationsHinweis) weiß, bei welchen "gesichert"-Angaben der Wortlaut bereits
+ * mechanisch garantiert korrekt ist und nicht zusätzlich misstrauisch hinterfragt werden muss.
  */
-export async function gleicheQuellenMitKoranApiAb(content: WorksheetContent): Promise<void> {
+export async function gleicheQuellenMitKoranApiAb(content: WorksheetContent): Promise<string[]> {
+  const liveGeprueft: string[] = [];
   for (const quelle of content.quellen) {
     const referenz = parseKoranReferenz(quelle.bezeichnung);
     if (!referenz) continue;
@@ -233,8 +237,23 @@ export async function gleicheQuellenMitKoranApiAb(content: WorksheetContent): Pr
       quelle.bezeichnung = bezeichnung;
       quelle.text = text;
       quelle.sicherheit = "gesichert";
+      liveGeprueft.push(bezeichnung);
     } catch {
       quelle.sicherheit = "bitte_pruefen";
     }
   }
+  return liveGeprueft;
+}
+
+/**
+ * System-Prompt-Baustein NUR für die Verifikations-Stufe (siehe generiereUndPruefeEinmal): die
+ * dort geltende generelle Anweisung "sei besonders streng bei sicherheit: gesichert" gilt für vom
+ * Modell selbst behauptete Sicherheit - bei den hier gelisteten Quellen wurde der Wortlaut aber
+ * bereits mechanisch gegen die Koran-API abgeglichen (siehe gleicheQuellenMitKoranApiAb), ist also
+ * garantiert exakt korrekt. Ohne diesen Hinweis warnt die Prüfung sonst unnötig vor möglichen
+ * Wortlaut-Abweichungen bei einem Zitat, das gar nicht aus Claudes Erinnerung stammt.
+ */
+export function buildKoranVerifikationsHinweis(liveGeprueft: string[]): string {
+  if (liveGeprueft.length === 0) return "";
+  return `Folgende Quellenangaben wurden NICHT vom Modell erinnert, sondern mechanisch live gegen die Koran-API abgeglichen - ihr Wortlaut ist garantiert exakt korrekt und muss NICHT auf Zitattreue hinterfragt werden, auch wenn die generelle Anweisung zu "sicherheit": "gesichert" oben das sonst nahelegt: ${liveGeprueft.join("; ")}. Prüfe bei diesen nur die thematische/pädagogische Passung zu den Aufgaben, nicht die Textgenauigkeit selbst.`;
 }
