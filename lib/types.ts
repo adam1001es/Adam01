@@ -374,6 +374,20 @@ export const GenerateRequestSchema = z
     // (siehe app/klassen/[id]/pruefung-generieren) - die Route legt dann serverseitig automatisch
     // eine Zuweisung an dieser Klasse an, statt das Arbeitsblatt "lose" zu erzeugen.
     klasseId: z.string().optional(),
+    // Optional: Lehrkraft möchte eine konkrete Sure (ganz oder ein Versbereich) mit der Klasse
+    // lernen - das Arbeitsblatt wird dann gezielt um den live von der Koran-API abgerufenen,
+    // garantiert korrekten Text herum aufgebaut (siehe lib/quranApi.ts, lib/generateWorksheet.ts),
+    // statt sich auf Claudes Erinnerung zu verlassen. "Ganze Sure" wird im Formular als
+    // vonVers=1/bisVers=Versanzahl abgebildet, kein eigener Modus nötig. Auf MAX_VERSE_PRO_ABFRAGE
+    // (siehe lib/quranApi.ts) begrenzt - für längere Suren mehrere Arbeitsblätter nacheinander.
+    koranFokus: z
+      .object({
+        sureNummer: z.number().int().min(1).max(114),
+        vonVers: z.number().int().min(1),
+        bisVers: z.number().int().min(1),
+      })
+      .refine((v) => v.bisVers >= v.vonVers, { message: "„Bis Vers“ darf nicht kleiner als „Von Vers“ sein." })
+      .optional(),
   })
   .superRefine((req, ctx) => {
     if (req.klasseId && !req.istPruefung) {

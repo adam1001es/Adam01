@@ -21,7 +21,7 @@ import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 import { vereinfacheArabischeTransliteration } from "./transliteration";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 import { buildWissensbasisSystemContext } from "./wissensbasis";
-import { gleicheQuellenMitKoranApiAb } from "./quranApi";
+import { gleicheQuellenMitKoranApiAb, holeVersBereich, buildKoranFokusSystemContext } from "./quranApi";
 
 /** Markiert einen Fehlschlag beim Auslesen der Modellantwort selbst (keine oder keine gültige
  * JSON-Struktur gefunden bzw. Struktur entsprach nicht dem erwarteten Schema) - im Unterschied zu
@@ -221,11 +221,28 @@ export async function generateAndVerifyWorksheet(
     req.themenbereich,
     guessSchulstufenCluster(req.schulstufe).id,
   );
+  // Optionaler Koran-Fokus (siehe GenerateRequestSchema.koranFokus): die Lehrkraft möchte eine
+  // konkrete Sure/einen Versbereich mit der Klasse lernen. VOR dem Claude-Aufruf abgerufen (statt
+  // erst hinterher zu korrigieren wie bei gleicheQuellenMitKoranApiAb weiter unten), damit sich
+  // die Aufgaben inhaltlich tatsächlich um den echten Text drehen können. Absichtlich NICHT
+  // abgefangen - ein fehlgeschlagener Abruf soll die Generierung klar mit Fehlermeldung abbrechen
+  // statt den expliziten Wunsch der Lehrkraft stillschweigend zu ignorieren.
+  const koranFokusContext = req.koranFokus
+    ? buildKoranFokusSystemContext(
+        await holeVersBereich(req.koranFokus.sureNummer, req.koranFokus.vonVers, req.koranFokus.bisVers),
+      )
+    : "";
   const anzahlAufgaben = schaetzeAufgabenAnzahl(req.zieldauerMinuten, req.aufgabentypen, req.komplexitaet);
 
   let ersterVersuch: GenerationResult;
   try {
-    ersterVersuch = await generiereUndPruefeEinmal(req, curriculumContext, wissensbasisContext, anzahlAufgaben);
+    ersterVersuch = await generiereUndPruefeEinmal(
+      req,
+      curriculumContext,
+      wissensbasisContext,
+      koranFokusContext,
+      anzahlAufgaben,
+    );
   } catch (err) {
     // Reines Format-Problem (siehe UngueltigesModellFormat) statt eines inhaltlichen Mangels -
     // die Qualitätsprüfung wurde in diesem Fall nie erreicht, ein Wiederholungsversuch mit einer
@@ -237,6 +254,7 @@ export async function generateAndVerifyWorksheet(
       req,
       curriculumContext,
       wissensbasisContext,
+      koranFokusContext,
       anzahlAufgaben,
       undefined,
       true,
@@ -254,6 +272,7 @@ export async function generateAndVerifyWorksheet(
     req,
     curriculumContext,
     wissensbasisContext,
+    koranFokusContext,
     anzahlAufgaben,
     ersterVersuch.verification,
   );
@@ -266,6 +285,7 @@ async function generiereUndPruefeEinmal(
   req: GenerateRequest,
   curriculumContext: string,
   wissensbasisContext: string,
+  koranFokusContext: string,
   anzahlAufgaben: number,
   korrekturAuftrag?: Verification,
   formatErinnerung?: boolean,
@@ -301,6 +321,7 @@ async function generiereUndPruefeEinmal(
         },
         { type: "text", text: curriculumContext },
         ...(wissensbasisContext ? [{ type: "text" as const, text: wissensbasisContext }] : []),
+        ...(koranFokusContext ? [{ type: "text" as const, text: koranFokusContext }] : []),
         ...(req.istPruefung ? [{ type: "text" as const, text: PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ }] : []),
       ],
       messages: [

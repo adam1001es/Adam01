@@ -75,7 +75,7 @@ export async function holeVers(sureNummer: number, versNummer: number): Promise<
   };
 }
 
-const MAX_VERSE_PRO_ABFRAGE = 20;
+export const MAX_VERSE_PRO_ABFRAGE = 20;
 
 /** Holt einen zusammenhängenden Versbereich derselben Sure - auf 20 Verse begrenzt, damit ein
  * einzelner "Zitat"-Eintrag ein Zitat bleibt und nicht versehentlich eine halbe Sure wird. */
@@ -94,6 +94,50 @@ export async function holeVersBereich(
   return Promise.all(nummern.map((v) => holeVers(sureNummer, v)));
 }
 
+export interface SurahMeta {
+  nummer: number;
+  nameArabisch: string;
+  nameTransliteriert: string;
+  bedeutung: string;
+  verseAnzahl: number;
+}
+
+interface AlquranCloudSurahListResponse {
+  code: number;
+  status: string;
+  data: { number: number; name: string; englishName: string; englishNameTranslation: string; numberOfAyahs: number }[];
+}
+
+/** Liste aller 114 Suren mit Name + Versanzahl - live von der API statt fest im Code hinterlegt
+ * (Namen/Versanzahlen sind zwar statisch, aber 114 Einträge von Hand zu pflegen wäre eine
+ * genauso vermeidbare Fehlerquelle wie das eingangs verworfene Abschreiben des Korantexts selbst).
+ * Für die Sure-Auswahlliste im Erstellen-Formular (siehe app/api/koran/suren). 30 Tage gecacht. */
+export async function holeAlleSuren(): Promise<SurahMeta[]> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASIS}/surah`, {
+      next: { revalidate: 60 * 60 * 24 * 30 },
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    throw new Error("Suren-Liste konnte nicht abgerufen werden (Netzwerkfehler).");
+  }
+  if (!res.ok) {
+    throw new Error(`Suren-Liste konnte nicht abgerufen werden (Status ${res.status}).`);
+  }
+  const json = (await res.json()) as AlquranCloudSurahListResponse;
+  if (json.code !== 200 || !Array.isArray(json.data)) {
+    throw new Error("Unerwartete Antwort der Koran-API für die Suren-Liste.");
+  }
+  return json.data.map((s) => ({
+    nummer: s.number,
+    nameArabisch: s.name,
+    nameTransliteriert: s.englishName,
+    bedeutung: s.englishNameTranslation,
+    verseAnzahl: s.numberOfAyahs,
+  }));
+}
+
 /** Baut aus einem (zusammenhängenden) Vers-Ergebnis die einheitliche Quellenangabe + den
  * Zitattext - von der Admin-Nachschlagemaske (KoranNachschlagen in WissensbasisClient.tsx) UND
  * vom automatischen Abgleich unten verwendet, damit beide nie unterschiedlich formatieren. Der
@@ -107,6 +151,25 @@ export function formatiereKoranZitat(verse: QuranVers[]): { bezeichnung: string;
       ? `Sure ${erste.sureNummer} (${erste.sureNameTransliteriert}), Vers ${erste.versNummer}`
       : `Sure ${erste.sureNummer} (${erste.sureNameTransliteriert}), Verse ${erste.versNummer}-${letzte.versNummer}`;
   return { bezeichnung, text: verse.map((v) => v.deutsch).join(" ") };
+}
+
+/**
+ * Baut den System-Prompt-Baustein für den optionalen Koran-Fokus im Erstellen-Formular (siehe
+ * GenerateRequestSchema.koranFokus, NewWorksheetForm.tsx) - die Lehrkraft möchte eine konkrete
+ * Sure/einen Versbereich mit der Klasse lernen. Liefert Claude den live abgerufenen, garantiert
+ * korrekten Text als verbindliche Grundlage mit, statt das Arbeitsblatt frei zum Thema generieren
+ * zu lassen und den Text erst hinterher zu prüfen (siehe gleicheQuellenMitKoranApiAb, das als
+ * zusätzliches Sicherheitsnetz trotzdem weiterhin läuft).
+ */
+export function buildKoranFokusSystemContext(verse: QuranVers[]): string {
+  const { bezeichnung } = formatiereKoranZitat(verse);
+  const zeilen = verse.map((v) => `${v.versNummer}. ${v.arabisch}\n${v.versNummer}. ${v.deutsch}`).join("\n");
+  return `FOKUS-VORGABE DER LEHRKRAFT: Dieses Arbeitsblatt soll sich gezielt um den folgenden Korantext drehen, den die Lehrkraft mit der Klasse lernen möchte. Das ist der tatsächliche, live von der Koran-API abgerufene Text (Arabisch + deutsche Übersetzung von Bubenheim & Elyas) - nutze AUSSCHLIESSLICH diesen Wortlaut als Grundlage, erfinde nichts hinzu und weiche nicht davon ab:
+
+${bezeichnung}
+${zeilen}
+
+Baue die Aufgaben gezielt um diesen Text herum (z.B. inhaltliche Verständnisfragen zum Vers, Zuordnung arabischer Schlüsselbegriffe zur deutschen Bedeutung, Lückentext mit Wörtern aus dem Text, richtige Reihenfolge der Verse, Vorbereitung fürs Auswendiglernen) statt eines allgemeinen Themas zur Grundkompetenz. Übernimm den Text UNVERÄNDERT als eigenen Eintrag in "quellen" mit "bezeichnung": "${bezeichnung}" (exakt in diesem Format) und "sicherheit": "gesichert".`;
 }
 
 /** Erkennt in einer Quellen-"bezeichnung" wie "Koran, Sure 2, Vers 255" oder "Sure 2:255-257"

@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { formatiereKoranZitat, gleicheQuellenMitKoranApiAb, type QuranVers } from "./quranApi";
+import {
+  formatiereKoranZitat,
+  gleicheQuellenMitKoranApiAb,
+  buildKoranFokusSystemContext,
+  holeAlleSuren,
+  type QuranVers,
+} from "./quranApi";
 import type { WorksheetContent, Quelle } from "./types";
 
 function baueContent(quellen: Quelle[]): WorksheetContent {
@@ -53,6 +59,63 @@ describe("formatiereKoranZitat", () => {
     const { bezeichnung, text } = formatiereKoranZitat([vers255, vers256]);
     expect(bezeichnung).toBe("Sure 2 (Al-Baqarah), Verse 255-256");
     expect(text).toBe(`${vers255.deutsch} ${vers256.deutsch}`);
+  });
+});
+
+describe("buildKoranFokusSystemContext", () => {
+  it("enthält Bezeichnung, arabischen und deutschen Text, sowie die Anweisung zur exakten Übernahme", () => {
+    const vers: QuranVers = {
+      sureNummer: 112,
+      sureNameTransliteriert: "Al-Ikhlas",
+      versNummer: 1,
+      arabisch: "قُلْ هُوَ اللَّهُ أَحَدٌ",
+      deutsch: "1. Sag: Er ist Allah, ein Einziger.",
+    };
+    const context = buildKoranFokusSystemContext([vers]);
+
+    expect(context).toContain("Sure 112 (Al-Ikhlas), Vers 1");
+    expect(context).toContain(vers.arabisch);
+    expect(context).toContain(vers.deutsch);
+    expect(context).toContain('"sicherheit": "gesichert"');
+  });
+});
+
+describe("holeAlleSuren", () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it("mappt die API-Felder auf die deutschen Feldnamen", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        code: 200,
+        status: "OK",
+        data: [
+          { number: 1, name: "الفاتحة", englishName: "Al-Faatiha", englishNameTranslation: "The Opening", numberOfAyahs: 7 },
+          { number: 114, name: "الناس", englishName: "An-Naas", englishNameTranslation: "Mankind", numberOfAyahs: 6 },
+        ],
+      }),
+    });
+
+    const suren = await holeAlleSuren();
+
+    expect(suren).toEqual([
+      { nummer: 1, nameArabisch: "الفاتحة", nameTransliteriert: "Al-Faatiha", bedeutung: "The Opening", verseAnzahl: 7 },
+      { nummer: 114, nameArabisch: "الناس", nameTransliteriert: "An-Naas", bedeutung: "Mankind", verseAnzahl: 6 },
+    ]);
+  });
+
+  it("wirft bei einem Netzwerkfehler eine verständliche Fehlermeldung", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("down"));
+    await expect(holeAlleSuren()).rejects.toThrow(/Netzwerkfehler/);
   });
 });
 

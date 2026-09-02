@@ -58,6 +58,7 @@ import GenerierungLoading from "@/components/GenerierungLoading";
 import { inputClass, labelClass } from "@/lib/formStyles";
 import { MUSTER_LABEL } from "@/lib/patternStrip";
 import { SEKTION_FARBEN } from "@/lib/sectionFarben";
+import { MAX_VERSE_PRO_ABFRAGE, type SurahMeta } from "@/lib/quranApi";
 
 /** Neutraler Grundstil für auswählbare Chips/Pills - Farbe kommt erst im aktiven Zustand dazu
  * (siehe SEKTION_FARBEN), damit nicht der ganze Screen bunt wirkt. */
@@ -197,6 +198,51 @@ export default function NewWorksheetForm({
   const [ideenFehler, setIdeenFehler] = useState<string | null>(null);
   const [ideenVerbleibend, setIdeenVerbleibend] = useState<number | null>(null);
 
+  // Optionaler Koran-Fokus (siehe GenerateRequestSchema.koranFokus, lib/quranApi.ts) - Lehrkraft
+  // möchte eine konkrete Sure/einen Versbereich mit der Klasse lernen. Default Sure 1 (Al-Fatiha,
+  // 7 Verse) als sinnvoller, sofort "ganze Sure"-fähiger Startpunkt, sobald die Liste geladen ist.
+  const [koranFokusAktiv, setKoranFokusAktiv] = useState(false);
+  const [suren, setSuren] = useState<SurahMeta[] | null>(null);
+  const [surenLaden, setSurenLaden] = useState(false);
+  const [surenFehler, setSurenFehler] = useState<string | null>(null);
+  const [koranSureNummer, setKoranSureNummer] = useState(1);
+  const [koranGanzeSure, setKoranGanzeSure] = useState(true);
+  const [koranVonVers, setKoranVonVers] = useState(1);
+  const [koranBisVers, setKoranBisVers] = useState(7);
+  const ausgewaehlteSure = suren?.find((s) => s.nummer === koranSureNummer) ?? null;
+
+  async function ladeSuren() {
+    setSurenLaden(true);
+    setSurenFehler(null);
+    try {
+      const res = await fetch("/api/koran/suren");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Suren-Liste konnte nicht geladen werden.");
+      const liste = data.suren as SurahMeta[];
+      setSuren(liste);
+      const aktuelle = liste.find((s) => s.nummer === koranSureNummer);
+      if (aktuelle) setKoranBisVers(Math.min(aktuelle.verseAnzahl, MAX_VERSE_PRO_ABFRAGE));
+    } catch (err) {
+      setSurenFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
+    } finally {
+      setSurenLaden(false);
+    }
+  }
+
+  function onSureChange(nummer: number) {
+    setKoranSureNummer(nummer);
+    const meta = suren?.find((s) => s.nummer === nummer);
+    if (!meta) return;
+    setKoranVonVers(1);
+    if (meta.verseAnzahl <= MAX_VERSE_PRO_ABFRAGE) {
+      setKoranGanzeSure(true);
+      setKoranBisVers(meta.verseAnzahl);
+    } else {
+      setKoranGanzeSure(false);
+      setKoranBisVers(MAX_VERSE_PRO_ABFRAGE);
+    }
+  }
+
   const [template, setTemplate] = useState<(typeof TEMPLATES)[number]>("klassisch");
   const [schulname, setSchulname] = useState("");
   const [schriftgroesse, setSchriftgroesse] = useState<"normal" | "gross">("normal");
@@ -240,6 +286,10 @@ export default function NewWorksheetForm({
       setError("Bitte mindestens einen Aufgabentyp auswählen.");
       return;
     }
+    if (koranFokusAktiv && koranBisVers - koranVonVers + 1 > MAX_VERSE_PRO_ABFRAGE) {
+      setError(`Für den Koran-Fokus bitte höchstens ${MAX_VERSE_PRO_ABFRAGE} Verse auswählen.`);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -257,6 +307,9 @@ export default function NewWorksheetForm({
           istPruefung,
           punkteGesamt: istPruefung ? punkteGesamt : undefined,
           klasseId,
+          koranFokus: koranFokusAktiv
+            ? { sureNummer: koranSureNummer, vonVers: koranVonVers, bisVers: koranBisVers }
+            : undefined,
           zusatzhinweise: zusatzhinweise || undefined,
           layout: {
             template,
@@ -453,6 +506,117 @@ export default function NewWorksheetForm({
               {THEMENBEREICHE[themenbereich].beschreibung}
             </span>
           </label>
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => {
+                const next = !koranFokusAktiv;
+                setKoranFokusAktiv(next);
+                if (next && !suren && !surenLaden) ladeSuren();
+              }}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
+                koranFokusAktiv ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+              }`}
+            >
+              <BookOpenText size={15} />
+              Koran-Fokus: eine Sure/Verse gezielt lernen (optional)
+            </button>
+
+            {koranFokusAktiv && (
+              <div className="mt-3 space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                <p className="text-xs leading-relaxed text-slate-500">
+                  Das Arbeitsblatt dreht sich gezielt um den live abgerufenen, garantiert
+                  korrekten Text (Arabisch + deutsche Übersetzung von Bubenheim &amp; Elyas)
+                  dieser Sure/dieser Verse - z.B. für eine Auswendiglern-Einheit. Ersetzt nicht
+                  das oben angegebene Thema, ergänzt es.
+                </p>
+                {surenLaden && <p className="text-xs text-slate-400">Suren-Liste wird geladen …</p>}
+                {surenFehler && (
+                  <p className="text-xs text-red-600">
+                    {surenFehler}{" "}
+                    <button type="button" onClick={ladeSuren} className="underline">
+                      Erneut versuchen
+                    </button>
+                  </p>
+                )}
+                {suren && (
+                  <>
+                    <label className="block max-w-sm">
+                      <span className={labelClass}>Sure</span>
+                      <select
+                        className={inputClass}
+                        value={koranSureNummer}
+                        onChange={(e) => onSureChange(Number(e.target.value))}
+                      >
+                        {suren.map((s) => (
+                          <option key={s.nummer} value={s.nummer}>
+                            {s.nummer}. {s.nameTransliteriert} ({s.verseAnzahl} Verse)
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {ausgewaehlteSure && ausgewaehlteSure.verseAnzahl <= MAX_VERSE_PRO_ABFRAGE && (
+                      <label className="flex items-center gap-2 text-sm text-slate-600">
+                        <input
+                          type="checkbox"
+                          checked={koranGanzeSure}
+                          onChange={(e) => {
+                            setKoranGanzeSure(e.target.checked);
+                            if (e.target.checked && ausgewaehlteSure) {
+                              setKoranVonVers(1);
+                              setKoranBisVers(ausgewaehlteSure.verseAnzahl);
+                            }
+                          }}
+                        />
+                        Ganze Sure verwenden ({ausgewaehlteSure.verseAnzahl} Verse)
+                      </label>
+                    )}
+                    {ausgewaehlteSure && ausgewaehlteSure.verseAnzahl > MAX_VERSE_PRO_ABFRAGE && (
+                      <p className="text-xs leading-relaxed text-amber-700">
+                        Diese Sure hat {ausgewaehlteSure.verseAnzahl} Verse - für ein einzelnes
+                        Arbeitsblatt bitte einen Ausschnitt von höchstens{" "}
+                        {MAX_VERSE_PRO_ABFRAGE} Versen wählen.
+                      </p>
+                    )}
+                    {(!koranGanzeSure || (ausgewaehlteSure?.verseAnzahl ?? 0) > MAX_VERSE_PRO_ABFRAGE) && (
+                      <div className="flex flex-wrap items-end gap-2">
+                        <label className="block">
+                          <span className={labelClass}>Vers von</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={ausgewaehlteSure?.verseAnzahl}
+                            className={`${inputClass} w-24`}
+                            value={koranVonVers}
+                            onChange={(e) => setKoranVonVers(Math.max(1, Number(e.target.value) || 1))}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className={labelClass}>bis</span>
+                          <input
+                            type="number"
+                            min={koranVonVers}
+                            max={ausgewaehlteSure?.verseAnzahl}
+                            className={`${inputClass} w-24`}
+                            value={koranBisVers}
+                            onChange={(e) =>
+                              setKoranBisVers(Math.max(koranVonVers, Number(e.target.value) || koranVonVers))
+                            }
+                          />
+                        </label>
+                      </div>
+                    )}
+                    {koranBisVers - koranVonVers + 1 > MAX_VERSE_PRO_ABFRAGE && (
+                      <p className="text-xs text-red-600">
+                        Höchstens {MAX_VERSE_PRO_ABFRAGE} Verse pro Arbeitsblatt - bitte den
+                        Bereich verkleinern.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
           <label className="mt-4 block">
             <span className={labelClass}>Zusätzliche Hinweise (optional)</span>
             <textarea
