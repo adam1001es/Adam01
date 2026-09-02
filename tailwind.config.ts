@@ -75,6 +75,12 @@ const config: Config = {
         // passt statt lauter zu wirken.
         "card-klassen": "0 1px 2px rgba(18, 151, 138, 0.04), 0 8px 24px -12px rgba(18, 151, 138, 0.18)",
         "card-klassen-hover": "0 4px 10px rgba(18, 151, 138, 0.06), 0 16px 32px -14px rgba(18, 151, 138, 0.28)",
+        // Goldene Variante für die Wissensbasis (siehe backgroundImage.wissen-gradient hier
+        // drunter) - bewusst NICHT aus der Teal-Familie (anders als Klassen/Community), damit
+        // dieser Bereich sich als eigene, wertige Kategorie ("unsere Datenbank") vom Rest der App
+        // abhebt statt wie ein weiterer Teal-Ton zu wirken.
+        "card-wissen": "0 1px 2px rgba(140, 102, 36, 0.04), 0 8px 24px -12px rgba(140, 102, 36, 0.18)",
+        "card-wissen-hover": "0 4px 10px rgba(140, 102, 36, 0.06), 0 16px 32px -14px rgba(140, 102, 36, 0.28)",
       },
       backgroundImage: {
         // Hauptfarbe der App: dunkelstes/"seriösestes" Teal (700->900) - Übersicht, Logo,
@@ -86,6 +92,11 @@ const config: Config = {
         "community-gradient": "linear-gradient(135deg, #0d9488 0%, #115e59 100%)",
         // Klassen: nochmal eine Stufe heller/frischer (500->700), das hellste der drei Teal-Bänder.
         "klassen-gradient": "linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)",
+        // Wissensbasis: bewusst Gold statt Teal (siehe boxShadow.card-wissen) - eigene
+        // Farbfamilie statt einer weiteren Teal-Stufe, damit der Bereich im Nav sofort als
+        // andersartig (die geprüfte "Wissens-Datenbank" statt ein weiterer Arbeitsbereich)
+        // erkennbar ist.
+        "wissen-gradient": "linear-gradient(135deg, #a97e2e 0%, #6f4f1e 100%)",
       },
       keyframes: {
         // Wandernder Balken-Abschnitt für die unbestimmte Fortschrittsanzeige während der

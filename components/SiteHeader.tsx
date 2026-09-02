@@ -10,6 +10,7 @@ import {
   Users,
   MoonStar,
   GraduationCap,
+  BookMarked,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SonnenuntergangAnzeige from "./SonnenuntergangAnzeige";
@@ -41,6 +42,7 @@ interface SiteHeaderUser {
 export default function SiteHeader({
   user,
   hijriDatum,
+  offeneWissensEntwuerfe,
 }: {
   user: SiteHeaderUser | null;
   /** Heutiges Hijri-Datum (z.B. "17. Rabi al-Awwal 1448 n. H.") - immer sichtbar, unabhängig
@@ -48,6 +50,9 @@ export default function SiteHeader({
    * lib/hijri.ts). Eigene volle Zeile statt Platz in der ohnehin engen Navigation zu
    * beanspruchen. */
   hijriDatum: string;
+  /** Nur für role "admin" gesetzt (siehe app/layout.tsx) - Anzahl ungeprüfter Wissensbasis-
+   * Entwürfe als Badge am Nav-Eintrag, analog zu den ungesichteten Meldungen. */
+  offeneWissensEntwuerfe?: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -86,6 +91,17 @@ export default function SiteHeader({
       active
         ? "bg-community-gradient text-white shadow-card"
         : "text-slate-600 hover:bg-cyan-50 hover:text-cyan-700"
+    }`;
+
+  // Wissensbasis bekommt bewusst Gold statt einer weiteren Teal-Stufe (siehe tailwind.config
+  // wissen-gradient) - eigener, eindeutig unterscheidbarer Bereich statt einer Unterseite der
+  // Konten-Verwaltung: hier wächst der geprüfte Bestand an Zitaten/Musteraufgaben, aus dem
+  // künftige Generierungen schöpfen.
+  const navLinkClassWissen = (active: boolean) =>
+    `flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium transition active:scale-95 sm:px-3.5 ${
+      active
+        ? "bg-wissen-gradient text-white shadow-card-wissen"
+        : "text-slate-600 hover:bg-gold-50 hover:text-gold-700"
     }`;
 
   return (
@@ -141,7 +157,23 @@ export default function SiteHeader({
             </Link>
           )}
           {user?.role === "admin" && (
-            <Link href="/admin" className={navLinkClass(!!pathname?.startsWith("/admin"))}>
+            <Link
+              href="/admin/wissensbasis"
+              className={navLinkClassWissen(!!pathname?.startsWith("/admin/wissensbasis"))}
+            >
+              <BookMarked size={16} strokeWidth={2.25} />
+              <span className="hidden sm:inline">
+                Wissensbasis{offeneWissensEntwuerfe ? ` (${offeneWissensEntwuerfe})` : ""}
+              </span>
+            </Link>
+          )}
+          {user?.role === "admin" && (
+            <Link
+              href="/admin"
+              className={navLinkClass(
+                !!pathname?.startsWith("/admin") && !pathname?.startsWith("/admin/wissensbasis"),
+              )}
+            >
               <ShieldCheck size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Admin</span>
             </Link>

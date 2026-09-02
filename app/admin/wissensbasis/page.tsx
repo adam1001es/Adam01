@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft, BookMarked } from "lucide-react";
+import { BookMarked } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { berechneAufgabentypAnalyse } from "@/lib/wissensbasis";
@@ -8,7 +7,8 @@ import WissensbasisClient, { WissensEintragRow } from "@/components/Wissensbasis
 
 export const dynamic = "force-dynamic";
 
-/** Admin-only "Wissensbasis" - Übersicht + Freigabe-Workflow für den wachsenden Pool aus
+/** Admin-only "Wissensbasis" - eigener Top-Level-Bereich (siehe SiteHeader, nicht mehr nur eine
+ * Unterseite der Konten-Verwaltung): Übersicht + Freigabe-Workflow für den wachsenden Pool aus
  * geprüften Zitaten/Musteraufgaben (siehe lib/wissensbasis.ts für das Gesamtkonzept). Die
  * eigentliche Interaktivität (Tabs, Freigeben/Ablehnen, Anlegen, Scan) sitzt in
  * WissensbasisClient - hier wird nur einmal serverseitig geladen. */
@@ -46,14 +46,8 @@ export default async function AdminWissensbasisPage() {
 
   return (
     <main>
-      <Link
-        href="/admin"
-        className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-700"
-      >
-        <ArrowLeft size={15} /> Zurück zur Konten-Verwaltung
-      </Link>
       <div className="mb-6 flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold-50 text-gold-700">
           <BookMarked size={18} strokeWidth={2} />
         </span>
         <div>

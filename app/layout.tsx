@@ -6,6 +6,7 @@ import SiteHeader from "@/components/SiteHeader";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
 import { toHijri } from "@/lib/hijri";
+import { prisma } from "@/lib/prisma";
 
 const display = Newsreader({
   subsets: ["latin"],
@@ -51,6 +52,12 @@ export default async function RootLayout({
 }) {
   const user = await getSessionUser();
   const hijriDatum = toHijri(new Date()).label;
+  // Nur für Admins abgefragt (auf jeder Seite gerendert, siehe SiteHeader unten) - eine
+  // ungenutzte Zählabfrage für alle anderen Nutzer:innen wäre reine Verschwendung.
+  const offeneWissensEntwuerfe =
+    user?.role === "admin"
+      ? await prisma.wissensEintrag.count({ where: { status: "entwurf" } })
+      : undefined;
 
   return (
     <html lang="de" className={`${display.variable} ${sans.variable}`}>
@@ -66,6 +73,7 @@ export default async function RootLayout({
         </Script>
         <SiteHeader
           hijriDatum={hijriDatum}
+          offeneWissensEntwuerfe={offeneWissensEntwuerfe}
           user={
             user
               ? {
