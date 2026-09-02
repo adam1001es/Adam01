@@ -25,6 +25,8 @@ import {
   Check,
   GraduationCap,
   FileCheck2,
+  History,
+  X,
 } from "lucide-react";
 import {
   AUFGABEN_TYPEN_AKTIV,
@@ -318,12 +320,22 @@ export default function NewWorksheetForm({
   const [zeigeLernziel, setZeigeLernziel] = useState(false);
   const [farbmodus, setFarbmodus] = useState<Farbmodus>("schwarzweiss");
 
-  // Entwurf beim ersten Laden wiederherstellen (siehe FormDraft oben) - läuft nur EINMAL nach dem
-  // Mounten (nicht serverseitig möglich, da localStorage nur im Browser existiert), überschreibt
-  // dabei bewusst auch die initialSchulstufe/initialZusatzhinweise-Props, falls ein Entwurf
-  // vorliegt: der zuletzt eingegebene Stand ist verlässlicher als die grobe Vorbelegung.
+  // Gespeicherten Entwurf beim ersten Laden NUR erkennen, NICHT automatisch übernehmen (siehe
+  // FormDraft oben) - bewusst sichtbar statt still im Hintergrund: die Lehrkraft entscheidet
+  // per Klick, ob sie den vorherigen Stand zurückholt, statt dass Felder unbemerkt vorausgefüllt
+  // erscheinen (das war beim automatischen Wiederherstellen die Sorge - man merkt nicht ohne
+  // genaues Hinsehen, dass/was übernommen wurde).
+  const [verfuegbarerEntwurf, setVerfuegbarerEntwurf] = useState<Partial<FormDraft> | null>(null);
   useEffect(() => {
     const entwurf = ladeEntwurf(klasseId);
+    if (entwurf?.thema) setVerfuegbarerEntwurf(entwurf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Feldweise geprüft statt den ganzen Entwurf blind zu übernehmen - ein älterer, vor einer
+  // Formular-Erweiterung gespeicherter Entwurf kann einzelne Felder fehlen haben.
+  function entwurfUebernehmen() {
+    const entwurf = verfuegbarerEntwurf;
     if (!entwurf) return;
     if (entwurf.thema !== undefined) setThema(entwurf.thema);
     if (entwurf.schulstufeAuswahl !== undefined) setSchulstufeAuswahl(entwurf.schulstufeAuswahl);
@@ -347,8 +359,13 @@ export default function NewWorksheetForm({
     if (entwurf.musterVariante !== undefined) setMusterVariante(entwurf.musterVariante);
     if (entwurf.zeigeLernziel !== undefined) setZeigeLernziel(entwurf.zeigeLernziel);
     if (entwurf.farbmodus !== undefined) setFarbmodus(entwurf.farbmodus);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setVerfuegbarerEntwurf(null);
+  }
+
+  function entwurfVerwerfen() {
+    loescheEntwurf(klasseId);
+    setVerfuegbarerEntwurf(null);
+  }
 
   // Läuft bei JEDER Änderung eines Formularfelds mit - sichert immer den zuletzt eingegebenen
   // Stand, unabhängig davon, ob später ein Fehler auftritt, die Seite verlassen oder der Tab
@@ -529,6 +546,34 @@ export default function NewWorksheetForm({
   return (
     <div className="grid gap-8 md:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px]">
       <form onSubmit={handleSubmit} className="space-y-6">
+        {verfuegbarerEntwurf && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
+            <div className="flex items-center gap-2.5 text-sm text-brand-800">
+              <History size={16} className="shrink-0" />
+              <span>
+                Vorheriger Entwurf gefunden: <strong>„{verfuegbarerEntwurf.thema}"</strong> - z.B.
+                weil ein früherer Versuch nicht durchgelaufen ist.
+              </span>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={entwurfUebernehmen}
+                className="rounded-lg bg-brand-600 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700"
+              >
+                Thema &amp; Aufgaben übernehmen
+              </button>
+              <button
+                type="button"
+                onClick={entwurfVerwerfen}
+                title="Verwerfen"
+                className="rounded-lg p-1.5 text-brand-700 transition hover:bg-brand-100"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
         <SectionCard
           icon={BookOpen}
           title="Inhalt"
