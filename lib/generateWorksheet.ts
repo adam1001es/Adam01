@@ -262,10 +262,13 @@ async function generiereUndPruefeEinmal(
 
   const genResponse = await client.messages.create({
     model: GENERATION_MODEL,
-    // 16000 statt 8000: bei mehreren inhaltsreichen Aufgaben (zb 3x Kreuzworträtsel mit je
-    // 5-8 Hinweis/Antwort-Paaren) reichte das alte Limit nicht, die Antwort wurde mitten im
-    // JSON abgeschnitten ("Keine JSON-Struktur in der Modellantwort gefunden").
-    max_tokens: 16000,
+    // Bewusst deutlich über dem tatsächlichen Bedarf (siehe AUFGABEN_TYP_MAXIMUM: max. 10
+    // Aufgaben gesamt, "große" Typen wie Kreuzworträtsel/Wortsuche schon auf 1 pro Blatt
+    // gedeckelt) - reiner Sicherheitsspielraum für den Fall vieler gleichzeitig gewählter,
+    // inhaltsreicher Aufgabentypen bei 50 Minuten Zieldauer. War bereits einmal von 8000 auf
+    // 16000 angehoben, weil das alte Limit die Antwort mitten im JSON abschnitt
+    // ("Keine JSON-Struktur in der Modellantwort gefunden").
+    max_tokens: 24000,
     // GENERATION_SYSTEM_PROMPT_BASE ist bei jeder Anfrage byte-identisch (großer, statischer
     // Block) - als eigener, gecachter Prefix-Block ausgelagert. curriculumContext variiert pro
     // Anfrage (Themenbereich/Schulstufe) und steht daher NACH dem Cache-Breakpoint, damit er den

@@ -612,6 +612,13 @@ export default function NewWorksheetForm({
               fertige Blatt kann dadurch weniger Aufgaben enthalten als hier eingestellt.
             </p>
           )}
+          {aufgabentypen.length > 2 && zieldauerMinuten === 50 && (
+            <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs leading-relaxed text-slate-500">
+              Viele verschiedene Aufgabentypen gleichzeitig + 50 Minuten Zieldauer kann die
+              Erstellung etwas länger dauern lassen. Sollte sie in seltenen Fällen fehlschlagen,
+              hilft meist ein erneuter Versuch, notfalls mit weniger Aufgabentypen gleichzeitig.
+            </p>
+          )}
           {aufgabentypen.includes("recherche_auftrag") && (
             <p className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2 text-xs leading-relaxed text-slate-500">
               „Recherche-/Referat-Auftrag" eignet sich als längerfristige Projekt-/Hausaufgabe -
