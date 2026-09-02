@@ -94,7 +94,7 @@ const VORSCHAU_INHALT: WorksheetContent = {
       typ: "zuordnung",
       frage: "Ordne die Begriffe ihrer Bedeutung zu.",
       zuordnungLinks: ["Sawm", "Zakat"],
-      zuordnungRechts: ["Das Fasten", "Die Armenabgabe"],
+      zuordnungRechts: ["Das Fasten", "Die Pflichtabgabe"],
       anforderungsbereich: "afb1",
     },
     {
@@ -106,7 +106,7 @@ const VORSCHAU_INHALT: WorksheetContent = {
   ],
   loesungen: [
     { nr: 1, loesung: "Das Fasten im Ramadan" },
-    { nr: 2, loesung: "Sawm - Das Fasten, Zakat - Die Armenabgabe" },
+    { nr: 2, loesung: "Sawm - Das Fasten, Zakat - Die Pflichtabgabe" },
     { nr: 3, loesung: "Individuelle Antwort" },
   ],
   quellen: [{ bezeichnung: "Beispiel-Quelle", sicherheit: "gesichert" }],

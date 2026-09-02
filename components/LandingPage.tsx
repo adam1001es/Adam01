@@ -113,7 +113,7 @@ const HERO_VORSCHAU_INHALT: WorksheetContent = {
       typ: "zuordnung",
       frage: "Ordne die Begriffe ihrer Bedeutung zu.",
       zuordnungLinks: ["Sawm", "Zakat", "Hadsch"],
-      zuordnungRechts: ["Das Fasten", "Die Armenabgabe", "Die Pilgerfahrt"],
+      zuordnungRechts: ["Das Fasten", "Die Pflichtabgabe", "Die Pilgerfahrt"],
       anforderungsbereich: "afb1",
     },
     {
@@ -125,7 +125,7 @@ const HERO_VORSCHAU_INHALT: WorksheetContent = {
   ],
   loesungen: [
     { nr: 1, loesung: "Das Fasten im Ramadan" },
-    { nr: 2, loesung: "Sawm - Das Fasten, Zakat - Die Armenabgabe, Hadsch - Die Pilgerfahrt" },
+    { nr: 2, loesung: "Sawm - Das Fasten, Zakat - Die Pflichtabgabe, Hadsch - Die Pilgerfahrt" },
     { nr: 3, loesung: "Individuelle Antwort" },
   ],
   quellen: [{ bezeichnung: "Sure 2 (Al-Baqara), Vers 177", sicherheit: "gesichert" }],

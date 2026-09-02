@@ -10,7 +10,7 @@ import { AufgabeSchema, Aufgabe } from "./types";
  * unterscheidet), weil beide denselben Lebenszyklus (entwurf -> geprueft/abgelehnt) und dieselbe
  * Zuordnung zu einer Grundkompetenz haben - eine eigene Tabelle pro Typ wäre reine Duplikation.
  */
-export const WISSENS_TYPEN = ["zitat", "musteraufgabe"] as const;
+export const WISSENS_TYPEN = ["zitat", "musteraufgabe", "begriff"] as const;
 export type WissensTyp = (typeof WISSENS_TYPEN)[number];
 
 export const WISSENS_STATUS = ["entwurf", "geprueft", "abgelehnt"] as const;
@@ -19,6 +19,7 @@ export type WissensStatus = (typeof WISSENS_STATUS)[number];
 export const WISSENS_TYP_LABEL: Record<WissensTyp, string> = {
   zitat: "Zitat (Koran/Hadith)",
   musteraufgabe: "Musteraufgabe",
+  begriff: "Begriff (islamische Terminologie)",
 };
 
 export const WISSENS_STATUS_LABEL: Record<WissensStatus, string> = {
@@ -42,11 +43,25 @@ export type ZitatInhalt = z.infer<typeof ZitatInhaltSchema>;
  * werden kann (siehe geprüfteMusteraufgaben in diesem Modul). */
 export const MusteraufgabeInhaltSchema = AufgabeSchema;
 
+/** Inhalt eines "begriff"-Eintrags - ein Glossar islamischer Fachbegriffe (z.B. "Siyam", "Zakat",
+ * "Barzakh"), die künftig als verlässliche, geprüfte Vokabelbasis für Generierung/Erklärungen
+ * dienen sollen, statt sich bei jeder Anfrage auf das Modellgedächtnis zu verlassen (analog zu
+ * geprüften Zitaten). Wird bewusst NUR angelegt/verwaltet - die Aufnahme in den
+ * Generierungs-Prompt (analog zu buildWissensbasisSystemContext) folgt erst, sobald ein
+ * ausreichender geprüfter Grundbestand existiert. */
+export const BegriffInhaltSchema = z.object({
+  begriff: z.string(), // transliterierte Schreibweise, z.B. "Siyam"
+  arabisch: z.string().optional(), // arabische Originalschreibweise, z.B. "صيام"
+  bedeutung: z.string(), // deutsche Erklärung/Definition
+  kontext: z.string().optional(), // wofür/in welchem Zusammenhang gebraucht
+});
+export type BegriffInhalt = z.infer<typeof BegriffInhaltSchema>;
+
 export interface WissensEintragCreateInput {
   typ: WissensTyp;
   themenbereich: ThemenbereichKey;
   schulstufeCluster?: string | null;
-  inhalt: ZitatInhalt | Aufgabe;
+  inhalt: ZitatInhalt | Aufgabe | BegriffInhalt;
   rechercheNotiz?: string;
   quellWorksheetIds?: string[];
 }
@@ -89,6 +104,31 @@ export async function findeVorhandenesZitat(
   return null;
 }
 
+/** Gegenstück zu findeVorhandenesZitat für "begriff"-Einträge - verhindert, dass derselbe Begriff
+ * (z.B. "Siyam") mehrfach angelegt wird, während der Admin nach und nach das Glossar aufbaut. */
+export async function findeVorhandenenBegriff(
+  begriff: string,
+): Promise<{ id: string; status: WissensStatus } | null> {
+  const gesucht = normalisiereBezeichnung(begriff);
+  if (!gesucht) return null;
+  const bestehende = await prisma.wissensEintrag.findMany({
+    where: { typ: "begriff" },
+    select: { id: true, inhalt: true, status: true },
+  });
+  for (const e of bestehende) {
+    let inhalt: BegriffInhalt;
+    try {
+      inhalt = JSON.parse(e.inhalt);
+    } catch {
+      continue;
+    }
+    if (normalisiereBezeichnung(inhalt.begriff ?? "") === gesucht) {
+      return { id: e.id, status: e.status as WissensStatus };
+    }
+  }
+  return null;
+}
+
 /** Legt einen neuen Wissens-Eintrag IMMER als "entwurf" an - unabhängig davon, wer/was den
  * Eintrag erzeugt hat (KI-Recherche, Mining aus Arbeitsblättern, o.ä.). Es gibt bewusst KEINEN
  * Parameter, um direkt mit Status "geprueft" anzulegen: die Freigabe ist ausschließlich ein
@@ -122,7 +162,7 @@ export async function setzeStatus(id: string, status: "geprueft" | "abgelehnt") 
 
 export async function aktualisiereInhalt(
   id: string,
-  inhalt: ZitatInhalt | Aufgabe,
+  inhalt: ZitatInhalt | Aufgabe | BegriffInhalt,
   rechercheNotiz?: string,
 ) {
   return prisma.wissensEintrag.update({

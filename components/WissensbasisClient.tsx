@@ -11,7 +11,7 @@ import { formatiereKoranZitat, type QuranVers } from "@/lib/quranApi";
 
 export interface WissensEintragRow {
   id: string;
-  typ: "zitat" | "musteraufgabe";
+  typ: "zitat" | "musteraufgabe" | "begriff";
   themenbereich: string;
   schulstufeCluster: string | null;
   inhalt: unknown;
@@ -28,11 +28,12 @@ const STATUS_BADGE: Record<string, string> = {
   abgelehnt: "border-slate-200 bg-slate-100 text-slate-500",
 };
 
-type Tab = "zitat" | "musteraufgabe" | "analyse";
+type Tab = "zitat" | "musteraufgabe" | "begriff" | "analyse";
 
 /** Interaktiver Teil der Admin-only Wissensbasis (siehe app/admin/wissensbasis/page.tsx für die
- * serverseitige Datenladung, lib/wissensbasis.ts für das Gesamtkonzept). Drei Tabs: Zitate,
- * Musteraufgaben (beide mit demselben Freigabe-Workflow), Aufgabentyp-Analyse (rein lesend). */
+ * serverseitige Datenladung, lib/wissensbasis.ts für das Gesamtkonzept). Vier Tabs: Zitate,
+ * Musteraufgaben, Begriffe (alle drei mit demselben Freigabe-Workflow), Aufgabentyp-Analyse (rein
+ * lesend). */
 export default function WissensbasisClient({
   eintraege,
   analyse,
@@ -73,7 +74,7 @@ export default function WissensbasisClient({
   return (
     <div>
       <div className="mb-5 flex flex-wrap gap-2 border-b border-slate-200">
-        {(["zitat", "musteraufgabe", "analyse"] as const).map((t) => (
+        {(["zitat", "musteraufgabe", "begriff", "analyse"] as const).map((t) => (
           <button
             key={t}
             type="button"
@@ -87,7 +88,13 @@ export default function WissensbasisClient({
                 : "border-transparent text-slate-500 hover:text-slate-700"
             }`}
           >
-            {t === "zitat" ? "Zitate" : t === "musteraufgabe" ? "Musteraufgaben" : "Aufgabentyp-Analyse"}
+            {t === "zitat"
+              ? "Zitate"
+              : t === "musteraufgabe"
+                ? "Musteraufgaben"
+                : t === "begriff"
+                  ? "Begriffe"
+                  : "Aufgabentyp-Analyse"}
             {entwuerfeAnzahl(t) > 0 && (
               <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700">
                 {entwuerfeAnzahl(t)}
@@ -356,7 +363,13 @@ function EintragCard({ eintrag }: { eintrag: WissensEintragRow }) {
   );
 }
 
-function InhaltAnzeige({ typ, inhalt }: { typ: "zitat" | "musteraufgabe"; inhalt: unknown }) {
+function InhaltAnzeige({
+  typ,
+  inhalt,
+}: {
+  typ: "zitat" | "musteraufgabe" | "begriff";
+  inhalt: unknown;
+}) {
   if (typ === "zitat") {
     const z = inhalt as { bezeichnung?: string; text?: string; kontext?: string };
     return (
@@ -364,6 +377,19 @@ function InhaltAnzeige({ typ, inhalt }: { typ: "zitat" | "musteraufgabe"; inhalt
         <p className="text-sm font-medium text-slate-800">{z.bezeichnung}</p>
         {z.text && <p className="mt-0.5 text-sm text-slate-600">{z.text}</p>}
         {z.kontext && <p className="mt-0.5 text-xs italic text-slate-500">{z.kontext}</p>}
+      </div>
+    );
+  }
+  if (typ === "begriff") {
+    const b = inhalt as { begriff?: string; arabisch?: string; bedeutung?: string; kontext?: string };
+    return (
+      <div className="mt-2">
+        <p className="text-sm font-medium text-slate-800">
+          {b.begriff}
+          {b.arabisch && <span className="ml-2 font-normal text-slate-500">{b.arabisch}</span>}
+        </p>
+        {b.bedeutung && <p className="mt-0.5 text-sm text-slate-600">{b.bedeutung}</p>}
+        {b.kontext && <p className="mt-0.5 text-xs italic text-slate-500">{b.kontext}</p>}
       </div>
     );
   }
@@ -779,7 +805,7 @@ function NeuerEintragForm({
   typ,
   onDone,
 }: {
-  typ: "zitat" | "musteraufgabe";
+  typ: "zitat" | "musteraufgabe" | "begriff";
   onDone: () => void;
 }) {
   const [themenbereich, setThemenbereich] = useState<string>(THEMENBEREICH_KEYS[0]);
@@ -787,6 +813,9 @@ function NeuerEintragForm({
   const [bezeichnung, setBezeichnung] = useState("");
   const [text, setText] = useState("");
   const [kontext, setKontext] = useState("");
+  const [begriff, setBegriff] = useState("");
+  const [arabisch, setArabisch] = useState("");
+  const [bedeutung, setBedeutung] = useState("");
   const [inhaltJson, setInhaltJson] = useState(
     '{\n  "nr": 1,\n  "typ": "offene_frage",\n  "frage": "",\n  "anforderungsbereich": "afb1"\n}',
   );
@@ -800,6 +829,8 @@ function NeuerEintragForm({
     let inhalt: unknown;
     if (typ === "zitat") {
       inhalt = { bezeichnung, text: text || undefined, kontext: kontext || undefined };
+    } else if (typ === "begriff") {
+      inhalt = { begriff, arabisch: arabisch || undefined, bedeutung, kontext: kontext || undefined };
     } else {
       try {
         inhalt = JSON.parse(inhaltJson);
@@ -876,6 +907,37 @@ function NeuerEintragForm({
           <label className="block">
             <span className={labelClass}>Text/Übersetzung (optional)</span>
             <textarea className={inputClass} rows={2} value={text} onChange={(e) => setText(e.target.value)} />
+          </label>
+          <label className="block">
+            <span className={labelClass}>Kontext/Einsatz (optional)</span>
+            <textarea className={inputClass} rows={2} value={kontext} onChange={(e) => setKontext(e.target.value)} />
+          </label>
+        </>
+      ) : typ === "begriff" ? (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className={labelClass}>Begriff (z.B. „Siyam")</span>
+              <input className={inputClass} value={begriff} onChange={(e) => setBegriff(e.target.value)} />
+            </label>
+            <label className="block">
+              <span className={labelClass}>Arabische Schreibweise (optional)</span>
+              <input
+                dir="rtl"
+                className={inputClass}
+                value={arabisch}
+                onChange={(e) => setArabisch(e.target.value)}
+              />
+            </label>
+          </div>
+          <label className="block">
+            <span className={labelClass}>Bedeutung/Erklärung</span>
+            <textarea
+              className={inputClass}
+              rows={2}
+              value={bedeutung}
+              onChange={(e) => setBedeutung(e.target.value)}
+            />
           </label>
           <label className="block">
             <span className={labelClass}>Kontext/Einsatz (optional)</span>

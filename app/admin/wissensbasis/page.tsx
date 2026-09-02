@@ -30,7 +30,7 @@ export default async function AdminWissensbasisPage() {
     }
     return {
       id: e.id,
-      typ: e.typ as "zitat" | "musteraufgabe",
+      typ: e.typ as "zitat" | "musteraufgabe" | "begriff",
       themenbereich: e.themenbereich,
       schulstufeCluster: e.schulstufeCluster,
       inhalt,
@@ -53,8 +53,9 @@ export default async function AdminWissensbasisPage() {
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800">Wissensbasis</h1>
           <p className="text-sm text-slate-500">
-            Geprüfte Zitate und Musteraufgaben, auf die die Generierung künftig zugreift - mit der
-            Zeit wachsender, sicherer Bestand statt Modellgedächtnis bei jeder Anfrage.
+            Geprüfte Zitate, Musteraufgaben und Begriffe, auf die die Generierung künftig
+            zugreift - mit der Zeit wachsender, sicherer Bestand statt Modellgedächtnis bei jeder
+            Anfrage.
           </p>
         </div>
       </div>

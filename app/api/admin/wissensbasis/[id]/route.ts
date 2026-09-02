@@ -8,6 +8,7 @@ import {
   loescheWissensEintrag,
   ZitatInhaltSchema,
   MusteraufgabeInhaltSchema,
+  BegriffInhaltSchema,
 } from "@/lib/wissensbasis";
 
 const BodySchema = z
@@ -50,7 +51,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 
   if (parsed.data.inhalt !== undefined) {
-    const inhaltSchema = target.typ === "zitat" ? ZitatInhaltSchema : MusteraufgabeInhaltSchema;
+    const inhaltSchema =
+      target.typ === "zitat"
+        ? ZitatInhaltSchema
+        : target.typ === "begriff"
+          ? BegriffInhaltSchema
+          : MusteraufgabeInhaltSchema;
     const inhaltParsed = inhaltSchema.safeParse(parsed.data.inhalt);
     if (!inhaltParsed.success) {
       return NextResponse.json(

@@ -5,10 +5,12 @@ import { THEMENBEREICH_KEYS } from "@/lib/curriculum";
 import {
   legeWissensEntwurfAn,
   findeVorhandenesZitat,
+  findeVorhandenenBegriff,
   WISSENS_TYPEN,
   WISSENS_STATUS_LABEL,
   ZitatInhaltSchema,
   MusteraufgabeInhaltSchema,
+  BegriffInhaltSchema,
 } from "@/lib/wissensbasis";
 
 const BodySchema = z.object({
@@ -44,7 +46,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const inhaltSchema = parsed.data.typ === "zitat" ? ZitatInhaltSchema : MusteraufgabeInhaltSchema;
+  const inhaltSchema =
+    parsed.data.typ === "zitat"
+      ? ZitatInhaltSchema
+      : parsed.data.typ === "begriff"
+        ? BegriffInhaltSchema
+        : MusteraufgabeInhaltSchema;
   const inhaltParsed = inhaltSchema.safeParse(parsed.data.inhalt);
   if (!inhaltParsed.success) {
     return NextResponse.json(
@@ -53,11 +60,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Verhindert doppelt angelegte Zitate - z.B. wenn ein Link-Import (lib/linkImport.ts) nach
-  // Anpassungen erneut übernommen wird, oder dasselbe Koran-Nachschlage-Ergebnis zweimal auf
-  // "Als Entwurf übernehmen" geklickt wird. Nur für "zitat" relevant (siehe
-  // findeVorhandenesZitat) - bei "musteraufgabe" gibt es kein vergleichbares
-  // Bezeichnungs-Feld, mehrere ähnliche Beispielaufgaben sind dort auch kein Problem.
+  // Verhindert doppelt angelegte Zitate/Begriffe - z.B. wenn ein Link-Import (lib/linkImport.ts)
+  // nach Anpassungen erneut übernommen wird, dasselbe Koran-Nachschlage-Ergebnis zweimal auf
+  // "Als Entwurf übernehmen" geklickt wird, oder ein Begriff (z.B. "Siyam") beim Aufbau des
+  // Glossars aus Versehen ein zweites Mal eingetragen wird. Bei "musteraufgabe" gibt es kein
+  // vergleichbares Bezeichnungs-Feld, mehrere ähnliche Beispielaufgaben sind dort auch kein
+  // Problem.
   if (parsed.data.typ === "zitat") {
     const bezeichnung = (inhaltParsed.data as { bezeichnung?: string }).bezeichnung ?? "";
     const vorhanden = await findeVorhandenesZitat(bezeichnung);
@@ -65,6 +73,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: `Ein Zitat mit dieser Bezeichnung existiert bereits in der Wissensbasis (Status: ${WISSENS_STATUS_LABEL[vorhanden.status]}).`,
+          duplikatId: vorhanden.id,
+        },
+        { status: 409 },
+      );
+    }
+  } else if (parsed.data.typ === "begriff") {
+    const begriff = (inhaltParsed.data as { begriff?: string }).begriff ?? "";
+    const vorhanden = await findeVorhandenenBegriff(begriff);
+    if (vorhanden) {
+      return NextResponse.json(
+        {
+          error: `Dieser Begriff existiert bereits in der Wissensbasis (Status: ${WISSENS_STATUS_LABEL[vorhanden.status]}).`,
           duplikatId: vorhanden.id,
         },
         { status: 409 },
