@@ -140,13 +140,14 @@ const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch:
 };
 
 /**
- * Automatische Zwischenspeicherung der Formulareingaben im Browser (localStorage) - real
- * beobachtet: nach einem fehlgeschlagenen Erstellen-Versuch war die Lehrkraft zur Übersicht
- * gewechselt und beim Zurückkommen war das Formular wieder auf die Standardwerte zurückgesprungen
- * (Schulstufe fälschlich neu gewählt, versehentlich ein zweites, ungewolltes Arbeitsblatt erzeugt).
- * Läuft unabhängig davon, WARUM die Eingabe verlassen wird (Fehler, Navigation, Tab
- * geschlossen) - kein Sonderfall nur für den Fehlerpfad, einfach immer der zuletzt eingegebene
- * Stand. Pro Klasse (bzw. "allgemein" ohne Klassenkontext) ein eigener Entwurf, damit sich
+ * Zwischenspeicherung der Formulareingaben im Browser (localStorage) - real beobachtet: nach
+ * einem fehlgeschlagenen Erstellen-Versuch war die Lehrkraft zur Übersicht gewechselt und beim
+ * Zurückkommen war das Formular wieder auf die Standardwerte zurückgesprungen (Schulstufe
+ * fälschlich neu gewählt, versehentlich ein zweites, ungewolltes Arbeitsblatt erzeugt). Der
+ * Schnappschuss wird bewusst NUR beim tatsächlichen Abschicken angelegt (siehe handleSubmit),
+ * nicht bei jedem Tippen - sonst würde das Wiederherstellen-Banner unten schon erscheinen, wenn
+ * jemand nur kurz etwas eingetippt und die Seite ohne jeden Erstellen-Versuch wieder verlassen
+ * hat. Pro Klasse (bzw. "allgemein" ohne Klassenkontext) ein eigener Entwurf, damit sich
  * Prüfungs- und normale Arbeitsblatt-Entwürfe nicht gegenseitig überschreiben.
  */
 interface FormDraft {
@@ -367,60 +368,6 @@ export default function NewWorksheetForm({
     setVerfuegbarerEntwurf(null);
   }
 
-  // Läuft bei JEDER Änderung eines Formularfelds mit - sichert immer den zuletzt eingegebenen
-  // Stand, unabhängig davon, ob später ein Fehler auftritt, die Seite verlassen oder der Tab
-  // geschlossen wird (siehe FormDraft oben).
-  useEffect(() => {
-    speichereEntwurf(klasseId, {
-      thema,
-      schulstufeAuswahl,
-      schulstufeFrei,
-      zieldauerMinuten,
-      komplexitaet,
-      aufgabentypen,
-      punkteGesamt,
-      zusatzhinweise,
-      themenbereich,
-      koranFokusAktiv,
-      koranSureNummer,
-      koranGanzeSure,
-      koranVonVers,
-      koranBisVers,
-      template,
-      schulname,
-      schriftgroesse,
-      zeigeIslamischesDatum,
-      zeigeMuster,
-      musterVariante,
-      zeigeLernziel,
-      farbmodus,
-    });
-  }, [
-    klasseId,
-    thema,
-    schulstufeAuswahl,
-    schulstufeFrei,
-    zieldauerMinuten,
-    komplexitaet,
-    aufgabentypen,
-    punkteGesamt,
-    zusatzhinweise,
-    themenbereich,
-    koranFokusAktiv,
-    koranSureNummer,
-    koranGanzeSure,
-    koranVonVers,
-    koranBisVers,
-    template,
-    schulname,
-    schriftgroesse,
-    zeigeIslamischesDatum,
-    zeigeMuster,
-    musterVariante,
-    zeigeLernziel,
-    farbmodus,
-  ]);
-
   function toggleTyp(typ: string) {
     setAufgabentypen((prev) =>
       prev.includes(typ) ? prev.filter((t) => t !== typ) : [...prev, typ],
@@ -459,6 +406,35 @@ export default function NewWorksheetForm({
       setError(`Für den Koran-Fokus bitte höchstens ${MAX_VERSE_PRO_ABFRAGE} Verse auswählen.`);
       return;
     }
+
+    // Entwurf-Schnappschuss GENAU in dem Moment, in dem tatsächlich ein Versuch gestartet wird -
+    // nicht schon bei jedem Tippen (siehe FormDraft oben): das Wiederherstellen-Banner soll nur
+    // erscheinen, wenn ein Versuch wirklich nicht durchgelaufen ist, nicht schon weil jemand nur
+    // kurz etwas eingetippt und die Seite wieder verlassen hat, ohne überhaupt abzusenden.
+    speichereEntwurf(klasseId, {
+      thema,
+      schulstufeAuswahl,
+      schulstufeFrei,
+      zieldauerMinuten,
+      komplexitaet,
+      aufgabentypen,
+      punkteGesamt,
+      zusatzhinweise,
+      themenbereich,
+      koranFokusAktiv,
+      koranSureNummer,
+      koranGanzeSure,
+      koranVonVers,
+      koranBisVers,
+      template,
+      schulname,
+      schriftgroesse,
+      zeigeIslamischesDatum,
+      zeigeMuster,
+      musterVariante,
+      zeigeLernziel,
+      farbmodus,
+    });
 
     setLoading(true);
     try {
