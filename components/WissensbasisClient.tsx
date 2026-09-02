@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, XCircle, Trash2, RefreshCw, Plus, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Trash2, RefreshCw, Plus, Loader2, BookOpenText } from "lucide-react";
 import { THEMENBEREICHE, THEMENBEREICH_KEYS, SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
 import { WISSENS_STATUS_LABEL } from "@/lib/wissensbasis";
 import type { AufgabentypAnalyseZeile } from "@/lib/wissensbasis";
@@ -44,6 +44,7 @@ export default function WissensbasisClient({
   const [scanLaeuft, setScanLaeuft] = useState(false);
   const [scanErgebnis, setScanErgebnis] = useState<string | null>(null);
   const [formOffen, setFormOffen] = useState(false);
+  const [koranOffen, setKoranOffen] = useState(false);
 
   const gefiltert = eintraege.filter((e) => e.typ === tab);
   const entwuerfeAnzahl = (typ: Tab) =>
@@ -110,6 +111,15 @@ export default function WissensbasisClient({
                 Arbeitsblätter durchsuchen
               </button>
             )}
+            {tab === "zitat" && (
+              <button
+                type="button"
+                onClick={() => setKoranOffen((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gold-300 bg-gold-50 px-3.5 py-2 text-sm font-medium text-gold-700 shadow-sm transition hover:bg-gold-100"
+              >
+                <BookOpenText size={15} /> Aus dem Koran nachschlagen
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setFormOffen((v) => !v)}
@@ -119,6 +129,15 @@ export default function WissensbasisClient({
             </button>
             {scanErgebnis && <span className="text-xs text-slate-500">{scanErgebnis}</span>}
           </div>
+
+          {koranOffen && tab === "zitat" && (
+            <KoranNachschlagen
+              onDone={() => {
+                setKoranOffen(false);
+                router.refresh();
+              }}
+            />
+          )}
 
           {formOffen && (
             <NeuerEintragForm
@@ -380,6 +399,156 @@ function AnalyseTabelle({ analyse }: { analyse: AufgabentypAnalyseZeile[] }) {
         „davon gemeldet" bezieht sich auf das ganze Arbeitsblatt, nicht zwingend auf diese konkrete
         Aufgabe - grobes Signal, keine exakte Fehlerquote.
       </p>
+    </div>
+  );
+}
+
+interface KoranVersErgebnis {
+  sureNummer: number;
+  sureNameTransliteriert: string;
+  versNummer: number;
+  arabisch: string;
+  deutsch: string;
+}
+
+/** Live-Nachschlagewerkzeug statt Korantext selbst zu speichern/aus dem Gedächtnis
+ * abzuschreiben (siehe lib/quranApi.ts) - holt Arabisch + deutsche Übersetzung (Bubenheim &
+ * Elyas) direkt von der Al-Quran-Cloud-API. Der Admin wählt gezielt aus, was als Entwurf in die
+ * Wissensbasis übernommen wird - kein Massen-Import des ganzen Korans auf einmal. */
+function KoranNachschlagen({ onDone }: { onDone: () => void }) {
+  const [sure, setSure] = useState("2");
+  const [von, setVon] = useState("255");
+  const [bis, setBis] = useState("255");
+  const [themenbereich, setThemenbereich] = useState<string>(THEMENBEREICH_KEYS[0]);
+  const [suchLaeuft, setSuchLaeuft] = useState(false);
+  const [uebernehmenLaeuft, setUebernehmenLaeuft] = useState(false);
+  const [ergebnis, setErgebnis] = useState<KoranVersErgebnis[] | null>(null);
+  const [fehler, setFehler] = useState<string | null>(null);
+
+  async function suchen() {
+    setSuchLaeuft(true);
+    setFehler(null);
+    setErgebnis(null);
+    try {
+      const params = new URLSearchParams({ sure, von, bis: bis || von });
+      const res = await fetch(`/api/admin/wissensbasis/koran-nachschlagen?${params}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Nachschlagen fehlgeschlagen.");
+      setErgebnis(data.verse);
+    } catch (err) {
+      setFehler(err instanceof Error ? err.message : "Nachschlagen fehlgeschlagen.");
+    } finally {
+      setSuchLaeuft(false);
+    }
+  }
+
+  async function uebernehmen() {
+    if (!ergebnis || ergebnis.length === 0) return;
+    setUebernehmenLaeuft(true);
+    setFehler(null);
+    const erste = ergebnis[0];
+    const letzte = ergebnis[ergebnis.length - 1];
+    const bezeichnung =
+      ergebnis.length === 1
+        ? `Sure ${erste.sureNummer} (${erste.sureNameTransliteriert}), Vers ${erste.versNummer}`
+        : `Sure ${erste.sureNummer} (${erste.sureNameTransliteriert}), Verse ${erste.versNummer}-${letzte.versNummer}`;
+    const text = ergebnis.map((v) => v.deutsch).join(" ");
+    try {
+      const res = await fetch("/api/admin/wissensbasis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          typ: "zitat",
+          themenbereich,
+          inhalt: { bezeichnung, text },
+          rechercheNotiz:
+            "Text direkt per Al-Quran-Cloud-API (Edition de.bubenheim - Bubenheim & Elyas) abgerufen, keine manuelle Abschrift - bitte trotzdem inhaltlich/thematisch gegenchecken, bevor freigegeben wird.",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Anlegen fehlgeschlagen.");
+      setErgebnis(null);
+      onDone();
+    } catch (err) {
+      setFehler(err instanceof Error ? err.message : "Anlegen fehlgeschlagen.");
+    } finally {
+      setUebernehmenLaeuft(false);
+    }
+  }
+
+  return (
+    <div className="mb-4 space-y-3 rounded-xl border border-gold-200 bg-gold-50/40 p-4">
+      <p className="text-xs leading-relaxed text-gold-700">
+        Ruft den Vers live über die Al-Quran-Cloud-API ab (Arabisch + deutsche Übersetzung von
+        Bubenheim &amp; Elyas) - kein Abschreiben aus dem Gedächtnis, der Text ist damit
+        garantiert korrekt zitiert. Es wird nichts automatisch gespeichert, nur was du unten
+        explizit übernimmst.
+      </p>
+      <div className="flex flex-wrap items-end gap-2">
+        <label className="block">
+          <span className={labelClass}>Sure (1-114)</span>
+          <input className={`${inputClass} w-20`} value={sure} onChange={(e) => setSure(e.target.value)} />
+        </label>
+        <label className="block">
+          <span className={labelClass}>Vers von</span>
+          <input className={`${inputClass} w-20`} value={von} onChange={(e) => setVon(e.target.value)} />
+        </label>
+        <label className="block">
+          <span className={labelClass}>bis (optional)</span>
+          <input className={`${inputClass} w-20`} value={bis} onChange={(e) => setBis(e.target.value)} />
+        </label>
+        <button
+          type="button"
+          onClick={suchen}
+          disabled={suchLaeuft}
+          className="rounded-lg bg-gold-600 px-4 py-2 text-sm font-medium text-white hover:bg-gold-700 disabled:opacity-60"
+        >
+          {suchLaeuft ? "Suche..." : "Nachschlagen"}
+        </button>
+      </div>
+
+      {fehler && <p className="text-xs text-red-600">{fehler}</p>}
+
+      {ergebnis && (
+        <div className="space-y-3 rounded-lg bg-white/70 p-3">
+          <div className="space-y-2">
+            {ergebnis.map((v) => (
+              <div key={v.versNummer}>
+                <p dir="rtl" className="text-right text-lg leading-relaxed text-slate-800">
+                  {v.arabisch}
+                </p>
+                <p className="text-sm text-slate-700">
+                  {v.versNummer}. {v.deutsch}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-end gap-2 border-t border-slate-200 pt-3">
+            <label className="block">
+              <span className={labelClass}>Grundkompetenz</span>
+              <select
+                className={inputClass}
+                value={themenbereich}
+                onChange={(e) => setThemenbereich(e.target.value)}
+              >
+                {THEMENBEREICH_KEYS.map((k) => (
+                  <option key={k} value={k}>
+                    {THEMENBEREICHE[k].label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={uebernehmen}
+              disabled={uebernehmenLaeuft}
+              className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
+            >
+              Als Entwurf übernehmen
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
