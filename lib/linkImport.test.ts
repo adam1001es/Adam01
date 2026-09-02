@@ -41,6 +41,13 @@ describe("importiereZitateVonLink", () => {
     await expect(importiereZitateVonLink("https://example.com/hadith")).rejects.toThrow(/Status 404/);
   });
 
+  it("erklärt bei Status 403 den wahrscheinlichen Bot-Schutz statt nur den Statuscode zu nennen", async () => {
+    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: false, status: 403 });
+    await expect(importiereZitateVonLink("https://example.com/hadith")).rejects.toThrow(
+      /blockiert automatisierte Abrufe/,
+    );
+  });
+
   it("extrahiert ein einzelnes Zitat samt Grundkompetenz-Einordnung aus der Modellantwort", async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,

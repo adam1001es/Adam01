@@ -36,6 +36,20 @@ function validiereUrl(url: string): URL {
   return parsed;
 }
 
+// Ein per-URL erkennbarer Bot-User-Agent (z.B. "...LernwerkImportTool/1.0") wird von etlichen
+// Seiten mit einfachem Bot-/WAF-Schutz (u.a. mod_security-artige Regeln, die gezielt nach
+// bekannten Bot-Signaturen filtern) direkt mit 403 abgelehnt, obwohl ein normaler Browser
+// dieselbe Seite problemlos sieht (real beobachtet, siehe Session-Historie) - ein echter,
+// aktueller Desktop-Browser-User-Agent samt der Header, die ein Browser normalerweise mitschickt,
+// kommt an solchen einfachen Filtern häufiger vorbei. Löst KEINEN JS-Challenge-/Cloudflare-Schutz
+// (der bräuchte einen echten Browser), hilft aber bei der häufigeren, einfacheren Sperrart.
+const BROWSER_HEADERS: Record<string, string> = {
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+  Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+  "Accept-Language": "de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7",
+};
+
 /** Holt die Seite und wandelt das HTML in reinen, groben Lesetext um - keine site-spezifische
  * Extraktion (jede Seite ist anders aufgebaut), stattdessen überlässt geholeSeitenText der
  * anschließenden Claude-Anfrage, die eigentlichen Zitate im Text zu finden. */
@@ -45,10 +59,15 @@ async function holeSeitenText(url: string): Promise<string> {
   try {
     res = await fetch(parsed, {
       signal: AbortSignal.timeout(20000),
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; LernwerkImportTool/1.0)" },
+      headers: BROWSER_HEADERS,
     });
   } catch {
     throw new Error("Seite konnte nicht abgerufen werden (Netzwerkfehler).");
+  }
+  if (res.status === 403) {
+    throw new Error(
+      "Seite konnte nicht abgerufen werden (Status 403) - diese Seite blockiert automatisierte Abrufe, ein normaler Browser sieht sie aber offenbar problemlos. Als Ausweg: Text/Quellenangabe stattdessen manuell über „Eintrag anlegen“ übernehmen.",
+    );
   }
   if (!res.ok) {
     throw new Error(`Seite konnte nicht abgerufen werden (Status ${res.status}).`);
