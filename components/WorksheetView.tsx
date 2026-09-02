@@ -170,7 +170,7 @@ export default function WorksheetView({
                     </span>
                   )}
                 </div>
-                {a.typ === "lesetext" && a.lesetext && (
+                {a.lesetext && (
                   <div className="mb-1.5 rounded-lg border border-slate-200 bg-slate-50/60 p-3 text-sm italic leading-relaxed text-slate-600">
                     {a.lesetext}
                   </div>

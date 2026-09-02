@@ -379,6 +379,23 @@ export default function EditWorksheetForm({
                 </label>
               )}
 
+              {a.typ === "reihenfolge" && (
+                <label className="mb-3 block">
+                  <span className={labelClass}>Kontext-Text (optional)</span>
+                  <p className="mb-1 text-xs text-slate-400">
+                    Nur nötig, wenn die richtige Reihenfolge nicht aus Allgemeinwissen ableitbar
+                    ist - dann hier die Informationen liefern, aus denen sich die Reihenfolge
+                    beim Lesen erschließt.
+                  </p>
+                  <textarea
+                    className={inputClass}
+                    rows={4}
+                    value={a.lesetext ?? ""}
+                    onChange={(e) => updateAufgabe(a.nr, { lesetext: e.target.value })}
+                  />
+                </label>
+              )}
+
               {a.typ === "wortsuche" && (
                 <label className="mb-3 block">
                   <span className={labelClass}>Gesuchte Wörter (durch Komma getrennt)</span>

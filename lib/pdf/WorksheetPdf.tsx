@@ -540,9 +540,7 @@ function AufgabenListe({
           {/* AFB-Angabe ("Reproduktion"/"Transfer"/...) ist Lehrkraft-Jargon und würde
               Schüler:innen nur irritieren - bewusst nicht mit auf dem Blatt. */}
           <Text style={styles.aufgabeTyp}>{TYP_LABEL[a.typ]}</Text>
-          {a.typ === "lesetext" && a.lesetext && (
-            <Text style={styles.lesetextBox}>{a.lesetext}</Text>
-          )}
+          {a.lesetext && <Text style={styles.lesetextBox}>{a.lesetext}</Text>}
           <Text style={styles.aufgabeKopf}>
             {a.nr}. {a.frage}
             {a.punkte !== undefined && <Text style={styles.aufgabePunkte}> ({a.punkte} P.)</Text>}

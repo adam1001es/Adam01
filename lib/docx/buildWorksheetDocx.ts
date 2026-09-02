@@ -422,7 +422,7 @@ export async function buildWorksheetDocx(
         spacing: { before: 160 },
       }),
     );
-    if (a.typ === "lesetext" && a.lesetext) {
+    if (a.lesetext) {
       children.push(
         new Paragraph({
           indent: { left: 360 },
