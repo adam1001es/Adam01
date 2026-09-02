@@ -293,36 +293,50 @@ export default function NewWorksheetForm({
 
     setLoading(true);
     try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bereich,
-          thema,
-          schulstufe,
-          themenbereich,
-          zieldauerMinuten,
-          komplexitaet,
-          aufgabentypen,
-          istPruefung,
-          punkteGesamt: istPruefung ? punkteGesamt : undefined,
-          klasseId,
-          koranFokus: koranFokusAktiv
-            ? { sureNummer: koranSureNummer, vonVers: koranVonVers, bisVers: koranBisVers }
-            : undefined,
-          zusatzhinweise: zusatzhinweise || undefined,
-          layout: {
-            template,
-            schulname: schulname || undefined,
-            schriftgroesse,
-            zeigeIslamischesDatum,
-            zeigeMuster,
-            musterVariante,
-            zeigeLernziel,
-            farbmodus,
-          },
-        }),
-      });
+      let res: Response;
+      try {
+        res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bereich,
+            thema,
+            schulstufe,
+            themenbereich,
+            zieldauerMinuten,
+            komplexitaet,
+            aufgabentypen,
+            istPruefung,
+            punkteGesamt: istPruefung ? punkteGesamt : undefined,
+            klasseId,
+            koranFokus: koranFokusAktiv
+              ? { sureNummer: koranSureNummer, vonVers: koranVonVers, bisVers: koranBisVers }
+              : undefined,
+            zusatzhinweise: zusatzhinweise || undefined,
+            layout: {
+              template,
+              schulname: schulname || undefined,
+              schriftgroesse,
+              zeigeIslamischesDatum,
+              zeigeMuster,
+              musterVariante,
+              zeigeLernziel,
+              farbmodus,
+            },
+          }),
+        });
+      } catch {
+        // fetch() selbst schlägt fehl (kein res!), z.B. bei "Load failed"/"Failed to fetch" -
+        // Verbindungsabbruch mitten in der (bei langer Zieldauer/vielen Aufgabentypen bzw. Koran-
+        // Fokus durchaus minutenlangen) Anfrage, etwa durch schwaches Mobilfunknetz, gesperrten
+        // Bildschirm oder eine in den Hintergrund gelegte Seite. Die Serverfunktion kann in diesem
+        // Fall trotzdem fertig geworden sein (und dabei Kontingent verbraucht haben) - deshalb
+        // NICHT einfach "erneut versuchen" vorschlagen, ohne vorher auf ein mögliches Duplikat
+        // hinzuweisen.
+        throw new Error(
+          "Die Verbindung wurde während der Erstellung unterbrochen (z.B. schwaches Netz oder die Seite wurde in den Hintergrund gelegt). Bitte zuerst in der Übersicht nachsehen, ob das Arbeitsblatt trotzdem schon fertig wurde, bevor erneut versucht wird - sonst kann versehentlich ein zweites Mal Kontingent verbraucht werden.",
+        );
+      }
 
       const rohtext = await res.text();
       let data: { id?: string; error?: string };
