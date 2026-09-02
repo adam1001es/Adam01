@@ -8,6 +8,7 @@ import { ICONS, IconKey } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
 import { reihenfolgeAnzeige } from "@/lib/reihenfolge";
 import { IslamicPatternStripPdf } from "./IslamicPatternStripPdf";
+import { berechneRaetselZellgroesse } from "@/lib/raetselLayout";
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -463,6 +464,14 @@ function Header({
 
 const A4_BREITE_PT = 595.28;
 
+/** Zellgröße für Wortsuche-/Kreuzworträtsel-Gitter (in pt) - siehe lib/raetselLayout.ts für die
+ * Formel, hier nur die PDF-spezifische verfügbare Seitenbreite ermittelt. */
+function raetselZellgroesse(spalten: number, template: LayoutConfig["template"]): number {
+  const seitenPolsterung = template === "kompakt" ? 24 : 40;
+  const inhaltBreite = A4_BREITE_PT - 2 * seitenPolsterung;
+  return berechneRaetselZellgroesse(inhaltBreite, spalten);
+}
+
 function MusterStreifen({ layout }: { layout: LayoutConfig }) {
   if (!layout.zeigeMuster) return null;
   const styles = buildStyles(layout);
@@ -558,37 +567,55 @@ function AufgabenListe({
               Mündliche Diskussion in der Klasse - kein schriftliches Ergebnis nötig.
             </Text>
           )}
-          {a.typ === "wortsuche" && a.wortsucheGitter && (
-            <View style={styles.raetselWrapper}>
-              {a.wortsucheGitter.map((zeile, r) => (
-                <View key={r} style={styles.raetselZeile}>
-                  {zeile.map((buchstabe, c) => (
-                    <View key={c} style={styles.wortsucheZelle}>
-                      <Text style={styles.wortsucheBuchstabe}>{buchstabe}</Text>
-                    </View>
-                  ))}
-                </View>
-              ))}
-              {a.wortsucheWoerter && a.wortsucheWoerter.length > 0 && (
-                <Text style={styles.raetselWortliste}>
-                  Gesuchte Wörter: {a.wortsucheWoerter.join(" · ")}
-                </Text>
-              )}
-            </View>
-          )}
-          {a.typ === "kreuzwortraetsel" && a.kreuzwortGitter && (
+          {a.typ === "wortsuche" && a.wortsucheGitter && (() => {
+            const zellgroesse = raetselZellgroesse(a.wortsucheGitter[0]?.length ?? 10, layout.template);
+            return (
+              <View style={styles.raetselWrapper}>
+                {a.wortsucheGitter.map((zeile, r) => (
+                  <View key={r} style={styles.raetselZeile}>
+                    {zeile.map((buchstabe, c) => (
+                      <View
+                        key={c}
+                        style={[styles.wortsucheZelle, { width: zellgroesse, height: zellgroesse }]}
+                      >
+                        <Text
+                          style={[styles.wortsucheBuchstabe, { fontSize: zellgroesse * 0.55 }]}
+                        >
+                          {buchstabe}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                ))}
+                {a.wortsucheWoerter && a.wortsucheWoerter.length > 0 && (
+                  <Text style={styles.raetselWortliste}>
+                    Gesuchte Wörter: {a.wortsucheWoerter.join(" · ")}
+                  </Text>
+                )}
+              </View>
+            );
+          })()}
+          {a.typ === "kreuzwortraetsel" && a.kreuzwortGitter && (() => {
+            const zellgroesse = raetselZellgroesse(a.kreuzwortGitter[0]?.length ?? 10, layout.template);
+            return (
             <View style={styles.raetselWrapper}>
               {a.kreuzwortGitter.map((zeile, r) => (
                 <View key={r} style={styles.raetselZeile}>
                   {zeile.map((zelle, c) =>
                     zelle ? (
-                      <View key={c} style={styles.kreuzwortZelle}>
+                      <View
+                        key={c}
+                        style={[styles.kreuzwortZelle, { width: zellgroesse, height: zellgroesse }]}
+                      >
                         {zelle.nummer !== null && (
                           <Text style={styles.kreuzwortNummer}>{zelle.nummer}</Text>
                         )}
                       </View>
                     ) : (
-                      <View key={c} style={styles.kreuzwortZelleLeer} />
+                      <View
+                        key={c}
+                        style={[styles.kreuzwortZelleLeer, { width: zellgroesse, height: zellgroesse }]}
+                      />
                     ),
                   )}
                 </View>
@@ -616,7 +643,8 @@ function AufgabenListe({
                 )}
               </View>
             </View>
-          )}
+            );
+          })()}
           {a.typ === "ausmalbild" && (a.bild || a.bildGeneriertId) && (
             <View style={styles.ausmalRahmen}>
               <AufgabenBildPdf

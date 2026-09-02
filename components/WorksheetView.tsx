@@ -4,7 +4,13 @@ import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
 import { reihenfolgeAnzeige } from "@/lib/reihenfolge";
+import { berechneRaetselZellgroesse } from "@/lib/raetselLayout";
 import IslamicPatternStrip from "./IslamicPatternStrip";
+
+/** Referenzbreite (px) für die Rätsel-Zellgrößen-Berechnung (siehe lib/raetselLayout.ts) - die
+ * Papier-Vorschau hat keine feste Breite (passt sich dem umgebenden Layout an), daher eine
+ * typische Breite der Vorschau als Annäherung statt einer echten Container-Breitenmessung. */
+const VORSCHAU_REFERENZBREITE_PX = 700;
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -217,18 +223,22 @@ export default function WorksheetView({
                     Mündliche Diskussion in der Klasse - kein schriftliches Ergebnis nötig.
                   </p>
                 )}
-                {a.typ === "wortsuche" && a.wortsucheGitter && (
+                {a.typ === "wortsuche" && a.wortsucheGitter && (() => {
+                  const spalten = a.wortsucheGitter[0].length;
+                  const zellgroesse = berechneRaetselZellgroesse(VORSCHAU_REFERENZBREITE_PX, spalten);
+                  return (
                   <div className="mt-2">
                     <div className="inline-block overflow-x-auto rounded-lg border border-slate-200 bg-white p-2">
                       <div
-                        className="grid font-mono text-xs"
-                        style={{ gridTemplateColumns: `repeat(${a.wortsucheGitter[0].length}, 1.5em)` }}
+                        className="grid font-mono"
+                        style={{ gridTemplateColumns: `repeat(${spalten}, ${zellgroesse}px)` }}
                       >
                         {a.wortsucheGitter.map((zeile, r) =>
                           zeile.map((buchstabe, c) => (
                             <span
                               key={`${r}-${c}`}
-                              className="flex h-[1.5em] w-[1.5em] items-center justify-center"
+                              className="flex items-center justify-center"
+                              style={{ height: zellgroesse, width: zellgroesse, fontSize: zellgroesse * 0.5 }}
                             >
                               {buchstabe}
                             </span>
@@ -243,24 +253,27 @@ export default function WorksheetView({
                       </p>
                     )}
                   </div>
-                )}
-                {a.typ === "kreuzwortraetsel" && a.kreuzwortGitter && (
+                  );
+                })()}
+                {a.typ === "kreuzwortraetsel" && a.kreuzwortGitter && (() => {
+                  const spalten = a.kreuzwortGitter[0].length;
+                  const zellgroesse = berechneRaetselZellgroesse(VORSCHAU_REFERENZBREITE_PX, spalten);
+                  return (
                   <div className="mt-2 space-y-3">
                     <div className="inline-block overflow-x-auto rounded-lg border border-slate-200 bg-white p-1">
                       <div
                         className="grid"
-                        style={{ gridTemplateColumns: `repeat(${a.kreuzwortGitter[0].length}, 1.8em)` }}
+                        style={{ gridTemplateColumns: `repeat(${spalten}, ${zellgroesse}px)` }}
                       >
                         {a.kreuzwortGitter.map((zeile, r) =>
                           zeile.map((zelle, c) => (
                             <div
                               key={`${r}-${c}`}
-                              className={`relative h-[1.8em] w-[1.8em] ${
-                                zelle ? "border border-slate-300 bg-white" : ""
-                              }`}
+                              className={`relative ${zelle ? "border border-slate-300 bg-white" : ""}`}
+                              style={{ height: zellgroesse, width: zellgroesse, fontSize: zellgroesse }}
                             >
                               {zelle?.nummer && (
-                                <span className="absolute left-0.5 top-0 text-[0.55em] leading-none text-slate-500">
+                                <span className="absolute left-0.5 top-0 text-[0.3em] leading-none text-slate-500">
                                   {zelle.nummer}
                                 </span>
                               )}
@@ -296,7 +309,8 @@ export default function WorksheetView({
                       )}
                     </div>
                   </div>
-                )}
+                  );
+                })()}
                 {a.typ === "ausmalbild" && (a.bild || a.bildGeneriertId) && (
                   <div className="mt-2 flex justify-center">
                     <div className="rounded-2xl border-2 border-dashed border-slate-300 p-6">

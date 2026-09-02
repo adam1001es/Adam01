@@ -20,6 +20,7 @@ import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, IconKey } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
 import { reihenfolgeAnzeige } from "@/lib/reihenfolge";
+import { berechneRaetselZellgroesse } from "@/lib/raetselLayout";
 
 // Jede public/patterns/leiste-*.png ist eine einmalig serverseitig gerenderte Ansicht des
 // jeweiligen Vektor-Streifens (lib/patternStrip.ts) - fix auf die bekannte Satzspiegelbreite
@@ -102,14 +103,36 @@ function bildFuerDocx(
   return null;
 }
 
-const RAETSEL_ZELLE_DXA = 340;
 const OHNE_RAHMEN = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+
+// Docx-Standardseite ist A4 mit 1 Zoll (1440 dxa) Rand auf jeder Seite (siehe
+// sectionPageSizeDefaults/sectionMarginDefaults der docx-Bibliothek - hier wird kein eigenes
+// `page`/`margin` gesetzt, es gilt also dieser Standard), 20 dxa = 1pt.
+const DOCX_INHALT_BREITE_PT = (11906 - 2 * 1440) / 20;
+
+/** Zellgröße für Wortsuche-/Kreuzworträtsel-Tabellen (in dxa) - siehe lib/raetselLayout.ts für
+ * die Formel; ein früherer fest verdrahteter Wert (340 dxa unabhängig von der Spaltenzahl) machte
+ * kleine Gitter lächerlich klein statt die Seitenbreite sinnvoll auszunutzen. */
+function raetselZellgroesseDxa(spalten: number): number {
+  const zellgroessePt = berechneRaetselZellgroesse(DOCX_INHALT_BREITE_PT, spalten);
+  return Math.round(zellgroessePt * 20);
+}
+
+/** Schriftgröße (in Halbpunkten, wie von docx' TextRun.size erwartet) passend zur Zellgröße -
+ * gleicher 0,55-Faktor wie bei der Buchstabengröße in WorksheetPdf.tsx/WorksheetView.tsx. */
+function raetselSchriftHalbpunkte(spalten: number): number {
+  const zellgroessePt = berechneRaetselZellgroesse(DOCX_INHALT_BREITE_PT, spalten);
+  return Math.round(zellgroessePt * 0.55 * 2);
+}
 
 type KreuzwortZelle = NonNullable<NonNullable<Aufgabe["kreuzwortGitter"]>[number][number]>;
 
 /** Baut eine Word-Tabelle aus einem Buchstabengitter (Wortsuche) - ohne sichtbare Rahmen, nur
  * gleichmäßig breite Zellen mit je einem zentrierten Buchstaben. */
-function baueWortsucheTabelle(gitter: string[][], baseSize: number): Table {
+function baueWortsucheTabelle(gitter: string[][]): Table {
+  const spalten = gitter[0]?.length ?? 10;
+  const zellgroesseDxa = raetselZellgroesseDxa(spalten);
+  const schriftgroesse = raetselSchriftHalbpunkte(spalten);
   return new Table({
     width: { size: 0, type: WidthType.AUTO },
     borders: {
@@ -126,12 +149,12 @@ function baueWortsucheTabelle(gitter: string[][], baseSize: number): Table {
           children: zeile.map(
             (buchstabe) =>
               new TableCell({
-                width: { size: RAETSEL_ZELLE_DXA, type: WidthType.DXA },
+                width: { size: zellgroesseDxa, type: WidthType.DXA },
                 verticalAlign: VerticalAlign.CENTER,
                 children: [
                   new Paragraph({
                     alignment: AlignmentType.CENTER,
-                    children: [new TextRun({ text: buchstabe, size: baseSize })],
+                    children: [new TextRun({ text: buchstabe, size: schriftgroesse })],
                   }),
                 ],
               }),
@@ -147,6 +170,8 @@ function baueWortsucheTabelle(gitter: string[][], baseSize: number): Table {
  * gespeicherte Lösungsbuchstabe selbst wird NIE gedruckt - die Zelle bleibt zum Ausfüllen leer. */
 function baueKreuzwortTabelle(gitter: (KreuzwortZelle | null)[][]): Table {
   const rahmen = { style: BorderStyle.SINGLE, size: 4, color: "94A3B8" };
+  const spalten = gitter[0]?.length ?? 10;
+  const zellgroesseDxa = raetselZellgroesseDxa(spalten);
   return new Table({
     width: { size: 0, type: WidthType.AUTO },
     borders: {
@@ -163,7 +188,7 @@ function baueKreuzwortTabelle(gitter: (KreuzwortZelle | null)[][]): Table {
           children: zeile.map(
             (zelle) =>
               new TableCell({
-                width: { size: RAETSEL_ZELLE_DXA, type: WidthType.DXA },
+                width: { size: zellgroesseDxa, type: WidthType.DXA },
                 shading: zelle ? undefined : { fill: "334155" },
                 borders: zelle
                   ? { top: rahmen, bottom: rahmen, left: rahmen, right: rahmen }
@@ -473,7 +498,7 @@ export async function buildWorksheetDocx(
     if (a.typ === "wortsuche" && a.wortsucheGitter) {
       children.push(
         new Paragraph({ indent: { left: 360 }, children: [], spacing: { after: 60 } }),
-        baueWortsucheTabelle(a.wortsucheGitter, baseSize),
+        baueWortsucheTabelle(a.wortsucheGitter),
       );
       if (a.wortsucheWoerter && a.wortsucheWoerter.length > 0) {
         children.push(
