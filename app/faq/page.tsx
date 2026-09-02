@@ -28,10 +28,6 @@ const FRAGEN: { frage: string; antwort: React.ReactNode }[] = [
     antwort:
       "Ja, auf zwei Wegen: aus bereits vorhandenen Arbeitsblättern zusammenstellen (kostet kein zusätzliches Kontingent) oder komplett neu generieren (zählt wie ein normales Arbeitsblatt zum Kontingent).",
   },
-  {
-    frage: "Wo finde ich Impressum und Datenschutzerklärung?",
-    antwort: "Ganz unten auf jeder Seite im Footer.",
-  },
 ];
 
 export default function FaqPage() {
