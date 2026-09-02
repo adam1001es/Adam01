@@ -259,32 +259,41 @@ async function generiereUndPruefeEinmal(
 ): Promise<GenerationResult> {
   const client = getAnthropicClient();
 
-  const genResponse = await client.messages.create({
-    model: GENERATION_MODEL,
-    // Bewusst deutlich über dem tatsächlichen Bedarf (siehe AUFGABEN_TYP_MAXIMUM: max. 10
-    // Aufgaben gesamt, "große" Typen wie Kreuzworträtsel/Wortsuche schon auf 1 pro Blatt
-    // gedeckelt) - reiner Sicherheitsspielraum für den Fall vieler gleichzeitig gewählter,
-    // inhaltsreicher Aufgabentypen bei 50 Minuten Zieldauer. War bereits einmal von 8000 auf
-    // 16000 angehoben, weil das alte Limit die Antwort mitten im JSON abschnitt
-    // ("Keine JSON-Struktur in der Modellantwort gefunden").
-    max_tokens: 24000,
-    // GENERATION_SYSTEM_PROMPT_BASE ist bei jeder Anfrage byte-identisch (großer, statischer
-    // Block) - als eigener, gecachter Prefix-Block ausgelagert. curriculumContext variiert pro
-    // Anfrage (Themenbereich/Schulstufe) und steht daher NACH dem Cache-Breakpoint, damit er den
-    // Cache-Treffer auf den statischen Block nicht zunichtemacht (Cache = Prefix-Match).
-    system: [
-      {
-        type: "text",
-        text: GENERATION_SYSTEM_PROMPT_BASE,
-        cache_control: { type: "ephemeral", ttl: "1h" },
-      },
-      { type: "text", text: curriculumContext },
-      ...(req.istPruefung ? [{ type: "text" as const, text: PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ }] : []),
-    ],
-    messages: [
-      { role: "user", content: buildUserPrompt(req, anzahlAufgaben, korrekturAuftrag, formatErinnerung) },
-    ],
-  });
+  // Als Stream statt als einzelne Antwort angefordert: die Anthropic-SDK lehnt eine
+  // Nicht-Stream-Anfrage mit "Streaming is required for operations that may take longer than 10
+  // minutes" ab, sobald max_tokens (siehe unten) rechnerisch über dieser Grenze liegen könnte -
+  // bei 24000 (Opus) war genau das der Fall und brach JEDE Arbeitsblatt-Erstellung mit diesem
+  // Fehler ab. .stream(...).finalMessage() liefert dieselbe vollständige Message wie .create(),
+  // nur ohne dieses künstliche Limit, und ist ohnehin die von Anthropic empfohlene Vorgehensweise
+  // bei hohem max_tokens.
+  const genResponse = await client.messages
+    .stream({
+      model: GENERATION_MODEL,
+      // Bewusst deutlich über dem tatsächlichen Bedarf (siehe AUFGABEN_TYP_MAXIMUM: max. 10
+      // Aufgaben gesamt, "große" Typen wie Kreuzworträtsel/Wortsuche schon auf 1 pro Blatt
+      // gedeckelt) - reiner Sicherheitsspielraum für den Fall vieler gleichzeitig gewählter,
+      // inhaltsreicher Aufgabentypen bei 50 Minuten Zieldauer. War bereits einmal von 8000 auf
+      // 16000 angehoben, weil das alte Limit die Antwort mitten im JSON abschnitt
+      // ("Keine JSON-Struktur in der Modellantwort gefunden").
+      max_tokens: 24000,
+      // GENERATION_SYSTEM_PROMPT_BASE ist bei jeder Anfrage byte-identisch (großer, statischer
+      // Block) - als eigener, gecachter Prefix-Block ausgelagert. curriculumContext variiert pro
+      // Anfrage (Themenbereich/Schulstufe) und steht daher NACH dem Cache-Breakpoint, damit er den
+      // Cache-Treffer auf den statischen Block nicht zunichtemacht (Cache = Prefix-Match).
+      system: [
+        {
+          type: "text",
+          text: GENERATION_SYSTEM_PROMPT_BASE,
+          cache_control: { type: "ephemeral", ttl: "1h" },
+        },
+        { type: "text", text: curriculumContext },
+        ...(req.istPruefung ? [{ type: "text" as const, text: PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ }] : []),
+      ],
+      messages: [
+        { role: "user", content: buildUserPrompt(req, anzahlAufgaben, korrekturAuftrag, formatErinnerung) },
+      ],
+    })
+    .finalMessage();
 
   if (genResponse.stop_reason === "max_tokens") {
     throw new Error(
