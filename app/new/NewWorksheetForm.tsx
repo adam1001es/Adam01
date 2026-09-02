@@ -75,18 +75,22 @@ const CHIP_BASIS = "border-slate-200 text-slate-500 hover:border-slate-300";
 const ANDERE_SCHULSTUFE = "__andere__";
 
 const VORSCHAU_INHALT: WorksheetContent = {
-  titel: "Beispiel: Die 5 Säulen des Islam",
+  titel: "Die 5 Säulen des Islam",
   fach: "Islamischer Religionsunterricht",
   schulstufe: "4. Klasse Volksschule",
   thema: "Die 5 Säulen des Islam",
-  lernziel: "Die Schüler:innen können die fünf Säulen des Islam benennen.",
-  einleitung: "So könnte die Einleitung deines Arbeitsblatts aussehen.",
+  lernziel: "Die Schüler:innen können die fünf Säulen des Islam benennen und kurz erklären.",
+  einleitung: "Der Islam beruht auf fünf Grundpfeilern, die das gläubige Leben prägen.",
   aufgaben: [
     {
       nr: 1,
       typ: "multiple_choice",
       frage: "Welche Aussage gehört zu den 5 Säulen?",
-      optionen: ["Das Fasten im Ramadan", "Das Feiern von Weihnachten", "Ein Beispiel-Text"],
+      optionen: [
+        "Das Fasten im Ramadan",
+        "Der wöchentliche Besuch der Freitagspredigt",
+        "Das tägliche Rezitieren des gesamten Korans",
+      ],
       anforderungsbereich: "afb1",
     },
     {
@@ -100,7 +104,7 @@ const VORSCHAU_INHALT: WorksheetContent = {
     {
       nr: 3,
       typ: "offene_frage",
-      frage: "So sieht eine offene Frage aus (z.B. mit eigener Begründung).",
+      frage: "Warum ist die Zakat für die Gemeinschaft wichtig?",
       anforderungsbereich: "afb3",
     },
   ],
@@ -109,7 +113,7 @@ const VORSCHAU_INHALT: WorksheetContent = {
     { nr: 2, loesung: "Sawm - Das Fasten, Zakat - Die Pflichtabgabe" },
     { nr: 3, loesung: "Individuelle Antwort" },
   ],
-  quellen: [{ bezeichnung: "Beispiel-Quelle", sicherheit: "gesichert" }],
+  quellen: [{ bezeichnung: "Sure 2 (Al-Baqara), Vers 177", sicherheit: "gesichert" }],
 };
 
 const TYP_META: Record<(typeof AUFGABEN_TYPEN_AKTIV)[number], { label: string; icon: typeof CheckSquare }> = {
