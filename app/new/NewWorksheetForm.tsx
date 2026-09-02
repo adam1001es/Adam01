@@ -366,7 +366,19 @@ export default function NewWorksheetForm({
     if (entwurf.thema !== undefined) setThema(entwurf.thema);
     if (entwurf.schulstufeAuswahl !== undefined) setSchulstufeAuswahl(entwurf.schulstufeAuswahl);
     if (entwurf.schulstufeFrei !== undefined) setSchulstufeFrei(entwurf.schulstufeFrei);
-    if (entwurf.zieldauerMinuten !== undefined) setZieldauerMinuten(entwurf.zieldauerMinuten);
+    // Zusätzliche Gültigkeitsprüfung (anders als bei den übrigen Feldern oben): ein VOR einer
+    // Änderung von ZIELDAUER_OPTIONEN_MINUTEN gespeicherter Entwurf kann einen mittlerweile
+    // ungültigen Wert enthalten (z.B. altes "35" nach Umstellung auf 20/30/40) - real beobachtet:
+    // führte beim Abschicken zu "Ungültige Eingabe.", weil der wiederhergestellte Wert vom Server
+    // (dieselbe Gültigkeitsliste) abgelehnt wurde, obwohl im Formular kein Fehler sichtbar war
+    // (keine Zieldauer-Kachel erschien als ausgewählt). Bei ungültigem Wert bleibt einfach der
+    // aktuelle Default stehen, statt einen kaputten Zustand zu übernehmen.
+    if (
+      entwurf.zieldauerMinuten !== undefined &&
+      (ZIELDAUER_OPTIONEN_MINUTEN as readonly number[]).includes(entwurf.zieldauerMinuten)
+    ) {
+      setZieldauerMinuten(entwurf.zieldauerMinuten);
+    }
     if (entwurf.komplexitaet !== undefined) setKomplexitaet(entwurf.komplexitaet);
     if (entwurf.aufgabentypen !== undefined) setAufgabentypen(entwurf.aufgabentypen);
     if (entwurf.punkteGesamt !== undefined) setPunkteGesamt(entwurf.punkteGesamt);
