@@ -1,11 +1,40 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle, MailCheck, Users } from "lucide-react";
+import { Plus, GraduationCap, BookMarked, Sparkles, CheckCircle2, AlertTriangle, XCircle, MailCheck, Users, Lock } from "lucide-react";
 import FavoritButton from "@/components/FavoritButton";
 import DeleteButton from "@/components/DeleteButton";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import LandingPage from "@/components/LandingPage";
 import { getSessionUser } from "@/lib/auth";
+import { istZahlendesKonto } from "@/lib/quota";
+
+/** Für kostenlose Testkonten: bewusst gedämpfte (nicht in den echten Bereichsfarben gehaltene),
+ * gesperrte Vorschau der Abo-Bereiche direkt am Dashboard, statt sie komplett zu verstecken -
+ * soll die Bandbreite zeigen ("das kann Lernwerk noch alles"), ohne echten Zugriff zu geben. Die
+ * verlinkten Zielseiten selbst zeigen ebenfalls nur eine Beschreibung, keine echten Daten (siehe
+ * app/klassen/page.tsx, app/community/page.tsx). */
+const ABO_VORSCHAU = [
+  {
+    href: "/klassen",
+    icon: GraduationCap,
+    titel: "Klassen & Prüfungen",
+    punkte: [
+      "Schüler:innen anonym mit Kürzel verwalten",
+      "Wissensstand pro Klasse & Schüler:in auf einen Blick",
+      "Prüfungen zusammenstellen oder generieren - auch für Maturaklassen",
+    ],
+  },
+  {
+    href: "/community",
+    icon: Users,
+    titel: "Geteilte Arbeitsblätter",
+    punkte: [
+      "Bewährte Arbeitsblätter anderer Lehrkräfte durchsuchen",
+      "Nach Themenbereich & Schulstufe filtern",
+      "Eigene Arbeitsblätter mit einem Klick teilen",
+    ],
+  },
+] as const;
 
 const STATUS_STYLE: Record<string, { text: string; className: string; icon: typeof CheckCircle2 }> = {
   geprueft: { text: "Geprüft", className: "bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-200", icon: CheckCircle2 },
@@ -59,6 +88,33 @@ export default async function DashboardPage({
           <IslamicPatternStrip color="#f4ead1" opacity={0.6} hoehe={22} />
         </div>
       </div>
+
+      {!istZahlendesKonto(user) && (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          {ABO_VORSCHAU.map(({ href, icon: Icon, titel, punkte }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group relative overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-5 shadow-sm transition hover:border-slate-400 hover:bg-slate-50"
+            >
+              <span className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-slate-200/80 px-2.5 py-1 text-[11px] font-medium text-slate-500">
+                <Lock size={11} strokeWidth={2.5} />
+                Nur im Abo
+              </span>
+              <Icon size={22} className="text-slate-400" strokeWidth={1.75} />
+              <div className="mt-2 font-display text-base font-semibold text-slate-500">{titel}</div>
+              <ul className="mt-2 space-y-1 text-xs leading-relaxed text-slate-400">
+                {punkte.map((p) => (
+                  <li key={p}>· {p}</li>
+                ))}
+              </ul>
+              <span className="mt-3 inline-block text-xs font-medium text-slate-500 group-hover:text-slate-700 group-hover:underline">
+                Mehr erfahren
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {worksheets.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-brand-200 bg-surface p-12 text-center shadow-card">
