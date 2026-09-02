@@ -15,11 +15,12 @@ import {
   KOMPLEXITAET_LABEL,
   schaetzeAufgabenAnzahl,
 } from "./types";
-import { buildCurriculumSystemContext } from "./curriculum";
+import { buildCurriculumSystemContext, guessSchulstufenCluster } from "./curriculum";
 import { erzeugeWortsucheGitter } from "./wortsuche";
 import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 import { vereinfacheArabischeTransliteration } from "./transliteration";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
+import { buildWissensbasisSystemContext } from "./wissensbasis";
 
 /** Markiert einen Fehlschlag beim Auslesen der Modellantwort selbst (keine oder keine gültige
  * JSON-Struktur gefunden bzw. Struktur entsprach nicht dem erwarteten Schema) - im Unterschied zu
@@ -74,7 +75,7 @@ Jede verwendete Hadith-Quellenangabe MUSS die Sammlung im Feld "bezeichnung" nen
 const VERIFICATION_SYSTEM_PROMPT_BASE = `Du bist eine unabhängige fachliche und pädagogische Prüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen. Du bekommst ein fertig generiertes Arbeitsblatt als JSON und prüfst es kritisch:
 
 1. Fachliche/theologische Plausibilität - wirken Koran-/Hadith-Angaben erfunden oder unsicher? Passt die Darstellung zu einer mehrheitsfähigen, für den staatlichen Unterricht geeigneten Position (Sunnah)?
-2. Hadith-Quellen: stammen alle genannten Hadithe erkennbar aus Sahih al-Bukhari, Sahih Muslim oder einer anderen allgemein als sahih geltenden Sammlung? Wenn eine Quelle fehlt, unklar oder zweifelhaft ist, IMMER als Hinweis aufnehmen.
+2. Hadith-Quellen: stammen alle genannten Hadithe erkennbar aus Sahih al-Bukhari, Sahih Muslim oder einer anderen allgemein als sahih geltenden Sammlung? Wenn eine Quelle fehlt, unklar oder zweifelhaft ist, IMMER als Hinweis aufnehmen. Falls dir vorab geprüfte Zitate als Zusatz-Kontext mitgeliefert wurden: weicht eine im Arbeitsblatt verwendete Angabe ohne ersichtlichen Grund davon ab, IMMER als Hinweis aufnehmen.
 3. Lehrplan-/Altersgerechtigkeit: passen Komplexität und Sprache zum mitgelieferten Schulstufen-Cluster? UND, unabhängig davon: passt der tatsächliche Inhalt wirklich zur mitgelieferten Grundkompetenz (Themenbereich) - nicht nur oberflächlich thematisch verwandt, sondern erkennbar in deren eigentlicher Bedeutung (z.B. sollte es bei "Religiöses Handeln – Ibada" tatsächlich um religiöse Praxis/Rituale gehen, nicht nur allgemein ums Thema)? Falls das von der Lehrkraft vorgegebene Thema klar besser zu einer ANDEREN der sieben Grundkompetenzen passen würde als zur gewählten, IMMER als Hinweis aufnehmen (z.B. "Das Thema 'X' passt inhaltlich eher zu 'Glaubensbasis – Aqida' als zur gewählten Grundkompetenz 'Religiöses Handeln – Ibada' - für künftige Arbeitsblätter zu diesem Thema ggf. die passendere Grundkompetenz oder 'Grundkompetenz passend zum Thema wählen' nutzen.").
 4. Vollständigkeit: hat jede Aufgabe eine Lösung? Sind Zuordnungen konsistent (gleiche Länge links/rechts)? Hat jede Lückentext-Aufgabe eine passende Wortliste (enthält das richtige Lösungswort plus 1-2 Ablenker) UND einen inhaltlich zusammenhängenden Kontext statt eines isolierten Ein-Wort-Merksatzes? Hat jede "reihenfolge"-Aufgabe mindestens 3 Elemente in einer nachvollziehbar korrekten Reihenfolge? Bezieht sich bei "lesetext" die Frage tatsächlich auf den mitgelieferten Text und verlangt mehr als reines Wiederfinden? Enthält jede "wahr_falsch"-Lösung sowohl die richtige Einordnung ALS AUCH eine konkrete Begründung (nicht nur "Wahr"/"Falsch")? Hat jeder "recherche_auftrag" einen Leitfaden mit mehreren konkreten Recherchefragen, prüfbare Bewertungskriterien UND einen Quellenhinweis (Hinweis zu vertrauenswürdigen Quellenarten oder einen kurzen Sachtext)? Sind "malaufgabe"/"recherche_auftrag"/"bewegungsaufgabe"/"sortierkarten"/"nachspuruebung" altersgerecht zur angegebenen Schulstufe eingesetzt (recherche_auftrag insbesondere NICHT unvereinfacht bei jüngeren Kindern)? Enthält "bewegungsElemente" bei "bewegungsaufgabe" eine echte Mischung aus passenden und nicht-passenden Begriffen (nicht nur lauter passende)? Hat "sortierkarten" mindestens 2 Kategorien mit je mindestens 2 Karten, und gehört jede Karte tatsächlich eindeutig zu genau einer Kategorie? Ist "nachspurText" bei "nachspuruebung" wirklich nur ein kurzes Wort/eine kurze Phrase statt eines ganzen Satzes?
 5. Sprachliche Korrektheit (Deutsch) und Sprachsensibilität (klare, altersgerechte Sätze, Fachbegriffe erklärt statt vorausgesetzt).
@@ -211,11 +212,19 @@ export async function generateAndVerifyWorksheet(
   req: GenerateRequest,
 ): Promise<GenerationResult> {
   const curriculumContext = buildCurriculumSystemContext(req.themenbereich, req.schulstufe, req.komplexitaet);
+  // Vorab GEPRÜFTE Zitate/Musteraufgaben aus der Admin-Wissensbasis (siehe lib/wissensbasis.ts) -
+  // leerer String, solange zu dieser Grundkompetenz/Schulstufe noch nichts freigegeben wurde
+  // (der Pool wächst erst mit der Zeit). Einmal pro Anfrage geladen und für beide möglichen
+  // Versuche (Format-Retry, Korrektur-Retry) wiederverwendet, statt bei jedem Versuch neu.
+  const wissensbasisContext = await buildWissensbasisSystemContext(
+    req.themenbereich,
+    guessSchulstufenCluster(req.schulstufe).id,
+  );
   const anzahlAufgaben = schaetzeAufgabenAnzahl(req.zieldauerMinuten, req.aufgabentypen, req.komplexitaet);
 
   let ersterVersuch: GenerationResult;
   try {
-    ersterVersuch = await generiereUndPruefeEinmal(req, curriculumContext, anzahlAufgaben);
+    ersterVersuch = await generiereUndPruefeEinmal(req, curriculumContext, wissensbasisContext, anzahlAufgaben);
   } catch (err) {
     // Reines Format-Problem (siehe UngueltigesModellFormat) statt eines inhaltlichen Mangels -
     // die Qualitätsprüfung wurde in diesem Fall nie erreicht, ein Wiederholungsversuch mit einer
@@ -226,6 +235,7 @@ export async function generateAndVerifyWorksheet(
     ersterVersuch = await generiereUndPruefeEinmal(
       req,
       curriculumContext,
+      wissensbasisContext,
       anzahlAufgaben,
       undefined,
       true,
@@ -242,6 +252,7 @@ export async function generateAndVerifyWorksheet(
   const zweiterVersuch = await generiereUndPruefeEinmal(
     req,
     curriculumContext,
+    wissensbasisContext,
     anzahlAufgaben,
     ersterVersuch.verification,
   );
@@ -253,6 +264,7 @@ export async function generateAndVerifyWorksheet(
 async function generiereUndPruefeEinmal(
   req: GenerateRequest,
   curriculumContext: string,
+  wissensbasisContext: string,
   anzahlAufgaben: number,
   korrekturAuftrag?: Verification,
   formatErinnerung?: boolean,
@@ -287,6 +299,7 @@ async function generiereUndPruefeEinmal(
           cache_control: { type: "ephemeral", ttl: "1h" },
         },
         { type: "text", text: curriculumContext },
+        ...(wissensbasisContext ? [{ type: "text" as const, text: wissensbasisContext }] : []),
         ...(req.istPruefung ? [{ type: "text" as const, text: PRUEFUNGS_SYSTEM_PROMPT_ZUSATZ }] : []),
       ],
       messages: [
@@ -334,6 +347,7 @@ async function generiereUndPruefeEinmal(
         cache_control: { type: "ephemeral", ttl: "1h" },
       },
       { type: "text", text: curriculumContext },
+      ...(wissensbasisContext ? [{ type: "text" as const, text: wissensbasisContext }] : []),
     ],
     messages: [
       {

@@ -300,3 +300,36 @@ model Ergebnis {
 
   @@unique([zuweisungId, schuelerId])
 }
+
+// Admin-only "Wissensbasis" (siehe app/admin/wissensbasis, lib/wissensbasis.ts,
+// lib/wissensMining.ts): mit der Zeit wachsender Pool aus geprüften Zitaten (Koran/Hadith) und
+// besonders gelungenen Musteraufgaben, gegliedert nach Grundkompetenz. Ziel: Generierung greift
+// künftig bevorzugt auf diesen bereits geprüften Bestand zu statt bei jeder Anfrage neu aus dem
+// Modellgedächtnis zu schöpfen (siehe generateWorksheet.ts) - islamische Kernwissensinhalte
+// ändern sich kaum, ein einmal geprüfter Eintrag bleibt also lange gültig.
+model WissensEintrag {
+  id                String   @id @default(cuid())
+  typ               String   // "zitat" (Koran/Hadith-Angabe) | "musteraufgabe" (Beispielaufgabe)
+  themenbereich     String   // ThemenbereichKey (siehe lib/curriculum.ts THEMENBEREICH_KEYS)
+  // Nur bei "musteraufgabe" relevant (SchulstufenCluster-Id, z.B. "sek1") - ein Zitat gilt
+  // unabhängig von der Schulstufe, eine Musteraufgabe ist meist an ein Sprachniveau gebunden.
+  schulstufeCluster String?
+  // JSON: bei "zitat" ein Objekt wie Quelle (siehe lib/types.ts: bezeichnung, text, sicherheit)
+  // plus optionalem Kontext-Hinweis; bei "musteraufgabe" eine vollständige Aufgabe im
+  // Aufgabe-Schema (siehe lib/types.ts), damit sie später 1:1 als Few-Shot-Beispiel taugt.
+  inhalt            String
+  // Meine Recherche/Begründung für den Admin-Review - IMMER von einer KI verfasst, ersetzt keine
+  // fachliche Prüfung durch einen Menschen (siehe status).
+  rechercheNotiz    String?
+  // Lose Referenzen (wie UsageLog.worksheetId) auf Arbeitsblätter, aus denen dieser Eintrag
+  // stammt bzw. in denen dasselbe Zitat/Muster mehrfach auftrat (Konsistenz-Signal) - KEIN
+  // Fremdschlüssel, damit ein späteres Löschen des Quell-Arbeitsblatts hier nichts zerstört.
+  quellWorksheetIds String[]
+  // "entwurf" (von der KI vorgeschlagen, noch ungeprüft) -> "geprueft" (von einem Admin
+  // bestätigt, DARF in die Generierung einfließen) | "abgelehnt" (Admin hat widersprochen).
+  // WICHTIG: eine KI setzt diesen Status NIE selbst auf "geprueft" - das ist bewusst immer ein
+  // menschlicher Schritt, gerade bei religiösen Inhalten.
+  status            String   @default("entwurf")
+  geprueftAm        DateTime?
+  createdAt         DateTime @default(now())
+}

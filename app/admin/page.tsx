@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag, BarChart3, Cpu, Calculator } from "lucide-react";
+import { ShieldCheck, Users, CreditCard, TrendingUp, Coins, Scale, Flag, BarChart3, Cpu, Calculator, BookMarked } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import {
@@ -92,6 +92,7 @@ export default async function AdminPage() {
   ]);
 
   const offeneMeldungen = await prisma.meldung.count({ where: { bearbeitet: false } });
+  const offeneWissensEntwuerfe = await prisma.wissensEintrag.count({ where: { status: "entwurf" } });
 
   const STATS = [
     { icon: Users, label: "Konten gesamt", wert: String(rows.length) },
@@ -168,6 +169,17 @@ export default async function AdminPage() {
           >
             <Flag size={15} />
             Meldungen{offeneMeldungen > 0 && ` (${offeneMeldungen} ungesichtet)`}
+          </Link>
+          <Link
+            href="/admin/wissensbasis"
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium shadow-sm transition ${
+              offeneWissensEntwuerfe > 0
+                ? "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
+                : "border-slate-200 bg-surface text-slate-600 hover:border-brand-300 hover:text-brand-700"
+            }`}
+          >
+            <BookMarked size={15} />
+            Wissensbasis{offeneWissensEntwuerfe > 0 && ` (${offeneWissensEntwuerfe} Entwürfe)`}
           </Link>
         </div>
       </div>
