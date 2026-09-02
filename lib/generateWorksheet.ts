@@ -21,6 +21,7 @@ import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 import { vereinfacheArabischeTransliteration } from "./transliteration";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 import { buildWissensbasisSystemContext } from "./wissensbasis";
+import { gleicheQuellenMitKoranApiAb } from "./quranApi";
 
 /** Markiert einen Fehlschlag beim Auslesen der Modellantwort selbst (keine oder keine gültige
  * JSON-Struktur gefunden bzw. Struktur entsprach nicht dem erwarteten Schema) - im Unterschied zu
@@ -334,6 +335,12 @@ async function generiereUndPruefeEinmal(
   // Gitter-Auflösung (schnell, synchron, rein lokal) VOR der Verifikation, damit die
   // Kreuzworträtsel-Lösung dort schon final/korrekt nummeriert vorliegt.
   loeseRaetselAuf(content);
+  // Koran-Zitate live gegen die Al-Quran-Cloud-API abgleichen (siehe lib/quranApi.ts) - VOR der
+  // Verifikation, damit sowohl die Prüfung als auch das ausgelieferte Arbeitsblatt bereits den
+  // tatsächlich korrekten Vers-Text sehen. Ersetzt Claudes Selbsteinschätzung ("sicherheit") durch
+  // einen echten Abgleich und deckt damit praktisch jeden der 6236 Verse ab, ohne dass wir sie
+  // vorab manuell kuratieren müssten.
+  await gleicheQuellenMitKoranApiAb(content);
 
   const verifyResponse = await client.messages.create({
     model: VERIFICATION_MODEL,

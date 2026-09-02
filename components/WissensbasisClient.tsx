@@ -7,6 +7,7 @@ import { THEMENBEREICHE, THEMENBEREICH_KEYS, SCHULSTUFEN_CLUSTER } from "@/lib/c
 import { WISSENS_STATUS_LABEL } from "@/lib/wissensbasis";
 import type { AufgabentypAnalyseZeile } from "@/lib/wissensbasis";
 import { inputClass, labelClass } from "@/lib/formStyles";
+import { formatiereKoranZitat, type QuranVers } from "@/lib/quranApi";
 
 export interface WissensEintragRow {
   id: string;
@@ -403,14 +404,6 @@ function AnalyseTabelle({ analyse }: { analyse: AufgabentypAnalyseZeile[] }) {
   );
 }
 
-interface KoranVersErgebnis {
-  sureNummer: number;
-  sureNameTransliteriert: string;
-  versNummer: number;
-  arabisch: string;
-  deutsch: string;
-}
-
 /** Live-Nachschlagewerkzeug statt Korantext selbst zu speichern/aus dem Gedächtnis
  * abzuschreiben (siehe lib/quranApi.ts) - holt Arabisch + deutsche Übersetzung (Bubenheim &
  * Elyas) direkt von der Al-Quran-Cloud-API. Der Admin wählt gezielt aus, was als Entwurf in die
@@ -422,7 +415,7 @@ function KoranNachschlagen({ onDone }: { onDone: () => void }) {
   const [themenbereich, setThemenbereich] = useState<string>(THEMENBEREICH_KEYS[0]);
   const [suchLaeuft, setSuchLaeuft] = useState(false);
   const [uebernehmenLaeuft, setUebernehmenLaeuft] = useState(false);
-  const [ergebnis, setErgebnis] = useState<KoranVersErgebnis[] | null>(null);
+  const [ergebnis, setErgebnis] = useState<QuranVers[] | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
 
   async function suchen() {
@@ -446,13 +439,7 @@ function KoranNachschlagen({ onDone }: { onDone: () => void }) {
     if (!ergebnis || ergebnis.length === 0) return;
     setUebernehmenLaeuft(true);
     setFehler(null);
-    const erste = ergebnis[0];
-    const letzte = ergebnis[ergebnis.length - 1];
-    const bezeichnung =
-      ergebnis.length === 1
-        ? `Sure ${erste.sureNummer} (${erste.sureNameTransliteriert}), Vers ${erste.versNummer}`
-        : `Sure ${erste.sureNummer} (${erste.sureNameTransliteriert}), Verse ${erste.versNummer}-${letzte.versNummer}`;
-    const text = ergebnis.map((v) => v.deutsch).join(" ");
+    const { bezeichnung, text } = formatiereKoranZitat(ergebnis);
     try {
       const res = await fetch("/api/admin/wissensbasis", {
         method: "POST",
