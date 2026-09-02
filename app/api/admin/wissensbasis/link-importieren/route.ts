@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
-import { importiereZitatVonLink } from "@/lib/linkImport";
+import { importiereZitateVonLink } from "@/lib/linkImport";
 
 /** Admin-only Link-Import (siehe lib/linkImport.ts) - Gegenstück zu koran-nachschlagen für
  * Hadith/Tafsir, für die es keine geprüfte deutsche Live-API gibt: der Admin gibt eine URL an, wir
- * übernehmen nur das mechanische Abschreiben. */
+ * übernehmen nur das mechanische Abschreiben + eine automatische Grundkompetenz-Einordnung, für
+ * ALLE auf der Seite gefundenen Zitate (z.B. jeden Hadith einer ganzen Sammlung) auf einmal. */
 export async function POST(request: NextRequest) {
   const admin = await getSessionUser();
   if (!admin || admin.role !== "admin") {
@@ -23,8 +24,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const ergebnis = await importiereZitatVonLink(url.trim());
-    return NextResponse.json(ergebnis);
+    const zitate = await importiereZitateVonLink(url.trim());
+    return NextResponse.json({ zitate });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Import fehlgeschlagen." },

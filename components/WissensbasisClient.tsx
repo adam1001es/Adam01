@@ -559,27 +559,35 @@ function KoranNachschlagen({ onDone }: { onDone: () => void }) {
   );
 }
 
+interface LinkImportZeile {
+  bezeichnung: string;
+  text: string;
+  hinweis: string;
+  themenbereich: string;
+  uebernehmen: boolean;
+}
+
 /** Gegenstück zu KoranNachschlagen für Hadith/Tafsir, für die es (recherchiert, siehe
  * lib/linkImport.ts) keine geprüfte deutsche Live-API gibt: der Admin gibt eine URL zu einer ihm
- * bekannten, vertrauenswürdigen Quelle an, wir übernehmen nur das mechanische Abschreiben
- * (Zitat + Quellenangabe extrahieren). Im Unterschied zum Koran-Tool ist das Ergebnis NICHT
- * automatisch verlässlich - Bezeichnung/Text sind deshalb bewusst editierbar, und die
- * Verantwortung für die Quellenauswahl bleibt beim Admin. */
+ * bekannten, vertrauenswürdigen Sammlung an (z.B. eine Seite mit 40 Hadithen), wir extrahieren
+ * ALLE einzelnen Zitate darauf auf einmal und schlagen für jedes automatisch eine Grundkompetenz
+ * vor. Im Unterschied zum Koran-Tool ist das Ergebnis NICHT automatisch verlässlich - jede Zeile
+ * bleibt deshalb einzeln editierbar/abwählbar, und die Verantwortung für die Quellenauswahl bleibt
+ * beim Admin. Erst beim Übernehmen werden die ausgewählten Zeilen als "entwurf" angelegt - genau
+ * wie bei einem einzeln erfassten Eintrag. */
 function LinkImportieren({ onDone }: { onDone: () => void }) {
   const [url, setUrl] = useState("");
-  const [bezeichnung, setBezeichnung] = useState("");
-  const [text, setText] = useState("");
-  const [hinweis, setHinweis] = useState("");
-  const [themenbereich, setThemenbereich] = useState<string>(THEMENBEREICH_KEYS[0]);
+  const [zeilen, setZeilen] = useState<LinkImportZeile[]>([]);
   const [importLaeuft, setImportLaeuft] = useState(false);
   const [uebernehmenLaeuft, setUebernehmenLaeuft] = useState(false);
-  const [ergebnisDa, setErgebnisDa] = useState(false);
+  const [fortschritt, setFortschritt] = useState<string | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
 
   async function importieren() {
     setImportLaeuft(true);
     setFehler(null);
-    setErgebnisDa(false);
+    setZeilen([]);
+    setFortschritt(null);
     try {
       const res = await fetch("/api/admin/wissensbasis/link-importieren", {
         method: "POST",
@@ -588,10 +596,8 @@ function LinkImportieren({ onDone }: { onDone: () => void }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Import fehlgeschlagen.");
-      setBezeichnung(data.bezeichnung);
-      setText(data.text);
-      setHinweis(data.hinweis ?? "");
-      setErgebnisDa(true);
+      const gefunden = data.zitate as { bezeichnung: string; text: string; hinweis: string; themenbereich: string }[];
+      setZeilen(gefunden.map((z) => ({ ...z, uebernehmen: true })));
     } catch (err) {
       setFehler(err instanceof Error ? err.message : "Import fehlgeschlagen.");
     } finally {
@@ -599,39 +605,56 @@ function LinkImportieren({ onDone }: { onDone: () => void }) {
     }
   }
 
+  function aktualisiereZeile(index: number, patch: Partial<LinkImportZeile>) {
+    setZeilen((prev) => prev.map((z, i) => (i === index ? { ...z, ...patch } : z)));
+  }
+
+  const ausgewaehlteAnzahl = zeilen.filter((z) => z.uebernehmen).length;
+
   async function uebernehmen() {
     setUebernehmenLaeuft(true);
     setFehler(null);
-    try {
-      const res = await fetch("/api/admin/wissensbasis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          typ: "zitat",
-          themenbereich,
-          inhalt: { bezeichnung, text },
-          rechercheNotiz: `Automatisch von ${url} extrahiert - KEINE geprüfte API-Quelle wie beim Koran-Tool, die Verlässlichkeit hängt vollständig von dieser Webseite ab. Vor Freigabe inhaltlich UND anhand einer Referenz-Ausgabe gegenchecken.${hinweis ? ` Hinweis von der Seite selbst: ${hinweis}` : ""}`,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Anlegen fehlgeschlagen.");
-      setErgebnisDa(false);
-      setUrl("");
-      onDone();
-    } catch (err) {
-      setFehler(err instanceof Error ? err.message : "Anlegen fehlgeschlagen.");
-    } finally {
-      setUebernehmenLaeuft(false);
+    const ausgewaehlt = zeilen.filter((z) => z.uebernehmen);
+    let erfolgreich = 0;
+    for (const z of ausgewaehlt) {
+      try {
+        const res = await fetch("/api/admin/wissensbasis", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            typ: "zitat",
+            themenbereich: z.themenbereich,
+            inhalt: { bezeichnung: z.bezeichnung, text: z.text },
+            rechercheNotiz: `Automatisch von ${url} extrahiert und der Grundkompetenz zugeordnet - KEINE geprüfte API-Quelle wie beim Koran-Tool, die Verlässlichkeit hängt vollständig von dieser Webseite ab. Vor Freigabe inhaltlich UND anhand einer Referenz-Ausgabe gegenchecken.${z.hinweis ? ` Hinweis von der Seite selbst: ${z.hinweis}` : ""}`,
+          }),
+        });
+        if (res.ok) erfolgreich++;
+      } catch {
+        // ein einzelner Fehlschlag soll die restlichen Übernahmen nicht abbrechen
+      }
+      setFortschritt(`${erfolgreich}/${ausgewaehlt.length} übernommen …`);
     }
+    setUebernehmenLaeuft(false);
+    if (erfolgreich === 0) {
+      setFehler("Keiner der ausgewählten Einträge konnte angelegt werden.");
+      return;
+    }
+    setZeilen([]);
+    setUrl("");
+    setFortschritt(null);
+    onDone();
   }
 
   return (
     <div className="mb-4 space-y-3 rounded-xl border border-gold-200 bg-gold-50/40 p-4">
       <p className="text-xs leading-relaxed text-gold-700">
         Für Hadith/Tafsir gibt es (anders als beim Koran) keine geprüfte deutsche Live-API - gib
-        stattdessen den Link zu einer dir bekannten, vertrauenswürdigen Seite an. Übernimmt nur
-        das mechanische Abschreiben (Zitat + Quellenangabe), NICHT die inhaltliche Prüfung - das
-        Ergebnis ist editierbar und muss vor Freigabe wie jeder andere Entwurf gegengecheckt werden.
+        stattdessen den Link zu einer dir bekannten, vertrauenswürdigen Seite mit einer Sammlung
+        an. Findet ALLE einzelnen Zitate auf der Seite auf einmal (z.B. jeden der 40 Hadithe einer
+        Nawawi-Sammlung) und schlägt für jedes automatisch die passende Grundkompetenz vor -
+        übernimmt nur das mechanische Abschreiben + eine automatische Einordnung, NICHT die
+        inhaltliche Prüfung. Jede Zeile ist editierbar/abwählbar und landet erst beim Übernehmen
+        als Entwurf, der wie gewohnt vor Freigabe gegengecheckt werden muss.
       </p>
       <div className="flex flex-wrap items-end gap-2">
         <label className="block min-w-[280px] flex-1">
@@ -655,49 +678,71 @@ function LinkImportieren({ onDone }: { onDone: () => void }) {
 
       {fehler && <p className="text-xs text-red-600">{fehler}</p>}
 
-      {ergebnisDa && (
+      {zeilen.length > 0 && (
         <div className="space-y-3 rounded-lg bg-white/70 p-3">
-          <label className="block">
-            <span className={labelClass}>Quellenangabe</span>
-            <input className={inputClass} value={bezeichnung} onChange={(e) => setBezeichnung(e.target.value)} />
-          </label>
-          <label className="block">
-            <span className={labelClass}>Zitat-Text</span>
-            <textarea
-              className={inputClass}
-              rows={5}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
-          </label>
-          {hinweis && (
-            <p className="text-xs leading-relaxed text-slate-500">
-              Hinweis von der Seite selbst: {hinweis}
-            </p>
-          )}
-          <div className="flex flex-wrap items-end gap-2 border-t border-slate-200 pt-3">
-            <label className="block">
-              <span className={labelClass}>Grundkompetenz</span>
-              <select
-                className={inputClass}
-                value={themenbereich}
-                onChange={(e) => setThemenbereich(e.target.value)}
+          <p className="text-xs font-medium text-slate-500">
+            {zeilen.length} Zitat{zeilen.length === 1 ? "" : "e"} gefunden - bitte kurz
+            gegenchecken, ggf. abwählen/anpassen, dann gesammelt übernehmen.
+          </p>
+          <div className="max-h-[28rem] space-y-3 overflow-y-auto pr-1">
+            {zeilen.map((z, i) => (
+              <div
+                key={i}
+                className={`space-y-2 rounded-lg border p-3 ${
+                  z.uebernehmen ? "border-slate-200 bg-white" : "border-slate-100 bg-slate-50/60 opacity-60"
+                }`}
               >
-                {THEMENBEREICH_KEYS.map((k) => (
-                  <option key={k} value={k}>
-                    {THEMENBEREICHE[k].label}
-                  </option>
-                ))}
-              </select>
-            </label>
+                <div className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    className="mt-2.5"
+                    checked={z.uebernehmen}
+                    onChange={(e) => aktualisiereZeile(i, { uebernehmen: e.target.checked })}
+                  />
+                  <div className="flex-1 space-y-2">
+                    <input
+                      className={inputClass}
+                      value={z.bezeichnung}
+                      onChange={(e) => aktualisiereZeile(i, { bezeichnung: e.target.value })}
+                    />
+                    <textarea
+                      className={inputClass}
+                      rows={2}
+                      value={z.text}
+                      onChange={(e) => aktualisiereZeile(i, { text: e.target.value })}
+                    />
+                    {z.hinweis && (
+                      <p className="text-xs leading-relaxed text-slate-500">
+                        Hinweis von der Seite selbst: {z.hinweis}
+                      </p>
+                    )}
+                    <select
+                      className={`${inputClass} max-w-xs`}
+                      value={z.themenbereich}
+                      onChange={(e) => aktualisiereZeile(i, { themenbereich: e.target.value })}
+                    >
+                      {THEMENBEREICH_KEYS.map((k) => (
+                        <option key={k} value={k}>
+                          {THEMENBEREICHE[k].label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-3">
             <button
               type="button"
               onClick={uebernehmen}
-              disabled={uebernehmenLaeuft || !bezeichnung.trim() || !text.trim()}
+              disabled={uebernehmenLaeuft || ausgewaehlteAnzahl === 0}
               className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
             >
-              Als Entwurf übernehmen
+              {ausgewaehlteAnzahl} Eintrag{ausgewaehlteAnzahl === 1 ? "" : "e"} als Entwürfe
+              übernehmen
             </button>
+            {fortschritt && <span className="text-xs text-slate-500">{fortschritt}</span>}
           </div>
         </div>
       )}
