@@ -287,6 +287,14 @@ export default function NewWorksheetForm({
   // Auswahl mehr; alle Aufgabentypen bleiben unabhängig von der Schulstufe wählbar, die
   // Lehrkraft kennt ihre Klasse besser als eine grobe Schulstufen-Heuristik.
   const fruehStufe = istFrueheVolksschulstufe(schulstufe);
+  // Gemeinsam von der "→ ca. N Aufgaben"-Anzeige und dem Warnhinweis unten genutzt (siehe dort):
+  // wie viele Aufgaben bei aktueller Zieldauer/Komplexität insgesamt entstehen - eine Obergrenze
+  // dafür, wie viele der ausgewählten Aufgabentypen im fertigen Blatt überhaupt vorkommen können.
+  const geschaetzteAufgabenAnzahl = schaetzeAufgabenAnzahl(
+    zieldauerMinuten,
+    aufgabentypen as (typeof AUFGABEN_TYPEN_AKTIV)[number][],
+    komplexitaet,
+  );
   const [zusatzhinweise, setZusatzhinweise] = useState(initialZusatzhinweise ?? "");
   const [themenbereich, setThemenbereich] = useState<ThemenbereichKey>("gemischt");
   const [themenvorschlaegeOffen, setThemenvorschlaegeOffen] = useState(false);
@@ -1223,14 +1231,7 @@ export default function NewWorksheetForm({
             {aufgabentypen.length > 0 ? (
               <>
                 → ca.{" "}
-                <strong>
-                  {schaetzeAufgabenAnzahl(
-                    zieldauerMinuten,
-                    aufgabentypen as (typeof AUFGABEN_TYPEN_AKTIV)[number][],
-                    komplexitaet,
-                  )}{" "}
-                  Aufgaben
-                </strong>
+                <strong>{geschaetzteAufgabenAnzahl} Aufgaben</strong>
               </>
             ) : (
               "Wähle oben mindestens einen Aufgabentyp, um eine Richtwert-Anzahl zu sehen."
@@ -1242,6 +1243,14 @@ export default function NewWorksheetForm({
               ist hier bewusst nicht möglich, weil einzelne Typen sehr unterschiedlich lange
               dauern; Genauigkeit auf die Minute ist dabei nicht erreichbar, besonders bei „Offene
               Frage".
+            </p>
+          )}
+          {aufgabentypen.length > geschaetzteAufgabenAnzahl && (
+            <p className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800">
+              Du hast {aufgabentypen.length} Aufgabentypen ausgewählt, aber bei dieser Zieldauer
+              werden insgesamt nur ca. {geschaetzteAufgabenAnzahl} Aufgaben erstellt - nicht jeder
+              ausgewählte Typ kommt zwangsläufig im fertigen Arbeitsblatt vor. Für eine höhere
+              Trefferquote pro Typ entweder gezielter auswählen oder die Zieldauer erhöhen.
             </p>
           )}
           {aufgabentypen.some((typ) => typ in AUFGABEN_TYP_MAXIMUM) && (
