@@ -121,7 +121,7 @@ export default async function AccountPage({
       <div className="space-y-5">
         <EinklappbareSectionCard
           icon={<Smile size={18} strokeWidth={2} />}
-          title="Avatar"
+          title="Profilbild"
           subtitle="Farbe deines Kürzels, mit dem man dich in der App wiedererkennt"
           autoCollapseAfterSave
         >

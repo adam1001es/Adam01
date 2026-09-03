@@ -13,7 +13,6 @@ export interface AvatarFarbe {
  * konsistent mit Übersicht/Klassen/Community statt beliebig bunt. */
 export const AVATAR_FARBEN: AvatarFarbe[] = [
   { wert: "#0f766e", label: "Türkis" },
-  { wert: "#059669", label: "Smaragd" },
   { wert: "#0891b2", label: "Cyan" },
   { wert: "#8c6624", label: "Gold" },
   { wert: "#4f46e5", label: "Indigo" },
