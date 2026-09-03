@@ -66,6 +66,40 @@ Font.register({
   src: path.join(process.cwd(), "public/fonts/Amiri-Regular.ttf"),
 });
 
+// Für den GESAMTEN übrigen Dokumenttext (Titel, Einleitung, Aufgaben, Quellenangaben, ...) - die
+// eingebauten PDF-Standardschriften (Times-Roman/Helvetica, siehe buildStyles unten) unterstützen
+// nur WinAnsi-Kodierung und können daher KEINE lateinischen Transliterations-Diakritika
+// darstellen, wie sie in wissenschaftlicher Umschrift arabischer Begriffe/Namen üblich sind (z.B.
+// "Ṣaḥīḥ al-Bukhārī", "Allāh" mit Makron, Punkt-unter-Zeichen wie ḥ/ṣ/ṭ/ḍ/ẓ). Real beobachtet:
+// bei einem Hadith-Wissensbasis-Eintrag mit genau solcher Schreibweise wurden im PDF-Titel
+// einzelne Buchstaben durch Zufallszeichen ersetzt und der Text lief ineinander ("40 Sḥḥ
+// an-Nawawī" wurde zu "40 Sdh an-Nawaw", "Allāh" zu "AR7") - dasselbe Grundproblem wie beim
+// arabischen Koran-Text oben, nur eine Ebene "unsichtbarer", weil es lateinische statt arabische
+// Schriftzeichen betrifft und daher leicht als reiner Text-/Encoding-Bug missverstanden werden
+// könnte. Noto Serif/Noto Sans (Google, SIL Open Font License) statt der Standardschriften
+// registriert - beide decken den gesamten benötigten Latin-Extended-Additional-Block ab (mit
+// fontTools gegen ā/ī/ū/ṣ/ḥ/ṭ/ḍ/ẓ/ġ/ʿ/ʾ geprüft), inklusive Fett/Kursiv-Schnitt (siehe
+// fontWeight/fontStyle-Nutzung in buildStyles unten - ohne registrierte Bold-/Italic-Varianten
+// würde @react-pdf/renderer diese Stellen mit der (nicht diakritikfähigen) Fallback-Schrift
+// rendern). Serif (klassisch) und Sans (modern/kompakt) getrennt registriert, um die bisherige
+// optische Unterscheidung der Vorlagen beizubehalten.
+Font.register({
+  family: "NotoSerif",
+  fonts: [
+    { src: path.join(process.cwd(), "public/fonts/NotoSerif-Regular.ttf"), fontWeight: 400 },
+    { src: path.join(process.cwd(), "public/fonts/NotoSerif-Bold.ttf"), fontWeight: 700 },
+    { src: path.join(process.cwd(), "public/fonts/NotoSerif-Italic.ttf"), fontStyle: "italic" },
+  ],
+});
+Font.register({
+  family: "NotoSans",
+  fonts: [
+    { src: path.join(process.cwd(), "public/fonts/NotoSans-Regular.ttf"), fontWeight: 400 },
+    { src: path.join(process.cwd(), "public/fonts/NotoSans-Bold.ttf"), fontWeight: 700 },
+    { src: path.join(process.cwd(), "public/fonts/NotoSans-Italic.ttf"), fontStyle: "italic" },
+  ],
+});
+
 const ICON_DATA_URIS: Record<IconKey, string> = {
   halbmond: liesIconAlsDataUri("halbmond.png"),
   stern: liesIconAlsDataUri("stern.png"),
@@ -115,7 +149,7 @@ function buildStyles(layout: LayoutConfig) {
   const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
   // Bei Schwarz-Weiß-Druck macht der farbige "modern"-Kopfbereich keinen Sinn (viel Toner/Tinte).
   const isModernFarbig = isModern && !istSchwarzweiss;
-  const fontFamily = isModern || isKompakt ? "Helvetica" : "Times-Roman";
+  const fontFamily = isModern || isKompakt ? "NotoSans" : "NotoSerif";
   const headerColor = isModernFarbig ? "#0d9488" : "#111111";
 
   return StyleSheet.create({
