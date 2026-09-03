@@ -12,16 +12,21 @@ import {
   getAufgabeErgaenzenStatus,
   incrementAufgabeErgaenzenUsage,
   AUFGABE_ERGAENZEN_TAGESLIMIT,
+  AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM,
 } from "@/lib/aufgabeErgaenzen";
 import { speichereUsage } from "@/lib/usageLog";
 
 /** Ergänzt EINE zusätzliche, per KI erstellte Aufgabe zu einem bereits bestehenden Arbeitsblatt
  * (siehe EditWorksheetForm.tsx "Aufgabe von KI erstellen") - eigenständige, kontingentfreie
- * Funktion mit eigenem Tageslimit (siehe lib/aufgabeErgaenzen.ts), NICHT Teil des normalen
- * Arbeitsblatt-Kontingents (lib/quota.ts): es entsteht kein neues Arbeitsblatt, nur eine
- * Ergänzung zu einem bereits (ggf. kostenpflichtig) erstellten. Ändert das Arbeitsblatt selbst
- * NICHT - liefert nur die neue Aufgabe zurück, das tatsächliche Speichern läuft weiterhin über
- * PATCH /api/worksheet/[id] beim regulären "Änderungen speichern". */
+ * Funktion, NICHT Teil des normalen Arbeitsblatt-Kontingents (lib/quota.ts): es entsteht kein
+ * neues Arbeitsblatt, nur eine Ergänzung zu einem bereits (ggf. kostenpflichtig) erstellten.
+ * Zwei unabhängige Limits (siehe lib/aufgabeErgaenzen.ts): pro Arbeitsblatt höchstens
+ * AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM (die eigentliche Missbrauchsbremse), zusätzlich ein
+ * lockereres Tageslimit über alle Arbeitsblätter hinweg. Ändert das Arbeitsblatt selbst NICHT -
+ * liefert nur die neue Aufgabe zurück, das tatsächliche Speichern läuft weiterhin über PATCH
+ * /api/worksheet/[id] beim regulären "Änderungen speichern"; der Zähler wird trotzdem schon HIER
+ * erhöht (nicht erst beim Speichern), da bereits der Claude-Aufruf selbst die Kosten verursacht,
+ * die begrenzt werden sollen - unabhängig davon, ob die Lehrkraft das Ergebnis am Ende übernimmt. */
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const user = await getSessionUser();
   if (!user) {
@@ -50,6 +55,16 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const req = parsed.data;
 
   const istAdmin = user.role === "admin";
+
+  if (!istAdmin && worksheet.aufgabeErgaenzenAnzahl >= AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM) {
+    return NextResponse.json(
+      {
+        error: `"Aufgabe von KI erstellen" wurde für dieses Arbeitsblatt bereits ${AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM}× genutzt (Höchstgrenze pro Arbeitsblatt).`,
+      },
+      { status: 429 },
+    );
+  }
+
   const status = istAdmin ? null : await getAufgabeErgaenzenStatus(user.id);
   if (status && status.verbleibend <= 0) {
     return NextResponse.json(
@@ -83,10 +98,23 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   try {
     const { aufgabe, loesung, usage } = await generiereZusaetzlicheAufgabe(content, themenbereich, req);
     await speichereUsage(usage, user.id, worksheet.id);
-    if (!istAdmin) await incrementAufgabeErgaenzenUsage(user.id);
+
+    let verbleibendProArbeitsblatt: number | null = null;
+    if (!istAdmin) {
+      await incrementAufgabeErgaenzenUsage(user.id);
+      const aktualisiert = await prisma.worksheet.update({
+        where: { id: worksheet.id },
+        data: { aufgabeErgaenzenAnzahl: { increment: 1 } },
+        select: { aufgabeErgaenzenAnzahl: true },
+      });
+      verbleibendProArbeitsblatt = Math.max(
+        0,
+        AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM - aktualisiert.aufgabeErgaenzenAnzahl,
+      );
+    }
     const verbleibend = istAdmin ? null : Math.max(0, (status?.verbleibend ?? AUFGABE_ERGAENZEN_TAGESLIMIT) - 1);
 
-    return NextResponse.json({ aufgabe, loesung, verbleibend });
+    return NextResponse.json({ aufgabe, loesung, verbleibend, verbleibendProArbeitsblatt });
   } catch (err) {
     console.error("Fehler beim Ergänzen einer Aufgabe:", err);
     const message = err instanceof Error ? err.message : "Aufgabe konnte nicht erstellt werden.";

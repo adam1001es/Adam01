@@ -47,6 +47,13 @@ model Worksheet {
   // ablesbar, damit z.B. Übersicht/Auswertung später ohne JSON-Parsing danach filtern können.
   inhaltsquelle String @default("frei")
   ausgabeform String @default("arbeitsblatt")
+  // Zählt, wie oft "Aufgabe von KI erstellen" (siehe app/api/worksheet/[id]/aufgabe-generieren,
+  // lib/aufgabeErgaenzen.ts) für DIESES Arbeitsblatt bereits genutzt wurde - bewusst pro
+  // Arbeitsblatt statt nur global/täglich begrenzt (siehe AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM),
+  // damit die Funktion nicht zum wiederholten Nachgenerieren vieler Aufgaben auf einem einzigen
+  // Arbeitsblatt missbraucht werden kann: 1 reguläre Nutzung, plus 1 weitere, falls die KI dabei
+  // inhaltlich danebenlag und die Lehrkraft es nochmal versuchen möchte.
+  aufgabeErgaenzenAnzahl Int @default(0)
   createdAt   DateTime @default(now())
   // Optional, damit ältere Arbeitsblätter aus der Zeit vor dem Login-System gültig bleiben -
   // neue Arbeitsblätter bekommen immer einen Besitzer zugewiesen (siehe app/api/generate).

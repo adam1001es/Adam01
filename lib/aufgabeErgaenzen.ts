@@ -13,13 +13,19 @@ import { vereinfacheArabischeTransliteration } from "./transliteration";
 import { GENERATION_SYSTEM_PROMPT_BASE } from "./generateWorksheet";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 
-/** Tägliches (nicht monatliches) Limit für "Aufgabe von KI erstellen" auf der Bearbeiten-Seite
- * (siehe app/api/worksheet/[id]/aufgabe-generieren/route.ts) - analog zu
- * THEMA_IDEEN_TAGESLIMIT (lib/themaIdeen.ts), aber deutlich großzügiger: das ist Teil des
- * eigentlichen Bearbeitungs-Workflows (eine Lehrkraft probiert bei einer Aufgabe realistisch
- * mehrmals hintereinander eine passende Formulierung/Typ-Kombination aus), kein spontanes
- * Extra-Hilfsmittel. Admin-Konten sind ausgenommen (siehe Route), analog zum unbegrenzten
- * Arbeitsblatt-Kontingent. */
+/** Harte Obergrenze für "Aufgabe von KI erstellen" PRO ARBEITSBLATT (siehe
+ * app/api/worksheet/[id]/aufgabe-generieren/route.ts, Worksheet.aufgabeErgaenzenAnzahl) - die
+ * eigentliche Missbrauchsbremse: 1 reguläre Nutzung, plus 1 weitere, falls die KI dabei
+ * inhaltlich danebenlag und die Lehrkraft es nochmal versuchen möchte. Verhindert, dass ein
+ * einzelnes Arbeitsblatt beliebig oft mit neu generierten Aufgaben "aufgefüllt" wird. */
+export const AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM = 2;
+
+/** Tägliches (nicht monatliches) Limit ÜBER ALLE Arbeitsblätter hinweg (siehe
+ * app/api/worksheet/[id]/aufgabe-generieren/route.ts) - analog zu THEMA_IDEEN_TAGESLIMIT
+ * (lib/themaIdeen.ts). Zweite, großzügigere Sicherheitsebene NEBEN dem strengen Pro-Arbeitsblatt-
+ * Limit oben (das die eigentliche Begrenzung ist): verhindert nur, dass an einem einzigen Tag
+ * viele verschiedene Arbeitsblätter durchgenutzt werden. Admin-Konten sind ausgenommen (siehe
+ * Route), analog zum unbegrenzten Arbeitsblatt-Kontingent. */
 export const AUFGABE_ERGAENZEN_TAGESLIMIT = 20;
 
 function heutigerTag(): string {

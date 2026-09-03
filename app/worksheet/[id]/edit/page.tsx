@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema } from "@/lib/types";
 import EditWorksheetForm from "@/components/EditWorksheetForm";
 import { getSessionUser } from "@/lib/auth";
+import { AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM } from "@/lib/aufgabeErgaenzen";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,12 @@ export default async function EditWorksheetPage({ params }: { params: { id: stri
       <h1 className="mb-6 font-display text-2xl font-semibold text-slate-800 sm:text-3xl">
         Arbeitsblatt bearbeiten
       </h1>
-      <EditWorksheetForm worksheetId={worksheet.id} initialContent={content} />
+      <EditWorksheetForm
+        worksheetId={worksheet.id}
+        initialContent={content}
+        aufgabeErgaenzenAnzahl={worksheet.aufgabeErgaenzenAnzahl}
+        aufgabeErgaenzenMaximum={AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM}
+      />
     </main>
   );
 }

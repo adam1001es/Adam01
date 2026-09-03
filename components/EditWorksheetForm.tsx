@@ -98,9 +98,17 @@ function RemoveButton({ onClick }: { onClick: () => void }) {
 export default function EditWorksheetForm({
   worksheetId,
   initialContent,
+  aufgabeErgaenzenAnzahl,
+  aufgabeErgaenzenMaximum,
 }: {
   worksheetId: string;
   initialContent: WorksheetContent;
+  // Wie oft "Aufgabe von KI erstellen" (siehe unten) für DIESES Arbeitsblatt schon genutzt wurde
+  // - bewusst pro Arbeitsblatt begrenzt (siehe AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM in
+  // lib/aufgabeErgaenzen.ts), NICHT nur über ein tägliches Gesamtlimit: 1 reguläre Nutzung plus
+  // 1 weitere, falls die KI inhaltlich danebenlag.
+  aufgabeErgaenzenAnzahl: number;
+  aufgabeErgaenzenMaximum: number;
 }) {
   const router = useRouter();
   const [content, setContent] = useState<WorksheetContent>(initialContent);
@@ -143,6 +151,11 @@ export default function EditWorksheetForm({
   const [generatorLaden, setGeneratorLaden] = useState(false);
   const [generatorFehler, setGeneratorFehler] = useState<string | null>(null);
   const [generatorVerbleibend, setGeneratorVerbleibend] = useState<number | null>(null);
+  // Pro-Arbeitsblatt-Limit (siehe Props oben) - die eigentliche Missbrauchsbremse, strenger als
+  // das globale Tageslimit (generatorVerbleibend): startet mit dem beim Laden der Seite bereits
+  // verbrauchten Stand und wird nach jeder erfolgreichen Nutzung lokal weitergezählt.
+  const [verbrauchtProArbeitsblatt, setVerbrauchtProArbeitsblatt] = useState(aufgabeErgaenzenAnzahl);
+  const proArbeitsblattLimitErreicht = verbrauchtProArbeitsblatt >= aufgabeErgaenzenMaximum;
 
   function typBereitsVoll(typ: (typeof AUFGABEN_TYPEN_AKTIV)[number]): boolean {
     const maximum = AUFGABEN_TYP_MAXIMUM[typ];
@@ -172,6 +185,11 @@ export default function EditWorksheetForm({
       setContent((c) => ({ ...c, aufgaben: [...c.aufgaben, neueAufgabe] }));
       setLoesungenByNr((l) => ({ ...l, [nr]: data.loesung ?? "" }));
       setGeneratorVerbleibend(typeof data.verbleibend === "number" ? data.verbleibend : null);
+      setVerbrauchtProArbeitsblatt((v) =>
+        typeof data.verbleibendProArbeitsblatt === "number"
+          ? aufgabeErgaenzenMaximum - data.verbleibendProArbeitsblatt
+          : v + 1,
+      );
       setGeneratorOffen(false);
       setGeneratorVorgabe("");
     } catch (err) {
@@ -294,14 +312,27 @@ export default function EditWorksheetForm({
           <button
             type="button"
             onClick={() => setGeneratorOffen((o) => !o)}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
+            disabled={proArbeitsblattLimitErreicht}
+            title={
+              proArbeitsblattLimitErreicht
+                ? `Für dieses Arbeitsblatt bereits ${aufgabeErgaenzenMaximum}× genutzt (Höchstgrenze erreicht).`
+                : undefined
+            }
+            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 transition hover:border-brand-300 hover:bg-brand-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400"
           >
             <Sparkles size={14} strokeWidth={2.5} />
             Aufgabe von KI erstellen
           </button>
         }
       >
-        {generatorOffen && (
+        {proArbeitsblattLimitErreicht && (
+          <p className="mb-5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs leading-relaxed text-slate-500">
+            "Aufgabe von KI erstellen" wurde für dieses Arbeitsblatt bereits {aufgabeErgaenzenMaximum}×
+            genutzt (Höchstgrenze pro Arbeitsblatt, gegen Missbrauch) - bestehende Aufgaben bleiben
+            aber weiterhin frei bearbeitbar.
+          </p>
+        )}
+        {generatorOffen && !proArbeitsblattLimitErreicht && (
           <div className="mb-5 space-y-3 rounded-xl border border-brand-200 bg-brand-50/50 p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
@@ -364,11 +395,11 @@ export default function EditWorksheetForm({
               />
             </label>
             {generatorFehler && <p className="text-sm text-red-600">{generatorFehler}</p>}
-            {generatorVerbleibend !== null && (
-              <p className="text-xs text-slate-400">
-                Noch {generatorVerbleibend}× heute verfügbar.
-              </p>
-            )}
+            <p className="text-xs text-slate-400">
+              Noch {Math.max(0, aufgabeErgaenzenMaximum - verbrauchtProArbeitsblatt)} von{" "}
+              {aufgabeErgaenzenMaximum} Malen für dieses Arbeitsblatt verfügbar
+              {generatorVerbleibend !== null ? ` (max. ${generatorVerbleibend}× heute insgesamt).` : "."}
+            </p>
             <div className="flex items-center gap-2">
               <button
                 type="button"
