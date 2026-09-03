@@ -8,6 +8,7 @@ import VerificationBanner from "@/components/VerificationBanner";
 import FavoritButton from "@/components/FavoritButton";
 import CommunityFavoritButton from "@/components/CommunityFavoritButton";
 import TeilenButton from "@/components/TeilenButton";
+import LinkTeilenButton from "@/components/LinkTeilenButton";
 import DeleteButton from "@/components/DeleteButton";
 import MeldungButton from "@/components/MeldungButton";
 import { getSessionUser } from "@/lib/auth";
@@ -60,6 +61,12 @@ export default async function WorksheetPage({ params }: { params: { id: string }
           )}
           {istBesitzer && istZahlendesKonto(user) && (
             <TeilenButton worksheetId={worksheet.id} initialGeteilt={worksheet.geteilt} />
+          )}
+          {istBesitzer && (
+            <LinkTeilenButton
+              worksheetId={worksheet.id}
+              initialToken={worksheet.oeffentlicherLinkToken}
+            />
           )}
           {istBesitzer && (
             <Link

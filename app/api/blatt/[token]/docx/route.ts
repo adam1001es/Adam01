@@ -1,26 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema } from "@/lib/types";
-import { getSessionUser } from "@/lib/auth";
-import { istZahlendesKonto } from "@/lib/quota";
 import { renderWorksheetDocxBuffer, slugifyTitel } from "@/lib/worksheetExport";
 
 export const runtime = "nodejs";
 // Siehe dieselbe Begründung in app/api/worksheet/[id]/pdf/route.ts.
 export const maxDuration = 60;
 
+/** Öffentliches Gegenstück zu app/api/worksheet/[id]/docx - autorisiert über den Link-Token
+ * (Worksheet.oeffentlicherLinkToken) statt über eine Session, siehe app/blatt/[token]. */
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: { token: string } },
 ) {
-  const user = await getSessionUser();
-  if (!user) {
-    return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
-  }
-
-  const worksheet = await prisma.worksheet.findUnique({ where: { id: params.id } });
-  // Siehe dieselbe Begründung in app/api/worksheet/[id]/pdf/route.ts.
-  if (!worksheet || !(worksheet.userId === user.id || (worksheet.geteilt && istZahlendesKonto(user)))) {
+  const worksheet = await prisma.worksheet.findUnique({
+    where: { oeffentlicherLinkToken: params.token },
+  });
+  if (!worksheet) {
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 

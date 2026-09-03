@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { renderToBuffer } from "@react-pdf/renderer";
-import React from "react";
 import { prisma } from "@/lib/prisma";
-import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema } from "@/lib/types";
-import { THEMENBEREICHE } from "@/lib/curriculum";
-import { WorksheetPdfDocument } from "@/lib/pdf/WorksheetPdf";
+import { WorksheetContentSchema } from "@/lib/types";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
-import { sammleBildGeneriertIds } from "@/lib/generiertesBildHelfer";
+import { renderWorksheetPdfBuffer, slugifyTitel } from "@/lib/worksheetExport";
 
 export const runtime = "nodejs";
 // Arbeitsblätter mit mehreren live generierten Bildern (Bildergeschichte) können das PDF-Layout
@@ -33,41 +29,12 @@ export async function GET(
   }
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
-  const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
-  const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
-
-  const bildIds = sammleBildGeneriertIds(content);
-  const generierteBildRows = bildIds.length
-    ? await prisma.generatedImage.findMany({ where: { id: { in: bildIds } } })
-    : [];
-  const generierteBilder = Object.fromEntries(
-    generierteBildRows.map((b) => [b.id, `data:image/png;base64,${b.data.toString("base64")}`]),
-  );
-
-  const element = React.createElement(WorksheetPdfDocument, {
-    content,
-    layout,
-    themenbereichLabel: THEMENBEREICHE[themenbereich].label,
-    erstelltAm: worksheet.createdAt,
-    generierteBilder,
-  });
-  const buffer = await renderToBuffer(
-    element as unknown as Parameters<typeof renderToBuffer>[0],
-  );
+  const buffer = await renderWorksheetPdfBuffer(worksheet);
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${slugify(content.titel)}.pdf"`,
+      "Content-Disposition": `inline; filename="${slugifyTitel(content.titel)}.pdf"`,
     },
   });
-}
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "") || "arbeitsblatt";
 }

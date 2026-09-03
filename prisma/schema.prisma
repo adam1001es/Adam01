@@ -33,6 +33,14 @@ model Worksheet {
   // wird.
   geteilt     Boolean  @default(false)
   geteiltAm   DateTime?
+  // Öffentlicher, nicht angemeldeter Lesezugriff per Link (siehe app/blatt/[token],
+  // components/LinkTeilenButton.tsx) - bewusst getrennt von "geteilt" oben (Community-
+  // Sichtbarkeit nur unter zahlenden Abo-Konten): für diesen Link braucht es gar kein Konto,
+  // gedacht für den Versand z.B. über WhatsApp statt PDF herunterzuladen und woanders wieder
+  // hochzuladen. NULL = kein aktiver Link. Beim Widerrufen wird der Token komplett verworfen
+  // statt nur ein Flag umzuschalten, damit ein bereits weitergegebener Link danach endgültig
+  // ungültig ist - erneutes Aktivieren erzeugt einen frischen Token.
+  oeffentlicherLinkToken String? @unique
   // Prüfungs-Modus (siehe app/klassen, lib/generateWorksheet.ts): ein Worksheet mit
   // istPruefung=true ist inhaltlich eine formelle Prüfung (nur prüfungstaugliche Aufgabentypen,
   // Punkte pro Aufgabe statt reiner Übungsaufgaben) statt eines normalen Arbeitsblatts - bleibt
