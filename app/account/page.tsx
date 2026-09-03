@@ -20,7 +20,7 @@ import { getKontingent, istZahlendesKonto, tierLabel, aktuellerZyklusStart } fro
 import { summeTokensFuerUser } from "@/lib/usageLog";
 import { prisma } from "@/lib/prisma";
 import { SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
-import { avatarInitialen, avatarTextKlasse } from "@/lib/profil";
+import { avatarInitialen } from "@/lib/profil";
 import SectionCard from "@/components/SectionCard";
 import EinklappbareSectionCard from "@/components/EinklappbareSectionCard";
 import UsernameForm from "@/components/UsernameForm";
@@ -77,8 +77,8 @@ export default async function AccountPage({
     <main className="mx-auto max-w-lg">
       <div className="mb-6 flex items-center gap-4">
         <span
-          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg font-bold shadow-card ring-2 ring-white ${avatarTextKlasse(user.avatarFarbe)}`}
-          style={{ backgroundColor: user.avatarFarbe }}
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg font-bold shadow-card ring-2 ring-white"
+          style={{ backgroundColor: user.avatarFarbe, color: user.avatarTextFarbe }}
         >
           {avatarInitialen(user.username)}
         </span>
@@ -125,7 +125,11 @@ export default async function AccountPage({
           subtitle="Farbe deines Kürzels, mit dem man dich in der App wiedererkennt"
           autoCollapseAfterSave
         >
-          <AvatarForm username={user.username} initialFarbe={user.avatarFarbe} />
+          <AvatarForm
+            username={user.username}
+            initialFarbe={user.avatarFarbe}
+            initialTextFarbe={user.avatarTextFarbe}
+          />
         </EinklappbareSectionCard>
 
         <EinklappbareSectionCard

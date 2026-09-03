@@ -83,6 +83,7 @@ export default async function RootLayout({
                   role: user.role,
                   istZahlend: istZahlendesKonto(user),
                   avatarFarbe: user.avatarFarbe,
+                  avatarTextFarbe: user.avatarTextFarbe,
                 }
               : null
           }

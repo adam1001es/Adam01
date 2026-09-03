@@ -1,7 +1,8 @@
 /** Profil-Anpassung in "Profil" (app/account) - bewusst keine freie Bild-/Emoji-Eingabe, damit im
- * Forum ein einheitliches, ruhiges Bild entsteht statt beliebiger Nutzer-Uploads. Der Avatar
+ * Forum ein einheitliches, ruhiges Bild entsteht statt beliebiger Nutzer-Uploads. Das Profilbild
  * selbst ist ein Slack/Google-artiges Buchstaben-Kürzel (siehe avatarInitialen unten) statt eines
- * Symbols - einzig wählbar ist die Hintergrundfarbe. */
+ * Symbols - Hintergrund- UND Buchstabenfarbe sind unabhängig voneinander aus derselben kuratierten
+ * Palette wählbar (siehe AVATAR_FARBEN). */
 
 export interface AvatarFarbe {
   wert: string;
@@ -23,15 +24,15 @@ export const AVATAR_FARBEN: AvatarFarbe[] = [
 ];
 
 export const STANDARD_AVATAR_FARBE: string = AVATAR_FARBEN[0].wert;
+// Weiß auf dem türkisen Standard-Hintergrund (STANDARD_AVATAR_FARBE) ist gut lesbar.
+export const STANDARD_AVATAR_TEXT_FARBE: string = "#ffffff";
 
+// Hintergrund- und Buchstabenfarbe kommen bewusst aus DERSELBEN Palette (kein zweites, engeres
+// "nur schwarz/weiß"-Set) - so bleibt die Wahl frei, auch wenn dadurch schlecht lesbare
+// Kombinationen (z.B. Gold auf Bernstein) möglich sind; die Live-Vorschau in AvatarForm.tsx
+// macht das sofort sichtbar, bevor gespeichert wird.
 export function istGueltigeAvatarFarbe(wert: string): boolean {
   return AVATAR_FARBEN.some((f) => f.wert === wert);
-}
-
-/** Passende Textfarbe für das Initialen-Kürzel auf der gewählten Avatar-Hintergrundfarbe - nur
- * "Weiß" braucht dunklen statt weißen Text, alle anderen Töne der Palette sind kräftig genug. */
-export function avatarTextKlasse(farbe: string): string {
-  return farbe === "#ffffff" ? "text-slate-700" : "text-white";
 }
 
 // Fallback für Konten ohne gesetzten Benutzernamen (username ist optional, siehe

@@ -5,10 +5,13 @@ import { getSessionUser } from "@/lib/auth";
 import { istGueltigeAvatarFarbe } from "@/lib/profil";
 
 // Nur die kuratierte Farbauswahl aus lib/profil.ts ist erlaubt (kein Freitext/Upload) - siehe
-// dort für die Begründung. Der Avatar selbst (Initialen) wird nicht hier, sondern live aus dem
-// Benutzernamen berechnet (siehe avatarInitialen) - dafür gibt es kein eigenes Feld zu speichern.
+// dort für die Begründung. Hintergrund- und Buchstabenfarbe kommen bewusst aus derselben Palette
+// und werden unabhängig voneinander validiert/gespeichert. Das Profilbild selbst (Initialen) wird
+// nicht hier, sondern live aus dem Benutzernamen berechnet (siehe avatarInitialen) - dafür gibt
+// es kein eigenes Feld zu speichern.
 const BodySchema = z.object({
-  avatarFarbe: z.string().refine(istGueltigeAvatarFarbe, "Unbekannte Avatar-Farbe."),
+  avatarFarbe: z.string().refine(istGueltigeAvatarFarbe, "Unbekannte Hintergrundfarbe."),
+  avatarTextFarbe: z.string().refine(istGueltigeAvatarFarbe, "Unbekannte Buchstabenfarbe."),
 });
 
 export async function PATCH(request: NextRequest) {
@@ -34,7 +37,13 @@ export async function PATCH(request: NextRequest) {
 
   const updated = await prisma.user.update({
     where: { id: user.id },
-    data: { avatarFarbe: parsed.data.avatarFarbe },
+    data: {
+      avatarFarbe: parsed.data.avatarFarbe,
+      avatarTextFarbe: parsed.data.avatarTextFarbe,
+    },
   });
-  return NextResponse.json({ avatarFarbe: updated.avatarFarbe });
+  return NextResponse.json({
+    avatarFarbe: updated.avatarFarbe,
+    avatarTextFarbe: updated.avatarTextFarbe,
+  });
 }
