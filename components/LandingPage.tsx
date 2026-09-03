@@ -152,6 +152,12 @@ const HERO_VORSCHAU_INHALT: WorksheetContent = {
   quellen: [{ bezeichnung: "Ibn Ruschd, Bidayat al-Mudschtahid", sicherheit: "gesichert" }],
 };
 
+// farbmodus "schwarzweiss" (Standardwert bei echten Generierungen, siehe lib/types.ts) statt
+// "farbe": der volltonfarbige "modern"-Kopfbereich (WorksheetView.tsx, isModernFarbig) sieht auf
+// dem Bildschirm zwar hübsch aus, aber Lehrkräfte drucken/kopieren Arbeitsblätter für die Klasse
+// überwiegend in Schwarzweiß - genau dafür rendert die App bei schwarzweiss stattdessen eine
+// schlichte, umrandete Kopfzeile ohne Farbfläche. Für eine Vorschau, die wie ein "echtes",
+// tatsächlich ausgedrucktes Arbeitsblatt aussehen soll, ist das die authentischere Wahl.
 const HERO_VORSCHAU_LAYOUT: LayoutConfig = {
   template: "modern",
   schriftgroesse: "normal",
@@ -159,7 +165,7 @@ const HERO_VORSCHAU_LAYOUT: LayoutConfig = {
   zeigeMuster: true,
   musterVariante: "sterne",
   zeigeLernziel: true,
-  farbmodus: "farbe",
+  farbmodus: "schwarzweiss",
 };
 
 // Statisches Datum statt new Date() - rein dekorativ, vermeidet aber ein mögliches
