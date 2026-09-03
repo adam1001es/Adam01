@@ -13,6 +13,8 @@ import {
   PenLine,
   Quote,
   BookOpenText,
+  RotateCcw,
+  X,
 } from "lucide-react";
 import {
   WorksheetContent,
@@ -154,18 +156,34 @@ export default function EditWorksheetForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Hebt die zuletzt hinzugefügte Aufgabe farblich hervor und scrollt sie ins Bild - egal über
-  // welche der vier Methoden (siehe ADD_METHODEN unten) sie entstanden ist, damit die Lehrkraft
-  // auf einen Blick sieht, WO im (ggf. langen) Arbeitsblatt sie gelandet ist, statt sie erst
-  // suchen zu müssen. Der Hinweis zum Speichern steht direkt AUF der hervorgehobenen Karte (siehe
-  // unten), nicht als separates Banner irgendwo anders auf der Seite.
-  const [zuletztHinzugefuegtNr, setZuletztHinzugefuegtNr] = useState<number | null>(null);
-  const zuletztHinzugefuegtRef = useRef<HTMLDivElement | null>(null);
+  // Hebt eine Aufgabe farblich hervor und scrollt sie ins Bild - entweder weil sie gerade über
+  // eine der vier ADD_METHODEN entstanden ist, oder weil sie nach "Entfernen" per "Rückgängig"
+  // wiederhergestellt wurde (siehe zuletztEntfernt unten). Der Hinweis zum Speichern steht direkt
+  // AUF der hervorgehobenen Karte, nicht als separates Banner irgendwo anders auf der Seite.
+  const [hervorgehobeneAufgabe, setHervorgehobeneAufgabe] = useState<{
+    nr: number;
+    grund: "hinzugefuegt" | "wiederhergestellt";
+  } | null>(null);
+  const hervorgehobeneAufgabeRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
-    if (zuletztHinzugefuegtNr !== null) {
-      zuletztHinzugefuegtRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (hervorgehobeneAufgabe !== null) {
+      hervorgehobeneAufgabeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
-  }, [zuletztHinzugefuegtNr]);
+  }, [hervorgehobeneAufgabe]);
+
+  // Merkt sich genau EINE zuletzt entfernte Aufgabe (samt ihrer bisherigen Lösung und Position im
+  // Array), damit "Entfernen" per Sicherheitsabfrage plus "Rückgängig"-Banner rückgängig gemacht
+  // werden kann, falls es versehentlich doch passiert ist. Wird bei jedem Hinzufügen einer neuen
+  // Aufgabe geleert (nicht nur beim Wiederherstellen): naechsteNr() vergibt sonst potenziell
+  // dieselbe Nummer erneut, die die entfernte Aufgabe noch trägt - eine spätere Wiederherstellung
+  // würde dann zwei Aufgaben mit identischer "nr" erzeugen (kollidierender React-Key UND
+  // überschriebener loesungenByNr-Eintrag). Solange nichts Neues hinzugefügt wurde, ist die
+  // gemerkte Position im Array garantiert noch gültig.
+  const [zuletztEntfernt, setZuletztEntfernt] = useState<{
+    aufgabe: Aufgabe;
+    loesung: string;
+    index: number;
+  } | null>(null);
 
   function updateAufgabe(nr: number, patch: Partial<Aufgabe>) {
     setContent((c) => ({
@@ -175,13 +193,33 @@ export default function EditWorksheetForm({
   }
 
   function removeAufgabe(nr: number) {
+    const index = content.aufgaben.findIndex((a) => a.nr === nr);
+    const aufgabe = content.aufgaben[index];
+    if (!aufgabe) return;
+    const bezeichnung = aufgabe.frage.trim() || TYP_LABEL[aufgabe.typ];
+    if (!window.confirm(`Aufgabe „${bezeichnung}" wirklich entfernen?`)) return;
+
+    setZuletztEntfernt({ aufgabe, loesung: loesungenByNr[nr] ?? "", index });
     setContent((c) => ({ ...c, aufgaben: c.aufgaben.filter((a) => a.nr !== nr) }));
     setLoesungenByNr((l) => {
       const rest = { ...l };
       delete rest[nr];
       return rest;
     });
-    setZuletztHinzugefuegtNr((aktuell) => (aktuell === nr ? null : aktuell));
+    setHervorgehobeneAufgabe((aktuell) => (aktuell?.nr === nr ? null : aktuell));
+  }
+
+  function aufgabeWiederherstellen() {
+    if (!zuletztEntfernt) return;
+    const { aufgabe, loesung, index } = zuletztEntfernt;
+    setContent((c) => {
+      const aufgaben = [...c.aufgaben];
+      aufgaben.splice(Math.min(index, aufgaben.length), 0, aufgabe);
+      return { ...c, aufgaben };
+    });
+    setLoesungenByNr((l) => ({ ...l, [aufgabe.nr]: loesung }));
+    setZuletztEntfernt(null);
+    setHervorgehobeneAufgabe({ nr: aufgabe.nr, grund: "wiederhergestellt" });
   }
 
   // "Aufgabe hinzufügen" bietet vier Methoden (siehe ADD_METHODEN oben): "Leer" (manuell
@@ -237,7 +275,8 @@ export default function EditWorksheetForm({
       const neueAufgabe: Aufgabe = { ...data.aufgabe, nr };
       setContent((c) => ({ ...c, aufgaben: [...c.aufgaben, neueAufgabe] }));
       setLoesungenByNr((l) => ({ ...l, [nr]: data.loesung ?? "" }));
-      setZuletztHinzugefuegtNr(nr);
+      setHervorgehobeneAufgabe({ nr, grund: "hinzugefuegt" });
+      setZuletztEntfernt(null);
       setGeneratorVerbleibend(typeof data.verbleibend === "number" ? data.verbleibend : null);
       setVerbrauchtProArbeitsblatt((v) =>
         typeof data.verbleibendProArbeitsblatt === "number"
@@ -260,7 +299,8 @@ export default function EditWorksheetForm({
     const nr = naechsteNr(content.aufgaben);
     setContent((c) => ({ ...c, aufgaben: [...c.aufgaben, { nr, typ: generatorTyp, frage: "" }] }));
     setLoesungenByNr((l) => ({ ...l, [nr]: "" }));
-    setZuletztHinzugefuegtNr(nr);
+    setHervorgehobeneAufgabe({ nr, grund: "hinzugefuegt" });
+    setZuletztEntfernt(null);
     setGeneratorOffen(false);
   }
 
@@ -277,7 +317,8 @@ export default function EditWorksheetForm({
       quellen: [...c.quellen, { bezeichnung: quelleBezeichnung, sicherheit: "gesichert" }],
     }));
     setLoesungenByNr((l) => ({ ...l, [nr]: "" }));
-    setZuletztHinzugefuegtNr(nr);
+    setHervorgehobeneAufgabe({ nr, grund: "hinzugefuegt" });
+    setZuletztEntfernt(null);
     setGeneratorOffen(false);
   }
 
@@ -835,15 +876,41 @@ export default function EditWorksheetForm({
             )}
           </div>
         )}
+        {zuletztEntfernt && (
+          <div className="mb-5 flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <span>
+              Aufgabe entfernt: „
+              {zuletztEntfernt.aufgabe.frage.trim() || TYP_LABEL[zuletztEntfernt.aufgabe.typ]}"
+            </span>
+            <div className="flex shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={aufgabeWiederherstellen}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+              >
+                <RotateCcw size={14} />
+                Rückgängig
+              </button>
+              <button
+                type="button"
+                onClick={() => setZuletztEntfernt(null)}
+                aria-label="Meldung schließen"
+                className="rounded-lg p-1.5 text-amber-500 hover:bg-amber-100 hover:text-amber-700"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        )}
         <div className="space-y-5">
           {content.aufgaben.map((a) => {
-            const istNeu = a.nr === zuletztHinzugefuegtNr;
+            const istHervorgehoben = hervorgehobeneAufgabe?.nr === a.nr;
             return (
             <div
               key={a.nr}
-              ref={istNeu ? zuletztHinzugefuegtRef : undefined}
+              ref={istHervorgehoben ? hervorgehobeneAufgabeRef : undefined}
               className={`rounded-xl border p-4 transition-colors ${
-                istNeu
+                istHervorgehoben
                   ? "border-brand-400 bg-brand-50/70 ring-2 ring-brand-200"
                   : "border-slate-200 bg-slate-50/40"
               }`}
@@ -854,10 +921,17 @@ export default function EditWorksheetForm({
                 </span>
                 <RemoveButton onClick={() => removeAufgabe(a.nr)} />
               </div>
-              {istNeu && (
+              {istHervorgehoben && (
                 <p className="mb-3 flex items-center gap-1.5 rounded-lg bg-brand-100/70 px-3 py-2 text-xs font-medium text-brand-800">
-                  <Sparkles size={13} className="shrink-0" />
-                  Neu hinzugefügt - nicht vergessen, unten auf „Änderungen speichern" zu klicken.
+                  {hervorgehobeneAufgabe.grund === "wiederhergestellt" ? (
+                    <RotateCcw size={13} className="shrink-0" />
+                  ) : (
+                    <Sparkles size={13} className="shrink-0" />
+                  )}
+                  {hervorgehobeneAufgabe.grund === "wiederhergestellt"
+                    ? "Wiederhergestellt"
+                    : "Neu hinzugefügt"}{" "}
+                  - nicht vergessen, unten auf „Änderungen speichern" zu klicken.
                 </p>
               )}
               <label className="mb-3 block max-w-sm">
