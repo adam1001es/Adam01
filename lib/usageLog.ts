@@ -16,7 +16,10 @@ export interface UsageEintrag {
   // als eine volle Neu-Generierung, da nur aus bereits vorhandenen Aufgaben ausgewählt statt neu
   // formuliert wird, daher als eigene Phase geführt statt unter "generierung" mitgezählt (sonst
   // würde die Admin-Kostenübersicht die beiden Größenordnungen vermischen).
-  phase: "generierung" | "pruefung" | "zusammenstellung";
+  // "aufgabe_ergaenzen" = nachträgliches Hinzufügen EINER Aufgabe zu einem bereits bestehenden
+  // Arbeitsblatt (siehe lib/aufgabeErgaenzen.ts) - ebenfalls deutlich günstiger als eine volle
+  // Neu-Generierung (ein einzelner Aufruf ohne separate Verifikationsstufe).
+  phase: "generierung" | "pruefung" | "zusammenstellung" | "aufgabe_ergaenzen";
   inputTokens: number;
   outputTokens: number;
   cacheCreationInputTokens: number;

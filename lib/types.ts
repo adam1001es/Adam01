@@ -558,6 +558,32 @@ export const ThemaIdeenAntwortSchema = z.object({
   ideen: z.array(z.string().min(1)).min(1),
 });
 
+/** Request-Schema für "Aufgabe von KI erstellen" auf der Bearbeiten-Seite (siehe
+ * app/api/worksheet/[id]/aufgabe-generieren/route.ts, EditWorksheetForm.tsx) - die Lehrkraft
+ * ergänzt gezielt EINE zusätzliche Aufgabe zu einem bereits bestehenden Arbeitsblatt. Nur
+ * AUFGABEN_TYPEN_AKTIV wählbar (nicht die vollständige AUFGABEN_TYPEN-Liste), da nur für diese
+ * Typen verlässliche, aktuell gepflegte Generierungsregeln existieren (siehe
+ * GENERATION_SYSTEM_PROMPT_BASE in lib/generateWorksheet.ts). */
+export const AufgabeErgaenzenRequestSchema = z.object({
+  aufgabentyp: z.enum(AUFGABEN_TYPEN_AKTIV),
+  komplexitaet: z.enum(KOMPLEXITAET_STUFEN).default("mittel"),
+  anforderungsbereich: z.enum(ANFORDERUNGSBEREICHE_KEYS).optional(),
+  // Kurzer, optionaler Zusatzwunsch der Lehrkraft (z.B. "Frage zu den Namen Allahs stellen") -
+  // bewusst knapp begrenzt, das ist kein Ersatz für ein eigenes Thema-Feld wie beim Erstellen
+  // eines ganzen Arbeitsblatts, sondern nur eine gezielte Nuance für DIESE eine Aufgabe.
+  vorgabe: z.string().max(300).optional(),
+});
+export type AufgabeErgaenzenRequest = z.infer<typeof AufgabeErgaenzenRequestSchema>;
+
+/** Antwortschema für dieselbe Funktion - EINE Aufgabe (noch ohne "nr", wird clientseitig wie bei
+ * der manuellen Ergänzung vergeben, siehe naechsteNr in EditWorksheetForm.tsx) plus die
+ * zugehörige Lösung. */
+export const AufgabeErgaenzenAntwortSchema = z.object({
+  aufgabe: AufgabeSchema.omit({ nr: true }),
+  loesung: z.string(),
+});
+export type AufgabeErgaenzenAntwort = z.infer<typeof AufgabeErgaenzenAntwortSchema>;
+
 /** Ergebnis-Status der automatischen Meldungs-Analyse (siehe lib/meldungFix.ts), auch für die
  * Anzeige unter /admin/meldungen und im MeldungButton nach dem Absenden. */
 export const MELDUNG_STATUS_LABEL: Record<string, string> = {

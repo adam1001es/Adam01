@@ -2,8 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileEdit, ListChecks, BookMarked, Plus, Trash2, Save } from "lucide-react";
-import { WorksheetContent, Aufgabe, Quelle, BildergeschichteSchritt } from "@/lib/types";
+import { FileEdit, ListChecks, BookMarked, Plus, Trash2, Save, Sparkles } from "lucide-react";
+import {
+  WorksheetContent,
+  Aufgabe,
+  Quelle,
+  BildergeschichteSchritt,
+  AUFGABEN_TYPEN_AKTIV,
+  AUFGABEN_TYP_MAXIMUM,
+  KOMPLEXITAET_STUFEN,
+  KOMPLEXITAET_LABEL,
+  Komplexitaet,
+} from "@/lib/types";
 import { ANFORDERUNGSBEREICHE, ANFORDERUNGSBEREICHE_KEYS, AnforderungsbereichKey } from "@/lib/curriculum";
 import { ICON_KEYS, ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
 import { erzeugeWortsucheGitter } from "@/lib/wortsuche";
@@ -116,13 +126,59 @@ export default function EditWorksheetForm({
     });
   }
 
-  function addAufgabe() {
-    const nr = naechsteNr(content.aufgaben);
-    setContent((c) => ({
-      ...c,
-      aufgaben: [...c.aufgaben, { nr, typ: "offene_frage", frage: "" }],
-    }));
-    setLoesungenByNr((l) => ({ ...l, [nr]: "" }));
+  // "Aufgabe hinzufügen" läuft NICHT mehr über ein leeres, manuell auszufüllendes Formularfeld,
+  // sondern ausschließlich per KI-Generator-Panel (siehe unten) - die Lehrkraft wählt Aufgabentyp/
+  // Komplexität/optional einen kurzen Zusatzwunsch, ein einzelner Claude-Aufruf liefert eine zum
+  // restlichen Arbeitsblatt passende, fertige Aufgabe samt Lösung, die hier genauso wie jede
+  // andere Aufgabe weiter frei editierbar/entfernbar bleibt (siehe updateAufgabe/removeAufgabe).
+  const [generatorOffen, setGeneratorOffen] = useState(false);
+  const [generatorTyp, setGeneratorTyp] = useState<(typeof AUFGABEN_TYPEN_AKTIV)[number]>(
+    AUFGABEN_TYPEN_AKTIV[0],
+  );
+  const [generatorKomplexitaet, setGeneratorKomplexitaet] = useState<Komplexitaet>("mittel");
+  const [generatorAnforderungsbereich, setGeneratorAnforderungsbereich] = useState<
+    AnforderungsbereichKey | ""
+  >("");
+  const [generatorVorgabe, setGeneratorVorgabe] = useState("");
+  const [generatorLaden, setGeneratorLaden] = useState(false);
+  const [generatorFehler, setGeneratorFehler] = useState<string | null>(null);
+  const [generatorVerbleibend, setGeneratorVerbleibend] = useState<number | null>(null);
+
+  function typBereitsVoll(typ: (typeof AUFGABEN_TYPEN_AKTIV)[number]): boolean {
+    const maximum = AUFGABEN_TYP_MAXIMUM[typ];
+    if (maximum === undefined) return false;
+    return content.aufgaben.filter((a) => a.typ === typ).length >= maximum;
+  }
+
+  async function generiereAufgabe() {
+    setGeneratorFehler(null);
+    setGeneratorLaden(true);
+    try {
+      const res = await fetch(`/api/worksheet/${worksheetId}/aufgabe-generieren`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          aufgabentyp: generatorTyp,
+          komplexitaet: generatorKomplexitaet,
+          anforderungsbereich: generatorAnforderungsbereich || undefined,
+          vorgabe: generatorVorgabe || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Aufgabe konnte nicht erstellt werden.");
+
+      const nr = naechsteNr(content.aufgaben);
+      const neueAufgabe: Aufgabe = { ...data.aufgabe, nr };
+      setContent((c) => ({ ...c, aufgaben: [...c.aufgaben, neueAufgabe] }));
+      setLoesungenByNr((l) => ({ ...l, [nr]: data.loesung ?? "" }));
+      setGeneratorVerbleibend(typeof data.verbleibend === "number" ? data.verbleibend : null);
+      setGeneratorOffen(false);
+      setGeneratorVorgabe("");
+    } catch (err) {
+      setGeneratorFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
+    } finally {
+      setGeneratorLaden(false);
+    }
   }
 
   function updateQuelle(index: number, patch: Partial<Quelle>) {
@@ -234,8 +290,105 @@ export default function EditWorksheetForm({
       <SectionCard
         icon={ListChecks}
         title="Aufgaben & Lösungen"
-        action={<AddButton onClick={addAufgabe}>Aufgabe hinzufügen</AddButton>}
+        action={
+          <button
+            type="button"
+            onClick={() => setGeneratorOffen((o) => !o)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
+          >
+            <Sparkles size={14} strokeWidth={2.5} />
+            Aufgabe von KI erstellen
+          </button>
+        }
       >
+        {generatorOffen && (
+          <div className="mb-5 space-y-3 rounded-xl border border-brand-200 bg-brand-50/50 p-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className={labelClass}>Aufgabentyp</span>
+                <select
+                  className={inputClass}
+                  value={generatorTyp}
+                  onChange={(e) =>
+                    setGeneratorTyp(e.target.value as (typeof AUFGABEN_TYPEN_AKTIV)[number])
+                  }
+                >
+                  {AUFGABEN_TYPEN_AKTIV.map((typ) => (
+                    <option key={typ} value={typ} disabled={typBereitsVoll(typ)}>
+                      {TYP_LABEL[typ]}
+                      {typBereitsVoll(typ) ? " (Maximum erreicht)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className={labelClass}>Komplexität</span>
+                <select
+                  className={inputClass}
+                  value={generatorKomplexitaet}
+                  onChange={(e) => setGeneratorKomplexitaet(e.target.value as Komplexitaet)}
+                >
+                  {KOMPLEXITAET_STUFEN.map((stufe) => (
+                    <option key={stufe} value={stufe}>
+                      {KOMPLEXITAET_LABEL[stufe]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <label className="block max-w-sm">
+              <span className={labelClass}>Anforderungsbereich (optional)</span>
+              <select
+                className={inputClass}
+                value={generatorAnforderungsbereich}
+                onChange={(e) =>
+                  setGeneratorAnforderungsbereich(e.target.value as AnforderungsbereichKey | "")
+                }
+              >
+                <option value="">— dem Modell überlassen —</option>
+                {ANFORDERUNGSBEREICHE_KEYS.map((key) => (
+                  <option key={key} value={key}>
+                    {ANFORDERUNGSBEREICHE[key].label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className={labelClass}>Zusätzlicher Wunsch (optional)</span>
+              <input
+                className={inputClass}
+                value={generatorVorgabe}
+                onChange={(e) => setGeneratorVorgabe(e.target.value)}
+                placeholder="z.B. Frage zu den Namen Allahs stellen"
+                maxLength={300}
+              />
+            </label>
+            {generatorFehler && <p className="text-sm text-red-600">{generatorFehler}</p>}
+            {generatorVerbleibend !== null && (
+              <p className="text-xs text-slate-400">
+                Noch {generatorVerbleibend}× heute verfügbar.
+              </p>
+            )}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={generiereAufgabe}
+                disabled={generatorLaden || typBereitsVoll(generatorTyp)}
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:shadow-card-hover disabled:opacity-60"
+              >
+                <Sparkles size={14} />
+                {generatorLaden ? "Wird erstellt …" : "Erstellen"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setGeneratorOffen(false)}
+                className="text-sm font-medium text-slate-500 hover:text-slate-700"
+              >
+                Abbrechen
+              </button>
+            </div>
+          </div>
+        )}
         <div className="space-y-5">
           {content.aufgaben.map((a) => (
             <div key={a.nr} className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">

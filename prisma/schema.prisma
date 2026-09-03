@@ -111,6 +111,7 @@ model User {
   worksheets   Worksheet[]
   meldungen    Meldung[]
   themaIdeenNutzungen ThemaIdeenUsage[]
+  aufgabeErgaenzenNutzungen AufgabeErgaenzenUsage[]
   communityFavoriten CommunityFavorit[]
   usageLogs    UsageLog[]
   klassen      Klasse[]
@@ -215,6 +216,22 @@ model UsageLog {
 // Ideenliste. Tägliches statt monatliches Limit, weil das ein spontanes Kreativitäts-
 // Hilfsmittel ist, nicht die Kernfunktion der App - soll niemanden dauerhaft blockieren.
 model ThemaIdeenUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tag       String // "YYYY-MM-DD"
+  anzahl    Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, tag])
+}
+
+// Zählt, wie oft eine Lehrkraft pro Tag eine einzelne Aufgabe per KI zu einem bereits
+// bestehenden Arbeitsblatt hinzufügt (siehe app/api/worksheet/[id]/aufgabe-generieren,
+// lib/aufgabeErgaenzen.ts) - analog zu ThemaIdeenUsage bewusst ein eigenes, tägliches Limit statt
+// des Arbeitsblatt-Kontingents (lib/quota.ts): hier entsteht kein neues Arbeitsblatt, sondern nur
+// eine einzelne Ergänzung zu einem bereits (ggf. kostenpflichtig) erstellten.
+model AufgabeErgaenzenUsage {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

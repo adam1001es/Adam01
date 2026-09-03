@@ -35,7 +35,12 @@ import {
  * siehe der zugehörige automatische Wiederholungsversuch in generateAndVerifyWorksheet. */
 class UngueltigesModellFormat extends Error {}
 
-const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, aktueller Lehrplan der IGGÖ "Lehrplan IRU NEU"). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
+// Exportiert (nicht mehr modul-privat), damit lib/aufgabeErgaenzen.ts (nachträgliches Hinzufügen
+// EINER Aufgabe zu einem bereits bestehenden Arbeitsblatt, siehe dort) dieselben Typformat-/
+// Qualitätsregeln wiederverwenden kann, statt sie ein zweites Mal zu pflegen - zwei unabhängig
+// gepflegte Prompt-Versionen würden sonst mit der Zeit auseinanderlaufen (z.B. neue
+// Transliterations-Regeln, die nur an einer Stelle nachgezogen werden).
+export const GENERATION_SYSTEM_PROMPT_BASE = `Du bist eine erfahrene Fachdidaktikerin für den islamischen Religionsunterricht an Schulen in Österreich (staatlich anerkannter konfessioneller Unterricht, aktueller Lehrplan der IGGÖ "Lehrplan IRU NEU"). Du erstellst didaktisch hochwertige, altersgerechte, lehrplankonforme Arbeitsblätter.
 
 Wichtige Regeln für religiöse Inhalte:
 - Vertrete eine mehrheitsfähige, in Österreich für den schulischen Unterricht gängige sunnitische Grundposition (Sunnah); vermeide sektiererische oder kontroverse Einzelmeinungen.
