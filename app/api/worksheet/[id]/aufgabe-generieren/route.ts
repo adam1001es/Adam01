@@ -38,6 +38,24 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 
+  // Schließt eine Kontingent-Lücke: ausgabeform "text" (siehe GenerateRequestSchema,
+  // app/api/generate/route.ts erzeugeKoranText/erzeugeHadithText) ist bewusst UNMETERED - reiner,
+  // bereits fertig geprüfter Koran-/Hadith-Wortlaut ohne jeden Claude-Aufruf, kostet daher kein
+  // Kontingent. Ohne diese Sperre könnte ein Konto beliebig viele kostenlose "Nur Text"-Blätter
+  // erzeugen und darauf jeweils per KI generierte Aufgaben ergänzen - echte, kostenpflichtige
+  // Claude-Nutzung, für die nie ein Arbeitsblatt-Kontingent verbraucht wurde. Für "arbeitsblatt"
+  // (auch mit Koran-/Hadith-Fokus) greift diese Sperre nicht - das lief bereits durch die volle,
+  // kontingentpflichtige Generierung.
+  if (worksheet.ausgabeform !== "arbeitsblatt") {
+    return NextResponse.json(
+      {
+        error:
+          "Diese Funktion ist nur für vollständige Arbeitsblätter mit KI-generierten Aufgaben verfügbar, nicht für den reinen Koran-/Hadith-Text (kein Kontingent verbraucht).",
+      },
+      { status: 403 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

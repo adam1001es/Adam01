@@ -1,8 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileEdit, ListChecks, BookMarked, Plus, Trash2, Save, Sparkles } from "lucide-react";
+import {
+  FileEdit,
+  ListChecks,
+  BookMarked,
+  Plus,
+  Trash2,
+  Save,
+  Sparkles,
+  PenLine,
+  Quote,
+  BookOpenText,
+} from "lucide-react";
 import {
   WorksheetContent,
   Aufgabe,
@@ -18,8 +29,33 @@ import { ANFORDERUNGSBEREICHE, ANFORDERUNGSBEREICHE_KEYS, AnforderungsbereichKey
 import { ICON_KEYS, ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
 import { erzeugeWortsucheGitter } from "@/lib/wortsuche";
 import { erzeugeKreuzwortraetsel } from "@/lib/kreuzwortraetsel";
+import { MAX_VERSE_PRO_ABFRAGE, type SurahMeta } from "@/lib/quranApi";
 import SectionCard from "@/components/SectionCard";
 import { inputClass, labelClass } from "@/lib/formStyles";
+
+/** Ein geprüfter Hadith-Zitat-Eintrag aus der Wissensbasis (siehe app/api/hadithe/route.ts) -
+ * eigener, schlanker Typ statt ZitatInhalt direkt zu importieren, damit dieses Formular nicht von
+ * lib/wissensbasis.ts (Prisma-Zugriff) abhängen muss - analog zum selben Muster in
+ * NewWorksheetForm.tsx. */
+interface HadithListeneintrag {
+  id: string;
+  sammlung: string;
+  bezeichnung: string;
+  textVorschau?: string;
+}
+
+/** Methoden, um eine neue Aufgabe zu ergänzen (siehe "Aufgabe hinzufügen" unten) - bewusst NICHT
+ * nur "per KI erstellen": eine Lehrkraft, die z.B. nur schon vorhandene Aufgaben umsortieren oder
+ * händisch eine eigene Aufgabe eintippen möchte, soll das ohne KI-Aufruf tun können, und ein
+ * bereits geprüfter Hadith/Koran-Vers aus der Wissensbasis bzw. der Koran-API lässt sich direkt
+ * (ohne Claude-Aufruf, ohne Limit) als Lesetext-Aufgabe übernehmen. */
+const ADD_METHODEN = [
+  { key: "leer", label: "Leer", icon: PenLine },
+  { key: "ki", label: "Von KI erstellen", icon: Sparkles },
+  { key: "hadith", label: "Hadith", icon: Quote },
+  { key: "koranvers", label: "Koran-Vers", icon: BookOpenText },
+] as const;
+type AddMethode = (typeof ADD_METHODEN)[number]["key"];
 
 const TYP_LABEL: Record<Aufgabe["typ"], string> = {
   multiple_choice: "Multiple Choice",
@@ -134,12 +170,15 @@ export default function EditWorksheetForm({
     });
   }
 
-  // "Aufgabe hinzufügen" läuft NICHT mehr über ein leeres, manuell auszufüllendes Formularfeld,
-  // sondern ausschließlich per KI-Generator-Panel (siehe unten) - die Lehrkraft wählt Aufgabentyp/
-  // Komplexität/optional einen kurzen Zusatzwunsch, ein einzelner Claude-Aufruf liefert eine zum
-  // restlichen Arbeitsblatt passende, fertige Aufgabe samt Lösung, die hier genauso wie jede
-  // andere Aufgabe weiter frei editierbar/entfernbar bleibt (siehe updateAufgabe/removeAufgabe).
+  // "Aufgabe hinzufügen" bietet vier Methoden (siehe ADD_METHODEN oben): "Leer" (manuell
+  // ausfüllen, kein Aufruf), "Von KI erstellen" (ein Claude-Aufruf, begrenzt siehe
+  // aufgabeErgaenzenMaximum), sowie "Hadith"/"Koran-Vers" (direkte Übernahme eines bereits
+  // geprüften Texts aus der Wissensbasis bzw. live von der Koran-API als Lesetext-Aufgabe - kein
+  // Claude-Aufruf, kein Limit). In allen vier Fällen landet das Ergebnis in content.aufgaben und
+  // bleibt danach genauso frei editierbar/entfernbar wie jede andere Aufgabe (siehe
+  // updateAufgabe/removeAufgabe).
   const [generatorOffen, setGeneratorOffen] = useState(false);
+  const [addMethode, setAddMethode] = useState<AddMethode>("leer");
   const [generatorTyp, setGeneratorTyp] = useState<(typeof AUFGABEN_TYPEN_AKTIV)[number]>(
     AUFGABEN_TYPEN_AKTIV[0],
   );
@@ -196,6 +235,144 @@ export default function EditWorksheetForm({
       setGeneratorFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
     } finally {
       setGeneratorLaden(false);
+    }
+  }
+
+  // Methode "Leer" - genau das ursprüngliche, einfache Verhalten (kein Aufruf, keine Kosten):
+  // eine leere Aufgabe des gewählten Typs, die die Lehrkraft direkt in den unten gerenderten
+  // typ-spezifischen Feldern selbst ausfüllt.
+  function fuegeLeereAufgabeEin() {
+    const nr = naechsteNr(content.aufgaben);
+    setContent((c) => ({ ...c, aufgaben: [...c.aufgaben, { nr, typ: generatorTyp, frage: "" }] }));
+    setLoesungenByNr((l) => ({ ...l, [nr]: "" }));
+    setGeneratorOffen(false);
+  }
+
+  // Methoden "Hadith"/"Koran-Vers" - beide übernehmen einen bereits geprüften Text (Wissensbasis
+  // bzw. live Koran-API) unverändert als "lesetext"-Aufgabe samt automatischer Quellenangabe,
+  // ohne Claude-Aufruf. Die "frage" bekommt bewusst eine editierbare Platzhalter-Frage statt einer
+  // KI-generierten - die Lehrkraft soll die eigentliche Aufgabenstellung dazu selbst formulieren.
+  function fuegeLesetextAufgabeEin(lesetext: string, quelleBezeichnung: string, platzhalterFrage: string) {
+    const nr = naechsteNr(content.aufgaben);
+    const neueAufgabe: Aufgabe = { nr, typ: "lesetext", lesetext, frage: platzhalterFrage };
+    setContent((c) => ({
+      ...c,
+      aufgaben: [...c.aufgaben, neueAufgabe],
+      quellen: [...c.quellen, { bezeichnung: quelleBezeichnung, sicherheit: "gesichert" }],
+    }));
+    setLoesungenByNr((l) => ({ ...l, [nr]: "" }));
+    setGeneratorOffen(false);
+  }
+
+  const [hadithe, setHadithe] = useState<HadithListeneintrag[] | null>(null);
+  const [hadithLaden, setHadithLaden] = useState(false);
+  const [hadithFehler, setHadithFehler] = useState<string | null>(null);
+  const [hadithSuche, setHadithSuche] = useState("");
+  const [hadithAuswahlId, setHadithAuswahlId] = useState("");
+  const [hadithUebernehmenLaden, setHadithUebernehmenLaden] = useState(false);
+
+  async function ladeHadithe() {
+    setHadithLaden(true);
+    setHadithFehler(null);
+    try {
+      const res = await fetch("/api/hadithe");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Hadith-Liste konnte nicht geladen werden.");
+      const liste = data.hadithe as HadithListeneintrag[];
+      setHadithe(liste);
+      if (!hadithAuswahlId && liste.length > 0) setHadithAuswahlId(liste[0].id);
+    } catch (err) {
+      setHadithFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
+    } finally {
+      setHadithLaden(false);
+    }
+  }
+
+  useEffect(() => {
+    if (addMethode === "hadith" && !hadithe && !hadithLaden) ladeHadithe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addMethode]);
+
+  const gefilterteHadithe = (hadithe ?? []).filter((h) => {
+    if (!hadithSuche.trim()) return true;
+    const suche = hadithSuche.trim().toLowerCase();
+    return h.bezeichnung.toLowerCase().includes(suche) || (h.textVorschau ?? "").toLowerCase().includes(suche);
+  });
+
+  async function uebernehmeHadith() {
+    if (!hadithAuswahlId) return;
+    setHadithFehler(null);
+    setHadithUebernehmenLaden(true);
+    try {
+      const res = await fetch(`/api/hadithe/${hadithAuswahlId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Hadith konnte nicht geladen werden.");
+      fuegeLesetextAufgabeEin(
+        data.text,
+        data.bezeichnung,
+        "Was ist die wichtigste Aussage dieses Hadith? Erkläre sie in eigenen Worten.",
+      );
+    } catch (err) {
+      setHadithFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
+    } finally {
+      setHadithUebernehmenLaden(false);
+    }
+  }
+
+  const [suren, setSuren] = useState<SurahMeta[] | null>(null);
+  const [surenLaden, setSurenLaden] = useState(false);
+  const [surenFehler, setSurenFehler] = useState<string | null>(null);
+  const [koranSureNummer, setKoranSureNummer] = useState(1);
+  const [koranVonVers, setKoranVonVers] = useState(1);
+  const [koranBisVers, setKoranBisVers] = useState(7);
+  const [koranVersLaden, setKoranVersLaden] = useState(false);
+  const [koranVersFehler, setKoranVersFehler] = useState<string | null>(null);
+
+  async function ladeSuren() {
+    setSurenLaden(true);
+    setSurenFehler(null);
+    try {
+      const res = await fetch("/api/koran/suren");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Suren-Liste konnte nicht geladen werden.");
+      setSuren(data.suren as SurahMeta[]);
+    } catch (err) {
+      setSurenFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
+    } finally {
+      setSurenLaden(false);
+    }
+  }
+
+  useEffect(() => {
+    if (addMethode === "koranvers" && !suren && !surenLaden) ladeSuren();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addMethode]);
+
+  async function uebernehmeKoranVers() {
+    if (koranBisVers - koranVonVers + 1 > MAX_VERSE_PRO_ABFRAGE) {
+      setKoranVersFehler(`Bitte höchstens ${MAX_VERSE_PRO_ABFRAGE} Verse auswählen.`);
+      return;
+    }
+    setKoranVersFehler(null);
+    setKoranVersLaden(true);
+    try {
+      const params = new URLSearchParams({
+        sureNummer: String(koranSureNummer),
+        vonVers: String(koranVonVers),
+        bisVers: String(koranBisVers),
+      });
+      const res = await fetch(`/api/koran/vers?${params}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Vers konnte nicht abgerufen werden.");
+      fuegeLesetextAufgabeEin(
+        data.text,
+        data.bezeichnung,
+        "Was ist die wichtigste Aussage dieses Verses? Erkläre sie in eigenen Worten.",
+      );
+    } catch (err) {
+      setKoranVersFehler(err instanceof Error ? err.message : "Unbekannter Fehler.");
+    } finally {
+      setKoranVersLaden(false);
     }
   }
 
@@ -312,112 +489,333 @@ export default function EditWorksheetForm({
           <button
             type="button"
             onClick={() => setGeneratorOffen((o) => !o)}
-            disabled={proArbeitsblattLimitErreicht}
-            title={
-              proArbeitsblattLimitErreicht
-                ? `Für dieses Arbeitsblatt bereits ${aufgabeErgaenzenMaximum}× genutzt (Höchstgrenze erreicht).`
-                : undefined
-            }
-            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 transition hover:border-brand-300 hover:bg-brand-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-brand-200 bg-brand-50 px-3 py-1.5 text-sm font-medium text-brand-700 transition hover:border-brand-300 hover:bg-brand-100"
           >
-            <Sparkles size={14} strokeWidth={2.5} />
-            Aufgabe von KI erstellen
+            <Plus size={14} strokeWidth={2.5} />
+            Aufgabe hinzufügen
           </button>
         }
       >
-        {proArbeitsblattLimitErreicht && (
-          <p className="mb-5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs leading-relaxed text-slate-500">
-            "Aufgabe von KI erstellen" wurde für dieses Arbeitsblatt bereits {aufgabeErgaenzenMaximum}×
-            genutzt (Höchstgrenze pro Arbeitsblatt, gegen Missbrauch) - bestehende Aufgaben bleiben
-            aber weiterhin frei bearbeitbar.
-          </p>
-        )}
-        {generatorOffen && !proArbeitsblattLimitErreicht && (
-          <div className="mb-5 space-y-3 rounded-xl border border-brand-200 bg-brand-50/50 p-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block">
-                <span className={labelClass}>Aufgabentyp</span>
-                <select
-                  className={inputClass}
-                  value={generatorTyp}
-                  onChange={(e) =>
-                    setGeneratorTyp(e.target.value as (typeof AUFGABEN_TYPEN_AKTIV)[number])
-                  }
-                >
-                  {AUFGABEN_TYPEN_AKTIV.map((typ) => (
-                    <option key={typ} value={typ} disabled={typBereitsVoll(typ)}>
-                      {TYP_LABEL[typ]}
-                      {typBereitsVoll(typ) ? " (Maximum erreicht)" : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className={labelClass}>Komplexität</span>
-                <select
-                  className={inputClass}
-                  value={generatorKomplexitaet}
-                  onChange={(e) => setGeneratorKomplexitaet(e.target.value as Komplexitaet)}
-                >
-                  {KOMPLEXITAET_STUFEN.map((stufe) => (
-                    <option key={stufe} value={stufe}>
-                      {KOMPLEXITAET_LABEL[stufe]}
-                    </option>
-                  ))}
-                </select>
-              </label>
+        {generatorOffen && (
+          <div className="mb-5 space-y-4 rounded-xl border border-brand-200 bg-brand-50/50 p-4">
+            <div className="flex flex-wrap gap-2">
+              {ADD_METHODEN.map((methode) => {
+                const gesperrt = methode.key === "ki" && proArbeitsblattLimitErreicht;
+                const aktiv = addMethode === methode.key;
+                return (
+                  <button
+                    type="button"
+                    key={methode.key}
+                    onClick={() => setAddMethode(methode.key)}
+                    disabled={gesperrt}
+                    title={
+                      gesperrt
+                        ? `Für dieses Arbeitsblatt bereits ${aufgabeErgaenzenMaximum}× genutzt (Höchstgrenze erreicht).`
+                        : undefined
+                    }
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                      aktiv
+                        ? "border-brand-600 bg-brand-600 text-white shadow-sm"
+                        : "border-slate-200 text-slate-500 hover:border-slate-300"
+                    }`}
+                  >
+                    <methode.icon size={14} strokeWidth={2.25} />
+                    {methode.label}
+                  </button>
+                );
+              })}
             </div>
-            <label className="block max-w-sm">
-              <span className={labelClass}>Anforderungsbereich (optional)</span>
-              <select
-                className={inputClass}
-                value={generatorAnforderungsbereich}
-                onChange={(e) =>
-                  setGeneratorAnforderungsbereich(e.target.value as AnforderungsbereichKey | "")
-                }
-              >
-                <option value="">— dem Modell überlassen —</option>
-                {ANFORDERUNGSBEREICHE_KEYS.map((key) => (
-                  <option key={key} value={key}>
-                    {ANFORDERUNGSBEREICHE[key].label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className={labelClass}>Zusätzlicher Wunsch (optional)</span>
-              <input
-                className={inputClass}
-                value={generatorVorgabe}
-                onChange={(e) => setGeneratorVorgabe(e.target.value)}
-                placeholder="z.B. Frage zu den Namen Allahs stellen"
-                maxLength={300}
-              />
-            </label>
-            {generatorFehler && <p className="text-sm text-red-600">{generatorFehler}</p>}
-            <p className="text-xs text-slate-400">
-              Noch {Math.max(0, aufgabeErgaenzenMaximum - verbrauchtProArbeitsblatt)} von{" "}
-              {aufgabeErgaenzenMaximum} Malen für dieses Arbeitsblatt verfügbar
-              {generatorVerbleibend !== null ? ` (max. ${generatorVerbleibend}× heute insgesamt).` : "."}
-            </p>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={generiereAufgabe}
-                disabled={generatorLaden || typBereitsVoll(generatorTyp)}
-                className="inline-flex items-center gap-2 rounded-lg bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:shadow-card-hover disabled:opacity-60"
-              >
-                <Sparkles size={14} />
-                {generatorLaden ? "Wird erstellt …" : "Erstellen"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setGeneratorOffen(false)}
-                className="text-sm font-medium text-slate-500 hover:text-slate-700"
-              >
-                Abbrechen
-              </button>
-            </div>
+
+            {addMethode === "leer" && (
+              <div className="space-y-3">
+                <label className="block max-w-sm">
+                  <span className={labelClass}>Aufgabentyp</span>
+                  <select
+                    className={inputClass}
+                    value={generatorTyp}
+                    onChange={(e) =>
+                      setGeneratorTyp(e.target.value as (typeof AUFGABEN_TYPEN_AKTIV)[number])
+                    }
+                  >
+                    {AUFGABEN_TYPEN_AKTIV.map((typ) => (
+                      <option key={typ} value={typ} disabled={typBereitsVoll(typ)}>
+                        {TYP_LABEL[typ]}
+                        {typBereitsVoll(typ) ? " (Maximum erreicht)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={fuegeLeereAufgabeEin}
+                    disabled={typBereitsVoll(generatorTyp)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:shadow-card-hover disabled:opacity-60"
+                  >
+                    <Plus size={14} />
+                    Hinzufügen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGeneratorOffen(false)}
+                    className="text-sm font-medium text-slate-500 hover:text-slate-700"
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {addMethode === "ki" && !proArbeitsblattLimitErreicht && (
+              <div className="space-y-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="block">
+                    <span className={labelClass}>Aufgabentyp</span>
+                    <select
+                      className={inputClass}
+                      value={generatorTyp}
+                      onChange={(e) =>
+                        setGeneratorTyp(e.target.value as (typeof AUFGABEN_TYPEN_AKTIV)[number])
+                      }
+                    >
+                      {AUFGABEN_TYPEN_AKTIV.map((typ) => (
+                        <option key={typ} value={typ} disabled={typBereitsVoll(typ)}>
+                          {TYP_LABEL[typ]}
+                          {typBereitsVoll(typ) ? " (Maximum erreicht)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className={labelClass}>Komplexität</span>
+                    <select
+                      className={inputClass}
+                      value={generatorKomplexitaet}
+                      onChange={(e) => setGeneratorKomplexitaet(e.target.value as Komplexitaet)}
+                    >
+                      {KOMPLEXITAET_STUFEN.map((stufe) => (
+                        <option key={stufe} value={stufe}>
+                          {KOMPLEXITAET_LABEL[stufe]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <label className="block max-w-sm">
+                  <span className={labelClass}>Anforderungsbereich (optional)</span>
+                  <select
+                    className={inputClass}
+                    value={generatorAnforderungsbereich}
+                    onChange={(e) =>
+                      setGeneratorAnforderungsbereich(e.target.value as AnforderungsbereichKey | "")
+                    }
+                  >
+                    <option value="">— dem Modell überlassen —</option>
+                    {ANFORDERUNGSBEREICHE_KEYS.map((key) => (
+                      <option key={key} value={key}>
+                        {ANFORDERUNGSBEREICHE[key].label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className={labelClass}>Zusätzlicher Wunsch (optional)</span>
+                  <input
+                    className={inputClass}
+                    value={generatorVorgabe}
+                    onChange={(e) => setGeneratorVorgabe(e.target.value)}
+                    placeholder="z.B. Frage zu den Namen Allahs stellen"
+                    maxLength={300}
+                  />
+                </label>
+                {generatorFehler && <p className="text-sm text-red-600">{generatorFehler}</p>}
+                <p className="text-xs text-slate-400">
+                  Noch {Math.max(0, aufgabeErgaenzenMaximum - verbrauchtProArbeitsblatt)} von{" "}
+                  {aufgabeErgaenzenMaximum} Malen für dieses Arbeitsblatt verfügbar
+                  {generatorVerbleibend !== null ? ` (max. ${generatorVerbleibend}× heute insgesamt).` : "."}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={generiereAufgabe}
+                    disabled={generatorLaden || typBereitsVoll(generatorTyp)}
+                    className="inline-flex items-center gap-2 rounded-lg bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:shadow-card-hover disabled:opacity-60"
+                  >
+                    <Sparkles size={14} />
+                    {generatorLaden ? "Wird erstellt …" : "Erstellen"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGeneratorOffen(false)}
+                    className="text-sm font-medium text-slate-500 hover:text-slate-700"
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
+            )}
+            {addMethode === "ki" && proArbeitsblattLimitErreicht && (
+              <p className="text-xs leading-relaxed text-slate-500">
+                "Von KI erstellen" wurde für dieses Arbeitsblatt bereits {aufgabeErgaenzenMaximum}×
+                genutzt (Höchstgrenze pro Arbeitsblatt, gegen Missbrauch) - eine leere Aufgabe,
+                ein Hadith oder ein Koran-Vers lassen sich aber weiterhin unbegrenzt hinzufügen.
+              </p>
+            )}
+
+            {addMethode === "hadith" && (
+              <div className="space-y-3">
+                {hadithLaden && <p className="text-xs text-slate-400">Hadith-Liste wird geladen …</p>}
+                {hadithFehler && (
+                  <p className="text-xs text-red-600">
+                    {hadithFehler}{" "}
+                    <button type="button" onClick={ladeHadithe} className="underline">
+                      Erneut versuchen
+                    </button>
+                  </p>
+                )}
+                {hadithe && hadithe.length === 0 && (
+                  <p className="text-xs leading-relaxed text-slate-500">
+                    Noch keine geprüften Hadithe in der Wissensbasis hinterlegt.
+                  </p>
+                )}
+                {hadithe && hadithe.length > 0 && (
+                  <>
+                    <label className="block">
+                      <span className={labelClass}>Suche</span>
+                      <input
+                        type="text"
+                        className={inputClass}
+                        value={hadithSuche}
+                        onChange={(e) => setHadithSuche(e.target.value)}
+                        placeholder="z.B. Absicht, Barmherzigkeit …"
+                      />
+                    </label>
+                    {gefilterteHadithe.length === 0 ? (
+                      <p className="text-xs text-slate-500">Kein Hadith passt zur aktuellen Suche.</p>
+                    ) : (
+                      <label className="block">
+                        <span className={labelClass}>Hadith</span>
+                        <select
+                          className={inputClass}
+                          value={hadithAuswahlId}
+                          onChange={(e) => setHadithAuswahlId(e.target.value)}
+                        >
+                          {gefilterteHadithe.map((h) => (
+                            <option key={h.id} value={h.id}>
+                              {h.bezeichnung}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={uebernehmeHadith}
+                        disabled={hadithUebernehmenLaden || !hadithAuswahlId}
+                        className="inline-flex items-center gap-2 rounded-lg bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:shadow-card-hover disabled:opacity-60"
+                      >
+                        <Quote size={14} />
+                        {hadithUebernehmenLaden ? "Wird übernommen …" : "Übernehmen"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGeneratorOffen(false)}
+                        className="text-sm font-medium text-slate-500 hover:text-slate-700"
+                      >
+                        Abbrechen
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {addMethode === "koranvers" && (
+              <div className="space-y-3">
+                {surenLaden && <p className="text-xs text-slate-400">Suren-Liste wird geladen …</p>}
+                {surenFehler && (
+                  <p className="text-xs text-red-600">
+                    {surenFehler}{" "}
+                    <button type="button" onClick={ladeSuren} className="underline">
+                      Erneut versuchen
+                    </button>
+                  </p>
+                )}
+                {suren && (
+                  <>
+                    <label className="block max-w-sm">
+                      <span className={labelClass}>Sure</span>
+                      <select
+                        className={inputClass}
+                        value={koranSureNummer}
+                        onChange={(e) => {
+                          const nummer = Number(e.target.value);
+                          setKoranSureNummer(nummer);
+                          setKoranVonVers(1);
+                          const meta = suren.find((s) => s.nummer === nummer);
+                          if (meta) setKoranBisVers(Math.min(meta.verseAnzahl, MAX_VERSE_PRO_ABFRAGE));
+                        }}
+                      >
+                        {suren.map((s) => (
+                          <option key={s.nummer} value={s.nummer}>
+                            {s.nummer}. {s.nameTransliteriert} ({s.verseAnzahl} Verse)
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="flex flex-wrap items-end gap-2">
+                      <label className="block">
+                        <span className={labelClass}>Vers von</span>
+                        <input
+                          type="number"
+                          min={1}
+                          className={`${inputClass} w-24`}
+                          value={koranVonVers}
+                          onChange={(e) => setKoranVonVers(Math.max(1, Number(e.target.value) || 1))}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className={labelClass}>bis</span>
+                        <input
+                          type="number"
+                          min={koranVonVers}
+                          className={`${inputClass} w-24`}
+                          value={koranBisVers}
+                          onChange={(e) =>
+                            setKoranBisVers(Math.max(koranVonVers, Number(e.target.value) || koranVonVers))
+                          }
+                        />
+                      </label>
+                    </div>
+                    {koranBisVers - koranVonVers + 1 > MAX_VERSE_PRO_ABFRAGE && (
+                      <p className="text-xs text-red-600">
+                        Höchstens {MAX_VERSE_PRO_ABFRAGE} Verse - bitte den Bereich verkleinern.
+                      </p>
+                    )}
+                    {koranVersFehler && <p className="text-xs text-red-600">{koranVersFehler}</p>}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={uebernehmeKoranVers}
+                        disabled={koranVersLaden}
+                        className="inline-flex items-center gap-2 rounded-lg bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:shadow-card-hover disabled:opacity-60"
+                      >
+                        <BookOpenText size={14} />
+                        {koranVersLaden ? "Wird übernommen …" : "Übernehmen"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGeneratorOffen(false)}
+                        className="text-sm font-medium text-slate-500 hover:text-slate-700"
+                      >
+                        Abbrechen
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
         <div className="space-y-5">
