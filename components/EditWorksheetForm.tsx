@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FileEdit,
@@ -154,6 +154,19 @@ export default function EditWorksheetForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Hebt die zuletzt hinzugefügte Aufgabe farblich hervor und scrollt sie ins Bild - egal über
+  // welche der vier Methoden (siehe ADD_METHODEN unten) sie entstanden ist, damit die Lehrkraft
+  // auf einen Blick sieht, WO im (ggf. langen) Arbeitsblatt sie gelandet ist, statt sie erst
+  // suchen zu müssen. Der Hinweis zum Speichern steht direkt AUF der hervorgehobenen Karte (siehe
+  // unten), nicht als separates Banner irgendwo anders auf der Seite.
+  const [zuletztHinzugefuegtNr, setZuletztHinzugefuegtNr] = useState<number | null>(null);
+  const zuletztHinzugefuegtRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (zuletztHinzugefuegtNr !== null) {
+      zuletztHinzugefuegtRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [zuletztHinzugefuegtNr]);
+
   function updateAufgabe(nr: number, patch: Partial<Aufgabe>) {
     setContent((c) => ({
       ...c,
@@ -168,6 +181,7 @@ export default function EditWorksheetForm({
       delete rest[nr];
       return rest;
     });
+    setZuletztHinzugefuegtNr((aktuell) => (aktuell === nr ? null : aktuell));
   }
 
   // "Aufgabe hinzufügen" bietet vier Methoden (siehe ADD_METHODEN oben): "Leer" (manuell
@@ -223,6 +237,7 @@ export default function EditWorksheetForm({
       const neueAufgabe: Aufgabe = { ...data.aufgabe, nr };
       setContent((c) => ({ ...c, aufgaben: [...c.aufgaben, neueAufgabe] }));
       setLoesungenByNr((l) => ({ ...l, [nr]: data.loesung ?? "" }));
+      setZuletztHinzugefuegtNr(nr);
       setGeneratorVerbleibend(typeof data.verbleibend === "number" ? data.verbleibend : null);
       setVerbrauchtProArbeitsblatt((v) =>
         typeof data.verbleibendProArbeitsblatt === "number"
@@ -245,6 +260,7 @@ export default function EditWorksheetForm({
     const nr = naechsteNr(content.aufgaben);
     setContent((c) => ({ ...c, aufgaben: [...c.aufgaben, { nr, typ: generatorTyp, frage: "" }] }));
     setLoesungenByNr((l) => ({ ...l, [nr]: "" }));
+    setZuletztHinzugefuegtNr(nr);
     setGeneratorOffen(false);
   }
 
@@ -261,6 +277,7 @@ export default function EditWorksheetForm({
       quellen: [...c.quellen, { bezeichnung: quelleBezeichnung, sicherheit: "gesichert" }],
     }));
     setLoesungenByNr((l) => ({ ...l, [nr]: "" }));
+    setZuletztHinzugefuegtNr(nr);
     setGeneratorOffen(false);
   }
 
@@ -819,14 +836,30 @@ export default function EditWorksheetForm({
           </div>
         )}
         <div className="space-y-5">
-          {content.aufgaben.map((a) => (
-            <div key={a.nr} className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+          {content.aufgaben.map((a) => {
+            const istNeu = a.nr === zuletztHinzugefuegtNr;
+            return (
+            <div
+              key={a.nr}
+              ref={istNeu ? zuletztHinzugefuegtRef : undefined}
+              className={`rounded-xl border p-4 transition-colors ${
+                istNeu
+                  ? "border-brand-400 bg-brand-50/70 ring-2 ring-brand-200"
+                  : "border-slate-200 bg-slate-50/40"
+              }`}
+            >
               <div className="mb-3 flex items-center justify-between">
                 <span className="text-xs font-medium uppercase tracking-wide text-slate-400">
                   {a.nr}. {TYP_LABEL[a.typ]}
                 </span>
                 <RemoveButton onClick={() => removeAufgabe(a.nr)} />
               </div>
+              {istNeu && (
+                <p className="mb-3 flex items-center gap-1.5 rounded-lg bg-brand-100/70 px-3 py-2 text-xs font-medium text-brand-800">
+                  <Sparkles size={13} className="shrink-0" />
+                  Neu hinzugefügt - nicht vergessen, unten auf „Änderungen speichern" zu klicken.
+                </p>
+              )}
               <label className="mb-3 block max-w-sm">
                 <span className={labelClass}>Anforderungsbereich</span>
                 <select
@@ -1271,7 +1304,8 @@ export default function EditWorksheetForm({
                 />
               </label>
             </div>
-          ))}
+            );
+          })}
         </div>
       </SectionCard>
 
