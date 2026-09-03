@@ -81,6 +81,12 @@ const config: Config = {
         // abhebt statt wie ein weiterer Teal-Ton zu wirken.
         "card-wissen": "0 1px 2px rgba(140, 102, 36, 0.04), 0 8px 24px -12px rgba(140, 102, 36, 0.18)",
         "card-wissen-hover": "0 4px 10px rgba(140, 102, 36, 0.06), 0 16px 32px -14px rgba(140, 102, 36, 0.28)",
+        // Indigo-Variante für das Lehrkräfte-Forum (siehe backgroundImage.forum-gradient hier
+        // drunter) - wie Wissensbasis bewusst NICHT aus der Teal-Familie, damit der Austausch-
+        // Bereich sich klar von den Arbeitsblatt-nahen Bereichen (Übersicht/Community/Klassen)
+        // abhebt.
+        "card-forum": "0 1px 2px rgba(79, 70, 229, 0.05), 0 8px 24px -12px rgba(79, 70, 229, 0.20)",
+        "card-forum-hover": "0 4px 10px rgba(79, 70, 229, 0.07), 0 16px 32px -14px rgba(79, 70, 229, 0.30)",
       },
       backgroundImage: {
         // Hauptfarbe der App: dunkelstes/"seriösestes" Teal (700->900) - Übersicht, Logo,
@@ -97,6 +103,10 @@ const config: Config = {
         // andersartig (die geprüfte "Wissens-Datenbank" statt ein weiterer Arbeitsbereich)
         // erkennbar ist.
         "wissen-gradient": "linear-gradient(135deg, #a97e2e 0%, #6f4f1e 100%)",
+        // Forum: Indigo statt einer weiteren Teal-Stufe oder Gold (Wissensbasis) - eigener,
+        // eindeutig unterscheidbarer Bereich, passend zur bereits in lib/profil.ts vorhandenen
+        // Indigo-Avatarfarbe.
+        "forum-gradient": "linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)",
       },
       keyframes: {
         // Wandernder Balken-Abschnitt für die unbestimmte Fortschrittsanzeige während der

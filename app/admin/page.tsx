@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, Flag, BarChart3, Coins } from "lucide-react";
+import { ShieldCheck, Flag, BarChart3, Coins, MessageSquareWarning } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent, istTierAktiv } from "@/lib/quota";
@@ -45,6 +45,7 @@ export default async function AdminPage() {
   ).length;
 
   const offeneMeldungen = await prisma.meldung.count({ where: { bearbeitet: false } });
+  const offeneForumMeldungen = await prisma.forumMeldung.count({ where: { bearbeitet: false } });
 
   return (
     <main>
@@ -85,6 +86,17 @@ export default async function AdminPage() {
           >
             <Flag size={15} />
             Meldungen{offeneMeldungen > 0 && ` (${offeneMeldungen} ungesichtet)`}
+          </Link>
+          <Link
+            href="/admin/forum-meldungen"
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-sm font-medium shadow-sm transition ${
+              offeneForumMeldungen > 0
+                ? "border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
+                : "border-slate-200 bg-surface text-slate-600 hover:border-brand-300 hover:text-brand-700"
+            }`}
+          >
+            <MessageSquareWarning size={15} />
+            Forum-Meldungen{offeneForumMeldungen > 0 && ` (${offeneForumMeldungen} ungesichtet)`}
           </Link>
         </div>
       </div>

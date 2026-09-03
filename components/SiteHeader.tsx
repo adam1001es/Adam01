@@ -12,6 +12,7 @@ import {
   GraduationCap,
   BookMarked,
   Lock,
+  MessagesSquare,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SonnenuntergangAnzeige from "./SonnenuntergangAnzeige";
@@ -105,6 +106,16 @@ export default function SiteHeader({
         : "text-slate-600 hover:bg-gold-50 hover:text-gold-700"
     }`;
 
+  // Forum bekommt Indigo statt einer weiteren Teal-Stufe (Community/Klassen) oder Gold
+  // (Wissensbasis) - eigener, eindeutig unterscheidbarer Bereich (siehe tailwind.config
+  // forum-gradient).
+  const navLinkClassForum = (active: boolean) =>
+    `flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium transition active:scale-95 sm:px-3.5 ${
+      active
+        ? "bg-forum-gradient text-white shadow-card-forum"
+        : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
+    }`;
+
   return (
     // NICHT MEHR "sticky": auf mind. einem Gerät (iPhone/Firefox) blieb selbst ein komplett
     // undurchsichtiger, blur-freier Hintergrund beim Scrollen sichtbar von darunterliegendem
@@ -169,6 +180,13 @@ export default function SiteHeader({
             <Link href="/klassen" className={navLinkClassKlassen(!!pathname?.startsWith("/klassen"))}>
               <GraduationCap size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Klassen</span>
+              {!user.istZahlend && <Lock size={11} strokeWidth={2.5} className="opacity-60" />}
+            </Link>
+          )}
+          {user && (
+            <Link href="/forum" className={navLinkClassForum(!!pathname?.startsWith("/forum"))}>
+              <MessagesSquare size={16} strokeWidth={2.25} />
+              <span className="hidden sm:inline">Forum</span>
               {!user.istZahlend && <Lock size={11} strokeWidth={2.5} className="opacity-60" />}
             </Link>
           )}

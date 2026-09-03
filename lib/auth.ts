@@ -17,6 +17,7 @@ export interface SessionUser {
   avatarEmoji: string;
   avatarFarbe: string;
   unterrichtsStufen: string[];
+  forumGesperrt: boolean;
   createdAt: Date;
 }
 
@@ -93,6 +94,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     avatarEmoji: session.user.avatarEmoji,
     avatarFarbe: session.user.avatarFarbe,
     unterrichtsStufen: session.user.unterrichtsStufen,
+    forumGesperrt: session.user.forumGesperrt,
     createdAt: session.user.createdAt,
   };
 }

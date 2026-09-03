@@ -121,6 +121,13 @@ model User {
   // Lehrkraft unterrichtet - freiwillige Selbstauskunft fürs eigene Profil, aktuell nirgendwo
   // sonst ausgewertet.
   unterrichtsStufen String[] @default([])
+  // Vom Admin nach Prüfung einer ForumMeldung gesetzt (siehe app/admin/forum-meldungen) - eine
+  // gesperrte Lehrkraft nutzt die restliche App normal weiter und kann Themen/Chat im Forum
+  // weiterhin LESEN, aber keine neuen Themen/Antworten/Chat-Nachrichten mehr anlegen (siehe
+  // Prüfung in app/api/forum/*). Bewusst ein einfaches Boolean statt eines befristeten Zeitraums
+  // wie tierGueltigVon/Bis - eine Forum-Sperre ist eine bewusste manuelle Admin-Entscheidung ohne
+  // automatisches Ablaufdatum, das Aufheben ebenso.
+  forumGesperrt Boolean @default(false)
   createdAt    DateTime @default(now()) // Anker für den rollierenden 30-Tage-Kontingent-Zyklus
   sessions     Session[]
   worksheets   Worksheet[]
@@ -130,6 +137,10 @@ model User {
   communityFavoriten CommunityFavorit[]
   usageLogs    UsageLog[]
   klassen      Klasse[]
+  forumThreads         ForumThread[]
+  forumAntworten       ForumAntwort[]
+  forumChatNachrichten ForumChatNachricht[]
+  forumMeldungen       ForumMeldung[]
 }
 
 // Ein Platzhalter-Eintrag pro GERADE LAUFENDEM Claude-Aufruf (siehe lib/auslastung.ts) - beim
@@ -387,4 +398,70 @@ model GenerierungsAnfrage {
   createdAt   DateTime @default(now())
 
   @@index([userId, requestHash])
+}
+
+// Ein Thema im Lehrkräfte-Forum (nur zahlende Konten, siehe istZahlendesKonto in lib/quota.ts) -
+// Startpunkt eines asynchronen Diskussionsstrangs (siehe ForumAntwort für die Antworten
+// darunter). "kategorie" ist bewusst nur ein String mit fester Werteliste in lib/forum.ts
+// (FORUM_KATEGORIEN) statt einer eigenen Lookup-Tabelle - analog zu Worksheet.themenbereich:
+// eine kleine, vom Admin nicht zu pflegende Werteliste rechtfertigt kein eigenes Modell.
+model ForumThread {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  titel     String
+  inhalt    String
+  kategorie String
+  createdAt DateTime       @default(now())
+  antworten ForumAntwort[]
+}
+
+// Eine Antwort auf ein ForumThread - bewusst eine flache Liste (keine verschachtelten Antworten
+// auf Antworten), analog zur einfachen Struktur bestehender Modelle wie Meldung.
+model ForumAntwort {
+  id        String      @id @default(cuid())
+  threadId  String
+  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inhalt    String
+  createdAt DateTime    @default(now())
+}
+
+// Eine Nachricht im "Forum-Chat" (siehe app/forum/chat) - EIN gemeinsamer Raum für alle
+// zahlenden Konten (kein Sub-Kanal, keine Direktnachricht), bewusst einfach gehalten passend zur
+// zunächst kleinen, überschaubaren Nutzerzahl (Beta unter Kolleg:innen). Wird per Polling
+// abgerufen (siehe app/api/forum/chat/route.ts) - keine Realtime-Infrastruktur im Projekt.
+model ForumChatNachricht {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inhalt    String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+// Meldung einer Lehrkraft zu einem Forum-Beitrag (Thema, Antwort oder Chat-Nachricht) wegen
+// unangemessenen Verhaltens - GRUNDVERSCHIEDEN von Meldung (das ist ein technischer Bug-Report
+// zu Arbeitsblatt-Inhalten mit automatischer KI-Korrektur, siehe lib/meldungFix.ts, keine
+// Verhaltens-Moderation). zielTyp/zielId sind bewusst eine LOSE Referenz ohne Fremdschlüssel (wie
+// UsageLog.worksheetId) statt drei optionaler Relations-Felder: löscht der Admin den gemeldeten
+// Beitrag (siehe DELETE-Routen unter app/api/admin/forum/*), soll die Meldung selbst NICHT
+// mitgerissen werden (kein Cascade) - der Admin muss auch danach noch sehen, WAS gemeldet und ob
+// es bereits bearbeitet wurde. inhaltSnapshot/gemeldeterUserId frieren deshalb Text und
+// Autor:in zum Meldezeitpunkt ein (wie Zuweisung.titel/themenbereich einen Worksheet-Snapshot
+// einfriert): sonst könnte der Admin nach dem Löschen weder den Text noch die verantwortliche
+// Person noch sehen, um sie zu sperren.
+model ForumMeldung {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  zielTyp          String // "thread" | "antwort" | "chat", siehe FORUM_MELDUNG_ZIEL_TYPEN in lib/forum.ts
+  zielId           String // lose Referenz ohne FK, siehe Kommentar oben
+  gemeldeterUserId String // lose Referenz ohne FK, Snapshot zum Meldezeitpunkt
+  inhaltSnapshot   String
+  grund            String?
+  bearbeitet       Boolean  @default(false)
+  createdAt        DateTime @default(now())
 }
