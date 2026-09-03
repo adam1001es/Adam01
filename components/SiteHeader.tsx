@@ -107,12 +107,12 @@ export default function SiteHeader({
 
   return (
     <header className="no-print sticky top-0 z-10 border-b border-slate-200/80 bg-canvas/85 backdrop-blur-md">
-      <div className="relative flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 border-b border-gold-100 bg-gold-50/70 px-4 py-1 pr-9 text-center text-[11px] font-medium text-gold-700 sm:px-6 sm:pr-12">
+      <div className="relative flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 border-b border-white/50 bg-white/30 px-4 py-1 pr-9 text-center text-[11px] font-medium text-slate-500 backdrop-blur-md sm:px-6 sm:pr-12">
         <span className="inline-flex items-center gap-1.5">
           <MoonStar size={11} strokeWidth={2.25} />
           {hijriDatum}
         </span>
-        <span className="hidden text-gold-300 sm:inline">·</span>
+        <span className="hidden text-slate-300 sm:inline">·</span>
         <SonnenuntergangAnzeige />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 sm:right-5">
           <ThemeToggle />
