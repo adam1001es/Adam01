@@ -70,7 +70,7 @@ function ProzentRing({ prozent, farbe, size = 128 }: { prozent: number | null; f
  * über den Schülertischen. Bewusst als HTML/CSS statt eigenem SVG-Text umgesetzt, damit der
  * Klassenname in der App-eigenen Schrift (font-display) sauber gerendert wird statt als starre
  * SVG-<text>-Form. */
-function Tafel({ klasseName, klasseSchulstufe }: { klasseName: string; klasseSchulstufe: string | null }) {
+export function Tafel({ klasseName, klasseSchulstufe }: { klasseName: string; klasseSchulstufe: string | null }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -12 }}
@@ -104,7 +104,7 @@ const BUECHER_FARBEN = ["#f3c6c0", "#bfe1ee", "#f4e2a1", "#c8e0c3", "#d9c9ea", "
 
 /** Dezentes Bücherregal als Wand-Deko - nur ab sm: sichtbar, damit auf schmalen Handy-Breiten der
  * Platz komplett den Schülertischen gehört. */
-function Buecherregal({ className = "" }: { className?: string }) {
+export function Buecherregal({ className = "" }: { className?: string }) {
   return (
     <div
       className={`hidden w-20 shrink-0 self-end rounded-t-lg border-2 border-b-0 border-[#9a7850] bg-[#c9a679]/25 p-1.5 sm:block lg:w-24 ${className}`}
@@ -128,7 +128,7 @@ function Buecherregal({ className = "" }: { className?: string }) {
 }
 
 /** Fenster mit Blick auf ein bisschen Grün - reine Wand-Deko, ab sm: sichtbar (siehe Buecherregal). */
-function Fenster({ className = "" }: { className?: string }) {
+export function Fenster({ className = "" }: { className?: string }) {
   return (
     <div
       className={`relative hidden h-20 w-20 shrink-0 self-end rounded-lg border-[3px] border-[#faf7f0] bg-gradient-to-b from-[#cfe8f7] to-[#e4f2fa] shadow-inner sm:block lg:h-24 lg:w-24 ${className}`}
@@ -142,7 +142,7 @@ function Fenster({ className = "" }: { className?: string }) {
 
 /** Pflanzenkübel in den Bodenecken - reine Deko, hält die Fläche neben den Tischen nicht komplett
  * leer, ohne selbst Aufmerksamkeit von den eigentlichen Schülertischen zu ziehen. */
-function Pflanzenkuebel({ className = "" }: { className?: string }) {
+export function Pflanzenkuebel({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden>
       <path d="M20 62 L16 40 H48 L44 62 Z" fill="#d99a78" />

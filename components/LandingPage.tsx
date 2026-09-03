@@ -36,6 +36,7 @@ import {
 import { WorksheetContent, LayoutConfig } from "@/lib/types";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import WorksheetView from "@/components/WorksheetView";
+import { Tafel, Buecherregal, Fenster, Pflanzenkuebel } from "@/components/Klassenzimmer";
 
 /**
  * Öffentliche Landingpage (siehe app/page.tsx - wird gezeigt, sobald kein eingeloggter Nutzer
@@ -555,58 +556,73 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
             ))}
           </div>
 
-          <Reveal delay={0.2} className="mt-8 rounded-2xl bg-white/95 p-5 text-slate-700 shadow-card sm:p-6">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-emerald-600">
+          <Reveal delay={0.2} className="mt-8">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-white/80">
               Beispielhafte Darstellung - Klassenzimmer-Ansicht
             </p>
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-              {[
-                { kuerzel: "Schüler A.", prozent: 90, farbe: "#1e8c60" },
-                { kuerzel: "Schülerin B.", prozent: 95, farbe: "#1e8c60" },
-                { kuerzel: "Schülerin C.", prozent: 68, farbe: "#c9a04a" },
-                { kuerzel: "Schüler D.", prozent: 48, farbe: "#f97316" },
-                { kuerzel: "Schüler E.", prozent: 28, farbe: "#ef4444" },
-                { kuerzel: "Schülerin F.", prozent: 78, farbe: "#4fb384" },
-              ].map((s, i) => (
-                <motion.div
-                  key={s.kuerzel}
-                  className="relative"
-                  style={{ aspectRatio: "100 / 118" }}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
-                >
-                  <svg viewBox="0 0 100 118" className="absolute inset-0 h-full w-full drop-shadow-sm" aria-hidden>
-                    <rect x="21" y="62" width="58" height="46" rx="18" fill="#bfe0d3" />
-                    <rect x="27" y="96" width="46" height="12" rx="6" fill="#a9d6c3" />
-                    <rect
-                      x="6"
-                      y="4"
-                      width="88"
-                      height="62"
-                      rx="14"
-                      fill="url(#lernwerk-landing-desk-holz)"
-                      stroke="#c9a06a"
-                      strokeWidth="1.5"
-                    />
-                    <rect x="12" y="10" width="28" height="9" rx="4.5" fill="#fff6e4" opacity="0.55" />
-                  </svg>
-                  <div className="absolute left-1/2 top-[27%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5">
-                    <span
-                      className="flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white"
-                      style={{ backgroundColor: s.farbe }}
+            {/* Dieselben Raum-Bauteile wie in der echten Ansicht (components/Klassenzimmer.tsx) -
+                nicht nur die Tische, damit die Landingpage keinen abgespeckten Eindruck vermittelt. */}
+            <div className="papier-hell overflow-hidden rounded-2xl shadow-card">
+              <div className="bg-gradient-to-b from-[#eaf6f0] to-[#e1f0e8] px-4 pb-6 pt-5 sm:px-8 sm:pt-6">
+                <div className="mx-auto flex max-w-md items-end justify-center gap-3 sm:gap-6">
+                  <Buecherregal />
+                  <Tafel klasseName="7A" klasseSchulstufe="7. Schulstufe" />
+                  <Fenster />
+                </div>
+              </div>
+              <div className="relative bg-gradient-to-b from-[#f6efe1] to-[#ece1cb] p-5 sm:p-8">
+                <Pflanzenkuebel className="pointer-events-none absolute left-2 top-2 h-10 w-10 opacity-90 sm:left-4 sm:top-4 sm:h-14 sm:w-14" />
+                <Pflanzenkuebel className="pointer-events-none absolute right-2 top-2 h-10 w-10 -scale-x-100 opacity-90 sm:right-4 sm:top-4 sm:h-14 sm:w-14" />
+                <div className="relative grid grid-cols-3 gap-3 sm:grid-cols-6">
+                  {[
+                    { kuerzel: "Schüler A.", prozent: 90, farbe: "#1e8c60" },
+                    { kuerzel: "Schülerin B.", prozent: 95, farbe: "#1e8c60" },
+                    { kuerzel: "Schülerin C.", prozent: 68, farbe: "#c9a04a" },
+                    { kuerzel: "Schüler D.", prozent: 48, farbe: "#f97316" },
+                    { kuerzel: "Schüler E.", prozent: 28, farbe: "#ef4444" },
+                    { kuerzel: "Schülerin F.", prozent: 78, farbe: "#4fb384" },
+                  ].map((s, i) => (
+                    <motion.div
+                      key={s.kuerzel}
+                      className="relative"
+                      style={{ aspectRatio: "100 / 118" }}
+                      initial={{ opacity: 0, y: 10 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
                     >
-                      {s.kuerzel
-                        .split(" ")
-                        .map((teil) => teil.charAt(0))
-                        .join("")}
-                    </span>
-                    <span className="max-w-[74px] truncate text-[9px] font-medium text-slate-600">{s.kuerzel}</span>
-                    <span className="text-[9px] text-slate-500">{s.prozent}%</span>
-                  </div>
-                </motion.div>
-              ))}
+                      <svg viewBox="0 0 100 118" className="absolute inset-0 h-full w-full drop-shadow-sm" aria-hidden>
+                        <rect x="21" y="62" width="58" height="46" rx="18" fill="#bfe0d3" />
+                        <rect x="27" y="96" width="46" height="12" rx="6" fill="#a9d6c3" />
+                        <rect
+                          x="6"
+                          y="4"
+                          width="88"
+                          height="62"
+                          rx="14"
+                          fill="url(#lernwerk-landing-desk-holz)"
+                          stroke="#c9a06a"
+                          strokeWidth="1.5"
+                        />
+                        <rect x="12" y="10" width="28" height="9" rx="4.5" fill="#fff6e4" opacity="0.55" />
+                      </svg>
+                      <div className="absolute left-1/2 top-[27%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5">
+                        <span
+                          className="flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white"
+                          style={{ backgroundColor: s.farbe }}
+                        >
+                          {s.kuerzel
+                            .split(" ")
+                            .map((teil) => teil.charAt(0))
+                            .join("")}
+                        </span>
+                        <span className="max-w-[74px] truncate text-[9px] font-medium text-slate-600">{s.kuerzel}</span>
+                        <span className="text-[9px] text-slate-500">{s.prozent}%</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </div>
             <svg width="0" height="0" className="absolute" aria-hidden>
               <defs>
@@ -616,7 +632,7 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
                 </linearGradient>
               </defs>
             </svg>
-            <p className="mt-3 text-xs text-slate-400">
+            <p className="mt-3 text-xs text-emerald-50/80">
               Statische Beispielabbildung mit frei gewählten Kürzeln statt echter Namen. Nach der
               Anmeldung ist die echte Ansicht interaktiv: ein Klick auf einen Tisch öffnet dort ein
               animiertes Profil mit Prozent-Ring und Ergebnisverlauf.
