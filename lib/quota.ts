@@ -16,8 +16,8 @@ import { verbrauchtePunkteFuerUser } from "@/lib/usageLog";
  * umfangreiche Blätter auch 40-60 Cent) - eine feste "X Arbeitsblätter"-Zählung ignoriert das
  * komplett und kann bei einem Konto mit durchgehend teuren Blättern sogar zum Verlust führen.
  *
- * Kalkulation (Worst Case bei voller Ausschöpfung): 300 Punkte × 0,01€ = 3,00€ Kosten bei 3,50€
- * Preis = mindestens 14,3% Marge - GARANTIERT statt geschätzt, weil die Punkte selbst direkt an
+ * Kalkulation (Worst Case bei voller Ausschöpfung): 300 Punkte × 0,01€ = 3,00€ Kosten bei 3,90€
+ * Preis = mindestens 23,1% Marge - GARANTIERT statt geschätzt, weil die Punkte selbst direkt an
  * echte Kosten gekoppelt sind (im Unterschied zur früheren Pauschalschätzung, die sich im
  * Nachhinein als zu niedrig herausstellte - echter Ø-Wert ca. 25 Cent statt der angenommenen 10
  * Cent). "starter" bleibt als Alias mit identischen Werten bestehen - reine Abwärtskompatibilität
@@ -29,8 +29,8 @@ export const TIER_PUNKTE_QUOTA: Record<string, number> = {
 };
 
 export const TIER_PREIS_EUR: Record<string, number> = {
-  starter: 3.5,
-  pro: 3.5,
+  starter: 3.9,
+  pro: 3.9,
 };
 
 /** ".toFixed(2)" allein liefert "3.50" (Punkt) statt der im Deutschen/Österreichischen üblichen

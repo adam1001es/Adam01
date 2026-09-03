@@ -178,8 +178,8 @@ geschätzt**: die Kosten des Worst Case (volle Ausschöpfung) ergeben sich direk
   das Dashboard zeigen dafür ein eigenes „unbegrenztes Kontingent"-Banner statt einer Zahl.
 - **Zwei Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_PUNKTE_LIMIT`, aktuell 100
   Punkte EINMALIG fürs ganze Konto - automatisch, ohne Admin-Freischaltung, kein monatlicher
-  Reset) und ein einziges bezahltes „Abo" (3,50€ / `TIER_PUNKTE_QUOTA.pro` = 300 Punkte **im
-  Monat**; bei voller Ausschöpfung 300 × 0,01€ = 3,00€ Kosten ⇒ mind. 14,3% Marge, GARANTIERT,
+  Reset) und ein einziges bezahltes „Abo" (3,90€ / `TIER_PUNKTE_QUOTA.pro` = 300 Punkte **im
+  Monat**; bei voller Ausschöpfung 300 × 0,01€ = 3,00€ Kosten ⇒ mind. 23,1% Marge, GARANTIERT,
   siehe Kommentar bei `TIER_PUNKTE_QUOTA`). Bewusst nur ein Bezahl-Tarif statt einer Staffelung -
   einfacher zu kommunizieren, ohne dass Lehrkräfte zwischen mehreren Paketen abwägen müssen. Jedes
   frisch registrierte Konto startet automatisch auf „Kostenlos"; ein Admin schaltet unter `/admin`

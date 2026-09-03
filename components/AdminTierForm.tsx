@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import { inputClass, labelClass } from "@/lib/formStyles";
+import {
+  KOSTENLOS_PUNKTE_LIMIT,
+  TIER_PUNKTE_QUOTA,
+  TIER_PREIS_EUR,
+  formatEur,
+  formatArbeitsblaetterSpanne,
+} from "@/lib/quota";
 
 /** Formatiert ein Date als "YYYY-MM-DD" für ein <input type="date"> (lokale Zeitzone, nicht UTC
  * - toISOString() würde bei Zeiten nahe Mitternacht auf den falschen Tag verschieben). */
@@ -71,8 +78,12 @@ export default function AdminTierForm({
           }}
           className={inputClass}
         >
-          <option value="">Kostenlos (4 einmalig)</option>
-          <option value="pro">Abo (3,50€ / 11 im Monat)</option>
+          <option value="">
+            Kostenlos ({KOSTENLOS_PUNKTE_LIMIT} Punkte einmalig, {formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)})
+          </option>
+          <option value="pro">
+            Abo ({formatEur(TIER_PREIS_EUR.pro)}€ / {TIER_PUNKTE_QUOTA.pro} Punkte im Monat, {formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)})
+          </option>
         </select>
       </label>
 
