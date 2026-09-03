@@ -412,6 +412,27 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
                 />
               </div>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#fefdfa] to-transparent" />
+              {/* Papier-Körnung über der GESAMTEN Seite, auch über der farbigen Kopfzeile - sonst
+                  wirkt gerade eine flächige Farbe wie eine digitale UI-Fläche statt bedrucktes
+                  Papier. Zwei Ebenen: feine Faser-Körnung (Multiply, deutlich sichtbar) plus eine
+                  grobe, sehr blasse "Wolken"-Unruhe darüber (Overlay) für ungleichmäßigen
+                  Papierton statt einer computergenerierten Perfektion. */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-[0.16] mix-blend-multiply"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='1.6' intercept='-0.3'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+                }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 opacity-[0.08] mix-blend-overlay"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)'/%3E%3C/svg%3E\")",
+                }}
+              />
             </motion.div>
             <motion.span
               className="absolute -left-4 -top-4 hidden items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-brand-700 shadow-card ring-1 ring-black/5 sm:inline-flex"
