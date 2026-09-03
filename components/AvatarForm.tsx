@@ -106,7 +106,7 @@ export default function AvatarForm({
                 title={f.label}
                 aria-label={f.label}
                 className={`flex h-8 w-8 items-center justify-center rounded-full ring-offset-2 transition ${
-                  istWeiss ? "border border-slate-300" : ""
+                  istWeiss ? "border border-slate-200" : ""
                 } ${farbe === f.wert ? "ring-2 ring-slate-400" : "hover:opacity-80"}`}
                 style={{ backgroundColor: f.wert }}
               >
