@@ -295,6 +295,25 @@ export default function NewWorksheetForm({
     aufgabentypen as (typeof AUFGABEN_TYPEN_AKTIV)[number][],
     komplexitaet,
   );
+  // Pro sichtbarem Aufgabentyp: würde ihn JETZT zusätzlich auszuwählen die bei aktueller
+  // Zieldauer/Komplexität ohnehin schätzbare Aufgabenzahl übersteigen? Verhindert das vom
+  // Betreiber beim Testen gefundene Szenario (12 Typen ausgewählt, nur 3-4 kamen im fertigen
+  // Blatt tatsächlich vor) schon bei der Auswahl selbst, statt nur nachträglich zu warnen - siehe
+  // toggleTyp (dieselbe Bedingung, dort als eigentliche Sperre) und den Hinweistext unten. Ändert
+  // sich die Zieldauer NACH der Auswahl auf weniger, greift diese Vorab-Sperre nicht rückwirkend
+  // (bereits gewählte Typen werden nie automatisch entfernt) - dafür bleibt der bestehende
+  // Warnhinweis unten als sichtbarer Hinweis auf genau diesen Fall.
+  const typenMitLimitInfo = sichtbareTypen.map((typ) => {
+    const aktiv = aufgabentypen.includes(typ);
+    const kandidat = aktiv ? aufgabentypen : [...aufgabentypen, typ];
+    const geschaetztFuerKandidat = schaetzeAufgabenAnzahl(
+      zieldauerMinuten,
+      kandidat as (typeof AUFGABEN_TYPEN_AKTIV)[number][],
+      komplexitaet,
+    );
+    return { typ, aktiv, limitErreicht: !aktiv && kandidat.length > geschaetztFuerKandidat };
+  });
+  const weitereTypenGesperrt = typenMitLimitInfo.some((t) => t.limitErreicht);
   const [zusatzhinweise, setZusatzhinweise] = useState(initialZusatzhinweise ?? "");
   const [themenbereich, setThemenbereich] = useState<ThemenbereichKey>("gemischt");
   const [themenvorschlaegeOffen, setThemenvorschlaegeOffen] = useState(false);
@@ -492,9 +511,21 @@ export default function NewWorksheetForm({
   }
 
   function toggleTyp(typ: string) {
-    setAufgabentypen((prev) =>
-      prev.includes(typ) ? prev.filter((t) => t !== typ) : [...prev, typ],
-    );
+    setAufgabentypen((prev) => {
+      if (prev.includes(typ)) return prev.filter((t) => t !== typ);
+      // Auswahl bleibt aus, wenn sie die bei aktueller Zieldauer/Komplexität geschätzte
+      // Aufgabenzahl übersteigen würde - siehe typenMitLimitInfo oben (dieselbe Bedingung, dort
+      // fürs Ausgrauen der Chips). Abwählen ist immer möglich, nur das Hinzufügen kann blockiert
+      // sein.
+      const kandidat = [...prev, typ];
+      const geschaetzt = schaetzeAufgabenAnzahl(
+        zieldauerMinuten,
+        kandidat as (typeof AUFGABEN_TYPEN_AKTIV)[number][],
+        komplexitaet,
+      );
+      if (kandidat.length > geschaetzt) return prev;
+      return kandidat;
+    });
   }
 
   async function ideenVorschlagen() {
@@ -1153,23 +1184,31 @@ export default function NewWorksheetForm({
           )}
           <span className={labelClass}>Aufgabentypen</span>
           <div className="flex flex-wrap gap-2">
-            {sichtbareTypen.map((typ) => {
+            {typenMitLimitInfo.map(({ typ, aktiv: active, limitErreicht }) => {
               const meta = TYP_META[typ];
-              const active = aufgabentypen.includes(typ);
               const fruehEmpfohlen = AUFGABEN_TYPEN_FRUEH_EMPFOHLEN.includes(typ);
               return (
                 <button
                   type="button"
                   key={typ}
                   onClick={() => toggleTyp(typ)}
+                  disabled={limitErreicht}
                   aria-pressed={active}
-                  title={fruehEmpfohlen ? "Empfohlen für 1. Klasse Volksschule" : undefined}
+                  title={
+                    limitErreicht
+                      ? `Bei dieser Zieldauer werden nur ca. ${geschaetzteAufgabenAnzahl} Aufgaben erstellt - dafür ist kein Platz mehr. Zieldauer erhöhen oder einen gewählten Typ abwählen.`
+                      : fruehEmpfohlen
+                        ? "Empfohlen für 1. Klasse Volksschule"
+                        : undefined
+                  }
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-medium transition ${
                     active
                       ? "border-gold-600 bg-gold-600 text-white shadow-sm shadow-gold-600/30"
-                      : fruehEmpfohlen
-                        ? "border-brand-300 text-brand-700 hover:border-brand-400"
-                        : CHIP_BASIS
+                      : limitErreicht
+                        ? "cursor-not-allowed border-slate-100 text-slate-300"
+                        : fruehEmpfohlen
+                          ? "border-brand-300 text-brand-700 hover:border-brand-400"
+                          : CHIP_BASIS
                   }`}
                 >
                   {active ? (
@@ -1185,6 +1224,13 @@ export default function NewWorksheetForm({
               );
             })}
           </div>
+          {weitereTypenGesperrt && (
+            <p className="mt-1.5 text-xs leading-relaxed text-slate-400">
+              Ausgegraute Typen sind bei dieser Zieldauer nicht mehr wählbar - bei ca.{" "}
+              {geschaetzteAufgabenAnzahl} Aufgaben insgesamt ist kein Platz mehr für weitere
+              Typen. Für mehr Auswahl die Zieldauer erhöhen oder einen gewählten Typ abwählen.
+            </p>
+          )}
           {!istPruefung && (
             <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-400">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
