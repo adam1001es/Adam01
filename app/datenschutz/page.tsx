@@ -18,7 +18,7 @@ export default function DatenschutzPage() {
         <section className="mb-6">
           <h2 className="mb-1 text-sm font-semibold text-slate-700">Verantwortlicher</h2>
           <p className="text-sm leading-relaxed text-slate-600">
-            Dua Center, Beethovenplatz 1 (Ecke Lothringerstraße), 1010 Wien, vertreten durch Adam
+            Dua Zentrum, Beethovenplatz 1 (Ecke Lothringerstraße), 1010 Wien, vertreten durch Adam
             Es. Kontakt:{" "}
             <a href="mailto:magdykasim30008000@gmail.com" className="text-brand-600 hover:underline">
               magdykasim30008000@gmail.com

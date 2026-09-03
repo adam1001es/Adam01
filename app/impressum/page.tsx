@@ -18,7 +18,7 @@ export default function ImpressumPage() {
 
         <section className="mb-6">
           <p className="text-sm leading-relaxed text-slate-600">
-            Dua Center
+            Dua Zentrum
             <br />
             Beethovenplatz 1 (Ecke Lothringerstraße)
             <br />
