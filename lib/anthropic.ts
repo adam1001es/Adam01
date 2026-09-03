@@ -9,19 +9,15 @@ export function getAnthropicClient(): Anthropic {
   return client;
 }
 
-export const GENERATION_MODEL = "claude-opus-5";
-// Die Prüfung ist eine Gegenkontrolle des bereits von Opus generierten Inhalts, kein
-// Kernstück der Qualität - ein günstigeres Modell senkt die Kosten hier um ca. 60%, ohne dass
-// die eigentliche Arbeitsblatt-Qualität (die hängt an GENERATION_MODEL) darunter leidet.
-export const VERIFICATION_MODEL = "claude-sonnet-5";
-// Kurze, günstige Themenideen-Vorschläge (siehe app/api/thema-ideen) sind kein Kernstück der
-// Arbeitsblatt-Qualität - dieselbe Kostenlogik wie bei VERIFICATION_MODEL, eigener Name für
-// bessere Lesbarkeit an den Aufrufstellen und falls die Modelle künftig auseinanderlaufen sollen.
-export const IDEEN_MODEL = "claude-sonnet-5";
-// Prüfungs-Modus A (lib/pruefungZusammenstellen.ts): wählt/gewichtet nur aus bereits
-// generierten, bereits geprüften Aufgaben aus statt neue Inhalte zu formulieren - dieselbe
-// Kostenlogik wie VERIFICATION_MODEL/IDEEN_MODEL, eigener Name für Lesbarkeit.
-export const PRUEFUNG_ZUSAMMENSTELLEN_MODEL = "claude-sonnet-5";
+// Modell-ID-Konstanten liegen in lib/models.ts (kein SDK-Import dort) und werden hier nur
+// re-exportiert, damit bestehende "from '@/lib/anthropic'"-Importe unverändert weiterfunktionieren
+// - siehe Kommentar in lib/models.ts für den Grund (Client-Bundle-Sicherheit von lib/pricing.ts).
+export {
+  GENERATION_MODEL,
+  VERIFICATION_MODEL,
+  IDEEN_MODEL,
+  PRUEFUNG_ZUSAMMENSTELLEN_MODEL,
+} from "@/lib/models";
 
 /** Extrahiert das erste { ... } JSON-Objekt aus einer Modellantwort, auch wenn Fließtext drumherum steht. */
 export function extractJson(text: string): unknown {

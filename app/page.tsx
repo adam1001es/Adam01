@@ -7,6 +7,7 @@ import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import LandingPage from "@/components/LandingPage";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
+import { summeTokens } from "@/lib/usageLog";
 
 /** Für kostenlose Testkonten: bewusst gedämpfte (nicht in den echten Bereichsfarben gehaltene),
  * gesperrte Vorschau der Abo-Bereiche direkt am Dashboard, statt sie komplett zu verstecken -
@@ -51,7 +52,13 @@ export default async function DashboardPage({
   searchParams: { verifizierung?: string };
 }) {
   const user = await getSessionUser();
-  if (!user) return <LandingPage />;
+  if (!user) {
+    // Aggregierte, anonyme Token-Transparenz-Kennzahl über alle Konten hinweg (siehe
+    // summeTokens in lib/usageLog.ts) - nur für nicht angemeldete Besucher:innen relevant, daher
+    // hier statt in der eingeloggten Dashboard-Ansicht abgefragt.
+    const { gesamt } = await summeTokens();
+    return <LandingPage tokenGesamt={gesamt} />;
+  }
 
   const worksheets = await prisma.worksheet.findMany({
     where: { userId: user.id },

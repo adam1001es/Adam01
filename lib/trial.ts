@@ -1,14 +1,16 @@
 import { headers, cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { KOSTENLOS_LIMIT } from "@/lib/quota";
+import { KOSTENLOS_TRIAL_ANZAHL_LIMIT } from "@/lib/quota";
 
 /**
  * Zusätzliche Absicherung des kostenlosen Gratis-Kontingents (siehe lib/quota.ts): ein Login
  * ist für jede Generierung Pflicht (app/api/generate), aber wer sich mehrere Konten anlegt,
- * würde sonst ein Vielfaches von KOSTENLOS_LIMIT bekommen. Deshalb wird die Gratis-Nutzung
+ * würde sonst ein Vielfaches des Gratis-Kontingents bekommen. Deshalb wird die Gratis-Nutzung
  * ZUSÄTZLICH pro Browser/IP begrenzt - unabhängig davon, welches Konto gerade eingeloggt ist.
- * LEBENSLANG gezählt (nicht pro Monat), analog zu KOSTENLOS_LIMIT selbst (siehe dortigen
- * Kommentar) - sonst könnte man über denselben Browser/dieselbe IP jeden Monat mit einem neuen
+ * Zählt bewusst eine simple Arbeitsblatt-ANZAHL (KOSTENLOS_TRIAL_ANZAHL_LIMIT), nicht Punkte wie
+ * das eigentliche Konto-Guthaben - ein Kosten-Tracking pro Cookie/IP wäre für diese reine
+ * Zusatz-Absicherung unverhältnismäßig aufwendig. LEBENSLANG gezählt (nicht pro Monat), analog
+ * zum Gratis-Kontingent selbst (siehe dortigen Kommentar) - sonst könnte man über denselben
  * Konto erneut das "einmalige" Gratis-Kontingent bekommen, was den ganzen Sinn der Umstellung
  * von "3/Monat" auf "einmalig insgesamt" untergraben würde.
  * Zwei unabhängige Zähler, jeweils der niedrigere gewinnt (blockiert also schon, wenn EINER
@@ -66,7 +68,7 @@ export async function getTrialStatus(): Promise<TrialStatus> {
   const cookieCount = getCookieCount();
   const ipCount = await getIpCount(getClientIp());
   const genutzt = Math.max(cookieCount, ipCount);
-  return { verbleibend: Math.max(0, KOSTENLOS_LIMIT - genutzt), cookieCount, ipCount };
+  return { verbleibend: Math.max(0, KOSTENLOS_TRIAL_ANZAHL_LIMIT - genutzt), cookieCount, ipCount };
 }
 
 /** Nur aus Route Handlers aufrufbar (Server Components dürfen keine Cookies setzen). */

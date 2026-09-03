@@ -24,8 +24,15 @@ import {
   Search,
   Heart,
   Wand2,
+  Cpu,
 } from "lucide-react";
-import { TIER_QUOTA, TIER_PREIS_EUR, KOSTENLOS_LIMIT, formatEur } from "@/lib/quota";
+import {
+  TIER_PUNKTE_QUOTA,
+  TIER_PREIS_EUR,
+  KOSTENLOS_PUNKTE_LIMIT,
+  formatEur,
+  formatArbeitsblaetterSpanne,
+} from "@/lib/quota";
 import { WorksheetContent, LayoutConfig } from "@/lib/types";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import WorksheetView from "@/components/WorksheetView";
@@ -324,7 +331,12 @@ const COMMUNITY_PUNKTE = [
   },
 ] as const;
 
-export default function LandingPage() {
+/** "tokenGesamt" ist eine aggregierte, anonyme Transparenz-Kennzahl über ALLE Konten hinweg
+ * (siehe summeTokens in lib/usageLog.ts, ohne Nutzerbezug, serverseitig in app/page.tsx berechnet
+ * und hier nur noch angezeigt) - zeigt Interessent:innen, dass hinter den Arbeitsblättern echte,
+ * laufend genutzte KI-Rechenleistung steckt. Optional/undefined abgesichert, falls die Abfrage
+ * (noch) keine Daten liefert. */
+export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = {}) {
   return (
     <main className="space-y-20 sm:space-y-24">
       {/* HERO */}
@@ -351,7 +363,7 @@ export default function LandingPage() {
                 href="/register"
                 className="inline-flex items-center gap-2 rounded-full bg-surface px-6 py-3 text-sm font-semibold text-brand-700 shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover active:translate-y-0"
               >
-                <Gift size={16} /> {KOSTENLOS_LIMIT} Arbeitsblätter kostenlos ausprobieren
+                <Gift size={16} /> {formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)} kostenlos ausprobieren
               </Link>
               <Link
                 href="/login"
@@ -672,7 +684,7 @@ export default function LandingPage() {
       <section>
         <SectionHeading
           title="Was du bekommst"
-          subtitle={`Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist die Anzahl der Arbeitsblätter (${KOSTENLOS_LIMIT} einmalig zum Ausprobieren vs. ${TIER_QUOTA.pro}/Monat im Abo) sowie der Zugang zur Community und zu Klassen-Tracking/Prüfungsgenerierung, die Abo-Konten vorbehalten sind.`}
+          subtitle={`Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist das Punkte-Guthaben (${KOSTENLOS_PUNKTE_LIMIT} Punkte einmalig zum Ausprobieren, ${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}, vs. ${TIER_PUNKTE_QUOTA.pro} Punkte/Monat im Abo, ${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) sowie der Zugang zur Community und zu Klassen-Tracking/Prüfungsgenerierung, die Abo-Konten vorbehalten sind. 1 Punkt entspricht dabei den tatsächlich gemessenen KI-Kosten eines Arbeitsblatts, nicht einer festen Stückzahl.`}
         />
         <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-2">
           {WAS_ENTHALTEN.map((punkt, i) => (
@@ -707,7 +719,7 @@ export default function LandingPage() {
           <div className="rounded-xl border border-slate-200 bg-surface p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">Kostenlos</div>
             <div className="mt-1 text-xs text-slate-400">
-              {KOSTENLOS_LIMIT} Arbeitsblätter insgesamt, einmalig
+              {KOSTENLOS_PUNKTE_LIMIT} Punkte insgesamt, einmalig ({formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)})
             </div>
           </div>
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 text-center">
@@ -715,7 +727,8 @@ export default function LandingPage() {
               Abo <span className="font-normal text-slate-400">· {formatEur(TIER_PREIS_EUR.pro)}€/Monat</span>
             </div>
             <div className="mt-1 text-xs text-slate-400">
-              {TIER_QUOTA.pro} Arbeitsblätter/Monat · inkl. Community, Klassen &amp; Prüfungen
+              {TIER_PUNKTE_QUOTA.pro} Punkte/Monat ({formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) · inkl.
+              Community, Klassen &amp; Prüfungen
             </div>
           </div>
         </Reveal>
@@ -723,6 +736,13 @@ export default function LandingPage() {
           Die Freischaltung einer bezahlten Stufe erfolgt manuell - kontaktiere dazu einfach die
           Person, die den Zugang für deine Schule/Einrichtung verwaltet.
         </p>
+        {tokenGesamt !== undefined && tokenGesamt > 0 && (
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
+            <Cpu size={13} className="shrink-0" />
+            Transparenz: bisher {tokenGesamt.toLocaleString("de-AT")} Tokens echter KI-Rechenleistung
+            für geprüfte Arbeitsblätter verwendet.
+          </p>
+        )}
       </section>
 
       {/* ABSCHLUSS-CTA */}
@@ -732,8 +752,8 @@ export default function LandingPage() {
             Das nächste Arbeitsblatt in 1-2 Minuten statt 15
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-brand-50 sm:text-base">
-            {KOSTENLOS_LIMIT} Arbeitsblätter kostenlos, keine Zahlungsdaten nötig - startklar in
-            wenigen Minuten.
+            {formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)} kostenlos, keine Zahlungsdaten
+            nötig - startklar in wenigen Minuten.
           </p>
           <Link
             href="/register"

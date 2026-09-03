@@ -6,9 +6,10 @@ import {
   zaehleGenerierteBilder,
   tierLabel,
   formatEur,
-  TIER_QUOTA,
+  TIER_PUNKTE_QUOTA,
   TIER_PREIS_EUR,
-  GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR,
+  schaetzeArbeitsblaetterSpanne,
+  formatArbeitsblaetterSpanne,
 } from "./quota";
 
 describe("formatEur", () => {
@@ -114,20 +115,45 @@ describe("zaehleGenerierteBilder", () => {
 });
 
 describe("Abo-Kalkulation - Mindestmarge bei voller Ausschöpfung", () => {
-  // Regressionstest für die Preis-/Kontingent-Entscheidung: bei voller Nutzung des monatlichen
-  // Kontingents (Worst Case) soll die Marge nie unter die vereinbarte Untergrenze fallen, sonst
-  // zahlt der Betreiber bei intensiv nutzenden Konten drauf.
-  const MINDESTMARGE = 0.25;
+  // Regressionstest für die Preis-/Kontingent-Entscheidung: bei voller Ausschöpfung des
+  // monatlichen Punkte-Guthabens (Worst Case) soll die Marge nie unter die vereinbarte
+  // Untergrenze fallen. Im Unterschied zur früheren Arbeitsblatt-Zählung (die auf einer reinen
+  // Kosten-ANNAHME beruhte) ist diese Marge jetzt GARANTIERT statt geschätzt: 1 Punkt = 1 Cent
+  // TATSÄCHLICH gemessene Kosten (siehe verbrauchtePunkteFuerUser in lib/usageLog.ts), daher
+  // ergibt "limit Punkte × 0,01€" immer exakt die maximal möglichen Kosten, unabhängig davon, wie
+  // teuer die einzelnen Arbeitsblätter tatsächlich waren.
+  const MINDESTMARGE = 0.1;
+  const PUNKT_WERT_EUR = 0.01;
 
-  it("hält für das Abo mindestens 25% Marge im Worst Case", () => {
-    const kosten = TIER_QUOTA.pro * GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR;
+  it("hält für das Abo mindestens 10% Marge im Worst Case (garantiert, nicht geschätzt)", () => {
+    const kosten = TIER_PUNKTE_QUOTA.pro * PUNKT_WERT_EUR;
     const marge = (TIER_PREIS_EUR.pro - kosten) / TIER_PREIS_EUR.pro;
     expect(marge).toBeGreaterThanOrEqual(MINDESTMARGE);
   });
 
   it("hält den Abwärtskompatibilitäts-Alias 'starter' auf identischen Werten wie 'pro'", () => {
-    expect(TIER_QUOTA.starter).toBe(TIER_QUOTA.pro);
+    expect(TIER_PUNKTE_QUOTA.starter).toBe(TIER_PUNKTE_QUOTA.pro);
     expect(TIER_PREIS_EUR.starter).toBe(TIER_PREIS_EUR.pro);
+  });
+});
+
+describe("schaetzeArbeitsblaetterSpanne / formatArbeitsblaetterSpanne", () => {
+  it("liefert für das volle Abo-Guthaben (300 Punkte) die gewünschte Spanne ca. 8-11 Blätter", () => {
+    expect(schaetzeArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)).toEqual({ von: 8, bis: 11 });
+    expect(formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)).toBe("ca. 8-11 Arbeitsblätter");
+  });
+
+  it("liefert 0-0 bei 0 oder negativen Punkten", () => {
+    expect(schaetzeArbeitsblaetterSpanne(0)).toEqual({ von: 0, bis: 0 });
+    expect(schaetzeArbeitsblaetterSpanne(-5)).toEqual({ von: 0, bis: 0 });
+  });
+
+  it("formatiert eine auf einen einzelnen Wert zusammenfallende Spanne ohne Bindestrich", () => {
+    // Bei Punktezahlen unter der günstigeren Grenze (SPANNE_PUNKTE_PRO_BLATT_GUENSTIG=27) fallen
+    // von/bis auf denselben Wert (hier 0) zusammen, siehe Formel in lib/quota.ts.
+    const { von, bis } = schaetzeArbeitsblaetterSpanne(10);
+    expect(von).toBe(bis);
+    expect(formatArbeitsblaetterSpanne(10)).toBe(`ca. ${von} Arbeitsblätter`);
   });
 });
 

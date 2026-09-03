@@ -1,3 +1,11 @@
+import {
+  TIER_PUNKTE_QUOTA,
+  TIER_PREIS_EUR,
+  KOSTENLOS_PUNKTE_LIMIT,
+  formatEur,
+  formatArbeitsblaetterSpanne,
+} from "@/lib/quota";
+
 export const metadata = {
   title: "Häufige Fragen - Lernwerk",
 };
@@ -6,7 +14,7 @@ const FRAGEN: { frage: string; antwort: React.ReactNode }[] = [
   {
     frage: "Was kostet Lernwerk?",
     antwort:
-      "4 Arbeitsblätter können einmalig kostenlos getestet werden. Danach kostet das Abo 3,50 € im Monat für 11 Arbeitsblätter.",
+      `${KOSTENLOS_PUNKTE_LIMIT} Punkte (${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}) können einmalig kostenlos getestet werden. Danach kostet das Abo ${formatEur(TIER_PREIS_EUR.pro)} € im Monat für ${TIER_PUNKTE_QUOTA.pro} Punkte (${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}). 1 Punkt entspricht den tatsächlich gemessenen KI-Kosten - je nach Umfang eines Arbeitsblatts werden also unterschiedlich viele Punkte verbraucht, statt einer festen Stückzahl.`,
   },
   {
     frage: "Wie werden die Arbeitsblätter erstellt?",

@@ -155,7 +155,7 @@ model Session {
 // - zusätzlich zum Cookie-Zähler, damit Cookies löschen/neues Gerät allein nicht reicht, um das
 // Kontingent zu umgehen. Weiterhin nach Kalendermonat abgelegt (reine Schreib-Granularität, ein
 // Zeile pro IP+Monat), aber beim Lesen ÜBER ALLE Monate hinweg für diese IP aufsummiert
-// (lebenslanger Zähler, analog zu KOSTENLOS_LIMIT selbst - siehe lib/quota.ts). Nur zur
+// (lebenslanger Zähler, analog zu KOSTENLOS_TRIAL_ANZAHL_LIMIT selbst - siehe lib/quota.ts). Nur zur
 // Missbrauchsprävention gespeichert.
 model TrialUsage {
   id        String   @id @default(cuid())

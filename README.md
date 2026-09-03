@@ -154,56 +154,85 @@ die meisten Kinder sind dann bereits funktional lese-/schreibfähig, auch wenn n
   Kopfzeile ersetzt und alle Akzentfarben (Muster, Überschriften) werden schwarz/dunkelgrau statt
   grün/gold - in Web, PDF und Word konsistent.
 
-## Konten &amp; Abo-Kontingent
+## Konten &amp; Abo-Guthaben (Punkte-System)
 
 Die App hat ein einfaches Login-System (E-Mail + Passwort, Selbst-Registrierung unter
 `/register`) - jedes Konto sieht ausschließlich seine eigenen Arbeitsblätter. Es gibt **keine
 Zahlungsanbieter-Integration**: Abos werden privat organisiert (z.B. Überweisung), ein Admin
-schaltet danach manuell unter `/admin` das Kontingent frei.
+schaltet danach manuell unter `/admin` das Guthaben frei.
+
+Das Kontingent wird in **Punkten** statt in einer festen Arbeitsblatt-Anzahl geführt: **1 Punkt =
+1 Cent tatsächlich gemessene KI-Kosten** (siehe `berechneKostenEur` in `lib/pricing.ts` und
+`verbrauchtePunkteFuerUser` in `lib/usageLog.ts`, gespeist aus echten, pro Generierung geloggten
+Token-Daten). Grund für diese Umstellung (vormals eine feste "X Arbeitsblätter"-Zählung): einzelne
+Arbeitsblätter kosten je nach Themenumfang/Aufgabenanzahl SEHR unterschiedlich viel (gemessen: Ø
+ca. 25 Cent, einzelne umfangreiche Blätter auch 40-60 Cent) - eine feste Stückzahl-Zählung
+ignoriert das komplett und könnte bei einem Konto mit durchgehend teuren Blättern sogar zum
+Verlust führen. Beim Punkte-System ist die Marge dagegen mathematisch **garantiert statt
+geschätzt**: die Kosten des Worst Case (volle Ausschöpfung) ergeben sich direkt aus `limit ×
+0,01€`, unabhängig davon, wie teuer die einzelnen Arbeitsblätter tatsächlich waren.
 
 - **Erster registrierter Account wird automatisch Admin** (es gibt noch keinen anderen Weg,
   Admin-Rechte zu vergeben) - dieser Account sollte also der/die Betreiber:in sein. **Admin-Konten
-  haben kein Kontingent-Limit** (weder persönlich noch über die Browser-/IP-Sperre) - `/new` und
+  haben kein Guthaben-Limit** (weder persönlich noch über die Browser-/IP-Sperre) - `/new` und
   das Dashboard zeigen dafür ein eigenes „unbegrenztes Kontingent"-Banner statt einer Zahl.
-- **Zwei Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_LIMIT`, aktuell 4
-  Arbeitsblätter EINMALIG fürs ganze Konto - automatisch, ohne Admin-Freischaltung, kein
-  monatlicher Reset) und ein einziges bezahltes „Abo" (3,50€ / 11 Arbeitsblätter **im Monat**,
-  siehe Kommentar bei `TIER_QUOTA` für die Margen-Kalkulation - basiert bisher auf der groben
-  Pauschalschätzung, sollte aber gegen die echte, gemessene Kosten pro Arbeitsblatt geprüft
-  werden, siehe "Ø Kosten pro Arbeitsblatt (echt)" im Admin-Bereich). Bewusst nur ein
-  Bezahl-Tarif statt einer Staffelung - einfacher zu kommunizieren, ohne dass Lehrkräfte
-  zwischen mehreren Paketen abwägen müssen. Jedes frisch registrierte Konto startet automatisch
-  auf „Kostenlos"; ein Admin schaltet unter `/admin` bei Bedarf auf das Abo hoch. Intern bleibt
-  der Datenbankwert `"pro"` (historisch gewachsen aus einer früheren Zwei-Tarif-Version;
-  `"starter"` existiert nur noch als Abwärtskompatibilitäts-Alias für Konten von davor).
+- **Zwei Stufen** (siehe `lib/quota.ts`): „Kostenlos" (`KOSTENLOS_PUNKTE_LIMIT`, aktuell 100
+  Punkte EINMALIG fürs ganze Konto - automatisch, ohne Admin-Freischaltung, kein monatlicher
+  Reset) und ein einziges bezahltes „Abo" (3,50€ / `TIER_PUNKTE_QUOTA.pro` = 300 Punkte **im
+  Monat**; bei voller Ausschöpfung 300 × 0,01€ = 3,00€ Kosten ⇒ mind. 14,3% Marge, GARANTIERT,
+  siehe Kommentar bei `TIER_PUNKTE_QUOTA`). Bewusst nur ein Bezahl-Tarif statt einer Staffelung -
+  einfacher zu kommunizieren, ohne dass Lehrkräfte zwischen mehreren Paketen abwägen müssen. Jedes
+  frisch registrierte Konto startet automatisch auf „Kostenlos"; ein Admin schaltet unter `/admin`
+  bei Bedarf auf das Abo hoch. Intern bleibt der Datenbankwert `"pro"` (historisch gewachsen aus
+  einer früheren Zwei-Tarif-Version; `"starter"` existiert nur noch als
+  Abwärtskompatibilitäts-Alias für Konten von davor).
+- **"ca. X-Y Arbeitsblätter"-Anzeige**: da Punkte für sich genommen abstrakt wirken, rechnet
+  `schaetzeArbeitsblaetterSpanne`/`formatArbeitsblaetterSpanne` eine Punktezahl grob in eine
+  Arbeitsblatt-Spanne um (z.B. 300 Punkte ≈ "ca. 8-11 Arbeitsblätter") - NUR für die Anzeige, nicht
+  für die tatsächliche Abrechnung, die immer auf echten gemessenen Kosten pro Generierung basiert.
+- **Nicht jede Generierung zieht Punkte ab**: nur eine volle Arbeitsblatt-Neu-Generierung
+  (`UsageLog`-Phasen `"generierung"`/`"pruefung"`). Prüfungs-Modus A (`"zusammenstellung"`,
+  Zusammenstellen aus bereits vorhandenen Aufgaben) und "Aufgabe von KI erstellen"
+  (`"aufgabe_ergaenzen"`) sind bewusst eigene, deutlich günstigere bzw. separat begrenzte Wege und
+  zählen NICHT gegen das Punkte-Guthaben (siehe `verbrauchtePunkteFuerUser`).
+- **Erstattungen**: markiert ein Admin ein Arbeitsblatt als `erstattet` (fehlerhafte KI-Ausgabe),
+  werden dessen Kosten aus der Punkte-Summe herausgerechnet - die Lehrkraft bekommt ihr Guthaben
+  zurück, ohne dass das Arbeitsblatt selbst gelöscht werden muss.
 - **Rollierender 30-Tage-Zyklus** ab dem individuellen Konto-Erstellungsdatum (nicht ab dem
   Kalendermonat) gilt NUR fürs bezahlte Abo. Für Konten ohne aktives Abo zählt `getKontingent`
-  stattdessen über die gesamte Kontolebenszeit (`KOSTENLOS_LIMIT` ist einmalig, kein
+  stattdessen über die gesamte Kontolebenszeit (`KOSTENLOS_PUNKTE_LIMIT` ist einmalig, kein
   wiederkehrendes Monats-Kontingent) - sonst würde die Gratis-Stufe bei wachsender Kontenzahl zu
   einem unbegrenzt mitwachsenden Kostenblock ohne Gegenfinanzierung.
-- Ist das Kontingent aufgebraucht, wird das schon in `/new` sichtbar (Banner + deaktivierter
+- Ist das Guthaben aufgebraucht, wird das schon in `/new` sichtbar (Banner + deaktivierter
   „Arbeitsblatt erstellen"-Button) und serverseitig in `/api/generate` **vor** dem teuren
   Claude-Aufruf geprüft, damit ein blockiertes Konto keine API-Kosten verursacht.
 - **Ein Login ist für jede Generierung Pflicht** - nicht angemeldete Besucher sehen auf `/`
-  keine Login-Maske, sondern eine Produkt-/Verkaufsseite (Funktionen, Kostenlos-/Abo-Preise) mit
-  Call-to-Action zur (kostenlosen) Registrierung.
+  keine Login-Maske, sondern eine Produkt-/Verkaufsseite (Funktionen, Kostenlos-/Abo-Preise,
+  aggregierte Token-Transparenz-Kennzahl) mit Call-to-Action zur (kostenlosen) Registrierung.
 - **`/admin`** ist auf Konten-Verwaltung ausgelegt: Kennzahlen (Konten gesamt, aktive bezahlte
-  Abos, geschätzter Monatsumsatz), Suche nach E-Mail, Kontingent-Nutzung und Gesamtzahl
-  erstellter Arbeitsblätter je Konto, sowie Konten löschen (das eigene Admin-Konto ausgenommen -
-  dessen Arbeitsblätter bleiben beim Löschen eines Kontos erhalten, nur der Besitzer-Bezug
-  entfällt).
+  Abos, geschätzter Monatsumsatz), Suche nach E-Mail, Punkte-Nutzung und Gesamtzahl erstellter
+  Arbeitsblätter je Konto, sowie Konten löschen (das eigene Admin-Konto ausgenommen - dessen
+  Arbeitsblätter bleiben beim Löschen eines Kontos erhalten, nur der Besitzer-Bezug entfällt).
+  `/admin/kosten` zeigt zusätzlich die echte, gemessene Token-/Kostenübersicht (siehe
+  `lib/usageLog.ts`).
+- **Token-Nutzung-Übersicht**: sowohl persönlich (eigenes Konto, `/account`, via
+  `summeTokensFuerUser`) als auch aggregiert über alle Konten hinweg, anonym (Landingpage für
+  nicht angemeldete Besucher, via `summeTokens`).
 
-### Missbrauchsschutz für das kostenlose Kontingent
+### Missbrauchsschutz für das kostenlose Guthaben
 
 Ein Konto zu registrieren ist selbst kostenlos (nur E-Mail + Passwort) - ohne weitere Sperre
 könnte sich also jemand beliebig viele Konten anlegen, um ein Vielfaches des (seit der Umstellung
-auf einmalig ohnehin schon begrenzten) Gratis-Kontingents zu bekommen. Deshalb wird die
+auf einmalig ohnehin schon begrenzten) Gratis-Guthabens zu bekommen. Deshalb wird die
 **kostenlose** Stufe (nicht das Abo - das wurde von einem Admin manuell freigeschaltet)
 zusätzlich über zwei unabhängige, browser-/netzwerkbasierte Zähler begrenzt (`lib/trial.ts`) -
 blockiert wird, sobald **einer** der beiden das Limit erreicht, unabhängig davon, welches Konto
-gerade eingeloggt ist. Beide Zähler sind LEBENSLANG (nicht pro Monat), analog zu
-`KOSTENLOS_LIMIT` selbst - sonst könnte man über denselben Browser/dieselbe IP jeden Monat mit
-einem neuen Konto erneut das "einmalige" Gratis-Kontingent bekommen:
+gerade eingeloggt ist. Dieser Zähler ist bewusst NICHT punktebasiert, sondern zählt eine simple
+Arbeitsblatt-ANZAHL (`KOSTENLOS_TRIAL_ANZAHL_LIMIT`, aktuell 4) - ein Kosten-Tracking pro
+Cookie/IP wäre für diese reine Zusatz-Absicherung unverhältnismäßig aufwendig. Beide Zähler sind
+LEBENSLANG (nicht pro Monat), analog zum Gratis-Guthaben selbst - sonst könnte man über denselben
+Browser/dieselbe IP jeden Monat mit einem neuen Konto erneut das "einmalige" Gratis-Guthaben
+bekommen:
 - **Cookie** (Browser, `trial_usage`) - verhindert das naive "neues Konto, gleicher Browser".
 - **IP-Adresse** (Server, Tabelle `TrialUsage`, weiterhin pro Monat abgelegt, aber beim Lesen
   über ALLE Monate hinweg aufsummiert) - verhindert, dass Cookies löschen, ein privater Tab oder

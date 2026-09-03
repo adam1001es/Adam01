@@ -150,6 +150,82 @@ export interface DurchschnittsKosten {
   anzahlBlaetter: number;
 }
 
+/** Echte Token-Nutzung EINES Kontos seit einem Zeitpunkt (oder insgesamt) - fürs Punkte-Guthaben
+ * (siehe verbrauchtePunkteFuerUser) reicht die Kosten-Summe, aber für die Token-Übersicht im
+ * Account-Bereich (siehe app/account/page.tsx) wird zusätzlich die rohe Tokenzahl gebraucht.
+ * Eigene Funktion statt summeTokens() mit optionalem userId-Filter, um dessen bestehende
+ * Admin-Verwendung (globale Summe über alle Konten, siehe app/admin/kosten) nicht anzufassen. */
+export async function summeTokensFuerUser(userId: string, seit?: Date): Promise<TokenSumme> {
+  const ergebnis = await prisma.usageLog.aggregate({
+    where: { userId, ...(seit ? { createdAt: { gte: seit } } : {}) },
+    _sum: {
+      inputTokens: true,
+      outputTokens: true,
+      cacheCreationInputTokens: true,
+      cacheReadInputTokens: true,
+    },
+    _count: true,
+  });
+  const inputTokens = ergebnis._sum.inputTokens ?? 0;
+  const outputTokens = ergebnis._sum.outputTokens ?? 0;
+  const cacheCreationInputTokens = ergebnis._sum.cacheCreationInputTokens ?? 0;
+  const cacheReadInputTokens = ergebnis._sum.cacheReadInputTokens ?? 0;
+  return {
+    inputTokens,
+    outputTokens,
+    cacheCreationInputTokens,
+    cacheReadInputTokens,
+    gesamt: inputTokens + outputTokens + cacheCreationInputTokens + cacheReadInputTokens,
+    anzahlAufrufe: ergebnis._count,
+  };
+}
+
+/** Echte, in Punkte umgerechnete Kosten (1 Punkt = 1 Cent tatsächliche Kosten) EINES Kontos seit
+ * einem Zeitpunkt (oder insgesamt, für das lebenslange Gratis-Kontingent) - die Grundlage für
+ * das Punkte-Guthaben (siehe getKontingent in lib/quota.ts). Zählt bewusst NUR die Phasen
+ * "generierung" + "pruefung" (eine volle, kontingentpflichtige Arbeitsblatt-Erstellung) -
+ * "zusammenstellung" (Prüfungs-Modus A, lib/pruefungZusammenstellen.ts) und "aufgabe_ergaenzen"
+ * (lib/aufgabeErgaenzen.ts) sind bewusst eigene, kontingentfreie Wege (siehe dortige Kommentare)
+ * und dürfen das Guthaben nicht belasten. Arbeitsblätter, die von einem Admin als fehlerhaft
+ * erstattet wurden (Worksheet.erstattet), werden ebenfalls ausgeschlossen - die Lehrkraft
+ * bekommt ihr Guthaben dafür zurück, ohne dass das Arbeitsblatt selbst gelöscht werden muss. */
+export async function verbrauchtePunkteFuerUser(userId: string, seit?: Date): Promise<number> {
+  const erstatteteWorksheets = await prisma.worksheet.findMany({
+    where: { userId, erstattet: true },
+    select: { id: true },
+  });
+  const erstatteteIds = erstatteteWorksheets.map((w) => w.id);
+
+  const proModell = await prisma.usageLog.groupBy({
+    by: ["model"],
+    where: {
+      userId,
+      phase: { in: ["generierung", "pruefung"] },
+      ...(seit ? { createdAt: { gte: seit } } : {}),
+      ...(erstatteteIds.length > 0 ? { worksheetId: { notIn: erstatteteIds } } : {}),
+    },
+    _sum: {
+      inputTokens: true,
+      outputTokens: true,
+      cacheCreationInputTokens: true,
+      cacheReadInputTokens: true,
+    },
+  });
+
+  const kostenEur = proModell.reduce(
+    (summe, gruppe) =>
+      summe +
+      berechneKostenEur(gruppe.model, {
+        inputTokens: gruppe._sum.inputTokens ?? 0,
+        outputTokens: gruppe._sum.outputTokens ?? 0,
+        cacheCreationInputTokens: gruppe._sum.cacheCreationInputTokens ?? 0,
+        cacheReadInputTokens: gruppe._sum.cacheReadInputTokens ?? 0,
+      }),
+    0,
+  );
+  return Math.round(kostenEur * 100);
+}
+
 /** Echter Durchschnittspreis pro Arbeitsblatt in € - die belastbare Grundlage für die
  * Preiskalkulation (siehe README/Abo-Kalkulation in lib/quota.ts), statt der bisherigen
  * Pauschalschätzung GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR oder eines einzelnen Datenpunkts. Je

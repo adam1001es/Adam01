@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { GenerateRequestSchema, GenerateRequest } from "@/lib/types";
 import { generateAndVerifyWorksheet } from "@/lib/generateWorksheet";
 import { getSessionUser } from "@/lib/auth";
-import { getKontingent, istZahlendesKonto } from "@/lib/quota";
+import { getKontingent, istZahlendesKonto, formatArbeitsblaetterSpanne } from "@/lib/quota";
 import { getTrialStatus, incrementTrialUsage } from "@/lib/trial";
 import { speichereUsage } from "@/lib/usageLog";
 import { starteGenerierung, beendeGenerierung } from "@/lib/auslastung";
@@ -66,8 +66,8 @@ export async function POST(request: NextRequest) {
   const kontingent = await getKontingent(user);
   if (kontingent.verbleibend <= 0) {
     const grund = kontingent.tier
-      ? `Dein Kontingent für diesen Zyklus (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
-      : `Dein einmaliges kostenloses Kontingent (${kontingent.limit} Arbeitsblätter) ist aufgebraucht. Für mehr: ein Abo bei der Person anfragen, die den Zugang verwaltet.`;
+      ? `Dein Guthaben für diesen Zyklus (${kontingent.limit} Punkte, ${formatArbeitsblaetterSpanne(kontingent.limit)}) ist aufgebraucht. Neuer Zyklus ab ${kontingent.zyklusEnde.toLocaleDateString("de-AT")}.`
+      : `Dein einmaliges kostenloses Guthaben (${kontingent.limit} Punkte, ${formatArbeitsblaetterSpanne(kontingent.limit)}) ist aufgebraucht. Für mehr: ein Abo bei der Person anfragen, die den Zugang verwaltet.`;
     return NextResponse.json({ error: grund }, { status: 403 });
   }
 

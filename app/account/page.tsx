@@ -13,9 +13,11 @@ import {
   FileText,
   Users,
   School,
+  Cpu,
 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
-import { getKontingent, istZahlendesKonto, tierLabel } from "@/lib/quota";
+import { getKontingent, istZahlendesKonto, tierLabel, aktuellerZyklusStart } from "@/lib/quota";
+import { summeTokensFuerUser } from "@/lib/usageLog";
 import { prisma } from "@/lib/prisma";
 import { SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
 import SectionCard from "@/components/SectionCard";
@@ -38,8 +40,14 @@ export default async function AccountPage({
   if (!user) redirect("/login");
 
   const zahlend = istZahlendesKonto(user);
-  const [kontingent, worksheetStats, klassenAnzahl, schuelerAnzahl] = await Promise.all([
+  // Gleiche Zeitraum-Logik wie getKontingent (siehe lib/quota.ts, "lebenslangZaehlen"): bei
+  // aktivem Abo/Admin nur der laufende Zyklus, bei Gratis-Konten die gesamte Kontolebenszeit -
+  // sonst würde die Token-Übersicht einen anderen Zeitraum zeigen als das Punkte-Guthaben direkt
+  // darunter.
+  const tokenZeitraumSeit = zahlend ? aktuellerZyklusStart(user.createdAt) : undefined;
+  const [kontingent, tokenSumme, worksheetStats, klassenAnzahl, schuelerAnzahl] = await Promise.all([
     getKontingent(user),
+    summeTokensFuerUser(user.id, tokenZeitraumSeit),
     prisma.worksheet.groupBy({
       by: ["geteilt"],
       where: { userId: user.id },
@@ -146,6 +154,12 @@ export default async function AccountPage({
           subtitle={tierLabel(kontingent.tier)}
         >
           <KontingentBanner kontingent={kontingent} />
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
+            <Cpu size={13} className="shrink-0" />
+            {tokenSumme.gesamt.toLocaleString("de-AT")} Tokens ·{" "}
+            {tokenSumme.anzahlAufrufe} {tokenSumme.anzahlAufrufe === 1 ? "Generierung" : "Generierungen"}{" "}
+            {zahlend ? "in diesem Zyklus" : "insgesamt"}
+          </p>
         </SectionCard>
 
         <SectionCard title="Benutzername" subtitle="Schnellerer Login als mit der vollen E-Mail-Adresse" icon={UserCircle}>

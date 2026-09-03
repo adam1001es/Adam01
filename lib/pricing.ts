@@ -1,4 +1,4 @@
-import { GENERATION_MODEL, VERIFICATION_MODEL } from "@/lib/anthropic";
+import { GENERATION_MODEL, VERIFICATION_MODEL } from "@/lib/models";
 
 /**
  * Anthropic-Listenpreise in USD pro 1 Million Token (Stand: Anthropic-Preisliste, geprüft

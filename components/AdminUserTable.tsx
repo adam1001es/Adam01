@@ -78,7 +78,9 @@ function AdminKontoZeile({ r }: { r: AdminUserRow }) {
           <GueltigkeitsBadge r={r} />
         </div>
         <div className="flex shrink-0 items-center gap-2 text-xs text-slate-400">
-          <span>{r.limit === null ? `${r.verbraucht} / unbegrenzt` : `${r.verbraucht} / ${r.limit}`}</span>
+          <span>
+            {r.limit === null ? `${r.verbraucht} / unbegrenzt` : `${r.verbraucht} / ${r.limit}`} Punkte
+          </span>
           <ChevronDown
             size={16}
             className={`shrink-0 text-slate-400 transition-transform ${offen ? "rotate-180" : ""}`}
