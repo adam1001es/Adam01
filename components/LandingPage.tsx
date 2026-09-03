@@ -377,29 +377,40 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
             </p>
           </motion.div>
 
-          {/* Echte WorksheetView-Vorschau, kein nachgebautes Bild - siehe HERO_VORSCHAU_INHALT. */}
+          {/* Echte WorksheetView-Vorschau, kein nachgebautes Bild - siehe HERO_VORSCHAU_INHALT.
+              Echtes DIN-A4-Seitenverhältnis (210:297) statt einer beliebigen Kartenform, plus
+              zwei dezente Blätter dahinter, die oben rechts hervorschauen - soll wie ein echter
+              kleiner Stapel Arbeitsblätter wirken statt wie eine einzelne UI-Karte. */}
           <motion.div
-            className="relative mx-auto w-full max-w-sm lg:max-w-none"
+            className="relative mx-auto aspect-[210/297] w-full max-w-sm lg:max-w-none"
             initial={{ opacity: 0, y: 26, rotate: -4 }}
             animate={{ opacity: 1, y: 0, rotate: -2.5 }}
             transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
           >
+            <div
+              aria-hidden
+              className="absolute inset-0 rounded-[3px] bg-[#f6f2e6] shadow-[0_14px_30px_-14px_rgba(15,23,42,0.4)]"
+              style={{ transform: "rotate(7deg) translate(14px, -10px)" }}
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 rounded-[3px] bg-[#faf6ea] shadow-[0_12px_26px_-12px_rgba(15,23,42,0.35)]"
+              style={{ transform: "rotate(3.5deg) translate(7px, -5px)" }}
+            />
             <motion.div
-              className="overflow-hidden rounded-2xl bg-surface shadow-card-hover ring-1 ring-black/5"
+              className="absolute inset-0 overflow-hidden rounded-[3px] bg-[#fefdfa] shadow-[0_3px_8px_rgba(15,23,42,0.14),0_30px_55px_-20px_rgba(15,23,42,0.5)] ring-1 ring-black/5"
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             >
-              <div className="relative h-[380px] overflow-hidden sm:h-[430px]">
-                <div className="origin-top-left scale-[0.56]" style={{ width: "178.6%" }}>
-                  <WorksheetView
-                    content={HERO_VORSCHAU_INHALT}
-                    layout={HERO_VORSCHAU_LAYOUT}
-                    themenbereich="ibada"
-                    erstelltAm={HERO_VORSCHAU_DATUM}
-                  />
-                </div>
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent" />
+              <div className="origin-top-left scale-[0.56]" style={{ width: "178.6%" }}>
+                <WorksheetView
+                  content={HERO_VORSCHAU_INHALT}
+                  layout={HERO_VORSCHAU_LAYOUT}
+                  themenbereich="ibada"
+                  erstelltAm={HERO_VORSCHAU_DATUM}
+                />
               </div>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#fefdfa] to-transparent" />
             </motion.div>
             <motion.span
               className="absolute -left-4 -top-4 hidden items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-brand-700 shadow-card ring-1 ring-black/5 sm:inline-flex"
