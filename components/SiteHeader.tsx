@@ -106,8 +106,15 @@ export default function SiteHeader({
     }`;
 
   return (
-    <header className="no-print sticky top-0 z-10 border-b border-slate-200/80 bg-canvas/85 backdrop-blur-md">
-      <div className="relative flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 border-b border-white/60 bg-white/15 px-4 py-1 pr-9 text-center text-[11px] font-medium text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-xl backdrop-saturate-150 sm:px-6 sm:pr-12">
+    // bg-canvas/85 + backdrop-blur wurde bewusst noch deutlich blickdichter gemacht (vorher
+    // bg-canvas/85, Info-Leiste sogar nur bg-white/15): auf dem Handy blieb der Header dabei
+    // "sticky" beim Scrollen stehen (das ist so gewollt), aber durch den Header-eigenen
+    // Nur-15%-Hintergrund schimmerte der darunter wegscrollende Seiteninhalt sichtbar/lesbar
+    // durch - wirkte wie ein Layout-Fehler ("Leiste und Inhalt überlappen"), nicht wie ein
+    // dezenter Glaseffekt. bg-canvas/95 blockt den Inhalt zuverlässig ab, behält aber dank
+    // backdrop-blur weiterhin einen leicht glasigen Look.
+    <header className="no-print sticky top-0 z-10 border-b border-slate-200/80 bg-canvas/95 backdrop-blur-md">
+      <div className="relative flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 border-b border-white/60 bg-white/70 px-4 py-1 pr-9 text-center text-[11px] font-medium text-slate-500 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-xl backdrop-saturate-150 sm:px-6 sm:pr-12">
         <span className="inline-flex items-center gap-1.5">
           <MoonStar size={11} strokeWidth={2.25} />
           {hijriDatum}
