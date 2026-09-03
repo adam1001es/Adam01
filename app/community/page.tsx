@@ -168,7 +168,7 @@ export default async function CommunityPage({
             ) : (
               <>
                 Noch keine Arbeitsblätter geteilt. Gib eines deiner eigenen frei (Button
-                „Arbeitsblatt teilen" auf der Detailseite eines Arbeitsblatts), um den Anfang zu
+                „Für Community teilen" auf der Detailseite eines Arbeitsblatts), um den Anfang zu
                 machen.
               </>
             )}
