@@ -550,34 +550,65 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
             </p>
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
               {[
-                { kuerzel: "S1", prozent: 90, farbe: "#1e8c60" },
-                { kuerzel: "S2", prozent: 95, farbe: "#1e8c60" },
-                { kuerzel: "S3", prozent: 68, farbe: "#c9a04a" },
-                { kuerzel: "S4", prozent: 48, farbe: "#f97316" },
-                { kuerzel: "S5", prozent: 28, farbe: "#ef4444" },
-                { kuerzel: "S6", prozent: 78, farbe: "#4fb384" },
+                { kuerzel: "Schüler A.", prozent: 90, farbe: "#1e8c60" },
+                { kuerzel: "Schülerin B.", prozent: 95, farbe: "#1e8c60" },
+                { kuerzel: "Schülerin C.", prozent: 68, farbe: "#c9a04a" },
+                { kuerzel: "Schüler D.", prozent: 48, farbe: "#f97316" },
+                { kuerzel: "Schüler E.", prozent: 28, farbe: "#ef4444" },
+                { kuerzel: "Schülerin F.", prozent: 78, farbe: "#4fb384" },
               ].map((s, i) => (
                 <motion.div
                   key={s.kuerzel}
-                  className="flex flex-col items-center gap-1.5 rounded-xl border border-[#d9c7a3] bg-gradient-to-b from-[#ecdbb9] to-[#d9c093] p-3"
+                  className="relative"
+                  style={{ aspectRatio: "100 / 118" }}
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
                 >
-                  <span
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold text-white ring-2 ring-white"
-                    style={{ backgroundColor: s.farbe }}
-                  >
-                    {s.kuerzel}
-                  </span>
-                  <span className="text-[10px] text-slate-500">{s.prozent}%</span>
+                  <svg viewBox="0 0 100 118" className="absolute inset-0 h-full w-full drop-shadow-sm" aria-hidden>
+                    <rect x="21" y="62" width="58" height="46" rx="18" fill="#bfe0d3" />
+                    <rect x="27" y="96" width="46" height="12" rx="6" fill="#a9d6c3" />
+                    <rect
+                      x="6"
+                      y="4"
+                      width="88"
+                      height="62"
+                      rx="14"
+                      fill="url(#lernwerk-landing-desk-holz)"
+                      stroke="#c9a06a"
+                      strokeWidth="1.5"
+                    />
+                    <rect x="12" y="10" width="28" height="9" rx="4.5" fill="#fff6e4" opacity="0.55" />
+                  </svg>
+                  <div className="absolute left-1/2 top-[27%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5">
+                    <span
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white"
+                      style={{ backgroundColor: s.farbe }}
+                    >
+                      {s.kuerzel
+                        .split(" ")
+                        .map((teil) => teil.charAt(0))
+                        .join("")}
+                    </span>
+                    <span className="max-w-[74px] truncate text-[9px] font-medium text-slate-600">{s.kuerzel}</span>
+                    <span className="text-[9px] text-slate-500">{s.prozent}%</span>
+                  </div>
                 </motion.div>
               ))}
             </div>
+            <svg width="0" height="0" className="absolute" aria-hidden>
+              <defs>
+                <linearGradient id="lernwerk-landing-desk-holz" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f1dfb8" />
+                  <stop offset="100%" stopColor="#deba82" />
+                </linearGradient>
+              </defs>
+            </svg>
             <p className="mt-3 text-xs text-slate-400">
-              Frei erfundene Beispieldaten zur Veranschaulichung - Klick auf einen Tisch öffnet in
-              der echten Ansicht ein animiertes Profil mit Prozent-Ring und Ergebnisverlauf.
+              Frei erfundene Beispieldaten zur Veranschaulichung, Namen sind selbst gewählte Kürzel
+              - Klick auf einen Tisch öffnet in der echten Ansicht ein animiertes Profil mit
+              Prozent-Ring und Ergebnisverlauf.
             </p>
           </Reveal>
         </div>
