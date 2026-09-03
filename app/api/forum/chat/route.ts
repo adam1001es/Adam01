@@ -3,7 +3,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
-import { FORUM_CHAT_MAX_LAENGE, FORUM_GESPERRT_FEHLERTEXT } from "@/lib/forum";
+import {
+  FORUM_CHAT_MAX_LAENGE,
+  FORUM_GESPERRT_FEHLERTEXT,
+  FORUM_VERBOTENER_INHALT_FEHLERTEXT,
+  enthaeltVerbotenesWort,
+} from "@/lib/forum";
 
 const CHAT_NUTZER_SELECT = { username: true, avatarEmoji: true, avatarFarbe: true } as const;
 const CHAT_POLL_LIMIT = 200;
@@ -71,6 +76,10 @@ export async function POST(request: NextRequest) {
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Ungültige Eingabe." }, { status: 400 });
+  }
+
+  if (enthaeltVerbotenesWort(parsed.data.inhalt)) {
+    return NextResponse.json({ error: FORUM_VERBOTENER_INHALT_FEHLERTEXT }, { status: 400 });
   }
 
   const nachricht = await prisma.forumChatNachricht.create({

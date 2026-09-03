@@ -3,7 +3,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
-import { FORUM_INHALT_MAX_LAENGE, FORUM_GESPERRT_FEHLERTEXT } from "@/lib/forum";
+import {
+  FORUM_INHALT_MAX_LAENGE,
+  FORUM_GESPERRT_FEHLERTEXT,
+  FORUM_VERBOTENER_INHALT_FEHLERTEXT,
+  enthaeltVerbotenesWort,
+} from "@/lib/forum";
 
 const BodySchema = z.object({
   inhalt: z.string().trim().min(1).max(FORUM_INHALT_MAX_LAENGE),
@@ -32,6 +37,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Ungültige Eingabe." }, { status: 400 });
+  }
+
+  if (enthaeltVerbotenesWort(parsed.data.inhalt)) {
+    return NextResponse.json({ error: FORUM_VERBOTENER_INHALT_FEHLERTEXT }, { status: 400 });
   }
 
   const thread = await prisma.forumThread.findUnique({ where: { id: params.id } });

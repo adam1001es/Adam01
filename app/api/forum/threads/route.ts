@@ -8,6 +8,8 @@ import {
   FORUM_TITEL_MAX_LAENGE,
   FORUM_INHALT_MAX_LAENGE,
   FORUM_GESPERRT_FEHLERTEXT,
+  FORUM_VERBOTENER_INHALT_FEHLERTEXT,
+  enthaeltVerbotenesWort,
 } from "@/lib/forum";
 
 const BodySchema = z.object({
@@ -43,6 +45,13 @@ export async function POST(request: NextRequest) {
       { error: "Ungültige Eingabe.", details: parsed.error.flatten() },
       { status: 400 },
     );
+  }
+
+  if (
+    enthaeltVerbotenesWort(parsed.data.titel) ||
+    enthaeltVerbotenesWort(parsed.data.inhalt)
+  ) {
+    return NextResponse.json({ error: FORUM_VERBOTENER_INHALT_FEHLERTEXT }, { status: 400 });
   }
 
   const thread = await prisma.forumThread.create({
