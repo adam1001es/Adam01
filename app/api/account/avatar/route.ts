@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { istGueltigeAvatarEmoji, istGueltigeAvatarFarbe } from "@/lib/profil";
+import { istGueltigeAvatarFarbe } from "@/lib/profil";
 
-// Nur die kuratierte Auswahl aus lib/profil.ts ist erlaubt (kein Freitext/Upload) - siehe dort
-// für die Begründung.
+// Nur die kuratierte Farbauswahl aus lib/profil.ts ist erlaubt (kein Freitext/Upload) - siehe
+// dort für die Begründung. Der Avatar selbst (Initialen) wird nicht hier, sondern live aus dem
+// Benutzernamen berechnet (siehe avatarInitialen) - dafür gibt es kein eigenes Feld zu speichern.
 const BodySchema = z.object({
-  avatarEmoji: z.string().refine(istGueltigeAvatarEmoji, "Unbekanntes Avatar-Symbol."),
   avatarFarbe: z.string().refine(istGueltigeAvatarFarbe, "Unbekannte Avatar-Farbe."),
 });
 
@@ -34,7 +34,7 @@ export async function PATCH(request: NextRequest) {
 
   const updated = await prisma.user.update({
     where: { id: user.id },
-    data: { avatarEmoji: parsed.data.avatarEmoji, avatarFarbe: parsed.data.avatarFarbe },
+    data: { avatarFarbe: parsed.data.avatarFarbe },
   });
-  return NextResponse.json({ avatarEmoji: updated.avatarEmoji, avatarFarbe: updated.avatarFarbe });
+  return NextResponse.json({ avatarFarbe: updated.avatarFarbe });
 }

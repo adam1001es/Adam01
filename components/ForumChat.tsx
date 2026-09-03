@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { FORUM_GESPERRT_FEHLERTEXT } from "@/lib/forum";
+import { avatarInitialen, avatarTextKlasse } from "@/lib/profil";
 
 interface ForumChatNachrichtDaten {
   id: string;
   inhalt: string;
   createdAt: string;
-  user: { username: string | null; avatarEmoji: string; avatarFarbe: string };
+  user: { username: string | null; avatarFarbe: string };
 }
 
 const POLL_INTERVALL_MS = 4000;
@@ -25,7 +26,7 @@ export default function ForumChat({
     id: string;
     inhalt: string;
     createdAt: Date;
-    user: { username: string | null; avatarEmoji: string; avatarFarbe: string };
+    user: { username: string | null; avatarFarbe: string };
   }[];
   forumGesperrt: boolean;
 }) {
@@ -102,10 +103,10 @@ export default function ForumChat({
           nachrichten.map((n) => (
             <div key={n.id} className="flex items-start gap-2.5">
               <span
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 text-sm leading-none"
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 text-[10px] font-bold leading-none ${avatarTextKlasse(n.user.avatarFarbe)}`}
                 style={{ backgroundColor: n.user.avatarFarbe }}
               >
-                {n.user.avatarEmoji}
+                {avatarInitialen(n.user.username)}
               </span>
               <div className="min-w-0">
                 <div className="flex items-baseline gap-2">

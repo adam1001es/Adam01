@@ -3,27 +3,29 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
-import { AVATAR_EMOJIS, AVATAR_FARBEN } from "@/lib/profil";
+import { AVATAR_FARBEN, avatarInitialen, avatarTextKlasse } from "@/lib/profil";
 
 export default function AvatarForm({
-  initialEmoji,
+  username,
   initialFarbe,
   onGespeichert,
 }: {
-  initialEmoji: string;
+  /** Nur zur Live-Vorschau des Initialen-Kürzels (siehe avatarInitialen) - wird hier nicht
+   * verändert, das Umbenennen passiert im eigenen "Benutzername"-Formular. */
+  username: string | null;
   initialFarbe: string;
   /** Wird kurz nach erfolgreichem Speichern aufgerufen (z.B. um die umschließende
    * EinklappbareSectionCard automatisch wieder zuzuklappen). */
   onGespeichert?: () => void;
 }) {
   const router = useRouter();
-  const [emoji, setEmoji] = useState(initialEmoji);
   const [farbe, setFarbe] = useState(initialFarbe);
   const [isPending, setIsPending] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [gespeichert, setGespeichert] = useState(false);
 
-  const veraendert = emoji !== initialEmoji || farbe !== initialFarbe;
+  const veraendert = farbe !== initialFarbe;
+  const initialen = avatarInitialen(username);
 
   async function speichern() {
     setIsPending(true);
@@ -33,7 +35,7 @@ export default function AvatarForm({
     const res = await fetch("/api/account/avatar", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ avatarEmoji: emoji, avatarFarbe: farbe }),
+      body: JSON.stringify({ avatarFarbe: farbe }),
     });
     const data = await res.json().catch(() => ({}));
     setIsPending(false);
@@ -51,39 +53,15 @@ export default function AvatarForm({
     <div className="space-y-5">
       <div className="flex items-center gap-4">
         <span
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-black/10 text-3xl shadow-inner ring-2 ring-white"
+          className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-black/10 text-xl font-bold shadow-inner ring-2 ring-white ${avatarTextKlasse(farbe)}`}
           style={{ backgroundColor: farbe }}
         >
-          {emoji}
+          {initialen}
         </span>
         <p className="text-xs leading-relaxed text-slate-400">
-          So erscheint dein Kürzel oben im Menü - und später, sobald der Austausch-Bereich
-          kommt, auch dort für andere Lehrkräfte.
+          So erscheint dein Kürzel oben im Menü und im Forum. Es ergibt sich automatisch aus
+          deinem Benutzernamen - hier wählst du nur die Farbe.
         </p>
-      </div>
-
-      <div>
-        <span className="mb-1.5 block text-sm font-medium text-slate-700">Symbol</span>
-        <div className="flex flex-wrap gap-2">
-          {AVATAR_EMOJIS.map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => {
-                setEmoji(e);
-                setGespeichert(false);
-              }}
-              aria-label={e}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border text-lg transition ${
-                emoji === e
-                  ? "border-brand-500 bg-brand-50 ring-2 ring-brand-200"
-                  : "border-slate-200 bg-surface hover:border-brand-300"
-              }`}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div>

@@ -20,6 +20,7 @@ import { getKontingent, istZahlendesKonto, tierLabel, aktuellerZyklusStart } fro
 import { summeTokensFuerUser } from "@/lib/usageLog";
 import { prisma } from "@/lib/prisma";
 import { SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
+import { avatarInitialen, avatarTextKlasse } from "@/lib/profil";
 import SectionCard from "@/components/SectionCard";
 import EinklappbareSectionCard from "@/components/EinklappbareSectionCard";
 import UsernameForm from "@/components/UsernameForm";
@@ -76,14 +77,14 @@ export default async function AccountPage({
     <main className="mx-auto max-w-lg">
       <div className="mb-6 flex items-center gap-4">
         <span
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-black/10 text-2xl shadow-card ring-2 ring-white"
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg font-bold shadow-card ring-2 ring-white ${avatarTextKlasse(user.avatarFarbe)}`}
           style={{ backgroundColor: user.avatarFarbe }}
         >
-          {user.avatarEmoji}
+          {avatarInitialen(user.username)}
         </span>
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800">
-            {user.username ?? "Mein Konto"}
+            {user.username ?? "Profil"}
           </h1>
           <p className="text-sm text-slate-500">
             {user.email} · Mitglied seit {mitgliedSeit}
@@ -121,10 +122,10 @@ export default async function AccountPage({
         <EinklappbareSectionCard
           icon={<Smile size={18} strokeWidth={2} />}
           title="Avatar"
-          subtitle="Symbol und Farbe, mit denen man dich in der App wiedererkennt"
+          subtitle="Farbe deines Kürzels, mit dem man dich in der App wiedererkennt"
           autoCollapseAfterSave
         >
-          <AvatarForm initialEmoji={user.avatarEmoji} initialFarbe={user.avatarFarbe} />
+          <AvatarForm username={user.username} initialFarbe={user.avatarFarbe} />
         </EinklappbareSectionCard>
 
         <EinklappbareSectionCard

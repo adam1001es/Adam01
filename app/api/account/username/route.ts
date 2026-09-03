@@ -4,14 +4,18 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
-// Nur Kleinbuchstaben/Ziffern/._- , damit der Benutzername beim Login eindeutig und ohne
-// Groß-/Kleinschreibungs-Verwirrung eingegeben werden kann (siehe app/api/auth/login).
+// Buchstaben (Groß-/Kleinschreibung erlaubt, damit man seinen Namen z.B. "AhmadY" statt
+// zwingend "ahmady" schreiben kann), Ziffern, Punkt, Bindestrich, Unterstrich. Der Login (siehe
+// app/api/auth/login) vergleicht Benutzernamen case-insensitive, damit die Groß-/Kleinschreibung
+// beim Einloggen keine Rolle spielt.
 const BodySchema = z.object({
   username: z
     .string()
     .trim()
-    .toLowerCase()
-    .regex(/^[a-z0-9._-]{3,20}$/, "3-20 Zeichen: Kleinbuchstaben, Ziffern, Punkt, Bindestrich, Unterstrich."),
+    .regex(
+      /^[A-Za-z0-9._-]{3,20}$/,
+      "3-20 Zeichen: Buchstaben, Ziffern, Punkt, Bindestrich, Unterstrich.",
+    ),
 });
 
 export async function PATCH(request: NextRequest) {
@@ -33,6 +37,22 @@ export async function PATCH(request: NextRequest) {
       { error: parsed.error.errors[0]?.message ?? "Ungültiger Benutzername." },
       { status: 400 },
     );
+  }
+
+  // Die DB-Spalte selbst ist case-sensitiv eindeutig (Postgres-Standard), erlaubt also technisch
+  // "AhmadY" UND "ahmady" gleichzeitig - das würde den case-insensitiven Login (siehe
+  // app/api/auth/login) mehrdeutig machen. Deshalb hier zusätzlich eine explizite
+  // case-insensitive Prüfung VOR dem Schreiben; der P2002-Fang unten bleibt als Absicherung für
+  // den (seltenen) exakten Doppel-Fall bestehen.
+  const kollision = await prisma.user.findFirst({
+    where: {
+      username: { equals: parsed.data.username, mode: "insensitive" },
+      NOT: { id: user.id },
+    },
+    select: { id: true },
+  });
+  if (kollision) {
+    return NextResponse.json({ error: "Dieser Benutzername ist schon vergeben." }, { status: 409 });
   }
 
   try {

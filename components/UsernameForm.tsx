@@ -51,8 +51,9 @@ export default function UsernameForm({ initialUsername }: { initialUsername: str
           maxLength={20}
         />
         <span className="mt-1.5 block text-xs leading-relaxed text-slate-400">
-          3-20 Zeichen: Kleinbuchstaben, Ziffern, Punkt, Bindestrich, Unterstrich. Danach kannst
-          du dich damit statt mit der E-Mail-Adresse anmelden.
+          3-20 Zeichen: Buchstaben (Groß-/Kleinschreibung möglich), Ziffern, Punkt, Bindestrich,
+          Unterstrich. Danach kannst du dich damit statt mit der E-Mail-Adresse anmelden - die
+          Groß-/Kleinschreibung spielt beim Anmelden keine Rolle.
         </span>
       </label>
 

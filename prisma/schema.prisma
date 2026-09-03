@@ -112,10 +112,11 @@ model User {
   // gespeichert, damit die Zuweisung in der Verwaltung sichtbar bleibt.
   tierGueltigVon DateTime?
   tierGueltigBis DateTime?
-  // Profil-Anpassung in app/account (siehe lib/profil.ts für die kuratierte Auswahl - bewusst
-  // kein Freitext/Upload) - als Grundlage für das später geplante Forum gedacht, wo diese Felder
-  // öffentlich sichtbar werden sollen, siehe Kommentar dort.
-  avatarEmoji  String   @default("🧑‍🏫")
+  // Profil-Anpassung in app/account (siehe lib/profil.ts für die kuratierte Farbauswahl - bewusst
+  // kein Freitext/Upload) - im Forum und überall sonst öffentlich sichtbar. Der Avatar selbst hat
+  // KEIN eigenes Feld (kein Emoji, kein Bild): er wird immer live aus den ersten Buchstaben des
+  // Benutzernamens berechnet (siehe avatarInitialen in lib/profil.ts, Slack/Google-artig) - nur
+  // die Hintergrundfarbe ist wählbar und wird gespeichert.
   avatarFarbe  String   @default("#0f766e")
   // Cluster-IDs aus lib/curriculum.ts SCHULSTUFEN_CLUSTER (z.B. "sek1"), welche Schulstufen die
   // Lehrkraft unterrichtet - freiwillige Selbstauskunft fürs eigene Profil, aktuell nirgendwo

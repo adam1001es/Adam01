@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SonnenuntergangAnzeige from "./SonnenuntergangAnzeige";
+import { avatarInitialen, avatarTextKlasse } from "@/lib/profil";
 
 function LogoMark() {
   return (
@@ -37,7 +38,6 @@ interface SiteHeaderUser {
   username: string | null;
   role: string;
   istZahlend: boolean;
-  avatarEmoji: string;
   avatarFarbe: string;
 }
 
@@ -216,15 +216,15 @@ export default function SiteHeader({
             <>
               <Link
                 href="/account"
-                title="Mein Konto"
-                aria-label="Mein Konto"
+                title="Profil"
+                aria-label="Profil"
                 className={navLinkClass(!!pathname?.startsWith("/account"))}
               >
                 <span
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-black/10 text-[11px] leading-none"
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-black/10 text-[9px] font-bold leading-none ${avatarTextKlasse(user.avatarFarbe)}`}
                   style={{ backgroundColor: user.avatarFarbe }}
                 >
-                  {user.avatarEmoji}
+                  {avatarInitialen(user.username)}
                 </span>
                 <span className="hidden md:inline">{user.username ?? user.email}</span>
               </Link>

@@ -24,8 +24,12 @@ export async function POST(request: NextRequest) {
   }
   const kennung = parsed.data.kennung.trim().toLowerCase();
 
+  // Benutzername ist seit lib/profil.ts case-insensitive (Groß-/Kleinschreibung ist nur eine
+  // Stil-Wahl, siehe app/api/account/username) - deshalb hier ein case-insensitiver Abgleich statt
+  // eines exakten. E-Mail bleibt exakter Abgleich (wird bereits bei Registrierung lowercase
+  // gespeichert).
   const user = await prisma.user.findFirst({
-    where: { OR: [{ email: kennung }, { username: kennung }] },
+    where: { OR: [{ email: kennung }, { username: { equals: kennung, mode: "insensitive" } }] },
   });
   const gueltig = user ? await verifyPassword(parsed.data.passwort, user.passwordHash) : false;
 
