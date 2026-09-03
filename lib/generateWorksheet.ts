@@ -327,13 +327,6 @@ async function generiereUndPruefeEinmal(
       // 16000 angehoben, weil das alte Limit die Antwort mitten im JSON abschnitt
       // ("Keine JSON-Struktur in der Modellantwort gefunden").
       max_tokens: 24000,
-      // Eine Stufe über dem Standard ("high") - mehr Denkzeit für das Modell vor der eigentlichen
-      // Generierung, auf Wunsch des Betreibers ("Arbeitsblatt erstellen" gut, aber etwas mehr
-      // Denkkraft). Bewusst "xhigh" statt "max": spürbar gründlicher, ohne die Kosten pro
-      // Arbeitsblatt zu verdoppeln. Nur hier gesetzt (nicht bei VERIFICATION_MODEL unten) - die
-      // Prüfung ist bewusst die günstigere Gegenkontrolle, siehe Kommentar bei VERIFICATION_MODEL
-      // in lib/anthropic.ts.
-      output_config: { effort: "xhigh" },
       // GENERATION_SYSTEM_PROMPT_BASE ist bei jeder Anfrage byte-identisch (großer, statischer
       // Block) - als eigener, gecachter Prefix-Block ausgelagert. curriculumContext variiert pro
       // Anfrage (Themenbereich/Schulstufe) und steht daher NACH dem Cache-Breakpoint, damit er den

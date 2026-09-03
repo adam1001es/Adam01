@@ -13,9 +13,10 @@ export const SEKTION_FARBEN = {
     aktiv: "border-sky-600 bg-sky-50 text-sky-700",
     // Sehr dezenter "Glas"-Farbton für die Kartenfläche selbst (siehe SectionCard) - verankert an
     // der farbigen linken Kante und läuft nach rechts in Transparenz aus, statt die ganze Fläche
-    // gleichmäßig einzufärben. Niedrige Deckkraft (~8%) bewusst gewählt, damit es bei mehreren
-    // Karten pro Seite (Inhalt/Aufgaben/Layout) als feine Unterscheidung wirkt, nicht als Farbfläche.
-    wash: "from-sky-400/[0.08]",
+    // gleichmäßig einzufärben. Niedrige Deckkraft (~9,5%, ca. 20% mehr als die ursprünglichen 8%)
+    // bewusst gewählt, damit es bei mehreren Karten pro Seite (Inhalt/Aufgaben/Layout) als feine
+    // Unterscheidung wirkt, nicht als Farbfläche.
+    wash: "from-sky-400/[0.095]",
   },
   gold: {
     badge: "bg-gold-100 text-gold-700",
@@ -24,7 +25,7 @@ export const SEKTION_FARBEN = {
     boxBg: "bg-gradient-to-br from-gold-50 to-white",
     boxLabel: "text-gold-700",
     aktiv: "border-gold-600 bg-gold-50 text-gold-700",
-    wash: "from-gold-400/[0.08]",
+    wash: "from-gold-400/[0.095]",
   },
   brand: {
     badge: "bg-brand-100 text-brand-700",
@@ -33,7 +34,7 @@ export const SEKTION_FARBEN = {
     boxBg: "bg-gradient-to-br from-brand-50 to-white",
     boxLabel: "text-brand-600",
     aktiv: "border-brand-600 bg-brand-50 text-brand-700",
-    wash: "from-brand-400/[0.08]",
+    wash: "from-brand-400/[0.095]",
   },
 } as const;
 
