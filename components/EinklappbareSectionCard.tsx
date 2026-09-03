@@ -43,13 +43,15 @@ export default function EinklappbareSectionCard({
 
   return (
     <section
-      className={`rounded-2xl border border-slate-200 border-l-4 bg-surface shadow-card ${stil.kante}`}
+      className={`relative overflow-hidden rounded-2xl border border-slate-200 border-l-4 bg-surface shadow-card ${stil.kante}`}
     >
+      {/* Wie SectionCard: dezenter, an der Kante verankerter Farbschimmer - siehe dort für Details. */}
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-r ${stil.wash} to-transparent`} />
       <button
         type="button"
         onClick={() => setOffen((o) => !o)}
         aria-expanded={offen}
-        className="flex w-full items-center justify-between gap-3 p-6 text-left"
+        className="relative flex w-full items-center justify-between gap-3 p-6 text-left"
       >
         <div className="flex items-start gap-3">
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${stil.badge}`}>
@@ -65,7 +67,7 @@ export default function EinklappbareSectionCard({
           className={`mt-1 shrink-0 text-slate-400 transition-transform ${offen ? "rotate-180" : ""}`}
         />
       </button>
-      {offen && <div className="px-6 pb-6">{inhalt}</div>}
+      {offen && <div className="relative px-6 pb-6">{inhalt}</div>}
     </section>
   );
 }
