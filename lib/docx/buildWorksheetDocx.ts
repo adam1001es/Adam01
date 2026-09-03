@@ -15,7 +15,7 @@ import {
   WidthType,
   VerticalAlign,
 } from "docx";
-import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante } from "@/lib/types";
+import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante, SCHREIBLINIEN_PRO_TYP } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, IconKey } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
@@ -461,6 +461,22 @@ export async function buildWorksheetDocx(
         ],
       }),
     );
+    // Leere Schreiblinien für handschriftliche Antworten (siehe SCHREIBLINIEN_PRO_TYP in
+    // lib/types.ts) - leerer Absatz mit unterer Rahmenlinie statt Text, analog zur Web-/PDF-
+    // Darstellung.
+    const schreibLinien = SCHREIBLINIEN_PRO_TYP[a.typ];
+    if (schreibLinien !== undefined) {
+      for (let i = 0; i < schreibLinien; i++) {
+        children.push(
+          new Paragraph({
+            indent: { left: 360 },
+            spacing: { before: 260 },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: "CBD5E1" } },
+            children: [],
+          }),
+        );
+      }
+    }
     if (a.typ === "multiple_choice" && a.optionen) {
       a.optionen.forEach((opt, i) => {
         children.push(

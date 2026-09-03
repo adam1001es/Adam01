@@ -2,7 +2,7 @@ import React from "react";
 import fs from "fs";
 import path from "path";
 import { Document, Page, View, Text, Image, Font, StyleSheet } from "@react-pdf/renderer";
-import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
+import { WorksheetContent, LayoutConfig, Aufgabe, SCHREIBLINIEN_PRO_TYP } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, IconKey } from "@/lib/icons";
 import { zuordnungAnzeige } from "@/lib/zuordnung";
@@ -488,6 +488,16 @@ function buildStyles(layout: LayoutConfig) {
       letterSpacing: 2,
       color: "#cbd5e1",
     },
+    // Leere Schreiblinie für handschriftliche Antworten (siehe SCHREIBLINIEN_PRO_TYP in
+    // lib/types.ts) - fixe Höhe statt eines Text-Elements, damit die Linie unabhängig vom
+    // Zeilenabstand des restlichen Fließtexts eine gleichmäßige, ausreichend große Schreibfläche
+    // ergibt.
+    schreibLinie: {
+      marginLeft: 12,
+      marginTop: 14,
+      height: 16,
+      borderBottom: "1px solid #cbd5e1",
+    },
     koranVers: {
       marginBottom: isKompakt ? 10 : 16,
       paddingBottom: isKompakt ? 10 : 16,
@@ -590,6 +600,10 @@ function AufgabenListe({
             {a.nr}. {a.frage}
             {a.punkte !== undefined && <Text style={styles.aufgabePunkte}> ({a.punkte} P.)</Text>}
           </Text>
+          {SCHREIBLINIEN_PRO_TYP[a.typ] !== undefined &&
+            Array.from({ length: SCHREIBLINIEN_PRO_TYP[a.typ]! }).map((_, i) => (
+              <View key={i} style={styles.schreibLinie} />
+            ))}
           {a.typ === "multiple_choice" &&
             a.optionen?.map((opt, i) => (
               <Text key={i} style={styles.option}>

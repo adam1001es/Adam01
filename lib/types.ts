@@ -118,6 +118,24 @@ export const AUFGABEN_TYP_MAXIMUM: Partial<Record<(typeof AUFGABEN_TYPEN)[number
   sortierkarten: 1, // viele Ausschneide-/Klebe-Kärtchen - für sich schon umfangreich, siehe unten
 };
 
+/** Anzahl leerer Schreiblinien, die unter diesen Aufgabentypen gedruckt werden (Web/PDF/Word,
+ * siehe WorksheetView.tsx/lib/pdf/WorksheetPdf.tsx/lib/docx/buildWorksheetDocx.ts) - vorher
+ * endete das Arbeitsblatt nach der Frage einfach mit der nächsten Aufgabe, ohne vorgesehenen
+ * Platz zum tatsächlichen (handschriftlichen) Schreiben der Antwort. Nur für Typen mit einer
+ * echten freien SCHRIFTLICHEN Antwort - Typen mit eigener Antwortstruktur (Multiple Choice,
+ * Zuordnung, Reihenfolge, die Inline-Lücken bei Lückentext, Sortierkarten, Nachspurübung mit
+ * eigenen Zeilen, ...) sowie rein mündliche/motorische/projektbezogene Typen (Diskussion,
+ * Bewegungsaufgabe, Recherche-/Referat-Auftrag - eigenständige, längerfristige Arbeit mit
+ * eigenem Leitfaden statt einer kurzen Antwort auf diesem Blatt) brauchen das nicht. Zeilenanzahl
+ * an die erwartete Antwortlänge angelehnt: "wahr_falsch" verlangt laut Prompt-Vorgabe nur eine
+ * kurze Begründung in 1-2 Sätzen, "lesetext" eine konkrete Verständnisfrage, "offene_frage" eine
+ * ausführlichere Reflexionsantwort. */
+export const SCHREIBLINIEN_PRO_TYP: Partial<Record<(typeof AUFGABEN_TYPEN)[number], number>> = {
+  wahr_falsch: 2,
+  lesetext: 3,
+  offene_frage: 4,
+};
+
 /** Harte Obergrenze für die Anzahl Schritte (= Bilder) einer einzelnen Bildergeschichte-Aufgabe -
  * die Systemprompt-Anweisung nennt "3-5 Schritte" nur als weiche Empfehlung, ohne diese
  * zusätzliche harte Grenze könnte eine einzelne Bildergeschichte theoretisch beliebig viele

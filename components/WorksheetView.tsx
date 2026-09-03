@@ -1,4 +1,4 @@
-import { WorksheetContent, LayoutConfig, Aufgabe } from "@/lib/types";
+import { WorksheetContent, LayoutConfig, Aufgabe, SCHREIBLINIEN_PRO_TYP } from "@/lib/types";
 import { THEMENBEREICHE, ThemenbereichKey, ANFORDERUNGSBEREICHE } from "@/lib/curriculum";
 import { formatDoppelDatum } from "@/lib/hijri";
 import { ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
@@ -189,6 +189,13 @@ export default function WorksheetView({
                     <span className="ml-1.5 font-normal text-slate-400">({a.punkte} P.)</span>
                   )}
                 </div>
+                {SCHREIBLINIEN_PRO_TYP[a.typ] !== undefined && (
+                  <div className="ml-5 mt-2.5 space-y-4">
+                    {Array.from({ length: SCHREIBLINIEN_PRO_TYP[a.typ]! }).map((_, i) => (
+                      <div key={i} className="h-0 border-b border-slate-300" />
+                    ))}
+                  </div>
+                )}
                 {a.typ === "multiple_choice" && a.optionen && (
                   <ul className="ml-5 mt-1 list-[lower-alpha] space-y-0.5">
                     {a.optionen.map((opt, i) => (
