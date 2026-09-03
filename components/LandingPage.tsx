@@ -170,7 +170,7 @@ const PFEILER = [
     href: "#arbeitsblaetter",
     icon: Wand2,
     titel: "Arbeitsblätter",
-    text: "In 1-2 Minuten fertig, zweifach geprüft, direkt druckbereit.",
+    text: "In ca. 3 Minuten fertig, zweifach geprüft, direkt druckbereit.",
     akzent: "brand",
   },
   {
@@ -263,7 +263,7 @@ const VERGLEICH_CHAT = [
 
 const VERGLEICH_UNS = [
   "IGGÖ-Lehrplan, Schulstufen-Cluster und Quellenregeln sind fest eingebaut",
-  "Fertiges, layoutetes PDF/Word - direkt zum Ausdrucken, in 1-2 Minuten statt 10-15+",
+  "Fertiges, layoutetes PDF/Word - direkt zum Ausdrucken, in ca. 3 Minuten statt 10-15+",
   "Ein zweiter, unabhängiger KI-Durchlauf prüft gezielt gegen, bevor du es siehst",
   "Alle erstellten Arbeitsblätter gespeichert, favorisierbar, jederzeit wieder abrufbar",
   "Klassen, Wissensstand und Prüfungen direkt im selben Werkzeug - kein Zettelchaos",
@@ -354,7 +354,7 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
               Dein komplettes digitales Werkzeug für den islamischen Religionsunterricht
             </h1>
             <p className="mt-4 max-w-xl text-sm text-brand-50 sm:text-base">
-              KI-geprüfte, lehrplanorientierte Arbeitsblätter in 1-2 Minuten - plus
+              KI-geprüfte, lehrplanorientierte Arbeitsblätter in ca. 3 Minuten - plus
               Klassen-Tracking, geteilte Community-Materialien und Prüfungsgenerierung, die auch
               Maturaklassen ernst nimmt.
             </p>
@@ -415,7 +415,7 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, delay: 0.9 }}
             >
-              <Sparkles size={13} className="text-gold-500" /> In 1-2 Minuten fertig
+              <Sparkles size={13} className="text-gold-500" /> In ca. 3 Minuten fertig
             </motion.span>
           </motion.div>
         </div>
@@ -749,7 +749,7 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
       <Reveal>
         <section className="relative overflow-hidden rounded-3xl bg-brand-gradient px-6 py-12 text-center text-white shadow-card sm:px-12 sm:py-14">
           <h2 className="font-display text-2xl font-semibold sm:text-3xl">
-            Das nächste Arbeitsblatt in 1-2 Minuten statt 15
+            Das nächste Arbeitsblatt in ca. 3 Minuten statt 15
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-brand-50 sm:text-base">
             {formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)} kostenlos, keine Zahlungsdaten
