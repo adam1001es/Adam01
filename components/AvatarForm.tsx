@@ -51,7 +51,7 @@ export default function AvatarForm({
     <div className="space-y-5">
       <div className="flex items-center gap-4">
         <span
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-3xl shadow-inner ring-2 ring-white"
+          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-black/10 text-3xl shadow-inner ring-2 ring-white"
           style={{ backgroundColor: farbe }}
         >
           {emoji}
@@ -89,24 +89,33 @@ export default function AvatarForm({
       <div>
         <span className="mb-1.5 block text-sm font-medium text-slate-700">Farbe</span>
         <div className="flex flex-wrap gap-2">
-          {AVATAR_FARBEN.map((f) => (
-            <button
-              key={f.wert}
-              type="button"
-              onClick={() => {
-                setFarbe(f.wert);
-                setGespeichert(false);
-              }}
-              title={f.label}
-              aria-label={f.label}
-              className={`flex h-8 w-8 items-center justify-center rounded-full ring-offset-2 transition ${
-                farbe === f.wert ? "ring-2 ring-slate-400" : "hover:opacity-80"
-              }`}
-              style={{ backgroundColor: f.wert }}
-            >
-              {farbe === f.wert && <Check size={14} className="text-white" />}
-            </button>
-          ))}
+          {AVATAR_FARBEN.map((f) => {
+            // Weiß braucht einen sichtbaren Rand, sonst verschwindet der Swatch auf dem hellen
+            // Karten-Hintergrund - bei den übrigen (kräftigen) Farbtönen reicht der Farbkontrast
+            // selbst, ein zusätzlicher Rand wäre dort nur unruhiger. Aus demselben Grund braucht
+            // das Häkchen dort einen dunklen statt weißen Strich, um sichtbar zu bleiben.
+            const istWeiss = f.wert === "#ffffff";
+            return (
+              <button
+                key={f.wert}
+                type="button"
+                onClick={() => {
+                  setFarbe(f.wert);
+                  setGespeichert(false);
+                }}
+                title={f.label}
+                aria-label={f.label}
+                className={`flex h-8 w-8 items-center justify-center rounded-full ring-offset-2 transition ${
+                  istWeiss ? "border border-slate-300" : ""
+                } ${farbe === f.wert ? "ring-2 ring-slate-400" : "hover:opacity-80"}`}
+                style={{ backgroundColor: f.wert }}
+              >
+                {farbe === f.wert && (
+                  <Check size={14} className={istWeiss ? "text-slate-500" : "text-white"} />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

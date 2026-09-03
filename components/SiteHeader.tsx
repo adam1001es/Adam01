@@ -195,7 +195,7 @@ export default function SiteHeader({
                 className={navLinkClass(!!pathname?.startsWith("/account"))}
               >
                 <span
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] leading-none"
+                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-black/10 text-[11px] leading-none"
                   style={{ backgroundColor: user.avatarFarbe }}
                 >
                   {user.avatarEmoji}

@@ -38,6 +38,7 @@ export const AVATAR_FARBEN: AvatarFarbe[] = [
   { wert: "#e11d48", label: "Rosé" },
   { wert: "#d97706", label: "Bernstein" },
   { wert: "#475569", label: "Schiefer" },
+  { wert: "#ffffff", label: "Weiß" },
 ];
 
 export const STANDARD_AVATAR_EMOJI: string = AVATAR_EMOJIS[0];

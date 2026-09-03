@@ -76,7 +76,7 @@ export default async function AccountPage({
     <main className="mx-auto max-w-lg">
       <div className="mb-6 flex items-center gap-4">
         <span
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-2xl shadow-card ring-2 ring-white"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-black/10 text-2xl shadow-card ring-2 ring-white"
           style={{ backgroundColor: user.avatarFarbe }}
         >
           {user.avatarEmoji}
