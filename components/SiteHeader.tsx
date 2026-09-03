@@ -106,15 +106,15 @@ export default function SiteHeader({
     }`;
 
   return (
-    // Vollständig blickdicht, KEIN backdrop-blur mehr: die vorherigen Versuche (erst bg-white/15,
-    // dann bg-canvas/95 + bg-white/70, beide MIT backdrop-blur) ließen auf iOS/Safari beim
-    // Scrollen trotzdem sichtbar Seiteninhalt durch den "sticky" Header durchscheinen - ein
-    // bekanntes WebKit-Problem, bei dem backdrop-filter in Kombination mit position:sticky beim
-    // Scrollen nicht zuverlässig neu compositet wird (unabhängig von der eingestellten Deckkraft).
-    // Einzige robuste Lösung: komplett auf backdrop-blur verzichten und stattdessen einen echten,
-    // undurchsichtigen Hintergrund verwenden - der "glasige" Look geht damit verloren, aber der
-    // Header verdeckt darunter wegscrollenden Inhalt jetzt zuverlässig auf allen Geräten.
-    <header className="no-print sticky top-0 z-10 border-b border-slate-200/80 bg-canvas">
+    // NICHT MEHR "sticky": auf mind. einem Gerät (iPhone/Firefox) blieb selbst ein komplett
+    // undurchsichtiger, blur-freier Hintergrund beim Scrollen sichtbar von darunterliegendem
+    // Seiteninhalt durchsetzt - kein Deckkraft-/Blur-Problem mehr, sondern ein tieferliegender
+    // Render-/Compositing-Fehler des Browsers beim Zeichnen des "sticky" Elements selbst. Einzige
+    // Lösung, die das garantiert ausschließt: der Header scrollt jetzt ganz normal mit der Seite
+    // mit (kein top-0/sticky mehr) statt oben "kleben" zu bleiben - Nachteil: Datum/Logo/
+    // Navigation sind beim Scrollen nicht mehr durchgehend sichtbar, dafür kann er technisch gar
+    // nicht mehr über/unter dem restlichen Inhalt zu liegen kommen.
+    <header className="no-print border-b border-slate-200/80 bg-canvas">
       <div className="relative flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 border-b border-slate-200/70 bg-white px-4 py-1 pr-9 text-center text-[11px] font-medium text-slate-500 sm:px-6 sm:pr-12">
         <span className="inline-flex items-center gap-1.5">
           <MoonStar size={11} strokeWidth={2.25} />
