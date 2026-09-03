@@ -38,19 +38,35 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 
-  // Schließt eine Kontingent-Lücke: ausgabeform "text" (siehe GenerateRequestSchema,
-  // app/api/generate/route.ts erzeugeKoranText/erzeugeHadithText) ist bewusst UNMETERED - reiner,
-  // bereits fertig geprüfter Koran-/Hadith-Wortlaut ohne jeden Claude-Aufruf, kostet daher kein
-  // Kontingent. Ohne diese Sperre könnte ein Konto beliebig viele kostenlose "Nur Text"-Blätter
-  // erzeugen und darauf jeweils per KI generierte Aufgaben ergänzen - echte, kostenpflichtige
-  // Claude-Nutzung, für die nie ein Arbeitsblatt-Kontingent verbraucht wurde. Für "arbeitsblatt"
-  // (auch mit Koran-/Hadith-Fokus) greift diese Sperre nicht - das lief bereits durch die volle,
-  // kontingentpflichtige Generierung.
-  if (worksheet.ausgabeform !== "arbeitsblatt") {
+  // Schließt eine Kontingent-Lücke: NUR Arbeitsblätter, die tatsächlich durch die volle,
+  // kontingentpflichtige Generierung entstanden sind, dürfen nachträglich per KI ergänzt werden.
+  // Ein reiner ausgabeform-Check reicht dafür NICHT aus - es gibt ZWEI unabhängige Wege, ein
+  // Arbeitsblatt mit ausgabeform "arbeitsblatt" zu erzeugen, OHNE dabei Kontingent zu verbrauchen:
+  // - ausgabeform "text" (siehe erzeugeKoranText/erzeugeHadithText, app/api/generate/route.ts) -
+  //   reiner Koran-/Hadith-Wortlaut ohne jeden Claude-Aufruf. Hat ausgabeform "text", aber
+  //   sicherheitshalber trotzdem über denselben Mechanismus wie unten abgedeckt.
+  // - Prüfungs-Modus A "aus bestehenden Blättern zusammenstellen" (siehe
+  //   app/api/pruefung/zusammenstellen/route.ts, lib/pruefungZusammenstellen.ts) - EIN kleiner,
+  //   aber echter Claude-Aufruf (UsageLog-Phase "zusammenstellung"), bewusst OHNE Kontingent-
+  //   Prüfung, weil der verwendete Inhalt selbst bereits einmal bezahlt wurde. Dieser Weg setzt
+  //   "ausgabeform" NIE explizit - es bleibt beim Schema-Standardwert "arbeitsblatt", ein reiner
+  //   ausgabeform-Check hätte diesen Fall also NICHT erkannt.
+  // Verlässliches Signal für "volle, kontingentpflichtige Generierung gelaufen" ist stattdessen:
+  // existiert für dieses Arbeitsblatt ein UsageLog-Eintrag der Phase "generierung"? Die schreibt
+  // ausschließlich generiereUndPruefeEinmal (lib/generateWorksheet.ts, läuft bei jeder normalen
+  // Erstellung UND bei Prüfungs-Modus B). Ohne diese Sperre könnte ein Konto beliebig viele
+  // solcher unmetered Arbeitsblätter erzeugen und darauf jeweils "Aufgabe von KI erstellen"
+  // nutzen - echte, kostenpflichtige Claude-Nutzung ohne je ein Arbeitsblatt-Kontingent zu
+  // verbrauchen.
+  const vollGeneriert = await prisma.usageLog.findFirst({
+    where: { worksheetId: worksheet.id, phase: "generierung" },
+    select: { id: true },
+  });
+  if (!vollGeneriert) {
     return NextResponse.json(
       {
         error:
-          "Diese Funktion ist nur für vollständige Arbeitsblätter mit KI-generierten Aufgaben verfügbar, nicht für den reinen Koran-/Hadith-Text (kein Kontingent verbraucht).",
+          "Diese Funktion ist nur für Arbeitsblätter verfügbar, die vollständig per KI generiert wurden (verbraucht Kontingent) - nicht für den kostenlosen Koran-/Hadith-Text oder eine aus bestehenden Blättern zusammengestellte Prüfung.",
       },
       { status: 403 },
     );
