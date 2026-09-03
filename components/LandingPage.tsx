@@ -606,9 +606,8 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
               </defs>
             </svg>
             <p className="mt-3 text-xs text-slate-400">
-              Frei erfundene Beispieldaten zur Veranschaulichung, Namen sind selbst gewählte Kürzel
-              - Klick auf einen Tisch öffnet in der echten Ansicht ein animiertes Profil mit
-              Prozent-Ring und Ergebnisverlauf.
+              Beispielhafte Ansicht mit frei gewählten Kürzeln statt echter Namen - Klick auf einen
+              Tisch öffnet in der App ein animiertes Profil mit Prozent-Ring und Ergebnisverlauf.
             </p>
           </Reveal>
         </div>
