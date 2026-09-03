@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata, ResolvingMetadata } from "next";
 import Link from "next/link";
 import { FileText, FileType2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +8,56 @@ import WorksheetView from "@/components/WorksheetView";
 import VerificationBanner from "@/components/VerificationBanner";
 
 export const dynamic = "force-dynamic";
+
+/** Titel/Beschreibung der Link-Vorschaukarte (WhatsApp, iMessage, ...) auf das konkrete
+ * Arbeitsblatt zuschneiden, statt der generischen "Lernwerk"-Beschreibung aus app/layout.tsx -
+ * sonst sieht die Lehrkraft in der eigenen Chat-Historie nur noch "Lernwerk" und weiß später
+ * nicht mehr, welches Arbeitsblatt sie wem geschickt hat. Übernimmt das geerbte openGraph/
+ * twitter-Objekt vom Eltern-Metadata (per "parent"-Parameter) und überschreibt darin NUR
+ * title/description - ein komplett neues openGraph/twitter-Objekt würde sonst das automatisch
+ * eingebundene Vorschaubild (app/opengraph-image.tsx) und den twitter:card-Typ unbemerkt
+ * verwerfen, da Next.js diese Objekte pro Route ersetzt statt feldweise zusammenzuführen. Bei
+ * ungültigem/widerrufenem Token bewusst {} zurückgeben (nicht notFound() hier aufrufen) - die
+ * generische Metadata für die 404-Seite reicht, der eigentliche 404 passiert in der Seite
+ * selbst. */
+export async function generateMetadata(
+  { params }: { params: { token: string } },
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
+  const worksheet = await prisma.worksheet.findUnique({
+    where: { oeffentlicherLinkToken: params.token },
+    select: { contentJson: true },
+  });
+  if (!worksheet) return {};
+
+  const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
+  const titel = `${content.titel} - Lernwerk`;
+  const beschreibung = `${content.fach} · ${content.schulstufe} · Thema: ${content.thema}`;
+  // Nur "images" wird vom Eltern-Metadata übernommen (die einzige Stelle, die tatsächlich
+  // dynamisch generiert wird, inkl. Cache-Busting-Query - siehe app/opengraph-image.tsx); Typ,
+  // siteName und Locale sind ohnehin dieselben statischen Werte wie in app/layout.tsx und werden
+  // hier direkt gesetzt, um die Null/Undefined-Konflikte des aufgelösten Metadata-Typs zu
+  // vermeiden.
+  const { openGraph, twitter } = await parent;
+  return {
+    title: titel,
+    description: beschreibung,
+    openGraph: {
+      title: titel,
+      description: beschreibung,
+      images: openGraph?.images,
+      siteName: "Lernwerk",
+      locale: "de_AT",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: titel,
+      description: beschreibung,
+      images: twitter?.images,
+    },
+  };
+}
 
 /** Öffentliche, NICHT angemeldete Ansicht eines Arbeitsblatts über einen Link-Token (siehe
  * Worksheet.oeffentlicherLinkToken, app/api/worksheet/[id]/link, components/LinkTeilenButton.tsx)
