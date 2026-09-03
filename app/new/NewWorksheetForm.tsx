@@ -81,10 +81,15 @@ const ANDERE_SCHULSTUFE = "__andere__";
 interface HadithMeta {
   id: string;
   themenbereich: string;
+  sammlung: string;
   bezeichnung: string;
-  text?: string;
-  kontext?: string;
+  textVorschau?: string;
 }
+
+/** Sonderwert für den Sammlung-Filter im Hadith-Picker (siehe unten) - zeigt alle Sammlungen statt
+ * nur eine einzelne (z.B. "Nawawi 40", "Sahih al-Bukhari", siehe ermittleHadithSammlung in
+ * lib/wissensbasis.ts). */
+const ALLE_SAMMLUNGEN = "__alle__";
 
 const VORSCHAU_INHALT: WorksheetContent = {
   titel: "Die 5 Säulen des Islam",
@@ -354,6 +359,11 @@ export default function NewWorksheetForm({
   const [hadithLaden, setHadithLaden] = useState(false);
   const [hadithFehler, setHadithFehler] = useState<string | null>(null);
   const [hadithEintragId, setHadithEintragId] = useState("");
+  // Textsuche + Sammlung-Filter (siehe HadithMeta/ALLE_SAMMLUNGEN oben) - mit der Zeit wachsen
+  // die geprüften Hadithe auf mehrere Hundert (aktuell Nawawi 40, künftig auch Bukhari/Muslim),
+  // eine reine Dropdown-Liste ohne Eingrenzung wäre dann nicht mehr brauchbar.
+  const [hadithSuche, setHadithSuche] = useState("");
+  const [hadithSammlungFilter, setHadithSammlungFilter] = useState(ALLE_SAMMLUNGEN);
 
   async function ladeHadithe() {
     setHadithLaden(true);
@@ -378,6 +388,30 @@ export default function NewWorksheetForm({
     if (inhaltsquelle === "hadith" && !hadithe && !hadithLaden) ladeHadithe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inhaltsquelle]);
+
+  // Alle in der geladenen Liste tatsächlich vorkommenden Sammlungen, alphabetisch - Grundlage für
+  // die Filter-Chips unten. Wird aus der ungefilterten Liste berechnet, damit ein einmal
+  // ausgewählter Sammlung-Filter nicht durch die Textsuche wieder verschwindet.
+  const hadithSammlungen = hadithe
+    ? Array.from(new Set(hadithe.map((h) => h.sammlung))).sort((a, b) => a.localeCompare(b, "de"))
+    : [];
+
+  const gefilterteHadithe = (hadithe ?? []).filter((h) => {
+    if (hadithSammlungFilter !== ALLE_SAMMLUNGEN && h.sammlung !== hadithSammlungFilter) return false;
+    if (!hadithSuche.trim()) return true;
+    const suche = hadithSuche.trim().toLowerCase();
+    return h.bezeichnung.toLowerCase().includes(suche) || (h.textVorschau ?? "").toLowerCase().includes(suche);
+  });
+
+  // Hält die Auswahl konsistent mit dem gerade sichtbaren, gefilterten Ausschnitt - ohne das
+  // würde bei einem Filterwechsel unbemerkt ein nicht mehr sichtbarer Hadith ausgewählt bleiben.
+  useEffect(() => {
+    if (!hadithe || gefilterteHadithe.length === 0) return;
+    if (!gefilterteHadithe.some((h) => h.id === hadithEintragId)) {
+      setHadithEintragId(gefilterteHadithe[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hadithSuche, hadithSammlungFilter, hadithe]);
 
   const [template, setTemplate] = useState<(typeof TEMPLATES)[number]>("klassisch");
   const [schulname, setSchulname] = useState("");
@@ -967,25 +1001,73 @@ export default function NewWorksheetForm({
                 </p>
               )}
               {hadithe && hadithe.length > 0 && (
-                <label className="block">
-                  <span className={labelClass}>Hadith</span>
-                  <select
-                    className={inputClass}
-                    value={hadithEintragId}
-                    onChange={(e) => setHadithEintragId(e.target.value)}
-                  >
-                    {hadithe.map((h) => (
-                      <option key={h.id} value={h.id}>
-                        {h.bezeichnung}
-                      </option>
-                    ))}
-                  </select>
-                  {hadithe.find((h) => h.id === hadithEintragId)?.text && (
-                    <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
-                      {hadithe.find((h) => h.id === hadithEintragId)?.text}
-                    </p>
+                <>
+                  <label className="block">
+                    <span className={labelClass}>Suche</span>
+                    <input
+                      type="text"
+                      className={inputClass}
+                      value={hadithSuche}
+                      onChange={(e) => setHadithSuche(e.target.value)}
+                      placeholder="z.B. Absicht, Barmherzigkeit …"
+                    />
+                  </label>
+                  {hadithSammlungen.length > 1 && (
+                    <div>
+                      <span className={labelClass}>Sammlung</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setHadithSammlungFilter(ALLE_SAMMLUNGEN)}
+                          className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                            hadithSammlungFilter === ALLE_SAMMLUNGEN ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                          }`}
+                        >
+                          Alle
+                        </button>
+                        {hadithSammlungen.map((sammlung) => (
+                          <button
+                            type="button"
+                            key={sammlung}
+                            onClick={() => setHadithSammlungFilter(sammlung)}
+                            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                              hadithSammlungFilter === sammlung ? SEKTION_FARBEN.blau.aktiv : CHIP_BASIS
+                            }`}
+                          >
+                            {sammlung}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </label>
+                  {gefilterteHadithe.length === 0 ? (
+                    <p className="text-xs leading-relaxed text-slate-500">
+                      Kein Hadith passt zur aktuellen Suche/Sammlung.
+                    </p>
+                  ) : (
+                    <label className="block">
+                      <span className={labelClass}>
+                        Hadith ({gefilterteHadithe.length} von {hadithe.length})
+                      </span>
+                      <select
+                        className={inputClass}
+                        value={hadithEintragId}
+                        onChange={(e) => setHadithEintragId(e.target.value)}
+                      >
+                        {gefilterteHadithe.map((h) => (
+                          <option key={h.id} value={h.id}>
+                            {h.bezeichnung}
+                          </option>
+                        ))}
+                      </select>
+                      {gefilterteHadithe.find((h) => h.id === hadithEintragId)?.textVorschau && (
+                        <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+                          {gefilterteHadithe.find((h) => h.id === hadithEintragId)?.textVorschau}
+                        </p>
+                      )}
+                    </label>
+                  )}
+                </>
               )}
             </div>
           )}

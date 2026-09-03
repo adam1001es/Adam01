@@ -41,6 +41,13 @@ export const ZitatInhaltSchema = z.object({
   // der Hadith-Bereich im Erstellen-Formular (siehe geprüfteHadithe) nicht versehentlich einen
   // Koran-Vers als "Hadith" anbietet.
   quellenart: z.enum(["koran", "hadith"]).optional(),
+  // Nur bei Hadith-Zitaten relevant - aus welcher Sammlung/welchem Werk der Hadith stammt (z.B.
+  // "Nawawi 40", "Sahih al-Bukhari", "Sahih Muslim"). Bewusst freier Text statt fixem Enum: die
+  // Sammlung wächst mit der Zeit (siehe ermittleHadithSammlung unten für Alt-Einträge ohne dieses
+  // Feld) und soll nicht bei jeder neuen Sammlung einen Code-Change erfordern. Dient als
+  // Filter-Kategorie im Hadith-Picker (siehe app/api/hadithe/route.ts, NewWorksheetForm.tsx), da
+  // die Wissensbasis mit der Zeit auf viele Dutzend/Hundert Hadithe anwächst.
+  sammlung: z.string().optional(),
 });
 export type ZitatInhalt = z.infer<typeof ZitatInhaltSchema>;
 
@@ -55,6 +62,41 @@ export function ermittleZitatQuellenart(inhalt: ZitatInhalt): "koran" | "hadith"
   if (inhalt.quellenart) return inhalt.quellenart;
   const istKoranMuster = /sure\s+\d{1,3}\b.{0,20}?vers/i.test(inhalt.bezeichnung);
   return istKoranMuster ? "koran" : "hadith";
+}
+
+/** Bekannte Hadith-Sammlungen anhand typischer Namensmuster in der Bezeichnung erkannt - für
+ * ältere Einträge OHNE explizites "sammlung"-Feld (siehe ZitatInhaltSchema oben). Reihenfolge
+ * unerheblich, da sich die Muster gegenseitig ausschließen. */
+const HADITH_SAMMLUNG_MUSTER: { muster: RegExp; label: string }[] = [
+  { muster: /nawawi/i, label: "Nawawi 40" },
+  { muster: /bukhari|buchari/i, label: "Sahih al-Bukhari" },
+  { muster: /\bmuslim\b/i, label: "Sahih Muslim" },
+  { muster: /tirmidhi|tirmidi/i, label: "Tirmidhi" },
+  { muster: /abu\s*dawud|abu\s*dawood/i, label: "Abu Dawud" },
+  { muster: /ibn\s*majah/i, label: "Ibn Majah" },
+  { muster: /muwatta|\bmalik\b/i, label: "Muwatta Malik" },
+  { muster: /ahmad/i, label: "Musnad Ahmad" },
+];
+
+/** Ermittelt die Sammlung/das Werk eines Hadith-Zitats - das explizite "sammlung"-Feld gewinnt
+ * immer, sonst greift eine Bezeichnungs-Heuristik (siehe HADITH_SAMMLUNG_MUSTER). Dient als
+ * Filter-Kategorie im Hadith-Picker (siehe app/api/hadithe/route.ts), damit die Auswahl auch bei
+ * mehreren Hundert Einträgen aus verschiedenen Sammlungen (Nawawi 40, Bukhari, Muslim, ...)
+ * übersichtlich bleibt. */
+export function ermittleHadithSammlung(inhalt: ZitatInhalt): string {
+  if (inhalt.sammlung) return inhalt.sammlung;
+  const treffer = HADITH_SAMMLUNG_MUSTER.find((s) => s.muster.test(inhalt.bezeichnung));
+  return treffer?.label ?? "Sonstige";
+}
+
+/** Kürzt einen Zitat-Text für Übersichtslisten (siehe app/api/hadithe/route.ts) - schneidet NICHT
+ * mitten im Wort ab, damit die Vorschau nicht abgehackt wirkt. Mit wachsender Wissensbasis (siehe
+ * geprüfteHadithe) soll der Picker den vollen Hadith-Wortlaut nicht ausschreiben, sondern nur zur
+ * Wiedererkennung genug Text zeigen - der volle Text kommt bei tatsächlicher Auswahl ohnehin über
+ * holeHadithEintrag in die Generierung. */
+export function kuerzeZitatVorschau(text: string, maxLaenge = 140): string {
+  if (text.length <= maxLaenge) return text;
+  return `${text.slice(0, maxLaenge).replace(/\s+\S*$/, "")} …`;
 }
 
 /** Inhalt eines "musteraufgabe"-Eintrags - exakt das bestehende Aufgabe-Schema, damit ein
