@@ -30,7 +30,7 @@ describe("StundenplanEintragEingabeSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("verlangt Schule/Klasse, außer bei istPause", () => {
+  it("verlangt Schule und Klasse", () => {
     expect(
       StundenplanEintragEingabeSchema.safeParse({
         wochentag: 1,
@@ -40,17 +40,6 @@ describe("StundenplanEintragEingabeSchema", () => {
         klasse: "",
       }).success,
     ).toBe(false);
-
-    expect(
-      StundenplanEintragEingabeSchema.safeParse({
-        wochentag: 1,
-        beginn: "08:40",
-        ende: "09:00",
-        schule: "",
-        klasse: "",
-        istPause: true,
-      }).success,
-    ).toBe(true);
   });
 });
 
@@ -64,7 +53,6 @@ describe("nachWochentagGruppiert", () => {
       schule: "Schule B",
       klasse: "5a",
       schuelerangabe: null,
-      istPause: false,
     },
     {
       id: "b",
@@ -74,7 +62,6 @@ describe("nachWochentagGruppiert", () => {
       schule: "Schule A",
       klasse: "3b",
       schuelerangabe: null,
-      istPause: false,
     },
     {
       id: "c",
@@ -84,7 +71,6 @@ describe("nachWochentagGruppiert", () => {
       schule: "Schule A",
       klasse: "2a",
       schuelerangabe: null,
-      istPause: false,
     },
   ];
 

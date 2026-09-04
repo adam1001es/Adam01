@@ -38,22 +38,13 @@ export const StundenplanEintragEingabeSchema = z
     wochentag: z.number().int().min(1).max(6),
     beginn: z.string().regex(ZEIT_REGEX, "Uhrzeit im Format HH:MM angeben."),
     ende: z.string().regex(ZEIT_REGEX, "Uhrzeit im Format HH:MM angeben."),
-    schule: z.string().trim().max(120).optional().nullable(),
-    klasse: z.string().trim().max(60).optional().nullable(),
+    schule: z.string().trim().min(1, "Schule angeben.").max(120),
+    klasse: z.string().trim().min(1, "Klasse angeben.").max(60),
     schuelerangabe: z.string().trim().max(60).optional().nullable(),
-    istPause: z.boolean().optional(),
   })
   .refine((data) => data.ende > data.beginn, {
     message: "Die Endzeit muss nach der Beginnzeit liegen.",
     path: ["ende"],
-  })
-  .refine((data) => data.istPause || !!data.schule?.trim(), {
-    message: "Schule angeben (oder als Pause/Fahrtzeit markieren).",
-    path: ["schule"],
-  })
-  .refine((data) => data.istPause || !!data.klasse?.trim(), {
-    message: "Klasse angeben (oder als Pause/Fahrtzeit markieren).",
-    path: ["klasse"],
   });
 
 export interface StundenplanEintragZeile {
@@ -61,10 +52,9 @@ export interface StundenplanEintragZeile {
   wochentag: number;
   beginn: string;
   ende: string;
-  schule: string | null;
-  klasse: string | null;
+  schule: string;
+  klasse: string;
   schuelerangabe: string | null;
-  istPause: boolean;
 }
 
 /** Gruppiert die Einträge nach Wochentag (jeweils nach Beginnzeit sortiert) - für die

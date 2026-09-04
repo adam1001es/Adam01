@@ -490,13 +490,11 @@ model ForumMeldung {
 // bewusst EIGENSTÄNDIG statt an Klasse gekoppelt: Klasse dient der Noten-/Prüfungsverwaltung
 // (Schüler:innen-Roster, Zuweisungen, Ergebnisse), hier geht es nur um eine reine Wochenübersicht
 // "wann bin ich wo" über mehrere Schulen hinweg - jede Islamlehrkraft unterrichtet oft an
-// mehreren Schulen mit jeweils eigenen Anfangszeiten/Stundenlängen/Pausen, daher "schule" und
-// "klasse" als freier Text statt Fremdschlüssel. beginn/ende bewusst als "HH:MM"-String statt
-// DateTime - reine Uhrzeit ohne Datumsbezug (der Plan wiederholt sich wöchentlich, siehe
-// wochentag), Sortierung/Vergleich funktioniert lexikografisch dank fixer Zwei-Ziffern-Breite
-// (siehe lib/stundenplan.ts ZEIT_REGEX). istPause erlaubt einen eigenen, andersfarbig
-// dargestellten Block z.B. für Fahrtzeit zwischen zwei Schulen, ohne dass schule/klasse
-// verpflichtend ausgefüllt werden müssen.
+// mehreren Schulen mit jeweils eigenen Anfangszeiten/Stundenlängen, daher "schule" und "klasse"
+// als freier Text statt Fremdschlüssel. beginn/ende bewusst als "HH:MM"-String statt DateTime -
+// reine Uhrzeit ohne Datumsbezug (der Plan wiederholt sich wöchentlich, siehe wochentag),
+// Sortierung/Vergleich funktioniert lexikografisch dank fixer Zwei-Ziffern-Breite (siehe
+// lib/stundenplan.ts ZEIT_REGEX).
 model StundenplanEintrag {
   id             String   @id @default(cuid())
   userId         String
@@ -504,10 +502,9 @@ model StundenplanEintrag {
   wochentag      Int // 1=Montag ... 6=Samstag, siehe lib/stundenplan.ts WOCHENTAGE
   beginn         String // "07:50"
   ende           String // "08:40"
-  schule         String?
-  klasse         String?
+  schule         String
+  klasse         String
   schuelerangabe String? // freier Text, z.B. "18 (10 m / 8 w)" - keine erzwungene Struktur
-  istPause       Boolean  @default(false)
   createdAt      DateTime @default(now())
 
   @@index([userId, wochentag])

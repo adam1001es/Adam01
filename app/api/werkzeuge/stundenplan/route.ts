@@ -30,10 +30,9 @@ export async function POST(request: NextRequest) {
       wochentag: parsed.data.wochentag,
       beginn: parsed.data.beginn,
       ende: parsed.data.ende,
-      schule: parsed.data.schule?.trim() || null,
-      klasse: parsed.data.klasse?.trim() || null,
+      schule: parsed.data.schule.trim(),
+      klasse: parsed.data.klasse.trim(),
       schuelerangabe: parsed.data.schuelerangabe?.trim() || null,
-      istPause: parsed.data.istPause ?? false,
     },
   });
   return NextResponse.json({ eintrag });
