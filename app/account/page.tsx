@@ -20,7 +20,7 @@ import { getKontingent, istZahlendesKonto, tierLabel, aktuellerZyklusStart } fro
 import { summeTokensFuerUser } from "@/lib/usageLog";
 import { prisma } from "@/lib/prisma";
 import { SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
-import { avatarInitialen } from "@/lib/profil";
+import { avatarAnzeige } from "@/lib/profil";
 import SectionCard from "@/components/SectionCard";
 import EinklappbareSectionCard from "@/components/EinklappbareSectionCard";
 import UsernameForm from "@/components/UsernameForm";
@@ -79,8 +79,9 @@ export default async function AccountPage({
         <span
           className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg font-bold shadow-card ring-2 ring-white"
           style={{ backgroundColor: user.avatarFarbe, color: user.avatarTextFarbe }}
+          dir="auto"
         >
-          {avatarInitialen(user.username)}
+          {avatarAnzeige(user.avatarKuerzel, user.username)}
         </span>
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800" dir="auto">
@@ -129,6 +130,7 @@ export default async function AccountPage({
             username={user.username}
             initialFarbe={user.avatarFarbe}
             initialTextFarbe={user.avatarTextFarbe}
+            initialKuerzel={user.avatarKuerzel}
           />
         </EinklappbareSectionCard>
 

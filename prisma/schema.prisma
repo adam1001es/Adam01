@@ -113,12 +113,18 @@ model User {
   tierGueltigVon DateTime?
   tierGueltigBis DateTime?
   // Profil-Anpassung in app/account (siehe lib/profil.ts für die kuratierte Farbauswahl - bewusst
-  // kein Freitext/Upload) - im Forum und überall sonst öffentlich sichtbar. Das Profilbild selbst
-  // hat KEIN eigenes Feld (kein Emoji, kein Bild): es wird immer live aus den ersten Buchstaben
-  // des Benutzernamens berechnet (siehe avatarInitialen in lib/profil.ts, Slack/Google-artig) -
-  // Hintergrund- und Buchstabenfarbe sind unabhängig voneinander wählbar und werden gespeichert.
+  // kein Freitext/Upload, kein Emoji, kein Bild) - im Forum und überall sonst öffentlich sichtbar.
+  // Standardmäßig werden die Buchstaben live aus dem Benutzernamen berechnet (siehe
+  // avatarInitialen in lib/profil.ts, Slack/Google-artig) - Hintergrund- und Buchstabenfarbe sind
+  // unabhängig voneinander wählbar und werden gespeichert.
   avatarFarbe  String   @default("#0f766e")
   avatarTextFarbe String @default("#ffffff")
+  // Optionale manuelle Überschreibung der Profilbild-Buchstaben (1-3 Buchstaben beliebiger
+  // Schrift, z.B. arabisch), unabhängig vom Benutzernamen - z.B. wenn der Benutzername lateinisch
+  // bleiben soll (Login-Gewohnheit), das Profilbild selbst aber z.B. arabische Initialen zeigen
+  // soll. null = weiterhin automatisch aus dem Benutzernamen berechnet (siehe avatarAnzeige in
+  // lib/profil.ts).
+  avatarKuerzel String?
   // Cluster-IDs aus lib/curriculum.ts SCHULSTUFEN_CLUSTER (z.B. "sek1"), welche Schulstufen die
   // Lehrkraft unterrichtet - freiwillige Selbstauskunft fürs eigene Profil, aktuell nirgendwo
   // sonst ausgewertet.

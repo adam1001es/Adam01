@@ -39,6 +39,16 @@ export function istGueltigeAvatarFarbe(wert: string): boolean {
 // User.username) - "LK" für "Lehrkraft" statt leerer/kryptischer Kürzel.
 const AVATAR_INITIALEN_FALLBACK = "LK";
 
+// 1-3 Buchstaben beliebiger Schrift (lateinisch, arabisch, ...) - \p{L} statt eines festen
+// Zeichenbereichs, damit hier keine eigene Schrift-Allowlist gepflegt werden muss. Bewusst nur
+// Buchstaben (keine Ziffern/Symbole/Emoji), damit das Profilbild-Kürzel visuell wie ein
+// Initialen-Kürzel wirkt statt wie beliebiger Text.
+const AVATAR_KUERZEL_REGEX = /^\p{L}{1,3}$/u;
+
+export function istGueltigesAvatarKuerzel(wert: string): boolean {
+  return AVATAR_KUERZEL_REGEX.test(wert);
+}
+
 /** Berechnet ein Slack/Google-artiges Buchstaben-Kürzel aus dem Benutzernamen für den Avatar
  * (siehe components/AvatarForm.tsx, SiteHeader.tsx, ForumChat.tsx) - kein eigenes gespeichertes
  * Feld, wird bei jeder Anzeige live berechnet. Bei getrennt geschriebenen Namen
@@ -54,4 +64,13 @@ export function avatarInitialen(username: string | null): string {
 
   const initialen = (teile[0] ?? username).slice(0, 2).toUpperCase();
   return initialen || AVATAR_INITIALEN_FALLBACK;
+}
+
+/** Was im Profilbild-Kreis tatsächlich angezeigt wird: das manuell gesetzte Kürzel
+ * (User.avatarKuerzel, siehe app/account), falls vorhanden - sonst wie bisher die automatisch aus
+ * dem Benutzernamen berechneten Initialen (avatarInitialen). Erlaubt z.B. einen lateinischen
+ * Login-Benutzernamen bei gleichzeitig arabischem Profilbild-Kürzel, ohne dass beides
+ * zusammenhängen muss. */
+export function avatarAnzeige(kuerzel: string | null, username: string | null): string {
+  return kuerzel?.trim() || avatarInitialen(username);
 }

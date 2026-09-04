@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SonnenuntergangAnzeige from "./SonnenuntergangAnzeige";
-import { avatarInitialen } from "@/lib/profil";
+import { avatarAnzeige } from "@/lib/profil";
 
 function LogoMark() {
   return (
@@ -41,6 +41,7 @@ interface SiteHeaderUser {
   istZahlend: boolean;
   avatarFarbe: string;
   avatarTextFarbe: string;
+  avatarKuerzel: string | null;
 }
 
 export default function SiteHeader({
@@ -241,8 +242,9 @@ export default function SiteHeader({
                 <span
                   className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-black/10 text-[9px] font-bold leading-none"
                   style={{ backgroundColor: user.avatarFarbe, color: user.avatarTextFarbe }}
+                  dir="auto"
                 >
-                  {avatarInitialen(user.username)}
+                  {avatarAnzeige(user.avatarKuerzel, user.username)}
                 </span>
                 <span className="hidden md:inline" dir="auto">
                   {user.username ?? user.email}

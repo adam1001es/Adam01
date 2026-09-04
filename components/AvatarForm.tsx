@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
-import { AVATAR_FARBEN, avatarInitialen } from "@/lib/profil";
+import { AVATAR_FARBEN, avatarAnzeige, avatarInitialen } from "@/lib/profil";
 
 function FarbSwatches({
   gewaehlt,
@@ -46,13 +46,17 @@ export default function AvatarForm({
   username,
   initialFarbe,
   initialTextFarbe,
+  initialKuerzel,
   onGespeichert,
 }: {
-  /** Nur zur Live-Vorschau des Initialen-Kürzels (siehe avatarInitialen) - wird hier nicht
-   * verändert, das Umbenennen passiert im eigenen "Benutzername"-Formular. */
+  /** Nur zur Live-Vorschau des automatisch berechneten Initialen-Kürzels (siehe avatarAnzeige) -
+   * wird hier nicht verändert, das Umbenennen passiert im eigenen "Benutzername"-Formular. */
   username: string | null;
   initialFarbe: string;
   initialTextFarbe: string;
+  /** Manuelle Überschreibung der Kürzel-Buchstaben (z.B. arabisch), unabhängig vom
+   * Benutzernamen - siehe User.avatarKuerzel. null/leer = weiterhin automatisch berechnet. */
+  initialKuerzel: string | null;
   /** Wird kurz nach erfolgreichem Speichern aufgerufen (z.B. um die umschließende
    * EinklappbareSectionCard automatisch wieder zuzuklappen). */
   onGespeichert?: () => void;
@@ -60,12 +64,14 @@ export default function AvatarForm({
   const router = useRouter();
   const [farbe, setFarbe] = useState(initialFarbe);
   const [textFarbe, setTextFarbe] = useState(initialTextFarbe);
+  const [kuerzel, setKuerzel] = useState(initialKuerzel ?? "");
   const [isPending, setIsPending] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
   const [gespeichert, setGespeichert] = useState(false);
 
-  const veraendert = farbe !== initialFarbe || textFarbe !== initialTextFarbe;
-  const initialen = avatarInitialen(username);
+  const veraendert =
+    farbe !== initialFarbe || textFarbe !== initialTextFarbe || kuerzel !== (initialKuerzel ?? "");
+  const anzeige = avatarAnzeige(kuerzel, username);
 
   async function speichern() {
     setIsPending(true);
@@ -75,7 +81,7 @@ export default function AvatarForm({
     const res = await fetch("/api/account/avatar", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ avatarFarbe: farbe, avatarTextFarbe: textFarbe }),
+      body: JSON.stringify({ avatarFarbe: farbe, avatarTextFarbe: textFarbe, avatarKuerzel: kuerzel }),
     });
     const data = await res.json().catch(() => ({}));
     setIsPending(false);
@@ -95,12 +101,38 @@ export default function AvatarForm({
         <span
           className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-black/10 text-xl font-bold shadow-inner ring-2 ring-white"
           style={{ backgroundColor: farbe, color: textFarbe }}
+          dir="auto"
         >
-          {initialen}
+          {anzeige}
         </span>
         <p className="text-xs leading-relaxed text-slate-400">
-          So erscheint dein Kürzel oben im Menü und im Forum. Es ergibt sich automatisch aus
-          deinem Benutzernamen - hier wählst du Hintergrund- und Buchstabenfarbe.
+          So erscheint dein Kürzel oben im Menü und im Forum. Es ergibt sich standardmäßig
+          automatisch aus deinem Benutzernamen, lässt sich unten aber unabhängig davon
+          überschreiben (z.B. mit arabischen Buchstaben, auch wenn dein Benutzername lateinisch
+          bleibt).
+        </p>
+      </div>
+
+      <div>
+        <label className="block max-w-[10rem]">
+          <span className="mb-1.5 block text-sm font-medium text-slate-700">
+            Kürzel (optional)
+          </span>
+          <input
+            className="w-full rounded-lg border border-slate-200 bg-surface px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-brand-400 focus:outline-none focus:ring-1 focus:ring-brand-400"
+            dir="auto"
+            value={kuerzel}
+            maxLength={3}
+            placeholder={avatarInitialen(username)}
+            onChange={(e) => {
+              setKuerzel(e.target.value);
+              setGespeichert(false);
+            }}
+          />
+        </label>
+        <p className="mt-1.5 max-w-xs text-xs leading-relaxed text-slate-400">
+          1-3 Buchstaben beliebiger Schrift (lateinisch, arabisch, ...). Leer lassen, um weiterhin
+          automatisch aus dem Benutzernamen zu berechnen.
         </p>
       </div>
 

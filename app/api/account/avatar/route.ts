@@ -2,16 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { istGueltigeAvatarFarbe } from "@/lib/profil";
+import { istGueltigeAvatarFarbe, istGueltigesAvatarKuerzel } from "@/lib/profil";
 
 // Nur die kuratierte Farbauswahl aus lib/profil.ts ist erlaubt (kein Freitext/Upload) - siehe
 // dort für die Begründung. Hintergrund- und Buchstabenfarbe kommen bewusst aus derselben Palette
-// und werden unabhängig voneinander validiert/gespeichert. Das Profilbild selbst (Initialen) wird
-// nicht hier, sondern live aus dem Benutzernamen berechnet (siehe avatarInitialen) - dafür gibt
-// es kein eigenes Feld zu speichern.
+// und werden unabhängig voneinander validiert/gespeichert. avatarKuerzel ist optional (leerer
+// String löscht eine gesetzte Überschreibung wieder, danach gelten wieder die automatisch aus
+// dem Benutzernamen berechneten Initialen, siehe avatarAnzeige in lib/profil.ts).
 const BodySchema = z.object({
   avatarFarbe: z.string().refine(istGueltigeAvatarFarbe, "Unbekannte Hintergrundfarbe."),
   avatarTextFarbe: z.string().refine(istGueltigeAvatarFarbe, "Unbekannte Buchstabenfarbe."),
+  avatarKuerzel: z
+    .string()
+    .trim()
+    .refine(
+      (v) => v === "" || istGueltigesAvatarKuerzel(v),
+      "1-3 Buchstaben (keine Ziffern/Symbole).",
+    )
+    .optional(),
 });
 
 export async function PATCH(request: NextRequest) {
@@ -40,10 +48,14 @@ export async function PATCH(request: NextRequest) {
     data: {
       avatarFarbe: parsed.data.avatarFarbe,
       avatarTextFarbe: parsed.data.avatarTextFarbe,
+      ...(parsed.data.avatarKuerzel !== undefined && {
+        avatarKuerzel: parsed.data.avatarKuerzel === "" ? null : parsed.data.avatarKuerzel,
+      }),
     },
   });
   return NextResponse.json({
     avatarFarbe: updated.avatarFarbe,
     avatarTextFarbe: updated.avatarTextFarbe,
+    avatarKuerzel: updated.avatarKuerzel,
   });
 }

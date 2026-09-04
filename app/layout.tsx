@@ -84,6 +84,7 @@ export default async function RootLayout({
                   istZahlend: istZahlendesKonto(user),
                   avatarFarbe: user.avatarFarbe,
                   avatarTextFarbe: user.avatarTextFarbe,
+                  avatarKuerzel: user.avatarKuerzel,
                 }
               : null
           }

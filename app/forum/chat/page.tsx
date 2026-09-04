@@ -20,7 +20,11 @@ export default async function ForumChatPage() {
   const letzteNachrichten = await prisma.forumChatNachricht.findMany({
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: CHAT_INITIAL_LIMIT,
-    include: { user: { select: { username: true, avatarFarbe: true, avatarTextFarbe: true } } },
+    include: {
+      user: {
+        select: { username: true, avatarFarbe: true, avatarTextFarbe: true, avatarKuerzel: true },
+      },
+    },
   });
 
   return (
