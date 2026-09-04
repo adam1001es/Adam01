@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Gamepad2 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
-import SchulrechtRunner from "@/components/SchulrechtRunner";
+import WissensBloecke from "@/components/WissensBloecke";
 
 export const dynamic = "force-dynamic";
 
@@ -19,15 +19,16 @@ export default async function SpielPage() {
         <ArrowLeft size={15} /> Zurück zu Werkzeuge
       </Link>
       <h1 className="flex items-center gap-2.5 font-display text-2xl font-semibold text-slate-800 sm:text-3xl">
-        <Gamepad2 size={24} strokeWidth={2} /> Schulrecht-Flieger
+        <Gamepad2 size={24} strokeWidth={2} /> Wissensblöcke
       </h1>
       <p className="mt-1.5 text-sm text-slate-500">
-        Kurze Auflockerung zwischendurch - ein Wahr/Falsch-Actionspiel zu österreichischem
-        Schulrecht und zum Aufbau des Lehrplans.
+        Kurze Auflockerung zwischendurch - ein rundenbasiertes Kästchen-Puzzle zu österreichischem
+        Schulrecht und zum Aufbau des Lehrplans. Kein Zeitdruck: erst die Frage in Ruhe
+        beantworten, dann in Ruhe platzieren.
       </p>
 
       <div className="mt-5">
-        <SchulrechtRunner />
+        <WissensBloecke />
       </div>
     </main>
   );

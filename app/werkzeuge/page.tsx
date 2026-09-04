@@ -51,9 +51,9 @@ const WERKZEUGE = [
   {
     href: "/werkzeuge/spiel",
     icon: Gamepad2,
-    titel: "Schulrecht-Flieger",
+    titel: "Wissensblöcke",
     beschreibung:
-      "Kurze Auflockerung zwischendurch: Wahr/Falsch-Actionspiel zu österreichischem Schulrecht und zum Aufbau des Lehrplans.",
+      "Kurze Auflockerung zwischendurch: rundenbasiertes Kästchen-Puzzle zu österreichischem Schulrecht und zum Aufbau des Lehrplans - kein Zeitdruck.",
   },
 ] as const;
 

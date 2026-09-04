@@ -1,5 +1,5 @@
-/** Fragenkatalog für das Wahr/Falsch-Actionspiel (siehe components/SchulrechtRunner.tsx,
- * app/werkzeuge/spiel). Zwei Kategorien:
+/** Fragenkatalog für das Wahr/Falsch-Kästchen-Puzzle "Wissensblöcke" (siehe
+ * components/WissensBloecke.tsx, app/werkzeuge/spiel). Zwei Kategorien:
  * - "schulrecht": Basisfakten zum österreichischen Schulrecht (Schulpflichtgesetz,
  *   Schulunterrichtsgesetz, Leistungsbeurteilungsverordnung), bewusst einfach und ohne
  *   Sonderfälle/Ausnahmen gehalten - recherchiert, siehe Quellen im Session-Verlauf.
