@@ -14,6 +14,7 @@ import {
   Lock,
   MessagesSquare,
   ShieldAlert,
+  Wrench,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SonnenuntergangAnzeige from "./SonnenuntergangAnzeige";
@@ -122,6 +123,16 @@ export default function SiteHeader({
         : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-700"
     }`;
 
+  // Werkzeuge bekommt Amber/Orange statt einer weiteren Teal-Stufe oder einer der bestehenden
+  // Bereichsfarben - eigener, eindeutig unterscheidbarer Bereich für Alltagswerkzeuge ohne
+  // KI-Kontingent (siehe tailwind.config.ts werkzeuge-gradient).
+  const navLinkClassWerkzeuge = (active: boolean) =>
+    `flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium transition active:scale-95 sm:px-3.5 ${
+      active
+        ? "bg-werkzeuge-gradient text-white shadow-card-werkzeuge"
+        : "text-slate-600 hover:bg-amber-50 hover:text-amber-700"
+    }`;
+
   return (
     // NICHT MEHR "sticky": auf mind. einem Gerät (iPhone/Firefox) blieb selbst ein komplett
     // undurchsichtiger, blur-freier Hintergrund beim Scrollen sichtbar von darunterliegendem
@@ -194,6 +205,16 @@ export default function SiteHeader({
               <MessagesSquare size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Forum</span>
               {!user.istZahlend && <Lock size={11} strokeWidth={2.5} className="opacity-60" />}
+            </Link>
+          )}
+          {/* Werkzeuge sind bewusst für ALLE eingeloggten Konten voll nutzbar (kein
+              Schloss-Symbol) - anders als Community/Forum verbraucht hier nichts KI-Kontingent
+              (Kalender ist reine Datumsrechnung, Zitate-/Vokabel-Bibliothek liest nur bereits
+              admin-geprüfte Wissensbasis-Einträge). */}
+          {user && (
+            <Link href="/werkzeuge" className={navLinkClassWerkzeuge(!!pathname?.startsWith("/werkzeuge"))}>
+              <Wrench size={16} strokeWidth={2.25} />
+              <span className="hidden sm:inline">Werkzeuge</span>
             </Link>
           )}
           {user ? (

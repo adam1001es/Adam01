@@ -253,6 +253,23 @@ export async function geprüfteZitate(themenbereich: ThemenbereichKey): Promise<
   return eintraege.map((e) => ({ id: e.id, inhalt: JSON.parse(e.inhalt) as ZitatInhalt }));
 }
 
+/** Liefert ALLE geprüften Zitate über sämtliche Grundkompetenzen hinweg (Koran UND Hadith) - für
+ * die frei durchsuchbare Bibliothek in app/werkzeuge/zitate, im Unterschied zu geprüfteZitate
+ * (dort nur EINE Grundkompetenz, für den internen Generierungs-Kontext). */
+export async function alleGeprüftenZitate(): Promise<
+  { id: string; themenbereich: string; inhalt: ZitatInhalt }[]
+> {
+  const eintraege = await prisma.wissensEintrag.findMany({
+    where: { typ: "zitat", status: "geprueft" },
+    orderBy: { geprueftAm: "desc" },
+  });
+  return eintraege.map((e) => ({
+    id: e.id,
+    themenbereich: e.themenbereich,
+    inhalt: JSON.parse(e.inhalt) as ZitatInhalt,
+  }));
+}
+
 /** Liefert alle GEPRÜFTEN Hadith-Zitate - optional auf einen Themenbereich eingeschränkt (Filter
  * im Picker des Erstellen-Formulars, siehe NewWorksheetForm.tsx), sonst über alle Grundkompetenzen
  * hinweg. Teilt sich die Tabelle mit Koran-Zitaten (siehe WISSENS_TYP_LABEL.zitat), daher hier
@@ -335,6 +352,23 @@ export async function geprüfteMusteraufgaben(
     orderBy: { geprueftAm: "desc" },
   });
   return eintraege.map((e) => ({ id: e.id, inhalt: JSON.parse(e.inhalt) as Aufgabe }));
+}
+
+/** Liefert alle GEPRÜFTEN Begriffe (Glossar) - optional auf einen Themenbereich eingeschränkt,
+ * sonst über alle Grundkompetenzen hinweg. Für den Vokabeltrainer (siehe app/werkzeuge/vokabeln)
+ * - nutzt bewusst denselben, bereits admin-geprüften Bestand statt einer eigenen Wortliste. */
+export async function geprüfteBegriffe(
+  themenbereich?: ThemenbereichKey,
+): Promise<{ id: string; themenbereich: string; inhalt: BegriffInhalt }[]> {
+  const eintraege = await prisma.wissensEintrag.findMany({
+    where: { typ: "begriff", status: "geprueft", ...(themenbereich ? { themenbereich } : {}) },
+    orderBy: { geprueftAm: "desc" },
+  });
+  return eintraege.map((e) => ({
+    id: e.id,
+    themenbereich: e.themenbereich,
+    inhalt: JSON.parse(e.inhalt) as BegriffInhalt,
+  }));
 }
 
 export interface AufgabentypAnalyseZeile {

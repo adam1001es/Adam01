@@ -87,6 +87,13 @@ const config: Config = {
         // abhebt.
         "card-forum": "0 1px 2px rgba(79, 70, 229, 0.05), 0 8px 24px -12px rgba(79, 70, 229, 0.20)",
         "card-forum-hover": "0 4px 10px rgba(79, 70, 229, 0.07), 0 16px 32px -14px rgba(79, 70, 229, 0.30)",
+        // Amber/Orange für "Werkzeuge" (siehe backgroundImage.werkzeuge-gradient hier drunter) -
+        // eigene Farbfamilie statt einer weiteren Teal-Stufe, damit sich dieser rein praktische
+        // Zusatzbereich (Kalender, Bibliothek, Vokabeltrainer - alles ohne KI-Kontingent) klar von
+        // den Arbeitsblatt-nahen Bereichen abhebt, aber auch von Wissensbasis (Gold, admin-only)
+        // und Forum (Indigo) unterscheidbar bleibt.
+        "card-werkzeuge": "0 1px 2px rgba(180, 83, 9, 0.05), 0 8px 24px -12px rgba(180, 83, 9, 0.20)",
+        "card-werkzeuge-hover": "0 4px 10px rgba(180, 83, 9, 0.07), 0 16px 32px -14px rgba(180, 83, 9, 0.30)",
       },
       backgroundImage: {
         // Hauptfarbe der App: dunkelstes/"seriösestes" Teal (700->900) - Übersicht, Logo,
@@ -107,6 +114,9 @@ const config: Config = {
         // eindeutig unterscheidbarer Bereich, passend zur bereits in lib/profil.ts vorhandenen
         // Indigo-Avatarfarbe.
         "forum-gradient": "linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)",
+        // Werkzeuge: Amber/Orange - warmer, "praktischer" Farbton für den Bereich mit
+        // Alltagswerkzeugen ohne KI-Kontingent (Kalender, Zitate-Bibliothek, Vokabeltrainer).
+        "werkzeuge-gradient": "linear-gradient(135deg, #d97706 0%, #92400e 100%)",
       },
       keyframes: {
         // Wandernder Balken-Abschnitt für die unbestimmte Fortschrittsanzeige während der
