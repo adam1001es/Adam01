@@ -40,6 +40,7 @@ interface DragZustand {
   x: number;
   y: number;
   anhebung: number;
+  zellGroesse: number;
 }
 
 function leeresRaster(): Raster {
@@ -240,29 +241,40 @@ export default function WissensBloecke() {
     [phase, aktuellesStueck, raster, score, zeilenGeloescht, letzteFrageId, naechsteFrage],
   );
 
-  const berechneAnker = useCallback((clientX: number, clientY: number): { r: number; c: number } | null => {
-    const rect = gridRef.current?.getBoundingClientRect();
-    if (!rect || rect.width === 0) return null;
-    const zellGroesse = rect.width / RASTER_GROESSE;
-    const c = Math.floor((clientX - rect.left) / zellGroesse);
-    const r = Math.floor((clientY - rect.top) / zellGroesse);
-    if (r < 0 || r >= RASTER_GROESSE || c < 0 || c >= RASTER_GROESSE) return null;
-    return { r, c };
-  }, []);
+  // Der schwebende Schatten wird optisch AUF dem Zeiger zentriert (siehe Ghost-Rendering unten,
+  // -translate-x-1/2 -translate-y-1/2) - der Anker (die linke obere Ecke der Form) muss deshalb
+  // aus der ZEIGERPOSITION MINUS der halben Formgröße berechnet werden, sonst stimmt die
+  // Auflöse-Position nicht mit dem sichtbaren Schatten überein (genau das wirkte "ungenau").
+  const berechneAnker = useCallback(
+    (clientX: number, clientY: number, form: Formteil): { r: number; c: number } | null => {
+      const rect = gridRef.current?.getBoundingClientRect();
+      if (!rect || rect.width === 0) return null;
+      const zellGroesse = rect.width / RASTER_GROESSE;
+      const { zeilen, spalten } = formGroesse(form);
+      const c = Math.round((clientX - rect.left) / zellGroesse - spalten / 2);
+      const r = Math.round((clientY - rect.top) / zellGroesse - zeilen / 2);
+      if (r < 0 || r >= RASTER_GROESSE || c < 0 || c >= RASTER_GROESSE) return null;
+      return { r, c };
+    },
+    [],
+  );
 
   const aktiverAnker = useMemo(() => {
-    if (drag) return berechneAnker(drag.x, drag.y - drag.anhebung);
+    if (drag && aktuellesStueck) return berechneAnker(drag.x, drag.y - drag.anhebung, aktuellesStueck.form);
     return hoverAnker;
-  }, [drag, hoverAnker, berechneAnker]);
+  }, [drag, aktuellesStueck, hoverAnker, berechneAnker]);
 
   const dragStarten = useCallback((e: React.PointerEvent<HTMLElement>) => {
     e.currentTarget.setPointerCapture(e.pointerId);
     setHoverAnker(null);
+    const rect = gridRef.current?.getBoundingClientRect();
+    const zellGroesse = rect && rect.width > 0 ? rect.width / RASTER_GROESSE : 40;
     setDrag({
       pointerId: e.pointerId,
       x: e.clientX,
       y: e.clientY,
       anhebung: e.pointerType === "touch" ? TOUCH_ANHEBUNG : 0,
+      zellGroesse,
     });
   }, []);
 
@@ -272,13 +284,13 @@ export default function WissensBloecke() {
 
   const dragBeenden = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
-      if (!drag || drag.pointerId !== e.pointerId) return;
-      const ziel = berechneAnker(e.clientX, e.clientY - drag.anhebung);
+      if (!drag || drag.pointerId !== e.pointerId || !aktuellesStueck) return;
+      const ziel = berechneAnker(e.clientX, e.clientY - drag.anhebung, aktuellesStueck.form);
       setDrag(null);
       setHoverAnker(null);
       if (ziel) zellKlick(ziel.r, ziel.c);
     },
-    [drag, berechneAnker, zellKlick],
+    [drag, aktuellesStueck, berechneAnker, zellKlick],
   );
 
   const dragAbbrechen = useCallback(() => {
@@ -362,7 +374,7 @@ export default function WissensBloecke() {
                     const previewHit = vorschau?.zellen.has(key) ?? false;
                     let hintergrund = "#e2e8f0";
                     if (zelle) hintergrund = zelle;
-                    else if (previewHit) hintergrund = vorschau?.gueltig ? "#86efac" : "#fecaca";
+                    else if (previewHit) hintergrund = vorschau?.gueltig ? `${aktuellesStueck?.farbe}cc` : "#f87171";
                     return (
                       <motion.button
                         key={`${key}-${zelle ?? "leer"}`}
@@ -374,9 +386,9 @@ export default function WissensBloecke() {
                         onClick={() => zellKlick(r, c)}
                         onMouseEnter={() => phase === "platzieren" && !drag && setHoverAnker({ r, c })}
                         whileTap={phase === "platzieren" ? { scale: 0.88 } : undefined}
-                        className={`aspect-square rounded-md ${invalid ? "animate-pulse" : ""} ${
-                          blitz ? "ring-2 ring-white" : ""
-                        }`}
+                        className={`aspect-square rounded-md transition-colors duration-100 ${
+                          invalid ? "animate-pulse" : ""
+                        } ${blitz ? "ring-2 ring-white" : ""}`}
                         style={{ backgroundColor: invalid ? "#fca5a5" : blitz ? "#ffffff" : hintergrund }}
                       />
                     );
@@ -416,7 +428,7 @@ export default function WissensBloecke() {
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   exit={{ opacity: 0, scale: 0.7, rotate: 4 }}
                   transition={{ type: "spring", bounce: 0.4, duration: 0.45 }}
-                  className="absolute inset-2 z-30 flex flex-col items-center justify-center gap-4 rounded-xl bg-white/95 p-5 text-center shadow-2xl backdrop-blur-sm"
+                  className="absolute inset-x-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center justify-center gap-4 rounded-xl bg-white/80 p-4 text-center shadow-2xl"
                 >
                   <p className="text-base font-semibold text-slate-800">{frage.text}</p>
                   <div className="flex gap-4">
@@ -449,7 +461,7 @@ export default function WissensBloecke() {
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   exit={{ opacity: 0, scale: 0.7, rotate: -4 }}
                   transition={{ type: "spring", bounce: 0.4, duration: 0.45 }}
-                  className="absolute inset-2 z-30 flex flex-col items-center justify-center gap-3 rounded-xl bg-white/95 p-5 text-center shadow-2xl backdrop-blur-sm"
+                  className="absolute inset-x-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center justify-center gap-3 rounded-xl bg-white/80 p-4 text-center shadow-2xl"
                 >
                   <p className="text-sm font-semibold text-emerald-700">Richtig! Wähle dein Kästchen:</p>
                   <div className="flex flex-wrap justify-center gap-3">
@@ -469,7 +481,7 @@ export default function WissensBloecke() {
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   exit={{ opacity: 0, scale: 0.7 }}
                   transition={{ type: "spring", bounce: 0.45, duration: 0.5 }}
-                  className="absolute inset-2 z-30 flex flex-col items-center justify-center gap-3 rounded-xl bg-white/95 p-6 text-center shadow-2xl backdrop-blur-sm"
+                  className="absolute inset-x-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center justify-center gap-3 rounded-xl bg-white/85 p-5 text-center shadow-2xl"
                 >
                   <p className="font-display text-lg font-semibold text-slate-800">Kein Platz mehr!</p>
                   <p className="text-sm text-slate-500">
@@ -492,10 +504,15 @@ export default function WissensBloecke() {
 
           {drag && aktuellesStueck && (
             <div
-              className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-slate-300 bg-white/95 p-2.5 shadow-lg"
+              className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 drop-shadow-lg"
               style={{ left: drag.x, top: drag.y - drag.anhebung }}
             >
-              <FormGitter form={aktuellesStueck.form} farbe={aktuellesStueck.farbe} />
+              <FormGitter
+                form={aktuellesStueck.form}
+                farbe={aktuellesStueck.farbe}
+                zellPixel={drag.zellGroesse}
+                gapClass="gap-1"
+              />
             </div>
           )}
 
@@ -533,15 +550,25 @@ export default function WissensBloecke() {
   );
 }
 
-function FormGitter({ form, farbe }: { form: Formteil; farbe: string }) {
+function FormGitter({
+  form,
+  farbe,
+  zellPixel = 14,
+  gapClass = "gap-0.5",
+}: {
+  form: Formteil;
+  farbe: string;
+  zellPixel?: number;
+  gapClass?: string;
+}) {
   const { zeilen, spalten } = formGroesse(form);
   const belegt = new Set(form.zellen.map(([r, c]) => `${r}-${c}`));
   return (
     <div
-      className="grid gap-0.5"
+      className={`grid ${gapClass}`}
       style={{
-        gridTemplateColumns: `repeat(${spalten}, 14px)`,
-        gridTemplateRows: `repeat(${zeilen}, 14px)`,
+        gridTemplateColumns: `repeat(${spalten}, ${zellPixel}px)`,
+        gridTemplateRows: `repeat(${zeilen}, ${zellPixel}px)`,
       }}
     >
       {Array.from({ length: zeilen * spalten }).map((_, i) => {
