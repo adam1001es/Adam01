@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Wrench, CalendarDays, BookMarked, Layers, Mail, CalendarClock } from "lucide-react";
+import { Wrench, CalendarDays, BookMarked, Layers, Mail, CalendarClock, Gamepad2 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +47,13 @@ const WERKZEUGE = [
     titel: "Stundenplan",
     beschreibung:
       "Wochenübersicht über mehrere Schulen mit jeweils eigenen Anfangszeiten und Stundenlängen - Mo-Fr, optional auch Samstag.",
+  },
+  {
+    href: "/werkzeuge/spiel",
+    icon: Gamepad2,
+    titel: "Schulrecht-Flieger",
+    beschreibung:
+      "Kurze Auflockerung zwischendurch: Wahr/Falsch-Actionspiel zu österreichischem Schulrecht und zum Aufbau des Lehrplans.",
   },
 ] as const;
 
