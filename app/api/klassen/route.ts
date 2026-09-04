@@ -2,24 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { istZahlendesKonto } from "@/lib/quota";
 
 const NEUE_KLASSE_SCHEMA = z.object({
   name: z.string().min(1).max(100),
   schulstufe: z.string().max(100).optional(),
 });
 
-/** Klassen-Tracking (siehe app/klassen) ist wie Community-Teilen nur für Abo-Konten gedacht -
- * gleiches Gate wie app/api/worksheet/[id]/teilen. */
+/** Klassen-Tracking (siehe app/klassen) ist für ALLE eingeloggten Konten frei zugänglich - echte
+ * Claude-Kosten (Prüfungsgenerierung) laufen ohnehin bereits über das normale Punkte-Kontingent
+ * (auch kostenlose Konten haben ein einmaliges Gratis-Kontingent, siehe lib/quota.ts). Nur das
+ * Zuweisen FREMDER geteilter Arbeitsblätter bleibt Abo-Konten vorbehalten (siehe
+ * app/api/klassen/[id]/zuweisungen/route.ts, app/api/pruefung/zusammenstellen/route.ts). */
 function pruefeZugriff(user: Awaited<ReturnType<typeof getSessionUser>>) {
   if (!user) {
     return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
-  }
-  if (!istZahlendesKonto(user)) {
-    return NextResponse.json(
-      { error: "Klassen-Tracking ist nur in einem Abo verfügbar." },
-      { status: 403 },
-    );
   }
   return null;
 }

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function PruefungZusammenstellenPage({ params }: { params: { id: string } }) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (!istZahlendesKonto(user)) redirect("/klassen");
+  const kannFremdeZuweisen = istZahlendesKonto(user);
 
   const klasse = await prisma.klasse.findUnique({ where: { id: params.id } });
   if (!klasse || klasse.userId !== user.id) notFound();
@@ -23,12 +23,16 @@ export default async function PruefungZusammenstellenPage({ params }: { params: 
       take: 200,
       select: { id: true, thema: true, themenbereich: true },
     }),
-    prisma.worksheet.findMany({
-      where: { geteilt: true, userId: { not: user.id } },
-      orderBy: { geteiltAm: "desc" },
-      take: 200,
-      select: { id: true, thema: true, themenbereich: true },
-    }),
+    // Fremde geteilte Arbeitsblätter bleiben Abo-Konten vorbehalten, siehe
+    // app/klassen/[id]/zuweisen/page.tsx für dieselbe Begründung.
+    kannFremdeZuweisen
+      ? prisma.worksheet.findMany({
+          where: { geteilt: true, userId: { not: user.id } },
+          orderBy: { geteiltAm: "desc" },
+          take: 200,
+          select: { id: true, thema: true, themenbereich: true },
+        })
+      : Promise.resolve([]),
     holeAuslastung(),
   ]);
 
@@ -41,6 +45,7 @@ export default async function PruefungZusammenstellenPage({ params }: { params: 
         Wähle Arbeitsblätter, aus deren bereits geprüften Aufgaben eine Prüfung zusammengestellt
         wird - kein Neu-Erfinden von Inhalten, dadurch deutlich günstiger als eine komplette
         Neu-Generierung und ohne Kontingent-Verbrauch.
+        {!kannFremdeZuweisen && " Von anderen geteilte Arbeitsblätter lassen sich nur mit einem Abo als Quelle verwenden."}
       </p>
       {auslastung.viele && (
         <div className="mt-6">

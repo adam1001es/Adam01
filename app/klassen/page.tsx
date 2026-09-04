@@ -1,35 +1,20 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { GraduationCap, Lock, Users, ClipboardList } from "lucide-react";
+import { GraduationCap, Users, ClipboardList } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { istZahlendesKonto } from "@/lib/quota";
 import NeueKlasseForm from "@/components/NeueKlasseForm";
 
 export const dynamic = "force-dynamic";
 
-/** Übersicht der eigenen Klassen (siehe app/klassen/[id] für Details) - wie app/community nur
- * für Abo-Konten, da mit echten Claude-Kosten (Prüfungsgenerierung) verbunden. */
+/** Übersicht der eigenen Klassen (siehe app/klassen/[id] für Details) - für ALLE eingeloggten
+ * Konten frei zugänglich (echte Claude-Kosten für die Prüfungsgenerierung laufen ohnehin über
+ * das normale Punkte-Kontingent, das auch kostenlose Konten einmalig haben, siehe lib/quota.ts).
+ * Einzige Einschränkung für kostenlose Konten: fremde geteilte Arbeitsblätter lassen sich nicht
+ * zuweisen (siehe app/klassen/[id]/zuweisen/page.tsx). */
 export default async function KlassenPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-
-  if (!istZahlendesKonto(user)) {
-    return (
-      <main>
-        <div className="rounded-2xl border border-dashed border-emerald-200 bg-surface p-10 text-center shadow-card-klassen sm:p-14">
-          <Lock className="mx-auto mb-3 text-emerald-300" size={32} strokeWidth={1.5} />
-          <h1 className="font-display text-xl font-semibold text-slate-800">
-            Klassen-Tracking für Abo-Konten
-          </h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-            Erfasse, welche Arbeitsblätter/Prüfungen eine Klasse bereits hatte, und behalte den
-            Wissensstand im Überblick. Mehr dazu bei der Person, die den Zugang verwaltet.
-          </p>
-        </div>
-      </main>
-    );
-  }
 
   const klassen = await prisma.klasse.findMany({
     where: { userId: user.id },

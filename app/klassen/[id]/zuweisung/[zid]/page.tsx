@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { istZahlendesKonto } from "@/lib/quota";
 import ErgebnisseForm from "@/components/ErgebnisseForm";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +12,6 @@ export default async function ErgebnisseSeite({
 }) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (!istZahlendesKonto(user)) redirect("/klassen");
 
   const zuweisung = await prisma.zuweisung.findUnique({
     where: { id: params.zid },

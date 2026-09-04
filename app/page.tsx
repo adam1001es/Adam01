@@ -10,21 +10,13 @@ import { istZahlendesKonto } from "@/lib/quota";
 import { summeTokens } from "@/lib/usageLog";
 
 /** Für kostenlose Testkonten: bewusst gedämpfte (nicht in den echten Bereichsfarben gehaltene),
- * gesperrte Vorschau der Abo-Bereiche direkt am Dashboard, statt sie komplett zu verstecken -
+ * gesperrte Vorschau ECHTER Abo-Bereiche direkt am Dashboard, statt sie komplett zu verstecken -
  * soll die Bandbreite zeigen ("das kann Lernwerk noch alles"), ohne echten Zugriff zu geben. Die
- * verlinkten Zielseiten selbst zeigen ebenfalls nur eine Beschreibung, keine echten Daten (siehe
- * app/klassen/page.tsx, app/community/page.tsx). */
+ * verlinkte Zielseite selbst zeigt ebenfalls nur eine Beschreibung, keine echten Daten (siehe
+ * app/community/page.tsx). Klassen-Tracking gehört bewusst NICHT mehr hierher - das ist für
+ * kostenlose Konten inzwischen voll nutzbar (siehe app/klassen/page.tsx), nur das Zuweisen
+ * fremder geteilter Arbeitsblätter bleibt dem Abo vorbehalten. */
 const ABO_VORSCHAU = [
-  {
-    href: "/klassen",
-    icon: GraduationCap,
-    titel: "Klassen & Prüfungen",
-    punkte: [
-      "Schüler:innen anonym mit Kürzel verwalten",
-      "Wissensstand pro Klasse & Schüler:in auf einen Blick",
-      "Prüfungen zusammenstellen oder generieren - auch für Maturaklassen",
-    ],
-  },
   {
     href: "/community",
     icon: Users,
@@ -97,7 +89,7 @@ export default async function DashboardPage({
       </div>
 
       {!istZahlendesKonto(user) && (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 sm:max-w-sm">
           {ABO_VORSCHAU.map(({ href, icon: Icon, titel, punkte }) => (
             <Link
               key={href}

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { istZahlendesKonto } from "@/lib/quota";
 
 async function ladeEigeneKlasse(id: string, userId: string) {
   const klasse = await prisma.klasse.findUnique({ where: { id } });
@@ -13,12 +12,6 @@ async function ladeEigeneKlasse(id: string, userId: string) {
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
-  if (!istZahlendesKonto(user)) {
-    return NextResponse.json(
-      { error: "Klassen-Tracking ist nur in einem Abo verfügbar." },
-      { status: 403 },
-    );
-  }
 
   const klasse = await ladeEigeneKlasse(params.id, user.id);
   if (!klasse) return NextResponse.json({ error: "Klasse nicht gefunden." }, { status: 404 });

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Plus, FileCheck2, Wand2, Users, LayoutGrid } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { istZahlendesKonto } from "@/lib/quota";
 import { THEMENBEREICHE, ThemenbereichKey } from "@/lib/curriculum";
 import { ThemenbereichSchema } from "@/lib/types";
 import { prozentZuNote, NOTE_LABEL } from "@/lib/noten";
@@ -22,7 +21,6 @@ function prozentAnzeige(prozent: number | null): string {
 export default async function KlassenDetailPage({ params }: { params: { id: string } }) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (!istZahlendesKonto(user)) redirect("/klassen");
 
   const klasse = await prisma.klasse.findUnique({ where: { id: params.id } });
   if (!klasse || klasse.userId !== user.id) notFound();

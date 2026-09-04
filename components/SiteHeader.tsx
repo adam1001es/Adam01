@@ -170,11 +170,12 @@ export default function SiteHeader({
                 </Link>
               );
             })}
-          {/* Community/Klassen bewusst für ALLE eingeloggten Konten sichtbar (nicht mehr hinter
-              istZahlend versteckt) - ein kostenloses Testkonto soll sehen, dass es diese
-              Abo-Bereiche gibt (kleines Schloss-Icon statt einfach nichts). Die Zielseiten selbst
-              gewähren weiterhin keinen echten Zugriff für kostenlose Konten, sondern zeigen nur
-              eine kurze Beschreibung (siehe app/community/page.tsx, app/klassen/page.tsx). */}
+          {/* Community/Forum bewusst für ALLE eingeloggten Konten sichtbar (nicht mehr hinter
+              istZahlend versteckt) - kostenlose Konten sehen dort inzwischen den echten Inhalt
+              zum Mitlesen, können aber nicht alles ausführen (kleines Schloss-Icon als Hinweis
+              darauf, siehe app/community/page.tsx, app/forum/page.tsx). Klassen dagegen ist für
+              kostenlose Konten VOLL nutzbar (nur fremde geteilte Arbeitsblätter lassen sich nicht
+              zuweisen) - deshalb bewusst OHNE Schloss-Icon, siehe app/klassen/page.tsx. */}
           {user && (
             <Link href="/community" className={navLinkClassCommunity(!!pathname?.startsWith("/community"))}>
               <Users size={16} strokeWidth={2.25} />
@@ -186,7 +187,6 @@ export default function SiteHeader({
             <Link href="/klassen" className={navLinkClassKlassen(!!pathname?.startsWith("/klassen"))}>
               <GraduationCap size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Klassen</span>
-              {!user.istZahlend && <Lock size={11} strokeWidth={2.5} className="opacity-60" />}
             </Link>
           )}
           {user && (

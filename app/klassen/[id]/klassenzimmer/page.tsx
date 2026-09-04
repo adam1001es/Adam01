@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { istZahlendesKonto } from "@/lib/quota";
 import { berechneSchuelerUebersicht, berechneSchuelerVerlauf } from "@/lib/klassen";
 import Klassenzimmer from "@/components/Klassenzimmer";
 
@@ -10,7 +9,6 @@ export const dynamic = "force-dynamic";
 export default async function KlassenzimmerPage({ params }: { params: { id: string } }) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (!istZahlendesKonto(user)) redirect("/klassen");
 
   const klasse = await prisma.klasse.findUnique({ where: { id: params.id } });
   if (!klasse || klasse.userId !== user.id) notFound();

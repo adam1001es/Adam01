@@ -31,12 +31,6 @@ const REQUEST_SCHEMA = z.object({
 export async function POST(request: NextRequest) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
-  if (!istZahlendesKonto(user)) {
-    return NextResponse.json(
-      { error: "Klassen-Tracking ist nur in einem Abo verfügbar." },
-      { status: 403 },
-    );
-  }
 
   let body: unknown;
   try {
@@ -61,7 +55,11 @@ export async function POST(request: NextRequest) {
   const worksheets = await prisma.worksheet.findMany({
     where: { id: { in: req.quellWorksheetIds } },
   });
-  const zugreifbar = worksheets.filter((w) => w.userId === user.id || w.geteilt);
+  // Kostenlose Konten dürfen NUR eigene Arbeitsblätter als Quelle verwenden - fremde geteilte
+  // bleiben Abo-Konten vorbehalten (siehe app/klassen/[id]/pruefung-zusammenstellen/page.tsx).
+  const zugreifbar = worksheets.filter(
+    (w) => w.userId === user.id || (w.geteilt && istZahlendesKonto(user)),
+  );
   if (zugreifbar.length === 0) {
     return NextResponse.json(
       { error: "Keines der ausgewählten Arbeitsblätter ist zugreifbar." },

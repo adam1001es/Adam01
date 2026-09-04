@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { getKontingent, istZahlendesKonto } from "@/lib/quota";
+import { getKontingent } from "@/lib/quota";
 import { getTrialStatus } from "@/lib/trial";
 import { THEMENBEREICHE, ThemenbereichKey } from "@/lib/curriculum";
 import { ThemenbereichSchema } from "@/lib/types";
@@ -16,7 +16,6 @@ export const dynamic = "force-dynamic";
 export default async function PruefungGenerierenPage({ params }: { params: { id: string } }) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (!istZahlendesKonto(user)) redirect("/klassen");
 
   const klasse = await prisma.klasse.findUnique({ where: { id: params.id } });
   if (!klasse || klasse.userId !== user.id) notFound();

@@ -21,12 +21,6 @@ const ZUWEISUNG_SCHEMA = z
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const user = await getSessionUser();
   if (!user) return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
-  if (!istZahlendesKonto(user)) {
-    return NextResponse.json(
-      { error: "Klassen-Tracking ist nur in einem Abo verfügbar." },
-      { status: 403 },
-    );
-  }
 
   const klasse = await prisma.klasse.findUnique({ where: { id: params.id } });
   if (!klasse || klasse.userId !== user.id) {
@@ -55,8 +49,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   if (req.worksheetId) {
     const worksheet = await prisma.worksheet.findUnique({ where: { id: req.worksheetId } });
     // Zugriff wie überall: eigenes Arbeitsblatt ODER (geteilt + zahlendes Konto) - siehe
-    // app/api/worksheet/[id]/pdf für dasselbe Zugriffsmuster.
-    if (!worksheet || !(worksheet.userId === user.id || worksheet.geteilt)) {
+    // app/api/worksheet/[id]/pdf für dasselbe Zugriffsmuster. Kostenlose Konten dürfen NUR ihre
+    // eigenen Arbeitsblätter zuweisen (siehe app/klassen/[id]/zuweisen/page.tsx).
+    if (
+      !worksheet ||
+      !(worksheet.userId === user.id || (worksheet.geteilt && istZahlendesKonto(user)))
+    ) {
       return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
     }
     let titel = worksheet.thema;
