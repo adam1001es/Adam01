@@ -53,6 +53,7 @@ export default function SiteHeader({
   hijriDatum,
   offeneWissensEntwuerfe,
   neueRegistrierungen,
+  neueCommunityBeitraege,
 }: {
   user: SiteHeaderUser | null;
   /** Heutiges Hijri-Datum (z.B. "17. Rabi al-Awwal 1448 n. H.") - immer sichtbar, unabhängig
@@ -68,6 +69,10 @@ export default function SiteHeader({
    * dargestellt (siehe unten), damit er auch auf Mobile sichtbar bleibt, wo die Textbeschriftung
    * der Nav-Icons ausgeblendet ist. */
   neueRegistrierungen?: number;
+  /** Für ALLE eingeloggten Konten gesetzt (siehe app/layout.tsx) - Anzahl neu geteilter
+   * Arbeitsblätter seit dem letzten Besuch von app/community (siehe
+   * User.letzteCommunityAnsicht), als Punkt am Community-Icon analog zu neueRegistrierungen. */
+  neueCommunityBeitraege?: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -194,10 +199,24 @@ export default function SiteHeader({
               kostenlose Konten VOLL nutzbar (nur fremde geteilte Arbeitsblätter lassen sich nicht
               zuweisen) - deshalb bewusst OHNE Schloss-Icon, siehe app/klassen/page.tsx. */}
           {user && (
-            <Link href="/community" className={navLinkClassCommunity(!!pathname?.startsWith("/community"))}>
+            <Link
+              href="/community"
+              title={
+                neueCommunityBeitraege
+                  ? `${neueCommunityBeitraege} neu geteilte${neueCommunityBeitraege === 1 ? "s" : ""} Arbeitsblatt${neueCommunityBeitraege === 1 ? "" : "er"}`
+                  : undefined
+              }
+              className={navLinkClassCommunity(!!pathname?.startsWith("/community")) + " relative"}
+            >
               <Users size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Geteilte Arbeitsblätter</span>
               {!user.istZahlend && <Lock size={11} strokeWidth={2.5} className="opacity-60" />}
+              {!!neueCommunityBeitraege && (
+                <span
+                  aria-hidden="true"
+                  className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-surface"
+                />
+              )}
             </Link>
           )}
           {user && (

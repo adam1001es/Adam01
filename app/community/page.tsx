@@ -36,6 +36,10 @@ export default async function CommunityPage({
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
+  // Löscht den Neu-Beiträge-Punkt am Community-Icon im Header (siehe SiteHeader.tsx) - hier
+  // sieht die Lehrkraft die neu geteilten Arbeitsblätter tatsächlich.
+  await prisma.user.update({ where: { id: user.id }, data: { letzteCommunityAnsicht: new Date() } });
+
   // Bewusst KEIN Zugriffs-Lock mehr für das Ansehen der Liste (siehe app/worksheet/[id]/page.tsx
   // für die weiterhin serverseitig durchgesetzte Zugriffsprüfung beim ÖFFNEN): kostenlose Konten
   // sollen sehen, welche Arbeitsblätter andere Lehrkräfte geteilt haben, dürfen sie aber nicht

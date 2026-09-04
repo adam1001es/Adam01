@@ -153,6 +153,12 @@ model User {
   // @default(now()) sorgt dafür, dass bestehende Konten bei der Migration NICHT sofort als
   // "neue Registrierung" für den Admin aufscheinen (siehe migration.sql-Backfill).
   letzteKontenAnsicht DateTime @default(now())
+  // Zeitpunkt, seit dem DIESE Lehrkraft die Community-Übersicht (app/community) zuletzt
+  // angesehen hat - Basis für den Neu-Beiträge-Punkt am Community-Icon im Header, für ALLE
+  // Konten (nicht nur Admin), siehe SiteHeader.tsx. Gleiches Backfill-Prinzip wie
+  // letzteKontenAnsicht oben (@default(now()), damit bestehende geteilte Arbeitsblätter bei der
+  // Migration nicht sofort als "neu" aufscheinen).
+  letzteCommunityAnsicht DateTime @default(now())
   createdAt    DateTime @default(now()) // Anker für den rollierenden 30-Tage-Kontingent-Zyklus
   sessions     Session[]
   worksheets   Worksheet[]

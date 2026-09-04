@@ -24,6 +24,7 @@ export interface SessionUser {
   unterrichtsStufen: string[];
   forumGesperrt: boolean;
   letzteKontenAnsicht: Date;
+  letzteCommunityAnsicht: Date;
   createdAt: Date;
 }
 
@@ -119,6 +120,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     unterrichtsStufen: session.user.unterrichtsStufen,
     forumGesperrt: session.user.forumGesperrt,
     letzteKontenAnsicht: session.user.letzteKontenAnsicht,
+    letzteCommunityAnsicht: session.user.letzteCommunityAnsicht,
     createdAt: session.user.createdAt,
   };
 }

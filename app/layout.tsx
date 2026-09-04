@@ -65,6 +65,18 @@ export default async function RootLayout({
     user?.role === "admin"
       ? await prisma.user.count({ where: { createdAt: { gt: user.letzteKontenAnsicht } } })
       : undefined;
+  // Neu geteilte Arbeitsblätter seit dem letzten Besuch von app/community - für ALLE Konten
+  // (nicht nur Admin), siehe User.letzteCommunityAnsicht im Prisma-Schema. Eigene Arbeitsblätter
+  // zählen nicht mit (man muss sich nicht selbst über den eigenen Beitrag benachrichtigen).
+  const neueCommunityBeitraege = user
+    ? await prisma.worksheet.count({
+        where: {
+          geteilt: true,
+          userId: { not: user.id },
+          geteiltAm: { gt: user.letzteCommunityAnsicht },
+        },
+      })
+    : undefined;
 
   return (
     <html lang="de" className={`${display.variable} ${sans.variable}`}>
@@ -82,6 +94,7 @@ export default async function RootLayout({
           hijriDatum={hijriDatum}
           offeneWissensEntwuerfe={offeneWissensEntwuerfe}
           neueRegistrierungen={neueRegistrierungen}
+          neueCommunityBeitraege={neueCommunityBeitraege}
           user={
             user
               ? {
