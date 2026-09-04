@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma";
 
 const SESSION_COOKIE = "session_token";
 const SESSION_DAUER_TAGE = 30;
+// Throttle für User.letzteAktivitaet (siehe getSessionUser unten) - verhindert einen
+// Schreibzugriff bei JEDER authentifizierten Anfrage in der ganzen App.
+const AKTIVITAET_UPDATE_SCHWELLE_MS = 60_000;
 
 export interface SessionUser {
   id: string;
@@ -83,6 +86,21 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 
   if (!session || session.expiresAt < new Date()) {
     return null;
+  }
+
+  // Aktualisiert User.letzteAktivitaet höchstens einmal pro Minute (nicht bei jedem Request,
+  // sonst ein Schreibzugriff auf JEDE authentifizierte Anfrage in der ganzen App) - dient
+  // einzig der Admin-Kontenübersicht ("wirklich online?", siehe istKuerzlichAktiv in
+  // lib/status.ts), nicht dem selbst gewählten Status (User.status).
+  const jetzt = new Date();
+  if (
+    !session.user.letzteAktivitaet ||
+    jetzt.getTime() - session.user.letzteAktivitaet.getTime() > AKTIVITAET_UPDATE_SCHWELLE_MS
+  ) {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { letzteAktivitaet: jetzt },
+    });
   }
 
   return {

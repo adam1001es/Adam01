@@ -4,6 +4,7 @@ import { ShieldCheck, Flag, BarChart3, Coins, MessageSquareWarning } from "lucid
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent, istTierAktiv } from "@/lib/quota";
+import { istKuerzlichAktiv } from "@/lib/status";
 import AdminUserTable, { AdminUserRow } from "@/components/AdminUserTable";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,11 @@ export default async function AdminPage() {
       return {
         id: u.id,
         email: u.email,
+        username: u.username,
+        avatarFarbe: u.avatarFarbe,
+        avatarTextFarbe: u.avatarTextFarbe,
+        avatarKuerzel: u.avatarKuerzel,
+        wirklichOnline: istKuerzlichAktiv(u.letzteAktivitaet),
         role: u.role,
         tier: u.tier,
         tierGueltigVon: u.tierGueltigVon,

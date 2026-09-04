@@ -24,3 +24,14 @@ export const STATUS_FARBE: Record<NutzerStatus, string> = {
 export function istGueltigerStatus(wert: string): wert is NutzerStatus {
   return (NUTZER_STATUS as readonly string[]).includes(wert);
 }
+
+// Nur für die Admin-Kontenübersicht (app/admin/page.tsx) - die tatsächliche Aktivität, ganz
+// unabhängig vom selbst gewählten NUTZER_STATUS oben (der bleibt für Forum/Chat/Geteilte
+// Arbeitsblätter rein dekorativ). Beruht auf User.letzteAktivitaet (siehe getSessionUser in
+// lib/auth.ts) statt einem echten Presence-System.
+const ECHT_ONLINE_SCHWELLE_MINUTEN = 3;
+
+export function istKuerzlichAktiv(letzteAktivitaet: Date | null): boolean {
+  if (!letzteAktivitaet) return false;
+  return Date.now() - letzteAktivitaet.getTime() < ECHT_ONLINE_SCHWELLE_MINUTEN * 60 * 1000;
+}

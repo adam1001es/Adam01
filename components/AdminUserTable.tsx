@@ -4,10 +4,20 @@ import { useState } from "react";
 import { Search, GraduationCap, ChevronDown } from "lucide-react";
 import AdminTierForm from "@/components/AdminTierForm";
 import AdminDeleteUserButton from "@/components/AdminDeleteUserButton";
+import AvatarKreis from "@/components/AvatarKreis";
+import { avatarAnzeige } from "@/lib/profil";
 
 export interface AdminUserRow {
   id: string;
   email: string;
+  username: string | null;
+  avatarFarbe: string;
+  avatarTextFarbe: string;
+  avatarKuerzel: string | null;
+  /** Tatsächliche Aktivität (User.letzteAktivitaet, siehe istKuerzlichAktiv in lib/status.ts) -
+   * NICHT der selbst gewählte NUTZER_STATUS (der ist für Forum/Chat/Community gedacht, hier auf
+   * der Admin-Seite interessiert die Wahrheit statt der Selbstauskunft). */
+  wirklichOnline: boolean;
   role: string;
   tier: string | null;
   tierGueltigVon: Date | null;
@@ -66,7 +76,21 @@ function AdminKontoZeile({ r }: { r: AdminUserRow }) {
         className="flex w-full flex-wrap items-center justify-between gap-2 p-3.5 text-left sm:p-4"
       >
         <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <span className="truncate font-medium text-slate-800">{r.email}</span>
+          <AvatarKreis
+            anzeige={avatarAnzeige(r.avatarKuerzel, r.username)}
+            farbe={r.avatarFarbe}
+            textFarbe={r.avatarTextFarbe}
+            status={r.wirklichOnline ? "online" : "offline"}
+            size={32}
+          />
+          <div className="min-w-0">
+            <div className="truncate font-medium text-slate-800" dir="auto">
+              {r.username ?? r.email}
+            </div>
+            {r.username && (
+              <div className="truncate text-xs text-slate-400">{r.email}</div>
+            )}
+          </div>
           {r.role === "admin" && (
             <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
               Admin
@@ -113,8 +137,11 @@ function AdminKontoZeile({ r }: { r: AdminUserRow }) {
 
 export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
   const [suche, setSuche] = useState("");
-  const gefiltert = rows.filter((r) =>
-    r.email.toLowerCase().includes(suche.trim().toLowerCase()),
+  const suchbegriff = suche.trim().toLowerCase();
+  const gefiltert = rows.filter(
+    (r) =>
+      r.email.toLowerCase().includes(suchbegriff) ||
+      r.username?.toLowerCase().includes(suchbegriff),
   );
 
   return (
@@ -124,10 +151,15 @@ export default function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
         <input
           value={suche}
           onChange={(e) => setSuche(e.target.value)}
-          placeholder="Konto suchen (E-Mail) …"
+          placeholder="Konto suchen (E-Mail oder Name) …"
           className="w-full rounded-lg border border-slate-300 bg-surface py-2 pl-9 pr-3 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
         />
       </label>
+      <p className="mb-4 text-xs text-slate-400">
+        Der Punkt am Profilbild zeigt die tatsächliche Aktivität (grün = zuletzt aktiv vor
+        weniger als 3 Minuten) - unabhängig vom Status, den sich Nutzer:innen selbst im Profil
+        aussuchen können.
+      </p>
 
       <div className="space-y-2">
         {gefiltert.map((r) => (

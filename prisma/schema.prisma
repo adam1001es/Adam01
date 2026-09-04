@@ -126,9 +126,16 @@ model User {
   // lib/profil.ts).
   avatarKuerzel String?
   // Selbst gewählter Anwesenheitsstatus (siehe lib/status.ts NUTZER_STATUS) - bewusst rein manuell
-  // gewählt statt automatisch aus Aktivität/Session abgeleitet (kein Presence-/Heartbeat-System
-  // im Projekt) - als kleiner Farbpunkt am Profilbild sichtbar (Forum, Chat, Header).
+  // gewählt, NICHT die tatsächliche Aktivität - als kleiner Farbpunkt am Profilbild sichtbar in
+  // den für Nutzer:innen untereinander sichtbaren Bereichen (Forum, Chat, Geteilte
+  // Arbeitsblätter, Header). Für die tatsächliche Aktivität (Admin-Kontenübersicht) siehe
+  // letzteAktivitaet unten - beide Felder sind bewusst getrennt.
   status String @default("online")
+  // Zeitpunkt der letzten authentifizierten Anfrage (siehe getSessionUser in lib/auth.ts,
+  // throttled auf max. 1 Schreibzugriff pro Minute) - EINZIG für die Admin-Kontenübersicht
+  // gedacht ("wirklich online?", siehe istKuerzlichAktiv in lib/status.ts), NICHT für den
+  // selbst gewählten Status oben. null = noch nie einen authentifizierten Request gestellt.
+  letzteAktivitaet DateTime?
   // Cluster-IDs aus lib/curriculum.ts SCHULSTUFEN_CLUSTER (z.B. "sek1"), welche Schulstufen die
   // Lehrkraft unterrichtet - freiwillige Selbstauskunft fürs eigene Profil, aktuell nirgendwo
   // sonst ausgewertet.
