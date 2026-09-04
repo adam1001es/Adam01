@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Wrench, CalendarDays, BookMarked, Layers } from "lucide-react";
+import { Wrench, CalendarDays, BookMarked, Layers, Mail, LayoutGrid } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +33,20 @@ const WERKZEUGE = [
     titel: "Arabisch-Vokabeltrainer",
     beschreibung:
       "Islamische Fachbegriffe aus der geprüften Wissensbasis als Karteikarten üben - für dich selbst oder zum Vorlesen in der Klasse.",
+  },
+  {
+    href: "/werkzeuge/elternbriefe",
+    icon: Mail,
+    titel: "Elternbrief-Vorlagen",
+    beschreibung:
+      "Fertige Word-Vorlagen für Ramadan-Info, Exkursions-Einverständnis und Schuljahresbeginn - mit Platzhaltern zum selbst Ausfüllen.",
+  },
+  {
+    href: "/werkzeuge/sitzplan",
+    icon: LayoutGrid,
+    titel: "Sitzplan-Generator",
+    beschreibung:
+      "Zufälliger Sitzplan für eine deiner Klassen - Spaltenzahl anpassen, neu mischen, drucken.",
   },
 ] as const;
 
