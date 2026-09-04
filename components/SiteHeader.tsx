@@ -199,12 +199,14 @@ export default function SiteHeader({
           {/* Admin-Bereich klar vom normalen Nutzer-Menü abgesetzt (eigener Wunsch des Betreibers,
               der als einziges Admin-Konto sonst nicht auf Anhieb sieht, welche Punkte nur er
               sieht): eigene, dezent getönte Gruppe mit "Admin"-Beschriftung, per Trennstrich vom
-              übrigen Menü abgegrenzt statt einfach lose dazwischen zu hängen. Auf Mobile bricht die
-              Gruppe bewusst in eine eigene Zeile (statt sich per flex-wrap irgendwo einzureihen). */}
+              übrigen Menü abgegrenzt statt einfach lose dazwischen zu hängen. Bewusst NUR so breit
+              wie ihr Inhalt (kein "w-full") - Profil/Abmelden sollen bei Bedarf direkt daneben
+              bzw. in derselben Zeile weiterfließen können, statt durch eine erzwungene volle
+              Zeilenbreite auf Mobile ganz nach unten gedrängt zu werden. */}
           {user?.role === "admin" && (
             <>
               <span aria-hidden="true" className="mx-1 hidden h-7 w-px shrink-0 self-stretch bg-slate-300 sm:block" />
-              <div className="mt-1.5 flex w-full flex-wrap items-center gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 pl-2 sm:mt-0 sm:w-auto sm:flex-nowrap">
+              <div className="flex flex-wrap items-center gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 pl-2">
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   Admin
                 </span>
