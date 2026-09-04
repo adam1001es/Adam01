@@ -196,56 +196,6 @@ export default function SiteHeader({
               {!user.istZahlend && <Lock size={11} strokeWidth={2.5} className="opacity-60" />}
             </Link>
           )}
-          {/* Admin-Bereich klar vom normalen Nutzer-Menü abgesetzt (eigener Wunsch des Betreibers,
-              der als einziges Admin-Konto sonst nicht auf Anhieb sieht, welche Punkte nur er
-              sieht): eigene, dezent getönte Gruppe mit "Admin"-Beschriftung, per Trennstrich vom
-              übrigen Menü abgegrenzt statt einfach lose dazwischen zu hängen. Bewusst NUR so breit
-              wie ihr Inhalt (kein "w-full") - Profil/Abmelden sollen bei Bedarf direkt daneben
-              bzw. in derselben Zeile weiterfließen können, statt durch eine erzwungene volle
-              Zeilenbreite auf Mobile ganz nach unten gedrängt zu werden. */}
-          {user?.role === "admin" && (
-            <>
-              <span aria-hidden="true" className="mx-1 hidden h-7 w-px shrink-0 self-stretch bg-slate-300 sm:block" />
-              <div className="flex flex-wrap items-center gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 pl-2">
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                  Admin
-                </span>
-                <Link
-                  href="/admin/wissensbasis"
-                  className={navLinkClassWissen(!!pathname?.startsWith("/admin/wissensbasis"))}
-                >
-                  <BookMarked size={16} strokeWidth={2.25} />
-                  <span className="hidden sm:inline">
-                    Wissensbasis{offeneWissensEntwuerfe ? ` (${offeneWissensEntwuerfe})` : ""}
-                  </span>
-                </Link>
-                <Link
-                  href="/admin"
-                  className={navLinkClass(
-                    !!pathname?.startsWith("/admin") &&
-                      !pathname?.startsWith("/admin/wissensbasis") &&
-                      !pathname?.startsWith("/admin/vorfall-datenbank"),
-                  )}
-                >
-                  <ShieldCheck size={16} strokeWidth={2.25} />
-                  <span className="hidden sm:inline">Admin</span>
-                </Link>
-                {/* Rein persönliche Lernressource für den Betreiber (Rückblick auf den DB-Vorfall
-                    vom 3./4. September 2026, siehe components/VorfallDatenbankErklaerung.tsx) -
-                    deshalb ganz bewusst der "warnung"-Rot-Akzent statt einer neuen Bereichsfarbe
-                    wie bei Forum/Wissensbasis, da das hier kein wiederkehrender Funktionsbereich
-                    ist. */}
-                <Link
-                  href="/admin/vorfall-datenbank"
-                  title="DB-Vorfall vom 3./4. September - Rückblick"
-                  className={navLinkClass(!!pathname?.startsWith("/admin/vorfall-datenbank"), true)}
-                >
-                  <ShieldAlert size={16} strokeWidth={2.25} />
-                  <span className="hidden sm:inline">DB-Vorfall</span>
-                </Link>
-              </div>
-            </>
-          )}
           {user ? (
             <>
               <Link
@@ -282,6 +232,51 @@ export default function SiteHeader({
             >
               Anmelden
             </Link>
+          )}
+          {/* Admin-Bereich klar vom normalen Nutzer-Menü abgesetzt (eigener Wunsch des Betreibers,
+              der als einziges Admin-Konto sonst nicht auf Anhieb sieht, welche Punkte nur er
+              sieht) - bewusst NACH Profil/Abmelden statt davor, damit er auf Mobile konsequent
+              als letzte Gruppe ganz unten landet. Statt einer Textbeschriftung ("Admin") und
+              grauer Füllung nur ein dünner roter Rahmen als dezenter, aber eindeutiger Hinweis. */}
+          {user?.role === "admin" && (
+            <>
+              <span aria-hidden="true" className="mx-1 hidden h-7 w-px shrink-0 self-stretch bg-slate-300 sm:block" />
+              <div className="flex flex-wrap items-center gap-1 rounded-2xl border border-red-200 p-1">
+                <Link
+                  href="/admin/wissensbasis"
+                  className={navLinkClassWissen(!!pathname?.startsWith("/admin/wissensbasis"))}
+                >
+                  <BookMarked size={16} strokeWidth={2.25} />
+                  <span className="hidden sm:inline">
+                    Wissensbasis{offeneWissensEntwuerfe ? ` (${offeneWissensEntwuerfe})` : ""}
+                  </span>
+                </Link>
+                <Link
+                  href="/admin"
+                  className={navLinkClass(
+                    !!pathname?.startsWith("/admin") &&
+                      !pathname?.startsWith("/admin/wissensbasis") &&
+                      !pathname?.startsWith("/admin/vorfall-datenbank"),
+                  )}
+                >
+                  <ShieldCheck size={16} strokeWidth={2.25} />
+                  <span className="hidden sm:inline">Admin</span>
+                </Link>
+                {/* Rein persönliche Lernressource für den Betreiber (Rückblick auf den DB-Vorfall
+                    vom 3./4. September 2026, siehe components/VorfallDatenbankErklaerung.tsx) -
+                    deshalb ganz bewusst der "warnung"-Rot-Akzent statt einer neuen Bereichsfarbe
+                    wie bei Forum/Wissensbasis, da das hier kein wiederkehrender Funktionsbereich
+                    ist. */}
+                <Link
+                  href="/admin/vorfall-datenbank"
+                  title="DB-Vorfall vom 3./4. September - Rückblick"
+                  className={navLinkClass(!!pathname?.startsWith("/admin/vorfall-datenbank"), true)}
+                >
+                  <ShieldAlert size={16} strokeWidth={2.25} />
+                  <span className="hidden sm:inline">DB-Vorfall</span>
+                </Link>
+              </div>
+            </>
           )}
         </nav>
       </div>
