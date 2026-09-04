@@ -22,7 +22,8 @@ import {
  * fallenden Steine, keine Rotation). Game Over, sobald die zugewiesene Form nirgendwo mehr ins
  * Raster passt. */
 
-const RASTER_GROESSE = 8;
+const RASTER_SPALTEN = 8;
+const RASTER_ZEILEN = 10;
 const ZEILEN_PRO_LEVEL = 5;
 const HIGHSCORE_KEY = "lernwerk_bloecke_highscore";
 // Bei Touch schwebt der Schatten über dem Finger (sonst verdeckt der Finger genau die Zelle, die
@@ -41,23 +42,24 @@ interface DragZustand {
   y: number;
   anhebung: number;
   zellGroesse: number;
+  stueck: FormMitFarbe;
 }
 
 function leeresRaster(): Raster {
-  return Array.from({ length: RASTER_GROESSE }, () => Array<string | null>(RASTER_GROESSE).fill(null));
+  return Array.from({ length: RASTER_ZEILEN }, () => Array<string | null>(RASTER_SPALTEN).fill(null));
 }
 
 function passtAn(raster: Raster, form: Formteil, ankerR: number, ankerC: number): boolean {
   return form.zellen.every(([dr, dc]) => {
     const r = ankerR + dr;
     const c = ankerC + dc;
-    return r >= 0 && r < RASTER_GROESSE && c >= 0 && c < RASTER_GROESSE && raster[r][c] === null;
+    return r >= 0 && r < RASTER_ZEILEN && c >= 0 && c < RASTER_SPALTEN && raster[r][c] === null;
   });
 }
 
 function findeGueltigenAnker(raster: Raster, form: Formteil): boolean {
-  for (let r = 0; r < RASTER_GROESSE; r++) {
-    for (let c = 0; c < RASTER_GROESSE; c++) {
+  for (let r = 0; r < RASTER_ZEILEN; r++) {
+    for (let c = 0; c < RASTER_SPALTEN; c++) {
       if (passtAn(raster, form, r, c)) return true;
     }
   }
@@ -117,31 +119,35 @@ export default function WissensBloecke() {
     setPhase("frage");
   }, []);
 
+  const spielBeenden = useCallback(() => {
+    setPhase("ende");
+    schuettelControls.start({
+      x: [0, -10, 10, -8, 8, -4, 4, 0],
+      transition: { duration: 0.5 },
+    });
+    setBestwert((bisher) => {
+      if (score > bisher) {
+        try {
+          localStorage.setItem(HIGHSCORE_KEY, String(score));
+        } catch {
+          // siehe Kommentar oben.
+        }
+        return score;
+      }
+      return bisher;
+    });
+  }, [score, schuettelControls]);
+
   const stueckSetzenUndPruefen = useCallback(
     (kandidat: FormMitFarbe, aktuellerRaster: Raster) => {
       setAktuellesStueck(kandidat);
       if (!findeGueltigenAnker(aktuellerRaster, kandidat.form)) {
-        setPhase("ende");
-        schuettelControls.start({
-          x: [0, -10, 10, -8, 8, -4, 4, 0],
-          transition: { duration: 0.5 },
-        });
-        setBestwert((bisher) => {
-          if (score > bisher) {
-            try {
-              localStorage.setItem(HIGHSCORE_KEY, String(score));
-            } catch {
-              // siehe Kommentar oben.
-            }
-            return score;
-          }
-          return bisher;
-        });
+        spielBeenden();
         return;
       }
       setPhase("platzieren");
     },
-    [score, schuettelControls],
+    [spielBeenden],
   );
 
   const spielStarten = useCallback(() => {
@@ -159,39 +165,35 @@ export default function WissensBloecke() {
       if (!frage) return;
       const richtig = gewaehlt === frage.wahr;
       if (richtig) {
-        setAuswahlOptionen(dreiAuswahlFormen().map((form) => ({ form, farbe: zufallsFarbe() })));
+        const optionen = dreiAuswahlFormen().map((form) => ({ form, farbe: zufallsFarbe() }));
+        if (!optionen.some((option) => findeGueltigenAnker(raster, option.form))) {
+          spielBeenden();
+          return;
+        }
+        setAuswahlOptionen(optionen);
         setPhase("waehlen");
       } else {
         stueckSetzenUndPruefen({ form: zufallsSchwereForm(), farbe: zufallsFarbe() }, raster);
       }
     },
-    [frage, raster, stueckSetzenUndPruefen],
+    [frage, raster, stueckSetzenUndPruefen, spielBeenden],
   );
 
-  const formWaehlen = useCallback(
-    (option: FormMitFarbe) => {
-      stueckSetzenUndPruefen(option, raster);
-    },
-    [raster, stueckSetzenUndPruefen],
-  );
-
-  const zellKlick = useCallback(
-    (r: number, c: number) => {
-      if (phase !== "platzieren" || !aktuellesStueck) return;
-      if (!passtAn(raster, aktuellesStueck.form, r, c)) {
+  const platziereStueck = useCallback(
+    (stueck: FormMitFarbe, r: number, c: number) => {
+      if (!passtAn(raster, stueck.form, r, c)) {
         setUngueltigeZelle(`${r}-${c}`);
         setTimeout(() => setUngueltigeZelle(null), 300);
         return;
       }
 
-      const stueck = aktuellesStueck;
       const neu = raster.map((row) => row.slice());
       for (const [dr, dc] of stueck.form.zellen) {
         neu[r + dr][c + dc] = stueck.farbe;
       }
 
-      const vollZeilen = [...Array(RASTER_GROESSE).keys()].filter((rr) => neu[rr].every((z) => z !== null));
-      const vollSpalten = [...Array(RASTER_GROESSE).keys()].filter((cc) => neu.every((row) => row[cc] !== null));
+      const vollZeilen = [...Array(RASTER_ZEILEN).keys()].filter((rr) => neu[rr].every((z) => z !== null));
+      const vollSpalten = [...Array(RASTER_SPALTEN).keys()].filter((cc) => neu.every((row) => row[cc] !== null));
       const geloescht = vollZeilen.length + vollSpalten.length;
 
       const neuerScore = score + stueck.form.zellen.length + geloescht * 10;
@@ -212,10 +214,10 @@ export default function WissensBloecke() {
       if (geloescht > 0) {
         const zuLoeschen = new Set<string>();
         vollZeilen.forEach((rr) => {
-          for (let cc = 0; cc < RASTER_GROESSE; cc++) zuLoeschen.add(`${rr}-${cc}`);
+          for (let cc = 0; cc < RASTER_SPALTEN; cc++) zuLoeschen.add(`${rr}-${cc}`);
         });
         vollSpalten.forEach((cc) => {
-          for (let rr = 0; rr < RASTER_GROESSE; rr++) zuLoeschen.add(`${rr}-${cc}`);
+          for (let rr = 0; rr < RASTER_ZEILEN; rr++) zuLoeschen.add(`${rr}-${cc}`);
         });
         setBlitzZellen(zuLoeschen);
         setFeierAktiv(true);
@@ -238,7 +240,15 @@ export default function WissensBloecke() {
 
       naechsteFrage(letzteFrageId);
     },
-    [phase, aktuellesStueck, raster, score, zeilenGeloescht, letzteFrageId, naechsteFrage],
+    [raster, score, zeilenGeloescht, letzteFrageId, naechsteFrage],
+  );
+
+  const zellKlick = useCallback(
+    (r: number, c: number) => {
+      if (phase !== "platzieren" || !aktuellesStueck) return;
+      platziereStueck(aktuellesStueck, r, c);
+    },
+    [phase, aktuellesStueck, platziereStueck],
   );
 
   // Der schwebende Schatten wird optisch AUF dem Zeiger zentriert (siehe Ghost-Rendering unten,
@@ -249,32 +259,37 @@ export default function WissensBloecke() {
     (clientX: number, clientY: number, form: Formteil): { r: number; c: number } | null => {
       const rect = gridRef.current?.getBoundingClientRect();
       if (!rect || rect.width === 0) return null;
-      const zellGroesse = rect.width / RASTER_GROESSE;
+      const zellGroesse = rect.width / RASTER_SPALTEN;
       const { zeilen, spalten } = formGroesse(form);
       const c = Math.round((clientX - rect.left) / zellGroesse - spalten / 2);
       const r = Math.round((clientY - rect.top) / zellGroesse - zeilen / 2);
-      if (r < 0 || r >= RASTER_GROESSE || c < 0 || c >= RASTER_GROESSE) return null;
+      if (r < 0 || r >= RASTER_ZEILEN || c < 0 || c >= RASTER_SPALTEN) return null;
       return { r, c };
     },
     [],
   );
 
   const aktiverAnker = useMemo(() => {
-    if (drag && aktuellesStueck) return berechneAnker(drag.x, drag.y - drag.anhebung, aktuellesStueck.form);
+    if (drag) return berechneAnker(drag.x, drag.y - drag.anhebung, drag.stueck.form);
     return hoverAnker;
-  }, [drag, aktuellesStueck, hoverAnker, berechneAnker]);
+  }, [drag, hoverAnker, berechneAnker]);
 
-  const dragStarten = useCallback((e: React.PointerEvent<HTMLElement>) => {
+  // Nimmt das Stück jetzt explizit entgegen (statt implizit `aktuellesStueck` zu lesen), damit
+  // auch die drei Auswahl-Karten in der "waehlen"-Phase direkt ziehbar sein können - dort gibt es
+  // (bewusst) noch kein `aktuellesStueck`, weil das Auswählen und Platzieren zu einer einzigen
+  // Ziehgeste verschmolzen sind.
+  const dragStarten = useCallback((e: React.PointerEvent<HTMLElement>, stueck: FormMitFarbe) => {
     e.currentTarget.setPointerCapture(e.pointerId);
     setHoverAnker(null);
     const rect = gridRef.current?.getBoundingClientRect();
-    const zellGroesse = rect && rect.width > 0 ? rect.width / RASTER_GROESSE : 40;
+    const zellGroesse = rect && rect.width > 0 ? rect.width / RASTER_SPALTEN : 40;
     setDrag({
       pointerId: e.pointerId,
       x: e.clientX,
       y: e.clientY,
       anhebung: e.pointerType === "touch" ? TOUCH_ANHEBUNG : 0,
       zellGroesse,
+      stueck,
     });
   }, []);
 
@@ -284,13 +299,14 @@ export default function WissensBloecke() {
 
   const dragBeenden = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
-      if (!drag || drag.pointerId !== e.pointerId || !aktuellesStueck) return;
-      const ziel = berechneAnker(e.clientX, e.clientY - drag.anhebung, aktuellesStueck.form);
+      if (!drag || drag.pointerId !== e.pointerId) return;
+      const ziel = berechneAnker(e.clientX, e.clientY - drag.anhebung, drag.stueck.form);
+      const stueck = drag.stueck;
       setDrag(null);
       setHoverAnker(null);
-      if (ziel) zellKlick(ziel.r, ziel.c);
+      if (ziel) platziereStueck(stueck, ziel.r, ziel.c);
     },
-    [drag, aktuellesStueck, berechneAnker, zellKlick],
+    [drag, berechneAnker, platziereStueck],
   );
 
   const dragAbbrechen = useCallback(() => {
@@ -299,13 +315,14 @@ export default function WissensBloecke() {
   }, []);
 
   const vorschau = useMemo(() => {
-    if (phase !== "platzieren" || !aktuellesStueck || !aktiverAnker) return null;
-    const gueltig = passtAn(raster, aktuellesStueck.form, aktiverAnker.r, aktiverAnker.c);
+    const stueck = drag ? drag.stueck : phase === "platzieren" ? aktuellesStueck : null;
+    if (!stueck || !aktiverAnker) return null;
+    const gueltig = passtAn(raster, stueck.form, aktiverAnker.r, aktiverAnker.c);
     const zellen = new Set(
-      aktuellesStueck.form.zellen.map(([dr, dc]) => `${aktiverAnker.r + dr}-${aktiverAnker.c + dc}`),
+      stueck.form.zellen.map(([dr, dc]) => `${aktiverAnker.r + dr}-${aktiverAnker.c + dc}`),
     );
-    return { zellen, gueltig };
-  }, [phase, aktuellesStueck, aktiverAnker, raster]);
+    return { zellen, gueltig, farbe: stueck.farbe };
+  }, [phase, aktuellesStueck, aktiverAnker, raster, drag]);
 
   return (
     <div className="rounded-2xl border border-amber-200 bg-surface p-4 shadow-card-werkzeuge sm:p-5">
@@ -347,7 +364,7 @@ export default function WissensBloecke() {
         </div>
       ) : (
         <>
-          <div className="relative mx-auto" style={{ maxWidth: 360 }}>
+          <div className="relative mx-auto" style={{ maxWidth: 400 }}>
             {levelToast && (
               <motion.div
                 initial={{ opacity: 0, y: -10, scale: 0.7 }}
@@ -363,7 +380,7 @@ export default function WissensBloecke() {
               <div
                 ref={gridRef}
                 className="grid gap-1 rounded-xl border border-slate-200 bg-slate-50 p-2"
-                style={{ gridTemplateColumns: `repeat(${RASTER_GROESSE}, 1fr)` }}
+                style={{ gridTemplateColumns: `repeat(${RASTER_SPALTEN}, 1fr)` }}
                 onMouseLeave={() => !drag && setHoverAnker(null)}
               >
                 {raster.map((row, r) =>
@@ -374,7 +391,7 @@ export default function WissensBloecke() {
                     const previewHit = vorschau?.zellen.has(key) ?? false;
                     let hintergrund = "#e2e8f0";
                     if (zelle) hintergrund = zelle;
-                    else if (previewHit) hintergrund = vorschau?.gueltig ? `${aktuellesStueck?.farbe}cc` : "#f87171";
+                    else if (previewHit) hintergrund = vorschau?.gueltig ? `${vorschau.farbe}cc` : "#f87171";
                     return (
                       <motion.button
                         key={`${key}-${zelle ?? "leer"}`}
@@ -463,11 +480,20 @@ export default function WissensBloecke() {
                   transition={{ type: "spring", bounce: 0.4, duration: 0.45 }}
                   className="absolute inset-x-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center justify-center gap-3 rounded-xl bg-white/80 p-4 text-center shadow-2xl"
                 >
-                  <p className="text-sm font-semibold text-emerald-700">Richtig! Wähle dein Kästchen:</p>
+                  <p className="text-sm font-semibold text-emerald-700">Richtig! Ziehe dein Kästchen ins Raster:</p>
                   <div className="flex flex-wrap justify-center gap-3">
                     {auswahlOptionen.map((option, i) => (
-                      <motion.div key={i} whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.08, rotate: 3 }}>
-                        <FormVorschau form={option.form} farbe={option.farbe} onClick={() => formWaehlen(option)} />
+                      <motion.div
+                        key={i}
+                        whileHover={{ scale: 1.08, rotate: 3 }}
+                        style={{ opacity: drag?.stueck === option ? 0.3 : 1 }}
+                        className="inline-flex cursor-grab touch-none items-center justify-center rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm active:cursor-grabbing"
+                        onPointerDown={(e) => dragStarten(e, option)}
+                        onPointerMove={dragBewegen}
+                        onPointerUp={dragBeenden}
+                        onPointerCancel={dragAbbrechen}
+                      >
+                        <FormGitter form={option.form} farbe={option.farbe} />
                       </motion.div>
                     ))}
                   </div>
@@ -502,14 +528,14 @@ export default function WissensBloecke() {
             </AnimatePresence>
           </div>
 
-          {drag && aktuellesStueck && (
+          {drag && (
             <div
               className="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-1/2 drop-shadow-lg"
               style={{ left: drag.x, top: drag.y - drag.anhebung }}
             >
               <FormGitter
-                form={aktuellesStueck.form}
-                farbe={aktuellesStueck.farbe}
+                form={drag.stueck.form}
+                farbe={drag.stueck.farbe}
                 zellPixel={drag.zellGroesse}
                 gapClass="gap-1"
               />
@@ -529,7 +555,7 @@ export default function WissensBloecke() {
                 <div
                   className="inline-flex cursor-grab touch-none items-center justify-center rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm active:cursor-grabbing"
                   style={{ opacity: drag ? 0.3 : 1 }}
-                  onPointerDown={dragStarten}
+                  onPointerDown={(e) => dragStarten(e, aktuellesStueck)}
                   onPointerMove={dragBewegen}
                   onPointerUp={dragBeenden}
                   onPointerCancel={dragAbbrechen}
@@ -580,33 +606,5 @@ function FormGitter({
         );
       })}
     </div>
-  );
-}
-
-function FormVorschau({
-  form,
-  farbe,
-  onClick,
-}: {
-  form: Formteil;
-  farbe: string;
-  onClick?: () => void;
-}) {
-  const inhalt = <FormGitter form={form} farbe={farbe} />;
-  if (!onClick) {
-    return (
-      <div className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2.5">
-        {inhalt}
-      </div>
-    );
-  }
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md"
-    >
-      {inhalt}
-    </button>
   );
 }
