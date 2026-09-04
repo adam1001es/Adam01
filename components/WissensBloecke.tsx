@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion, useAnimation } from "framer-motion";
 import { RotateCcw, Trophy } from "lucide-react";
 import { SPIEL_FRAGEN, type SpielFrage } from "@/lib/spielFragen";
 import {
   type Formteil,
+  FARBPALETTE,
   dreiAuswahlFormen,
   formGroesse,
   zufallsFarbe,
@@ -80,7 +82,20 @@ export default function WissensBloecke() {
   const [ungueltigeZelle, setUngueltigeZelle] = useState<string | null>(null);
   const [hoverAnker, setHoverAnker] = useState<{ r: number; c: number } | null>(null);
   const [drag, setDrag] = useState<DragZustand | null>(null);
+  const [blitzZellen, setBlitzZellen] = useState<Set<string> | null>(null);
+  const [feierAktiv, setFeierAktiv] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
+  const schuettelControls = useAnimation();
+
+  const feierPartikel = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => ({
+        id: i,
+        winkel: (i / 10) * Math.PI * 2,
+        farbe: FARBPALETTE[i % FARBPALETTE.length],
+      })),
+    [],
+  );
 
   useEffect(() => {
     try {
@@ -106,6 +121,10 @@ export default function WissensBloecke() {
       setAktuellesStueck(kandidat);
       if (!findeGueltigenAnker(aktuellerRaster, kandidat.form)) {
         setPhase("ende");
+        schuettelControls.start({
+          x: [0, -10, 10, -8, 8, -4, 4, 0],
+          transition: { duration: 0.5 },
+        });
         setBestwert((bisher) => {
           if (score > bisher) {
             try {
@@ -121,7 +140,7 @@ export default function WissensBloecke() {
       }
       setPhase("platzieren");
     },
-    [score],
+    [score, schuettelControls],
   );
 
   const spielStarten = useCallback(() => {
@@ -164,27 +183,52 @@ export default function WissensBloecke() {
         return;
       }
 
+      const stueck = aktuellesStueck;
       const neu = raster.map((row) => row.slice());
-      for (const [dr, dc] of aktuellesStueck.form.zellen) {
-        neu[r + dr][c + dc] = aktuellesStueck.farbe;
+      for (const [dr, dc] of stueck.form.zellen) {
+        neu[r + dr][c + dc] = stueck.farbe;
       }
 
       const vollZeilen = [...Array(RASTER_GROESSE).keys()].filter((rr) => neu[rr].every((z) => z !== null));
       const vollSpalten = [...Array(RASTER_GROESSE).keys()].filter((cc) => neu.every((row) => row[cc] !== null));
-      vollZeilen.forEach((rr) => neu[rr].fill(null));
-      vollSpalten.forEach((cc) => neu.forEach((row) => (row[cc] = null)));
       const geloescht = vollZeilen.length + vollSpalten.length;
 
-      const neuerScore = score + aktuellesStueck.form.zellen.length + geloescht * 10;
+      const neuerScore = score + stueck.form.zellen.length + geloescht * 10;
       const neuesZeilenTotal = zeilenGeloescht + geloescht;
       const vorherigesLevel = Math.floor(zeilenGeloescht / ZEILEN_PRO_LEVEL);
       const neuesLevel = Math.floor(neuesZeilenTotal / ZEILEN_PRO_LEVEL);
 
+      // Zuerst das voll gefüllte Raster zeigen (die neu gesetzten Zellen "poppen" automatisch per
+      // Key-Wechsel im Rendering, siehe motion.button unten), dann kurz aufblitzen lassen, erst
+      // danach die volle(n) Zeile/Spalte wirklich leeren - das "juice" typischer
+      // Block-Puzzle-Spiele statt eines sofortigen, unbemerkten Verschwindens.
       setRaster(neu);
-      setScore(neuerScore);
-      setZeilenGeloescht(neuesZeilenTotal);
       setAktuellesStueck(null);
       setHoverAnker(null);
+      setScore(neuerScore);
+      setZeilenGeloescht(neuesZeilenTotal);
+
+      if (geloescht > 0) {
+        const zuLoeschen = new Set<string>();
+        vollZeilen.forEach((rr) => {
+          for (let cc = 0; cc < RASTER_GROESSE; cc++) zuLoeschen.add(`${rr}-${cc}`);
+        });
+        vollSpalten.forEach((cc) => {
+          for (let rr = 0; rr < RASTER_GROESSE; rr++) zuLoeschen.add(`${rr}-${cc}`);
+        });
+        setBlitzZellen(zuLoeschen);
+        setFeierAktiv(true);
+        setTimeout(() => setFeierAktiv(false), 700);
+        setTimeout(() => {
+          setRaster((aktuell) => {
+            const geleert = aktuell.map((row) => row.slice());
+            vollZeilen.forEach((rr) => geleert[rr].fill(null));
+            vollSpalten.forEach((cc) => geleert.forEach((row) => (row[cc] = null)));
+            return geleert;
+          });
+          setBlitzZellen(null);
+        }, 260);
+      }
 
       if (neuesLevel > vorherigesLevel) {
         setLevelToast(true);
@@ -254,7 +298,18 @@ export default function WissensBloecke() {
   return (
     <div className="rounded-2xl border border-amber-200 bg-surface p-4 shadow-card-werkzeuge sm:p-5">
       <div className="mb-3 flex items-center justify-between text-sm">
-        <span className="font-medium text-slate-600">Punkte: {score}</span>
+        <span className="font-medium text-slate-600">
+          Punkte:{" "}
+          <motion.span
+            key={score}
+            initial={{ scale: 1.5, color: "#10b981" }}
+            animate={{ scale: 1, color: "#475569" }}
+            transition={{ duration: 0.4 }}
+            className="inline-block font-semibold"
+          >
+            {score}
+          </motion.span>
+        </span>
         <span className="text-slate-500">Level {level}</span>
         <span className="flex items-center gap-1 text-amber-700">
           <Trophy size={14} /> Bestwert: {bestwert}
@@ -268,50 +323,171 @@ export default function WissensBloecke() {
             Beantworte die Frage, platziere dein Kästchen im Raster - eine volle Reihe oder Spalte
             löst sich auf. Kein Zeitdruck, du entscheidest in Ruhe.
           </p>
-          <button
+          <motion.button
+            whileTap={{ scale: 0.94 }}
+            whileHover={{ scale: 1.04 }}
             type="button"
             onClick={spielStarten}
             className="mt-4 rounded-lg bg-werkzeuge-gradient px-5 py-2.5 text-sm font-medium text-white shadow-card-werkzeuge"
           >
             Spiel starten
-          </button>
+          </motion.button>
         </div>
       ) : (
         <>
-          <div className="relative">
+          <div className="relative mx-auto" style={{ maxWidth: 360 }}>
             {levelToast && (
-              <div className="absolute inset-x-0 -top-2 z-10 mx-auto w-fit rounded-full bg-emerald-600 px-4 py-1 text-xs font-semibold text-white shadow-card">
-                Level {level} erreicht!
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.7 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.7 }}
+                className="absolute inset-x-0 -top-3 z-20 mx-auto w-fit rounded-full bg-emerald-600 px-4 py-1 text-xs font-semibold text-white shadow-card"
+              >
+                ✨ Level {level} erreicht! ✨
+              </motion.div>
             )}
-            <div
-              ref={gridRef}
-              className="mx-auto grid gap-1 rounded-xl border border-slate-200 bg-slate-50 p-2"
-              style={{ gridTemplateColumns: `repeat(${RASTER_GROESSE}, 1fr)`, maxWidth: 360 }}
-              onMouseLeave={() => !drag && setHoverAnker(null)}
-            >
-              {raster.map((row, r) =>
-                row.map((zelle, c) => {
-                  const key = `${r}-${c}`;
-                  const invalid = ungueltigeZelle === key;
-                  const previewHit = vorschau?.zellen.has(key) ?? false;
-                  let hintergrund = "#e2e8f0";
-                  if (zelle) hintergrund = zelle;
-                  else if (previewHit) hintergrund = vorschau?.gueltig ? "#86efac" : "#fecaca";
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      disabled={phase !== "platzieren"}
-                      onClick={() => zellKlick(r, c)}
-                      onMouseEnter={() => phase === "platzieren" && !drag && setHoverAnker({ r, c })}
-                      className={`aspect-square rounded-md transition-colors ${invalid ? "animate-pulse" : ""}`}
-                      style={{ backgroundColor: invalid ? "#fca5a5" : hintergrund }}
+
+            <motion.div animate={schuettelControls}>
+              <div
+                ref={gridRef}
+                className="grid gap-1 rounded-xl border border-slate-200 bg-slate-50 p-2"
+                style={{ gridTemplateColumns: `repeat(${RASTER_GROESSE}, 1fr)` }}
+                onMouseLeave={() => !drag && setHoverAnker(null)}
+              >
+                {raster.map((row, r) =>
+                  row.map((zelle, c) => {
+                    const key = `${r}-${c}`;
+                    const invalid = ungueltigeZelle === key;
+                    const blitz = blitzZellen?.has(key) ?? false;
+                    const previewHit = vorschau?.zellen.has(key) ?? false;
+                    let hintergrund = "#e2e8f0";
+                    if (zelle) hintergrund = zelle;
+                    else if (previewHit) hintergrund = vorschau?.gueltig ? "#86efac" : "#fecaca";
+                    return (
+                      <motion.button
+                        key={`${key}-${zelle ?? "leer"}`}
+                        initial={zelle ? { scale: 0.25, opacity: 0.3 } : false}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", bounce: 0.55, duration: 0.3 }}
+                        type="button"
+                        disabled={phase !== "platzieren"}
+                        onClick={() => zellKlick(r, c)}
+                        onMouseEnter={() => phase === "platzieren" && !drag && setHoverAnker({ r, c })}
+                        whileTap={phase === "platzieren" ? { scale: 0.88 } : undefined}
+                        className={`aspect-square rounded-md ${invalid ? "animate-pulse" : ""} ${
+                          blitz ? "ring-2 ring-white" : ""
+                        }`}
+                        style={{ backgroundColor: invalid ? "#fca5a5" : blitz ? "#ffffff" : hintergrund }}
+                      />
+                    );
+                  }),
+                )}
+              </div>
+            </motion.div>
+
+            <AnimatePresence>
+              {feierAktiv && (
+                <motion.div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center overflow-visible">
+                  {feierPartikel.map((p) => (
+                    <motion.span
+                      key={p.id}
+                      initial={{ x: 0, y: 0, opacity: 1, scale: 0.6 }}
+                      animate={{
+                        x: Math.cos(p.winkel) * 100,
+                        y: Math.sin(p.winkel) * 100,
+                        opacity: 0,
+                        scale: 1.3,
+                      }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      className="absolute h-3 w-3 rounded-full"
+                      style={{ backgroundColor: p.farbe }}
                     />
-                  );
-                }),
+                  ))}
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
+
+            <AnimatePresence mode="wait">
+              {phase === "frage" && frage && (
+                <motion.div
+                  key="frage"
+                  initial={{ opacity: 0, scale: 0.7, rotate: -4 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, scale: 0.7, rotate: 4 }}
+                  transition={{ type: "spring", bounce: 0.4, duration: 0.45 }}
+                  className="absolute inset-2 z-30 flex flex-col items-center justify-center gap-4 rounded-xl bg-white/95 p-5 text-center shadow-2xl backdrop-blur-sm"
+                >
+                  <p className="text-base font-semibold text-slate-800">{frage.text}</p>
+                  <div className="flex gap-4">
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      whileHover={{ scale: 1.06 }}
+                      type="button"
+                      onClick={() => antworten(true)}
+                      className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md"
+                    >
+                      Wahr
+                    </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      whileHover={{ scale: 1.06 }}
+                      type="button"
+                      onClick={() => antworten(false)}
+                      className="rounded-lg bg-rose-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md"
+                    >
+                      Falsch
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+
+              {phase === "waehlen" && (
+                <motion.div
+                  key="waehlen"
+                  initial={{ opacity: 0, scale: 0.7, rotate: 4 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, scale: 0.7, rotate: -4 }}
+                  transition={{ type: "spring", bounce: 0.4, duration: 0.45 }}
+                  className="absolute inset-2 z-30 flex flex-col items-center justify-center gap-3 rounded-xl bg-white/95 p-5 text-center shadow-2xl backdrop-blur-sm"
+                >
+                  <p className="text-sm font-semibold text-emerald-700">Richtig! Wähle dein Kästchen:</p>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {auswahlOptionen.map((option, i) => (
+                      <motion.div key={i} whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.08, rotate: 3 }}>
+                        <FormVorschau form={option.form} farbe={option.farbe} onClick={() => formWaehlen(option)} />
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {phase === "ende" && (
+                <motion.div
+                  key="ende"
+                  initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  exit={{ opacity: 0, scale: 0.7 }}
+                  transition={{ type: "spring", bounce: 0.45, duration: 0.5 }}
+                  className="absolute inset-2 z-30 flex flex-col items-center justify-center gap-3 rounded-xl bg-white/95 p-6 text-center shadow-2xl backdrop-blur-sm"
+                >
+                  <p className="font-display text-lg font-semibold text-slate-800">Kein Platz mehr!</p>
+                  <p className="text-sm text-slate-500">
+                    {score} {score === 1 ? "Punkt" : "Punkte"}
+                    {score >= bestwert && score > 0 ? " - neuer Bestwert!" : ""}
+                  </p>
+                  <motion.button
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.05 }}
+                    type="button"
+                    onClick={spielStarten}
+                    className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-werkzeuge-gradient px-5 py-2.5 text-sm font-medium text-white shadow-card-werkzeuge"
+                  >
+                    <RotateCcw size={14} /> Neues Spiel
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {drag && aktuellesStueck && (
@@ -323,42 +499,15 @@ export default function WissensBloecke() {
             </div>
           )}
 
-          <div className="mt-4">
-            {phase === "frage" && frage && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-center">
-                <p className="text-sm font-medium text-slate-700">{frage.text}</p>
-                <div className="mt-3 flex justify-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => antworten(true)}
-                    className="rounded-lg bg-emerald-600 px-6 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-700"
-                  >
-                    Wahr
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => antworten(false)}
-                    className="rounded-lg bg-rose-600 px-6 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-rose-700"
-                  >
-                    Falsch
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {phase === "waehlen" && (
-              <div className="text-center">
-                <p className="mb-2 text-sm font-medium text-emerald-700">Richtig! Wähle dein Kästchen:</p>
-                <div className="flex flex-wrap justify-center gap-3">
-                  {auswahlOptionen.map((option, i) => (
-                    <FormVorschau key={i} form={option.form} farbe={option.farbe} onClick={() => formWaehlen(option)} />
-                  ))}
-                </div>
-              </div>
-            )}
-
+          <AnimatePresence>
             {phase === "platzieren" && aktuellesStueck && (
-              <div className="text-center">
+              <motion.div
+                key="platzieren-hinweis"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+                className="mt-4 text-center"
+              >
                 <p className="mb-2 text-sm text-slate-500">Ziehe dein Kästchen ins Raster:</p>
                 <div
                   className="inline-flex cursor-grab touch-none items-center justify-center rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm active:cursor-grabbing"
@@ -370,26 +519,9 @@ export default function WissensBloecke() {
                 >
                   <FormGitter form={aktuellesStueck.form} farbe={aktuellesStueck.farbe} />
                 </div>
-              </div>
+              </motion.div>
             )}
-
-            {phase === "ende" && (
-              <div className="text-center">
-                <p className="font-display text-lg font-semibold text-slate-800">Kein Platz mehr!</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  {score} {score === 1 ? "Punkt" : "Punkte"}
-                  {score >= bestwert && score > 0 ? " - neuer Bestwert!" : ""}
-                </p>
-                <button
-                  type="button"
-                  onClick={spielStarten}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-werkzeuge-gradient px-5 py-2.5 text-sm font-medium text-white shadow-card-werkzeuge"
-                >
-                  <RotateCcw size={14} /> Neues Spiel
-                </button>
-              </div>
-            )}
-          </div>
+          </AnimatePresence>
         </>
       )}
 
