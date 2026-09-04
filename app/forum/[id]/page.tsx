@@ -9,6 +9,17 @@ import { FORUM_KATEGORIE_LABEL, ForumKategorie, FORUM_GESPERRT_FEHLERTEXT } from
 import ForumAntwortForm from "@/components/ForumAntwortForm";
 import ForumMeldenButton from "@/components/ForumMeldenButton";
 import EigenerBeitragLoeschenButton from "@/components/EigenerBeitragLoeschenButton";
+import AvatarKreis from "@/components/AvatarKreis";
+import { avatarAnzeige } from "@/lib/profil";
+import type { NutzerStatus } from "@/lib/status";
+
+const NUTZER_AVATAR_SELECT = {
+  username: true,
+  avatarFarbe: true,
+  avatarTextFarbe: true,
+  avatarKuerzel: true,
+  status: true,
+} as const;
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +38,11 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
   const thread = await prisma.forumThread.findUnique({
     where: { id: params.id },
     include: {
-      user: { select: { username: true } },
-      antworten: { include: { user: { select: { username: true } } }, orderBy: { createdAt: "asc" } },
+      user: { select: NUTZER_AVATAR_SELECT },
+      antworten: {
+        include: { user: { select: NUTZER_AVATAR_SELECT } },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
   if (!thread) notFound();
@@ -47,10 +61,19 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
           {FORUM_KATEGORIE_LABEL[thread.kategorie as ForumKategorie] ?? thread.kategorie}
         </span>
         <h1 className="mt-2 font-display text-2xl font-semibold text-slate-800">{thread.titel}</h1>
-        <p className="mt-1 text-xs text-slate-500">
-          <span dir="auto">{communityAutorLabel(thread.user)}</span> ·{" "}
-          {formatiereZeit(thread.createdAt)}
-        </p>
+        <div className="mt-1.5 flex items-center gap-2">
+          <AvatarKreis
+            anzeige={avatarAnzeige(thread.user.avatarKuerzel, thread.user.username)}
+            farbe={thread.user.avatarFarbe}
+            textFarbe={thread.user.avatarTextFarbe}
+            status={thread.user.status as NutzerStatus}
+            size={24}
+          />
+          <p className="text-xs text-slate-500">
+            <span dir="auto">{communityAutorLabel(thread.user)}</span> ·{" "}
+            {formatiereZeit(thread.createdAt)}
+          </p>
+        </div>
         <p className="mt-4 whitespace-pre-wrap break-words text-sm text-slate-700">
           {thread.inhalt}
         </p>
@@ -65,10 +88,19 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
       <div className="mt-6 space-y-3">
         {thread.antworten.map((a) => (
           <div key={a.id} className="rounded-xl border border-slate-200 bg-surface p-4 shadow-sm">
-            <p className="text-xs text-slate-500">
-              <span dir="auto">{communityAutorLabel(a.user)}</span> ·{" "}
-              {formatiereZeit(a.createdAt)}
-            </p>
+            <div className="flex items-center gap-2">
+              <AvatarKreis
+                anzeige={avatarAnzeige(a.user.avatarKuerzel, a.user.username)}
+                farbe={a.user.avatarFarbe}
+                textFarbe={a.user.avatarTextFarbe}
+                status={a.user.status as NutzerStatus}
+                size={22}
+              />
+              <p className="text-xs text-slate-500">
+                <span dir="auto">{communityAutorLabel(a.user)}</span> ·{" "}
+                {formatiereZeit(a.createdAt)}
+              </p>
+            </div>
             <p className="mt-1.5 whitespace-pre-wrap break-words text-sm text-slate-700">
               {a.inhalt}
             </p>

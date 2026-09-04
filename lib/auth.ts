@@ -17,6 +17,7 @@ export interface SessionUser {
   avatarFarbe: string;
   avatarTextFarbe: string;
   avatarKuerzel: string | null;
+  status: string;
   unterrichtsStufen: string[];
   forumGesperrt: boolean;
   createdAt: Date;
@@ -95,6 +96,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     avatarFarbe: session.user.avatarFarbe,
     avatarTextFarbe: session.user.avatarTextFarbe,
     avatarKuerzel: session.user.avatarKuerzel,
+    status: session.user.status,
     unterrichtsStufen: session.user.unterrichtsStufen,
     forumGesperrt: session.user.forumGesperrt,
     createdAt: session.user.createdAt,

@@ -18,6 +18,8 @@ import {
 import ThemeToggle from "./ThemeToggle";
 import SonnenuntergangAnzeige from "./SonnenuntergangAnzeige";
 import { avatarAnzeige } from "@/lib/profil";
+import type { NutzerStatus } from "@/lib/status";
+import AvatarKreis from "./AvatarKreis";
 
 function LogoMark() {
   return (
@@ -42,6 +44,7 @@ interface SiteHeaderUser {
   avatarFarbe: string;
   avatarTextFarbe: string;
   avatarKuerzel: string | null;
+  status: string;
 }
 
 export default function SiteHeader({
@@ -239,13 +242,13 @@ export default function SiteHeader({
                 aria-label="Profil"
                 className={navLinkClass(!!pathname?.startsWith("/account"))}
               >
-                <span
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-black/10 text-[9px] font-bold leading-none"
-                  style={{ backgroundColor: user.avatarFarbe, color: user.avatarTextFarbe }}
-                  dir="auto"
-                >
-                  {avatarAnzeige(user.avatarKuerzel, user.username)}
-                </span>
+                <AvatarKreis
+                  anzeige={avatarAnzeige(user.avatarKuerzel, user.username)}
+                  farbe={user.avatarFarbe}
+                  textFarbe={user.avatarTextFarbe}
+                  status={user.status as NutzerStatus}
+                  size={26}
+                />
                 <span className="hidden md:inline" dir="auto">
                   {user.username ?? user.email}
                 </span>

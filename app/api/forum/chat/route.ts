@@ -16,6 +16,7 @@ const CHAT_NUTZER_SELECT = {
   avatarFarbe: true,
   avatarTextFarbe: true,
   avatarKuerzel: true,
+  status: true,
 } as const;
 const CHAT_POLL_LIMIT = 200;
 const CHAT_INITIAL_LIMIT = 50;

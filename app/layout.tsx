@@ -85,6 +85,7 @@ export default async function RootLayout({
                   avatarFarbe: user.avatarFarbe,
                   avatarTextFarbe: user.avatarTextFarbe,
                   avatarKuerzel: user.avatarKuerzel,
+                  status: user.status,
                 }
               : null
           }

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Send, Trash2 } from "lucide-react";
 import { FORUM_GESPERRT_FEHLERTEXT } from "@/lib/forum";
 import { avatarAnzeige } from "@/lib/profil";
+import type { NutzerStatus } from "@/lib/status";
+import AvatarKreis from "@/components/AvatarKreis";
 
 interface ForumChatNachrichtDaten {
   id: string;
@@ -15,6 +17,7 @@ interface ForumChatNachrichtDaten {
     avatarFarbe: string;
     avatarTextFarbe: string;
     avatarKuerzel: string | null;
+    status: string;
   };
 }
 
@@ -39,6 +42,7 @@ export default function ForumChat({
       avatarFarbe: string;
       avatarTextFarbe: string;
       avatarKuerzel: string | null;
+      status: string;
     };
   }[];
   forumGesperrt: boolean;
@@ -128,13 +132,13 @@ export default function ForumChat({
         ) : (
           nachrichten.map((n) => (
             <div key={n.id} className="flex items-start gap-2.5">
-              <span
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-black/10 text-[10px] font-bold leading-none"
-                style={{ backgroundColor: n.user.avatarFarbe, color: n.user.avatarTextFarbe }}
-                dir="auto"
-              >
-                {avatarAnzeige(n.user.avatarKuerzel, n.user.username)}
-              </span>
+              <AvatarKreis
+                anzeige={avatarAnzeige(n.user.avatarKuerzel, n.user.username)}
+                farbe={n.user.avatarFarbe}
+                textFarbe={n.user.avatarTextFarbe}
+                status={n.user.status as NutzerStatus}
+                size={36}
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs font-semibold text-slate-700" dir="auto">

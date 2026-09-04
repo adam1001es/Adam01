@@ -28,7 +28,13 @@ export default async function ForumChatPage() {
     take: CHAT_INITIAL_LIMIT,
     include: {
       user: {
-        select: { username: true, avatarFarbe: true, avatarTextFarbe: true, avatarKuerzel: true },
+        select: {
+          username: true,
+          avatarFarbe: true,
+          avatarTextFarbe: true,
+          avatarKuerzel: true,
+          status: true,
+        },
       },
     },
   });

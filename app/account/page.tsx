@@ -6,6 +6,7 @@ import {
   MailCheck,
   AlertTriangle,
   Smile,
+  CircleDot,
   UserCircle,
   GraduationCap,
   BarChart3,
@@ -21,12 +22,15 @@ import { summeTokensFuerUser } from "@/lib/usageLog";
 import { prisma } from "@/lib/prisma";
 import { SCHULSTUFEN_CLUSTER } from "@/lib/curriculum";
 import { avatarAnzeige } from "@/lib/profil";
+import type { NutzerStatus } from "@/lib/status";
 import SectionCard from "@/components/SectionCard";
 import EinklappbareSectionCard from "@/components/EinklappbareSectionCard";
 import UsernameForm from "@/components/UsernameForm";
 import PasswordForm from "@/components/PasswordForm";
 import EmailForm from "@/components/EmailForm";
 import AvatarForm from "@/components/AvatarForm";
+import AvatarKreis from "@/components/AvatarKreis";
+import StatusForm from "@/components/StatusForm";
 import UnterrichtsprofilForm from "@/components/UnterrichtsprofilForm";
 import KontingentBanner from "@/components/KontingentBanner";
 
@@ -76,13 +80,13 @@ export default async function AccountPage({
   return (
     <main className="mx-auto max-w-lg">
       <div className="mb-6 flex items-center gap-4">
-        <span
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-black/10 text-lg font-bold shadow-card ring-2 ring-white"
-          style={{ backgroundColor: user.avatarFarbe, color: user.avatarTextFarbe }}
-          dir="auto"
-        >
-          {avatarAnzeige(user.avatarKuerzel, user.username)}
-        </span>
+        <AvatarKreis
+          anzeige={avatarAnzeige(user.avatarKuerzel, user.username)}
+          farbe={user.avatarFarbe}
+          textFarbe={user.avatarTextFarbe}
+          status={user.status as NutzerStatus}
+          size={56}
+        />
         <div>
           <h1 className="font-display text-2xl font-semibold text-slate-800" dir="auto">
             {user.username ?? "Profil"}
@@ -133,6 +137,14 @@ export default async function AccountPage({
             initialKuerzel={user.avatarKuerzel}
           />
         </EinklappbareSectionCard>
+
+        <SectionCard
+          icon={CircleDot}
+          title="Status"
+          subtitle="Zeigt anderen als Punkt an deinem Profilbild, ob du gerade verfügbar bist"
+        >
+          <StatusForm initialStatus={user.status as NutzerStatus} />
+        </SectionCard>
 
         <EinklappbareSectionCard
           icon={<GraduationCap size={18} strokeWidth={2} />}

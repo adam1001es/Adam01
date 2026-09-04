@@ -6,6 +6,9 @@ import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
 import { communityAutorLabel } from "@/lib/community";
 import { FORUM_KATEGORIEN, FORUM_KATEGORIE_LABEL, ForumKategorie } from "@/lib/forum";
+import { avatarAnzeige } from "@/lib/profil";
+import type { NutzerStatus } from "@/lib/status";
+import AvatarKreis from "@/components/AvatarKreis";
 
 export const dynamic = "force-dynamic";
 
@@ -43,7 +46,18 @@ export default async function ForumPage({
   const themen = await prisma.forumThread.findMany({
     where: kategorieFilter ? { kategorie: kategorieFilter } : {},
     orderBy: { createdAt: "desc" },
-    include: { user: { select: { username: true } }, _count: { select: { antworten: true } } },
+    include: {
+      user: {
+        select: {
+          username: true,
+          avatarFarbe: true,
+          avatarTextFarbe: true,
+          avatarKuerzel: true,
+          status: true,
+        },
+      },
+      _count: { select: { antworten: true } },
+    },
     take: 300,
   });
 
@@ -117,6 +131,13 @@ export default async function ForumPage({
                 href={`/forum/${t.id}`}
                 className="group flex items-center gap-3 rounded-xl border border-slate-200 bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-card-forum-hover sm:p-5"
               >
+                <AvatarKreis
+                  anzeige={avatarAnzeige(t.user.avatarKuerzel, t.user.username)}
+                  farbe={t.user.avatarFarbe}
+                  textFarbe={t.user.avatarTextFarbe}
+                  status={t.user.status as NutzerStatus}
+                  size={36}
+                />
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-display text-base font-semibold text-slate-800 group-hover:text-indigo-700">
                     {t.titel}
