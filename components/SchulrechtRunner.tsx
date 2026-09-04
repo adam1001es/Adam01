@@ -15,14 +15,16 @@ import { SPIEL_FRAGEN, type SpielFrage } from "@/lib/spielFragen";
 
 const BREITE = 380;
 const HOEHE = 520;
-const SCHWERKRAFT = 1100;
-const FLAP_IMPULS = -420;
+const RAND = 26; // Sicherheitszone oben/unten, sichtbar als eigene Zone gezeichnet
+const SCHWERKRAFT = 780;
+const FLAP_IMPULS = -300;
 const VOGEL_X = 90;
 const VOGEL_RADIUS = 16;
-const START_GESCHWINDIGKEIT = 150;
-const GESCHWINDIGKEIT_PRO_PUNKT = 6;
-const MAX_GESCHWINDIGKEIT = 320;
-const HINDERNIS_ABSTAND = 300;
+const START_GESCHWINDIGKEIT = 85;
+const GESCHWINDIGKEIT_PRO_PUNKT = 3;
+const MAX_GESCHWINDIGKEIT = 170;
+const HINDERNIS_ABSTAND = 420;
+const SPUR_LAENGE = 6;
 const HIGHSCORE_KEY = "lernwerk_spiel_highscore";
 
 interface Hindernis {
@@ -55,7 +57,9 @@ export default function SchulrechtRunner() {
     letzteFrageId: null as string | null,
     punkte: 0,
     flashFarbe: null as "richtig" | "falsch" | null,
-    flashBis: 0,
+    flashStart: 0,
+    flashDauer: 0,
+    spur: [] as number[],
   });
 
   useEffect(() => {
@@ -70,7 +74,7 @@ export default function SchulrechtRunner() {
 
   const spielStarten = useCallback(() => {
     const erstesHindernis: Hindernis = {
-      x: BREITE + 260,
+      x: BREITE + 340,
       frage: zufallsFrage(null),
       aufgeloest: false,
     };
@@ -83,7 +87,9 @@ export default function SchulrechtRunner() {
       letzteFrageId: erstesHindernis.frage.id,
       punkte: 0,
       flashFarbe: null,
-      flashBis: 0,
+      flashStart: 0,
+      flashDauer: 0,
+      spur: [],
     };
     setPunkte(0);
     setEndGrund(null);
@@ -166,7 +172,8 @@ export default function SchulrechtRunner() {
         const obenGewaehlt = s.vogelY < HOEHE / 2;
         const richtig = obenGewaehlt === h.frage.wahr;
         s.flashFarbe = richtig ? "richtig" : "falsch";
-        s.flashBis = jetzt + 220;
+        s.flashStart = jetzt;
+        s.flashDauer = 450;
         if (richtig) {
           s.punkte += 1;
           setPunkte(s.punkte);
@@ -179,47 +186,118 @@ export default function SchulrechtRunner() {
         }
       }
 
-      if (s.vogelY - VOGEL_RADIUS < 0 || s.vogelY + VOGEL_RADIUS > HOEHE) {
+      if (s.vogelY - VOGEL_RADIUS < RAND || s.vogelY + VOGEL_RADIUS > HOEHE - RAND) {
         cancelAnimationFrame(animationId);
         beenden("absturz");
         return;
       }
 
+      s.spur.push(s.vogelY);
+      if (s.spur.length > SPUR_LAENGE) s.spur.shift();
+
       // --- Zeichnen ---
-      const verlauf = ctx.createLinearGradient(0, 0, 0, HOEHE);
-      verlauf.addColorStop(0, "#fffbeb");
-      verlauf.addColorStop(1, "#fef3c7");
-      ctx.fillStyle = verlauf;
+      const himmel = ctx.createLinearGradient(0, 0, 0, HOEHE);
+      himmel.addColorStop(0, "#eef7f6");
+      himmel.addColorStop(0.55, "#fdf6ea");
+      himmel.addColorStop(1, "#fbead0");
+      ctx.fillStyle = himmel;
       ctx.fillRect(0, 0, BREITE, HOEHE);
 
-      ctx.setLineDash([6, 8]);
-      ctx.strokeStyle = "rgba(180, 83, 9, 0.25)";
+      // Decke/Boden - sichtbare Gefahrenzone statt unsichtbarer Kante
+      const gefahrverlauf = (y0: number, y1: number) => {
+        const g = ctx.createLinearGradient(0, y0, 0, y1);
+        g.addColorStop(0, "rgba(180, 83, 9, 0.22)");
+        g.addColorStop(1, "rgba(180, 83, 9, 0.02)");
+        return g;
+      };
+      ctx.fillStyle = gefahrverlauf(0, RAND);
+      ctx.fillRect(0, 0, BREITE, RAND);
+      ctx.save();
+      ctx.translate(0, HOEHE);
+      ctx.scale(1, -1);
+      ctx.fillStyle = gefahrverlauf(0, RAND);
+      ctx.fillRect(0, 0, BREITE, RAND);
+      ctx.restore();
+
+      ctx.setLineDash([5, 7]);
+      ctx.strokeStyle = "rgba(15, 118, 110, 0.25)";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(0, HOEHE / 2);
       ctx.lineTo(BREITE, HOEHE / 2);
       ctx.stroke();
       ctx.setLineDash([]);
 
+      const zeichnePille = (x: number, y: number, text: string, farbe: string) => {
+        ctx.font = "600 12px system-ui, sans-serif";
+        const breite = ctx.measureText(text).width + 16;
+        ctx.fillStyle = farbe;
+        ctx.beginPath();
+        ctx.roundRect(x - breite / 2, y - 11, breite, 22, 11);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, x, y + 1);
+      };
+
       for (const h of s.hindernisse) {
-        if (h.x < -20 || h.x > BREITE + 20) continue;
-        ctx.fillStyle = "rgba(16, 185, 129, 0.18)";
-        ctx.fillRect(h.x - 4, 0, 8, HOEHE / 2);
-        ctx.fillStyle = "rgba(225, 29, 72, 0.18)";
-        ctx.fillRect(h.x - 4, HOEHE / 2, 8, HOEHE / 2);
+        if (h.x < -30 || h.x > BREITE + 30) continue;
+        const naeheAlpha = Math.max(0.35, Math.min(1, 1 - (h.x - VOGEL_X) / 260));
+
+        ctx.fillStyle = `rgba(16, 185, 129, ${0.07 * naeheAlpha})`;
+        ctx.fillRect(h.x - 26, RAND, 52, HOEHE / 2 - RAND);
+        ctx.fillStyle = `rgba(225, 29, 72, ${0.08 * naeheAlpha})`;
+        ctx.fillRect(h.x - 26, HOEHE / 2, 52, HOEHE / 2 - RAND);
+
+        ctx.strokeStyle = `rgba(120, 53, 15, ${0.28 * naeheAlpha})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(h.x, RAND + 4);
+        ctx.lineTo(h.x, HOEHE - RAND - 4);
+        ctx.stroke();
+
+        ctx.globalAlpha = naeheAlpha;
+        zeichnePille(h.x, 50, "WAHR", "#10b981");
+        zeichnePille(h.x, HOEHE - 50, "FALSCH", "#e11d48");
+        ctx.globalAlpha = 1;
       }
 
-      ctx.font = "30px serif";
+      // Bewegungsspur des Vogels
+      for (let i = 0; i < s.spur.length - 1; i++) {
+        const alpha = ((i + 1) / s.spur.length) * 0.25;
+        const radius = VOGEL_RADIUS * 0.5 * ((i + 1) / s.spur.length);
+        ctx.fillStyle = `rgba(15, 118, 110, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(VOGEL_X - (s.spur.length - i) * 6, s.spur[i], radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Schlagschatten
+      ctx.fillStyle = "rgba(15, 23, 42, 0.12)";
+      ctx.beginPath();
+      ctx.ellipse(VOGEL_X + 3, s.vogelY + VOGEL_RADIUS + 5, VOGEL_RADIUS * 0.8, VOGEL_RADIUS * 0.3, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = "32px serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.save();
       ctx.translate(VOGEL_X, s.vogelY);
-      ctx.rotate(Math.max(-0.4, Math.min(0.9, s.vogelVy / 600)));
+      ctx.rotate(Math.max(-0.3, Math.min(0.6, s.vogelVy / 700)));
       ctx.fillText("📘", 0, 0);
       ctx.restore();
 
-      if (s.flashFarbe && jetzt < s.flashBis) {
-        ctx.fillStyle = s.flashFarbe === "richtig" ? "rgba(16,185,129,0.18)" : "rgba(225,29,72,0.22)";
-        ctx.fillRect(0, 0, BREITE, HOEHE);
+      if (s.flashFarbe) {
+        const verstrichen = jetzt - s.flashStart;
+        if (verstrichen < s.flashDauer) {
+          const alpha = 0.22 * (1 - verstrichen / s.flashDauer);
+          ctx.fillStyle =
+            s.flashFarbe === "richtig" ? `rgba(16,185,129,${alpha})` : `rgba(225,29,72,${alpha})`;
+          ctx.fillRect(0, 0, BREITE, HOEHE);
+        } else {
+          s.flashFarbe = null;
+        }
       }
 
       animationId = requestAnimationFrame(frame);
