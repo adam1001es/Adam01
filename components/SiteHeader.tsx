@@ -52,6 +52,7 @@ export default function SiteHeader({
   user,
   hijriDatum,
   offeneWissensEntwuerfe,
+  neueRegistrierungen,
 }: {
   user: SiteHeaderUser | null;
   /** Heutiges Hijri-Datum (z.B. "17. Rabi al-Awwal 1448 n. H.") - immer sichtbar, unabhängig
@@ -62,6 +63,11 @@ export default function SiteHeader({
   /** Nur für role "admin" gesetzt (siehe app/layout.tsx) - Anzahl ungeprüfter Wissensbasis-
    * Entwürfe als Badge am Nav-Eintrag, analog zu den ungesichteten Meldungen. */
   offeneWissensEntwuerfe?: number;
+  /** Nur für role "admin" gesetzt (siehe app/layout.tsx) - Anzahl Registrierungen seit dem
+   * letzten Besuch von app/admin (siehe User.letzteKontenAnsicht). Als reiner Punkt statt Zahl
+   * dargestellt (siehe unten), damit er auch auf Mobile sichtbar bleibt, wo die Textbeschriftung
+   * der Nav-Icons ausgeblendet ist. */
+  neueRegistrierungen?: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -266,14 +272,27 @@ export default function SiteHeader({
                 </Link>
                 <Link
                   href="/admin"
-                  className={navLinkClass(
-                    !!pathname?.startsWith("/admin") &&
-                      !pathname?.startsWith("/admin/wissensbasis") &&
-                      !pathname?.startsWith("/admin/vorfall-datenbank"),
-                  )}
+                  title={
+                    neueRegistrierungen
+                      ? `${neueRegistrierungen} neue Registrierung${neueRegistrierungen === 1 ? "" : "en"}`
+                      : undefined
+                  }
+                  className={
+                    navLinkClass(
+                      !!pathname?.startsWith("/admin") &&
+                        !pathname?.startsWith("/admin/wissensbasis") &&
+                        !pathname?.startsWith("/admin/vorfall-datenbank"),
+                    ) + " relative"
+                  }
                 >
                   <ShieldCheck size={16} strokeWidth={2.25} />
                   <span className="hidden sm:inline">Admin</span>
+                  {!!neueRegistrierungen && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-surface"
+                    />
+                  )}
                 </Link>
                 {/* Rein persönliche Lernressource für den Betreiber (Rückblick auf den DB-Vorfall
                     vom 3./4. September 2026, siehe components/VorfallDatenbankErklaerung.tsx) -

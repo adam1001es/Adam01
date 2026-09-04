@@ -14,6 +14,10 @@ export default async function AdminPage() {
   if (!admin) redirect("/login");
   if (admin.role !== "admin") redirect("/");
 
+  // Löscht den Neu-Registrierungen-Punkt am Admin-Icon im Header (siehe SiteHeader.tsx) - diese
+  // Seite ("Konten verwalten") ist der Ort, an dem der Admin neue Konten tatsächlich sieht.
+  await prisma.user.update({ where: { id: admin.id }, data: { letzteKontenAnsicht: new Date() } });
+
   const users = await prisma.user.findMany({ orderBy: { createdAt: "asc" } });
 
   const rows: AdminUserRow[] = await Promise.all(

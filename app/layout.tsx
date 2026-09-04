@@ -59,6 +59,12 @@ export default async function RootLayout({
     user?.role === "admin"
       ? await prisma.wissensEintrag.count({ where: { status: "entwurf" } })
       : undefined;
+  // Neue Registrierungen seit dem letzten Besuch von app/admin - siehe User.letzteKontenAnsicht
+  // im Prisma-Schema, als kleiner Punkt am Admin-Icon (siehe SiteHeader.tsx).
+  const neueRegistrierungen =
+    user?.role === "admin"
+      ? await prisma.user.count({ where: { createdAt: { gt: user.letzteKontenAnsicht } } })
+      : undefined;
 
   return (
     <html lang="de" className={`${display.variable} ${sans.variable}`}>
@@ -75,6 +81,7 @@ export default async function RootLayout({
         <SiteHeader
           hijriDatum={hijriDatum}
           offeneWissensEntwuerfe={offeneWissensEntwuerfe}
+          neueRegistrierungen={neueRegistrierungen}
           user={
             user
               ? {

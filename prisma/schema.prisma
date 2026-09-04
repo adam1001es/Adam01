@@ -147,6 +147,12 @@ model User {
   // wie tierGueltigVon/Bis - eine Forum-Sperre ist eine bewusste manuelle Admin-Entscheidung ohne
   // automatisches Ablaufdatum, das Aufheben ebenso.
   forumGesperrt Boolean @default(false)
+  // Zeitpunkt, seit dem der Admin die Konten-Liste (app/admin) zuletzt angesehen hat - Basis für
+  // den Neu-Registrierungen-Punkt am Admin-Icon im Header (siehe SiteHeader.tsx). Nur für
+  // role "admin" gepflegt/relevant, wird bei jedem Aufruf von app/admin/page.tsx aktualisiert.
+  // @default(now()) sorgt dafür, dass bestehende Konten bei der Migration NICHT sofort als
+  // "neue Registrierung" für den Admin aufscheinen (siehe migration.sql-Backfill).
+  letzteKontenAnsicht DateTime @default(now())
   createdAt    DateTime @default(now()) // Anker für den rollierenden 30-Tage-Kontingent-Zyklus
   sessions     Session[]
   worksheets   Worksheet[]
