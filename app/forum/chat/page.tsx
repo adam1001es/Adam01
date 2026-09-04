@@ -4,6 +4,7 @@ import { ArrowLeft, MessageCircle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
+import { CHAT_AUFBEWAHRUNG_TAGE, chatStichtag } from "@/lib/forum";
 import ForumChat from "@/components/ForumChat";
 
 export const dynamic = "force-dynamic";
@@ -11,11 +12,16 @@ export const dynamic = "force-dynamic";
 const CHAT_INITIAL_LIMIT = 50;
 
 /** Live-Chat des Forums - lädt die letzten CHAT_INITIAL_LIMIT Nachrichten serverseitig, das
- * Polling danach übernimmt components/ForumChat.tsx (siehe app/api/forum/chat/route.ts). */
+ * Polling danach übernimmt components/ForumChat.tsx (siehe app/api/forum/chat/route.ts).
+ * Bereinigt bei jedem Seitenaufruf beiläufig abgelaufene Nachrichten (siehe
+ * CHAT_AUFBEWAHRUNG_TAGE in lib/forum.ts) - kein Cron-Job nötig für diesen informellen,
+ * kurzlebigen Chat. */
 export default async function ForumChatPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
   if (!istZahlendesKonto(user)) redirect("/forum");
+
+  await prisma.forumChatNachricht.deleteMany({ where: { createdAt: { lt: chatStichtag() } } });
 
   const letzteNachrichten = await prisma.forumChatNachricht.findMany({
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
@@ -35,12 +41,17 @@ export default async function ForumChatPage() {
       >
         <ArrowLeft size={15} /> Zurück zum Forum
       </Link>
-      <h1 className="mb-4 flex items-center gap-2.5 font-display text-2xl font-semibold text-slate-800">
+      <h1 className="mb-1 flex items-center gap-2.5 font-display text-2xl font-semibold text-slate-800">
         <MessageCircle size={22} strokeWidth={2} /> Chat
       </h1>
+      <p className="mb-4 text-xs text-slate-400">
+        Nachrichten werden nach {CHAT_AUFBEWAHRUNG_TAGE} Tagen automatisch gelöscht - für den
+        schnellen Austausch, kein Archiv.
+      </p>
       <ForumChat
         initialMessages={letzteNachrichten.reverse()}
         forumGesperrt={user.forumGesperrt}
+        currentUserId={user.id}
       />
     </main>
   );

@@ -8,6 +8,7 @@ import {
   FORUM_GESPERRT_FEHLERTEXT,
   FORUM_VERBOTENER_INHALT_FEHLERTEXT,
   enthaeltVerbotenesWort,
+  chatStichtag,
 } from "@/lib/forum";
 
 const CHAT_NUTZER_SELECT = {
@@ -91,6 +92,13 @@ export async function POST(request: NextRequest) {
     data: { userId: user.id, inhalt: parsed.data.inhalt },
     include: { user: { select: CHAT_NUTZER_SELECT } },
   });
+
+  // Beiläufige Bereinigung abgelaufener Nachrichten beim Senden (siehe CHAT_AUFBEWAHRUNG_TAGE in
+  // lib/forum.ts) - zusätzlich zur Bereinigung beim Laden der Chat-Seite (app/forum/chat/
+  // page.tsx), damit auch Nutzer:innen, die nur senden statt die Seite neu zu laden, zur
+  // Bereinigung beitragen. Bewusst NICHT im GET-Polling-Handler oben (läuft alle 4s pro offenem
+  // Tab - zu häufig für eine deleteMany-Query).
+  await prisma.forumChatNachricht.deleteMany({ where: { createdAt: { lt: chatStichtag() } } });
 
   return NextResponse.json({ nachricht });
 }

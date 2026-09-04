@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
 import { FORUM_GESPERRT_FEHLERTEXT } from "@/lib/forum";
 import { avatarAnzeige } from "@/lib/profil";
 
 interface ForumChatNachrichtDaten {
   id: string;
+  userId: string;
   inhalt: string;
   createdAt: string;
   user: {
@@ -26,19 +27,23 @@ const POLL_INTERVALL_MS = 4000;
 export default function ForumChat({
   initialMessages,
   forumGesperrt,
+  currentUserId,
 }: {
   initialMessages: {
     id: string;
+    userId: string;
     inhalt: string;
     createdAt: Date;
     user: {
-    username: string | null;
-    avatarFarbe: string;
-    avatarTextFarbe: string;
-    avatarKuerzel: string | null;
-  };
+      username: string | null;
+      avatarFarbe: string;
+      avatarTextFarbe: string;
+      avatarKuerzel: string | null;
+    };
   }[];
   forumGesperrt: boolean;
+  /** Eigene Nachrichten bekommen einen Lösch-Button (siehe unten) - Vergleich gegen n.userId. */
+  currentUserId: string;
 }) {
   const [nachrichten, setNachrichten] = useState<ForumChatNachrichtDaten[]>(() =>
     initialMessages.map((m) => ({ ...m, createdAt: new Date(m.createdAt).toISOString() })),
@@ -102,6 +107,17 @@ export default function ForumChat({
     }
   }
 
+  async function loeschen(id: string) {
+    if (!window.confirm("Diese Nachricht wirklich löschen?")) return;
+    const res = await fetch(`/api/forum/chat/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setNachrichten((bisherige) => bisherige.filter((n) => n.id !== id));
+    } else {
+      const data = await res.json().catch(() => ({}));
+      window.alert(data.error ?? "Löschen fehlgeschlagen.");
+    }
+  }
+
   return (
     <div className="flex h-[32rem] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-surface shadow-card">
       <div ref={listeRef} className="flex-1 space-y-3 overflow-y-auto p-4">
@@ -119,7 +135,7 @@ export default function ForumChat({
               >
                 {avatarAnzeige(n.user.avatarKuerzel, n.user.username)}
               </span>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2">
                   <span className="text-xs font-semibold text-slate-700" dir="auto">
                     {n.user.username ?? "Eine Lehrkraft"}
@@ -130,6 +146,17 @@ export default function ForumChat({
                       minute: "2-digit",
                     })}
                   </span>
+                  {n.userId === currentUserId && (
+                    <button
+                      type="button"
+                      onClick={() => loeschen(n.id)}
+                      title="Nachricht löschen"
+                      aria-label="Nachricht löschen"
+                      className="text-slate-300 transition hover:text-red-600"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
                 </div>
                 <p className="whitespace-pre-wrap break-words text-sm text-slate-700">
                   {n.inhalt}

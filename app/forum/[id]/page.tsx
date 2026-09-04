@@ -8,6 +8,7 @@ import { communityAutorLabel } from "@/lib/community";
 import { FORUM_KATEGORIE_LABEL, ForumKategorie, FORUM_GESPERRT_FEHLERTEXT } from "@/lib/forum";
 import ForumAntwortForm from "@/components/ForumAntwortForm";
 import ForumMeldenButton from "@/components/ForumMeldenButton";
+import EigenerBeitragLoeschenButton from "@/components/EigenerBeitragLoeschenButton";
 
 export const dynamic = "force-dynamic";
 
@@ -53,8 +54,11 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
         <p className="mt-4 whitespace-pre-wrap break-words text-sm text-slate-700">
           {thread.inhalt}
         </p>
-        <div className="mt-4">
+        <div className="mt-4 flex items-center gap-4">
           <ForumMeldenButton zielTyp="thread" zielId={thread.id} />
+          {thread.userId === user.id && (
+            <EigenerBeitragLoeschenButton typ="thread" id={thread.id} nachLoeschenZu="/forum" />
+          )}
         </div>
       </div>
 
@@ -68,8 +72,11 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
             <p className="mt-1.5 whitespace-pre-wrap break-words text-sm text-slate-700">
               {a.inhalt}
             </p>
-            <div className="mt-2">
+            <div className="mt-2 flex items-center gap-4">
               <ForumMeldenButton zielTyp="antwort" zielId={a.id} />
+              {a.userId === user.id && (
+                <EigenerBeitragLoeschenButton typ="antwort" id={a.id} />
+              )}
             </div>
           </div>
         ))}
