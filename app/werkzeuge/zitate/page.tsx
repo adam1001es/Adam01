@@ -5,6 +5,8 @@ import { getSessionUser } from "@/lib/auth";
 import { alleGeprüftenZitate, ermittleZitatQuellenart, ermittleHadithSammlung, kuerzeZitatVorschau } from "@/lib/wissensbasis";
 import { THEMENBEREICHE, THEMENBEREICH_KEYS, ThemenbereichKey } from "@/lib/curriculum";
 import { inputClass } from "@/lib/formStyles";
+import { holeAlleSuren } from "@/lib/quranApi";
+import KoranDurchsuchen from "@/components/KoranDurchsuchen";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +33,10 @@ export default async function ZitateBibliothekPage({
     : null;
   const sucheFilter = searchParams.suche?.trim().toLowerCase() || null;
 
+  // Fehlschlag beim Abruf der Suren-Liste (Netzwerk/Rate-Limit, siehe lib/quranApi.ts) darf die
+  // restliche Seite (Hadith-Bibliothek) nicht mitreißen - dann fehlt eben nur der
+  // "Koran durchsuchen"-Block.
+  const suren = await holeAlleSuren().catch(() => []);
   const alle = await alleGeprüftenZitate();
   const gefiltert = alle.filter((z) => {
     if (themenbereichFilter && z.themenbereich !== themenbereichFilter) return false;
@@ -56,8 +62,23 @@ export default async function ZitateBibliothekPage({
         <BookMarked size={24} strokeWidth={2} /> Koran- & Hadith-Bibliothek
       </h1>
       <p className="mt-1.5 text-sm text-slate-500">
-        Alle bereits geprüften Zitate aus der Wissensbasis - durchsuchbar, unabhängig von der
+        Der komplette Koran zum direkten Nachschlagen, plus bereits admin-geprüfte Zitate
+        (v.a. Hadithe) aus der Wissensbasis - beides durchsuchbar, unabhängig von der
         Arbeitsblatt-Erstellung.
+      </p>
+
+      {suren.length > 0 && (
+        <div className="mt-5">
+          <KoranDurchsuchen suren={suren} />
+        </div>
+      )}
+
+      <h2 className="mb-1 mt-8 font-display text-lg font-semibold text-slate-800">
+        Geprüfte Zitate
+      </h2>
+      <p className="mb-2 text-xs text-slate-500">
+        Von der Admin-Redaktion freigegebene Zitate mit Zuordnung zu einer Grundkompetenz - aktuell
+        vor allem Hadithe.
       </p>
 
       <details open={filterAktiv} className="group mt-5">
