@@ -197,34 +197,23 @@ export default function SiteHeader({
             </Link>
           )}
           {user ? (
-            <>
-              <Link
-                href="/account"
-                title="Profil"
-                aria-label="Profil"
-                className={navLinkClass(!!pathname?.startsWith("/account"))}
-              >
-                <AvatarKreis
-                  anzeige={avatarAnzeige(user.avatarKuerzel, user.username)}
-                  farbe={user.avatarFarbe}
-                  textFarbe={user.avatarTextFarbe}
-                  status={user.status as NutzerStatus}
-                  size={26}
-                />
-                <span className="hidden md:inline" dir="auto">
-                  {user.username ?? user.email}
-                </span>
-              </Link>
-              <button
-                type="button"
-                onClick={handleLogout}
-                title="Abmelden"
-                aria-label="Abmelden"
-                className="flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium text-slate-500 transition active:scale-95 sm:px-3.5 hover:bg-red-50 hover:text-red-600"
-              >
-                <LogOut size={16} strokeWidth={2.25} />
-              </button>
-            </>
+            <Link
+              href="/account"
+              title="Profil"
+              aria-label="Profil"
+              className={navLinkClass(!!pathname?.startsWith("/account"))}
+            >
+              <AvatarKreis
+                anzeige={avatarAnzeige(user.avatarKuerzel, user.username)}
+                farbe={user.avatarFarbe}
+                textFarbe={user.avatarTextFarbe}
+                status={user.status as NutzerStatus}
+                size={26}
+              />
+              <span className="hidden md:inline" dir="auto">
+                {user.username ?? user.email}
+              </span>
+            </Link>
           ) : (
             <Link
               href="/login"
@@ -235,9 +224,12 @@ export default function SiteHeader({
           )}
           {/* Admin-Bereich klar vom normalen Nutzer-Menü abgesetzt (eigener Wunsch des Betreibers,
               der als einziges Admin-Konto sonst nicht auf Anhieb sieht, welche Punkte nur er
-              sieht) - bewusst NACH Profil/Abmelden statt davor, damit er auf Mobile konsequent
-              als letzte Gruppe ganz unten landet. Statt einer Textbeschriftung ("Admin") und
-              grauer Füllung nur ein dünner roter Rahmen als dezenter, aber eindeutiger Hinweis. */}
+              sieht) - bewusst NACH Profil statt davor, damit er auf Mobile konsequent als letzte
+              Gruppe ganz unten landet. "Abmelden" steht bewusst NACH der Admin-Gruppe (nicht
+              davor), damit es wirklich der letzte Menüpunkt ganz am Ende bleibt statt zwischen
+              Profil und Admin-Gruppe eingeklemmt zu sein. Statt einer Textbeschriftung ("Admin")
+              und grauer Füllung nur ein dünner roter Rahmen als dezenter, aber eindeutiger
+              Hinweis. */}
           {user?.role === "admin" && (
             <>
               <span aria-hidden="true" className="mx-1 hidden h-7 w-px shrink-0 self-stretch bg-slate-300 sm:block" />
@@ -277,6 +269,17 @@ export default function SiteHeader({
                 </Link>
               </div>
             </>
+          )}
+          {user && (
+            <button
+              type="button"
+              onClick={handleLogout}
+              title="Abmelden"
+              aria-label="Abmelden"
+              className="flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium text-slate-500 transition active:scale-95 sm:px-3.5 hover:bg-red-50 hover:text-red-600"
+            >
+              <LogOut size={16} strokeWidth={2.25} />
+            </button>
           )}
         </nav>
       </div>
