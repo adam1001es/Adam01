@@ -16,4 +16,9 @@ describe("avatarInitialen", () => {
   it("fällt auf 'LK' zurück, wenn kein Benutzername gesetzt ist", () => {
     expect(avatarInitialen(null)).toBe("LK");
   });
+
+  it("funktioniert auch mit arabischen Benutzernamen (keine Groß-/Kleinschreibung)", () => {
+    expect(avatarInitialen("محمد.علي")).toBe("مع");
+    expect(avatarInitialen("أحمد")).toBe("أح");
+  });
 });

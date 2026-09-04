@@ -208,7 +208,9 @@ export default async function CommunityPage({
                         {istEigenes ? (
                           <span className="font-medium text-gold-700">Von dir</span>
                         ) : (
-                          <span>von {communityAutorLabel(w.user ?? { username: null })}</span>
+                          <span>
+                            von <span dir="auto">{communityAutorLabel(w.user ?? { username: null })}</span>
+                          </span>
                         )}
                       </div>
                     </div>

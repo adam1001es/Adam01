@@ -4,17 +4,19 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
-// Buchstaben (Groß-/Kleinschreibung erlaubt, damit man seinen Namen z.B. "AhmadY" statt
-// zwingend "ahmady" schreiben kann), Ziffern, Punkt, Bindestrich, Unterstrich. Der Login (siehe
-// app/api/auth/login) vergleicht Benutzernamen case-insensitive, damit die Groß-/Kleinschreibung
-// beim Einloggen keine Rolle spielt.
+// Lateinische UND arabische Buchstaben (Groß-/Kleinschreibung bei lateinischen erlaubt, damit man
+// seinen Namen z.B. "AhmadY" statt zwingend "ahmady" schreiben kann - Arabisch kennt keine
+// Groß-/Kleinschreibung), Ziffern, Punkt, Bindestrich, Unterstrich. ؀-ۿ (arabischer
+// Grundblock) plus ݐ-ݿ (Arabic Supplement, u.a. für Urdu/Persisch genutzte
+// Zusatzbuchstaben). Der Login (siehe app/api/auth/login) vergleicht Benutzernamen
+// case-insensitive, damit die Groß-/Kleinschreibung beim Einloggen keine Rolle spielt.
 const BodySchema = z.object({
   username: z
     .string()
     .trim()
     .regex(
-      /^[A-Za-z0-9._-]{3,20}$/,
-      "3-20 Zeichen: Buchstaben, Ziffern, Punkt, Bindestrich, Unterstrich.",
+      /^[A-Za-z0-9._؀-ۿݐ-ݿ-]{3,20}$/,
+      "3-20 Zeichen: lateinische oder arabische Buchstaben, Ziffern, Punkt, Bindestrich, Unterstrich.",
     ),
 });
 

@@ -83,7 +83,7 @@ export default async function AccountPage({
           {avatarInitialen(user.username)}
         </span>
         <div>
-          <h1 className="font-display text-2xl font-semibold text-slate-800">
+          <h1 className="font-display text-2xl font-semibold text-slate-800" dir="auto">
             {user.username ?? "Profil"}
           </h1>
           <p className="text-sm text-slate-500">

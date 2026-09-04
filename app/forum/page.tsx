@@ -123,7 +123,9 @@ export default async function ForumPage({
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                     <span>{FORUM_KATEGORIE_LABEL[t.kategorie as ForumKategorie] ?? t.kategorie}</span>
-                    <span>von {communityAutorLabel(t.user)}</span>
+                    <span>
+                      von <span dir="auto">{communityAutorLabel(t.user)}</span>
+                    </span>
                   </div>
                 </div>
                 <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200">

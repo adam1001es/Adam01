@@ -110,7 +110,7 @@ export default function ForumChat({
               </span>
               <div className="min-w-0">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-semibold text-slate-700" dir="auto">
                     {n.user.username ?? "Eine Lehrkraft"}
                   </span>
                   <span className="text-[11px] text-slate-400">

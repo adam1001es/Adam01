@@ -47,7 +47,8 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
         </span>
         <h1 className="mt-2 font-display text-2xl font-semibold text-slate-800">{thread.titel}</h1>
         <p className="mt-1 text-xs text-slate-500">
-          {communityAutorLabel(thread.user)} · {formatiereZeit(thread.createdAt)}
+          <span dir="auto">{communityAutorLabel(thread.user)}</span> ·{" "}
+          {formatiereZeit(thread.createdAt)}
         </p>
         <p className="mt-4 whitespace-pre-wrap break-words text-sm text-slate-700">
           {thread.inhalt}
@@ -61,7 +62,8 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
         {thread.antworten.map((a) => (
           <div key={a.id} className="rounded-xl border border-slate-200 bg-surface p-4 shadow-sm">
             <p className="text-xs text-slate-500">
-              {communityAutorLabel(a.user)} · {formatiereZeit(a.createdAt)}
+              <span dir="auto">{communityAutorLabel(a.user)}</span> ·{" "}
+              {formatiereZeit(a.createdAt)}
             </p>
             <p className="mt-1.5 whitespace-pre-wrap break-words text-sm text-slate-700">
               {a.inhalt}

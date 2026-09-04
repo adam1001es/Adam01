@@ -103,7 +103,8 @@ export default async function AdminMeldungenPage() {
                       )}
                     </p>
                     <p className="mt-0.5 text-xs text-slate-500">
-                      {m.user.username ?? m.user.email} · {m.createdAt.toLocaleDateString("de-AT")}{" "}
+                      <span dir="auto">{m.user.username ?? m.user.email}</span> ·{" "}
+                      {m.createdAt.toLocaleDateString("de-AT")}{" "}
                       {m.createdAt.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>

@@ -98,8 +98,8 @@ export default async function WorksheetPage({ params }: { params: { id: string }
       {!istBesitzer && (
         <div className="no-print mb-5 flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 p-3.5 text-sm text-brand-800">
           <Users size={16} className="shrink-0" />
-          Geteilt von {communityAutorLabel(worksheet.user!)} - nicht dein eigenes Arbeitsblatt,
-          daher nicht bearbeitbar.
+          Geteilt von <span dir="auto">{communityAutorLabel(worksheet.user!)}</span> - nicht dein
+          eigenes Arbeitsblatt, daher nicht bearbeitbar.
         </div>
       )}
 

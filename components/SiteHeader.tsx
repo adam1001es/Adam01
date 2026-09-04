@@ -244,7 +244,9 @@ export default function SiteHeader({
                 >
                   {avatarInitialen(user.username)}
                 </span>
-                <span className="hidden md:inline">{user.username ?? user.email}</span>
+                <span className="hidden md:inline" dir="auto">
+                  {user.username ?? user.email}
+                </span>
               </Link>
               <button
                 type="button"

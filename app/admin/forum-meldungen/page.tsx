@@ -86,13 +86,15 @@ export default async function AdminForumMeldungenPage() {
                       {ZIEL_TYP_LABEL[m.zielTyp] ?? m.zielTyp}
                     </span>
                     <p className="mt-0.5 text-xs text-slate-500">
-                      Gemeldet von {m.user.username ?? m.user.email} ·{" "}
+                      Gemeldet von <span dir="auto">{m.user.username ?? m.user.email}</span> ·{" "}
                       {m.createdAt.toLocaleDateString("de-AT")}{" "}
                       {m.createdAt.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })}
                     </p>
                     <p className="mt-0.5 text-xs text-slate-500">
                       Autor:in des Beitrags:{" "}
-                      {gemeldeterUser?.username ?? gemeldeterUser?.email ?? "Konto gelöscht"}
+                      <span dir="auto">
+                        {gemeldeterUser?.username ?? gemeldeterUser?.email ?? "Konto gelöscht"}
+                      </span>
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
