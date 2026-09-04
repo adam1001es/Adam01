@@ -196,43 +196,53 @@ export default function SiteHeader({
               {!user.istZahlend && <Lock size={11} strokeWidth={2.5} className="opacity-60" />}
             </Link>
           )}
+          {/* Admin-Bereich klar vom normalen Nutzer-Menü abgesetzt (eigener Wunsch des Betreibers,
+              der als einziges Admin-Konto sonst nicht auf Anhieb sieht, welche Punkte nur er
+              sieht): eigene, dezent getönte Gruppe mit "Admin"-Beschriftung, per Trennstrich vom
+              übrigen Menü abgegrenzt statt einfach lose dazwischen zu hängen. Auf Mobile bricht die
+              Gruppe bewusst in eine eigene Zeile (statt sich per flex-wrap irgendwo einzureihen). */}
           {user?.role === "admin" && (
-            <Link
-              href="/admin/wissensbasis"
-              className={navLinkClassWissen(!!pathname?.startsWith("/admin/wissensbasis"))}
-            >
-              <BookMarked size={16} strokeWidth={2.25} />
-              <span className="hidden sm:inline">
-                Wissensbasis{offeneWissensEntwuerfe ? ` (${offeneWissensEntwuerfe})` : ""}
-              </span>
-            </Link>
-          )}
-          {user?.role === "admin" && (
-            <Link
-              href="/admin"
-              className={navLinkClass(
-                !!pathname?.startsWith("/admin") &&
-                  !pathname?.startsWith("/admin/wissensbasis") &&
-                  !pathname?.startsWith("/admin/vorfall-datenbank"),
-              )}
-            >
-              <ShieldCheck size={16} strokeWidth={2.25} />
-              <span className="hidden sm:inline">Admin</span>
-            </Link>
-          )}
-          {/* Rein persönliche Lernressource für den Betreiber (Rückblick auf den DB-Vorfall vom
-              3./4. September 2026, siehe components/VorfallDatenbankErklaerung.tsx) - deshalb ganz
-              bewusst der "warnung"-Rot-Akzent statt einer neuen Bereichsfarbe wie bei
-              Forum/Wissensbasis, da das hier kein wiederkehrender Funktionsbereich ist. */}
-          {user?.role === "admin" && (
-            <Link
-              href="/admin/vorfall-datenbank"
-              title="DB-Vorfall vom 3./4. September - Rückblick"
-              className={navLinkClass(!!pathname?.startsWith("/admin/vorfall-datenbank"), true)}
-            >
-              <ShieldAlert size={16} strokeWidth={2.25} />
-              <span className="hidden sm:inline">DB-Vorfall</span>
-            </Link>
+            <>
+              <span aria-hidden="true" className="mx-1 hidden h-7 w-px shrink-0 self-stretch bg-slate-300 sm:block" />
+              <div className="mt-1.5 flex w-full flex-wrap items-center gap-1 rounded-2xl border border-slate-200 bg-slate-100/70 p-1 pl-2 sm:mt-0 sm:w-auto sm:flex-nowrap">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  Admin
+                </span>
+                <Link
+                  href="/admin/wissensbasis"
+                  className={navLinkClassWissen(!!pathname?.startsWith("/admin/wissensbasis"))}
+                >
+                  <BookMarked size={16} strokeWidth={2.25} />
+                  <span className="hidden sm:inline">
+                    Wissensbasis{offeneWissensEntwuerfe ? ` (${offeneWissensEntwuerfe})` : ""}
+                  </span>
+                </Link>
+                <Link
+                  href="/admin"
+                  className={navLinkClass(
+                    !!pathname?.startsWith("/admin") &&
+                      !pathname?.startsWith("/admin/wissensbasis") &&
+                      !pathname?.startsWith("/admin/vorfall-datenbank"),
+                  )}
+                >
+                  <ShieldCheck size={16} strokeWidth={2.25} />
+                  <span className="hidden sm:inline">Admin</span>
+                </Link>
+                {/* Rein persönliche Lernressource für den Betreiber (Rückblick auf den DB-Vorfall
+                    vom 3./4. September 2026, siehe components/VorfallDatenbankErklaerung.tsx) -
+                    deshalb ganz bewusst der "warnung"-Rot-Akzent statt einer neuen Bereichsfarbe
+                    wie bei Forum/Wissensbasis, da das hier kein wiederkehrender Funktionsbereich
+                    ist. */}
+                <Link
+                  href="/admin/vorfall-datenbank"
+                  title="DB-Vorfall vom 3./4. September - Rückblick"
+                  className={navLinkClass(!!pathname?.startsWith("/admin/vorfall-datenbank"), true)}
+                >
+                  <ShieldAlert size={16} strokeWidth={2.25} />
+                  <span className="hidden sm:inline">DB-Vorfall</span>
+                </Link>
+              </div>
+            </>
           )}
           {user ? (
             <>
