@@ -22,9 +22,9 @@ export default async function SpielPage() {
         <Gamepad2 size={24} strokeWidth={2} /> Wissensblöcke
       </h1>
       <p className="mt-1.5 text-sm text-slate-500">
-        Kurze Auflockerung zwischendurch - ein rundenbasiertes Kästchen-Puzzle zu österreichischem
-        Schulrecht und zum Aufbau des Lehrplans. Kein Zeitdruck: erst die Frage in Ruhe
-        beantworten, dann in Ruhe platzieren.
+        Kurze Auflockerung zwischendurch - ein rundenbasiertes Kästchen-Puzzle mit Fragen zu
+        Schulrecht, Pädagogik, islamischem Grundwissen und Schulalltag. Kein Zeitdruck: erst die
+        Frage in Ruhe beantworten, dann in Ruhe platzieren.
       </p>
 
       <div className="mt-5">

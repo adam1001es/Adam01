@@ -394,8 +394,8 @@ export default function WissensBloecke() {
       )}
 
       <p className="mt-4 text-center text-xs text-slate-400">
-        Fragen zu österreichischem Schulrecht &amp; zum Aufbau des Lehrplans - einfach gehalten,
-        keine Rechtsberatung.
+        Fragen zu Schulrecht, Pädagogik, islamischem Grundwissen &amp; Schulalltag - einfach
+        gehalten, keine Rechtsberatung.
       </p>
     </div>
   );

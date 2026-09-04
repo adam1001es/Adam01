@@ -53,7 +53,7 @@ const WERKZEUGE = [
     icon: Gamepad2,
     titel: "Wissensblöcke",
     beschreibung:
-      "Kurze Auflockerung zwischendurch: rundenbasiertes Kästchen-Puzzle zu österreichischem Schulrecht und zum Aufbau des Lehrplans - kein Zeitdruck.",
+      "Kurze Auflockerung zwischendurch: rundenbasiertes Kästchen-Puzzle mit Fragen zu Schulrecht, Pädagogik, islamischem Grundwissen und Schulalltag - kein Zeitdruck.",
   },
 ] as const;
 
