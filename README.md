@@ -271,8 +271,7 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 
 ### Umgebungsvariablen (`.env`)
 
-- `DATABASE_URL` / `DIRECT_URL` – Postgres-Verbindung, siehe unten "Datenbank-Verbindungen
-  (Prisma Accelerate)". Lokal beide auf dieselbe eigene Postgres-Instanz zeigen lassen.
+- `DATABASE_URL` – Postgres-Verbindungsstring
 - `ANTHROPIC_API_KEY` – dein Anthropic API-Key
 - `GMAIL_USER` / `GMAIL_APP_PASSWORT` – für den Versand der Bestätigungs-Mail bei der
   Registrierung (E-Mail-Verifizierung, siehe unten). Beide PFLICHT, sonst schlägt jede
@@ -282,33 +281,6 @@ Danach [http://localhost:3000](http://localhost:3000) öffnen.
 
 Kein separates Auth-Secret nötig: Sessions sind DB-gestützt (Tabelle `Session`), das Cookie
 enthält nur ein zufälliges Token, keinen signierten/verschlüsselten Wert.
-
-### Datenbank-Verbindungen (Prisma Accelerate)
-
-Wenn die Vercel-Postgres-Integration (Storage-Tab) eine **Prisma-Postgres**-Datenbank anlegt,
-bekommt man von dort ZWEI Connection-Strings:
-
-- eine **direkte** Verbindung (`postgresql://...@db.prisma.io:5432/...`) - gedacht für
-  Migrationen/Admin-Tools, mit einem sehr niedrigen Verbindungslimit.
-- eine **Accelerate**-Verbindung (`prisma+postgres://accelerate.prisma-data.net/?api_key=...`) -
-  gepoolt, für laufenden App-Traffic aus vielen parallelen Vercel-Funktionsaufrufen gedacht.
-
-Trägt man versehentlich die direkte Verbindung als `DATABASE_URL` ein (das ist z.B. der
-Vercel-Standardwert beim Anlegen der Integration), erschöpft App-Traffic unter Last schnell das
-niedrige Verbindungslimit - die App stürzt dann unvermittelt und wiederkehrend mit
-`PrismaClientInitializationError`/`PrismaClientKnownRequestError` ("Too many connections") ab,
-bis wieder Verbindungen frei werden. Deshalb:
-
-- **`DATABASE_URL`** = die **Accelerate**-Verbindung (`prisma+postgres://...`). Wird von
-  `lib/prisma.ts` (`$extends(withAccelerate())`) genutzt, für den ganz normalen App-Betrieb.
-- **`DIRECT_URL`** = die **direkte** Verbindung (`postgresql://...@db.prisma.io:5432/...`). Wird
-  nur von `prisma migrate deploy`/`prisma migrate dev` verwendet (siehe `directUrl` in
-  `prisma/schema.prisma`) - Accelerate kann keine Schema-Änderungen ausführen.
-
-Auf Vercel: unter **Settings → Environment Variables** beide getrennt eintragen (die
-Prisma-Postgres-Übersicht im Vercel-Storage-Tab zeigt beide Connection-Strings). Lokal (eigene
-Postgres-Instanz statt Prisma Postgres) reicht derselbe Wert für beide - es gibt dort keinen
-Accelerate-Proxy.
 
 ### E-Mail-Verifizierung
 
@@ -364,15 +336,11 @@ werden - kein Zwang, der die Entwicklung ausbremst.
 ## Deployment (Vercel)
 
 1. Projekt in Vercel aus diesem GitHub-Repo importieren.
-2. Im Tab **Storage** eine Postgres-Datenbank anlegen. Danach unter **Settings → Environment
-   Variables** prüfen, dass `DATABASE_URL` auf die **Accelerate**-Verbindung zeigt und `DIRECT_URL`
-   auf die direkte `db.prisma.io`-Verbindung gesetzt ist (siehe oben, "Datenbank-Verbindungen
-   (Prisma Accelerate)") - Vercel trägt hier je nach Integrations-Version ggf. nur die direkte
-   Verbindung automatisch ein, das muss dann von Hand korrigiert werden.
+2. Im Tab **Storage** eine Postgres-Datenbank anlegen (setzt `DATABASE_URL` automatisch).
 3. Unter **Settings → Environment Variables** außerdem `ANTHROPIC_API_KEY`, `GMAIL_USER` und
    `GMAIL_APP_PASSWORT` (und optional `NEXT_PUBLIC_SENTRY_DSN`) eintragen.
 4. Deployen – der Build-Schritt (`prisma migrate deploy && next build`) legt das Datenbankschema
-   automatisch an (über `DIRECT_URL`).
+   automatisch an.
 
 SQLite (lokale Datei) funktioniert nicht auf Vercel, da dort keine dauerhafte Festplatte zur
 Verfügung steht – deshalb Postgres statt SQLite.

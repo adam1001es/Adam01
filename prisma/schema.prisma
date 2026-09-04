@@ -2,17 +2,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// DATABASE_URL zeigt auf die gepoolte Prisma-Accelerate-Verbindung (prisma+postgres://...), damit
-// viele parallele Vercel-Funktionsaufrufe sich eine begrenzte Zahl echter Datenbankverbindungen
-// teilen, statt jeweils eine eigene zu öffnen - siehe lib/prisma.ts. DIRECT_URL zeigt auf die
-// direkte Postgres-Verbindung (db.prisma.io) und wird NUR für Schema-Änderungen (prisma migrate)
-// verwendet, die Accelerate nicht ausführen kann. Ohne diese Trennung erschöpft App-Traffic unter
-// Last das (sehr niedrige) Verbindungslimit der direkten Verbindung - siehe README, Abschnitt
-// "Datenbank-Verbindungen (Prisma Accelerate)".
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 // Ein generiertes Arbeitsblatt inkl. Konfiguration, Inhalt und Verifikationsergebnis.
