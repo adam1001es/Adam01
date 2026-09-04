@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Wrench, CalendarDays, BookMarked, Layers, Mail } from "lucide-react";
+import { Wrench, CalendarDays, BookMarked, Layers, Mail, CalendarClock } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +40,13 @@ const WERKZEUGE = [
     titel: "Elternbrief-Vorlagen",
     beschreibung:
       "Fertige Word-Vorlagen für Ramadan-Info, Exkursions-Einverständnis und Schuljahresbeginn - mit Platzhaltern zum selbst Ausfüllen.",
+  },
+  {
+    href: "/werkzeuge/stundenplan",
+    icon: CalendarClock,
+    titel: "Stundenplan",
+    beschreibung:
+      "Wochenübersicht über mehrere Schulen mit jeweils eigenen Anfangszeiten und Stundenlängen - Mo-Fr, optional auch Samstag.",
   },
 ] as const;
 
