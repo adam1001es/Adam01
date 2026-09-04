@@ -33,7 +33,9 @@ function formatiereZeit(datum: Date) {
 export default async function ForumThemaPage({ params }: { params: { id: string } }) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (!istZahlendesKonto(user)) redirect("/forum");
+  // Lesen ist für alle eingeloggten Konten offen (siehe app/forum/page.tsx) - nur Antworten und
+  // Melden bleiben Abo-Konten vorbehalten (kannSchreiben weiter unten).
+  const kannSchreiben = istZahlendesKonto(user);
 
   const thread = await prisma.forumThread.findUnique({
     where: { id: params.id },
@@ -78,7 +80,7 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
           {thread.inhalt}
         </p>
         <div className="mt-4 flex items-center gap-4">
-          <ForumMeldenButton zielTyp="thread" zielId={thread.id} />
+          {kannSchreiben && <ForumMeldenButton zielTyp="thread" zielId={thread.id} />}
           {thread.userId === user.id && (
             <EigenerBeitragLoeschenButton typ="thread" id={thread.id} nachLoeschenZu="/forum" />
           )}
@@ -105,7 +107,7 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
               {a.inhalt}
             </p>
             <div className="mt-2 flex items-center gap-4">
-              <ForumMeldenButton zielTyp="antwort" zielId={a.id} />
+              {kannSchreiben && <ForumMeldenButton zielTyp="antwort" zielId={a.id} />}
               {a.userId === user.id && (
                 <EigenerBeitragLoeschenButton typ="antwort" id={a.id} />
               )}
@@ -115,7 +117,11 @@ export default async function ForumThemaPage({ params }: { params: { id: string 
       </div>
 
       <div className="mt-6">
-        {user.forumGesperrt ? (
+        {!kannSchreiben ? (
+          <p className="rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 p-4 text-center text-sm text-indigo-800">
+            Antworten ist nur mit einem Abo möglich - mitlesen kannst du weiterhin jederzeit.
+          </p>
+        ) : user.forumGesperrt ? (
           <p className="rounded-xl border border-slate-200 bg-surface p-4 text-center text-sm text-slate-500">
             {FORUM_GESPERRT_FEHLERTEXT}
           </p>

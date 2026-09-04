@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Users, GraduationCap, Lock, Search } from "lucide-react";
+import { Users, GraduationCap, Lock, Search, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
@@ -36,22 +36,11 @@ export default async function CommunityPage({
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  if (!istZahlendesKonto(user)) {
-    return (
-      <main>
-        <div className="rounded-2xl border border-dashed border-brand-200 bg-surface p-10 text-center shadow-card sm:p-14">
-          <Lock className="mx-auto mb-3 text-brand-300" size={32} strokeWidth={1.5} />
-          <h1 className="font-display text-xl font-semibold text-slate-800">
-            Geteilte Arbeitsblätter für Abo-Konten
-          </h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-            Lehrkräfte mit einem Abo können hier gegenseitig ihre freigegebenen Arbeitsblätter
-            teilen und favorisieren. Mehr dazu bei der Person, die den Zugang verwaltet.
-          </p>
-        </div>
-      </main>
-    );
-  }
+  // Bewusst KEIN Zugriffs-Lock mehr für das Ansehen der Liste (siehe app/worksheet/[id]/page.tsx
+  // für die weiterhin serverseitig durchgesetzte Zugriffsprüfung beim ÖFFNEN): kostenlose Konten
+  // sollen sehen, welche Arbeitsblätter andere Lehrkräfte geteilt haben, dürfen sie aber nicht
+  // öffnen (kannOeffnen unten, pro Karte außer bei eigenen Arbeitsblättern).
+  const kannOeffnen = istZahlendesKonto(user);
 
   const themenbereichFilter = THEMENBEREICH_KEYS.includes(
     searchParams.themenbereich as ThemenbereichKey,
@@ -116,6 +105,16 @@ export default async function CommunityPage({
           </p>
         </div>
       </div>
+
+      {!kannOeffnen && (
+        <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-dashed border-brand-200 bg-brand-50/50 p-3.5 text-sm text-brand-800">
+          <Sparkles size={16} className="mt-0.5 shrink-0" />
+          <p>
+            Du siehst hier bereits alle geteilten Arbeitsblätter. Zum Öffnen, Herunterladen und
+            Favorisieren brauchst du ein Abo.
+          </p>
+        </div>
+      )}
 
       <details open={filterAktiv} className="group mt-6">
         <summary
@@ -210,62 +209,89 @@ export default async function CommunityPage({
             {geteilteWorksheets.map((w) => {
               const themenbereich = ThemenbereichSchema.catch("gemischt").parse(w.themenbereich);
               const istEigenes = w.userId === user.id;
+              // Ein eigenes Arbeitsblatt bleibt immer öffenbar (Besitz-Zugriff in
+              // app/worksheet/[id]/page.tsx greift unabhängig vom Abo-Status) - nur fremde
+              // geteilte Arbeitsblätter sind für kostenlose Konten nur zum Ansehen, nicht zum
+              // Öffnen gedacht.
+              const kannDiesesOeffnen = istEigenes || kannOeffnen;
               const autor = w.user ?? { username: null, avatarFarbe: null, avatarTextFarbe: null, avatarKuerzel: null, status: null };
               const autorStatus = autor.status && istGueltigerStatus(autor.status) ? (autor.status as NutzerStatus) : null;
-              return (
-                <li key={w.id}>
-                  <Link
-                    href={`/worksheet/${w.id}`}
-                    className={`group flex h-full flex-col rounded-2xl border bg-surface p-5 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover ${
-                      istEigenes ? "border-gold-200" : "border-slate-200"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span
-                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${
-                          istEigenes
-                            ? "bg-gold-50 text-gold-700 ring-gold-200"
-                            : "bg-brand-50 text-brand-700 ring-brand-200"
-                        }`}
-                      >
-                        <Users size={13} /> {istEigenes ? "Von dir geteilt" : "Geteilt"}
-                      </span>
+              const kartenInhalt = (
+                <>
+                  <div className="flex items-start justify-between gap-2">
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${
+                        istEigenes
+                          ? "bg-gold-50 text-gold-700 ring-gold-200"
+                          : "bg-brand-50 text-brand-700 ring-brand-200"
+                      }`}
+                    >
+                      <Users size={13} /> {istEigenes ? "Von dir geteilt" : "Geteilt"}
+                    </span>
+                    {kannDiesesOeffnen ? (
                       <CommunityFavoritButton
                         worksheetId={w.id}
                         initialFavorit={favorisierteIds.has(w.id)}
                       />
-                    </div>
-
-                    <div className="mt-3 flex-1 font-display text-lg font-semibold leading-snug text-slate-800 group-hover:text-brand-700">
-                      {w.thema}
-                    </div>
-
-                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                      <span className="inline-flex items-center gap-1">
-                        <GraduationCap size={13} /> {w.schulstufe}
+                    ) : (
+                      <span
+                        title="Nur mit Abo zu öffnen"
+                        className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-400"
+                      >
+                        <Lock size={12} strokeWidth={2.25} />
                       </span>
-                      <span>{THEMENBEREICHE[themenbereich].label}</span>
-                    </div>
+                    )}
+                  </div>
 
-                    <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
-                      {istEigenes ? (
-                        <span className="text-sm font-medium text-gold-700">Von dir</span>
-                      ) : (
-                        <>
-                          <AvatarKreis
-                            anzeige={avatarAnzeige(autor.avatarKuerzel, autor.username)}
-                            farbe={autor.avatarFarbe ?? "#0f766e"}
-                            textFarbe={autor.avatarTextFarbe ?? "#ffffff"}
-                            status={autorStatus}
-                            size={26}
-                          />
-                          <span className="truncate text-sm text-slate-600" dir="auto">
-                            {communityAutorLabel(autor)}
-                          </span>
-                        </>
-                      )}
+                  <div className="mt-3 flex-1 font-display text-lg font-semibold leading-snug text-slate-800 group-hover:text-brand-700">
+                    {w.thema}
+                  </div>
+
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                    <span className="inline-flex items-center gap-1">
+                      <GraduationCap size={13} /> {w.schulstufe}
+                    </span>
+                    <span>{THEMENBEREICHE[themenbereich].label}</span>
+                  </div>
+
+                  <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
+                    {istEigenes ? (
+                      <span className="text-sm font-medium text-gold-700">Von dir</span>
+                    ) : (
+                      <>
+                        <AvatarKreis
+                          anzeige={avatarAnzeige(autor.avatarKuerzel, autor.username)}
+                          farbe={autor.avatarFarbe ?? "#0f766e"}
+                          textFarbe={autor.avatarTextFarbe ?? "#ffffff"}
+                          status={autorStatus}
+                          size={26}
+                        />
+                        <span className="truncate text-sm text-slate-600" dir="auto">
+                          {communityAutorLabel(autor)}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </>
+              );
+              const kartenClass = `group flex h-full flex-col rounded-2xl border bg-surface p-5 shadow-card transition ${
+                istEigenes ? "border-gold-200" : "border-slate-200"
+              } ${
+                kannDiesesOeffnen
+                  ? "hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover"
+                  : ""
+              }`;
+              return (
+                <li key={w.id}>
+                  {kannDiesesOeffnen ? (
+                    <Link href={`/worksheet/${w.id}`} className={kartenClass}>
+                      {kartenInhalt}
+                    </Link>
+                  ) : (
+                    <div className={kartenClass} title="Zum Öffnen ist ein Abo nötig">
+                      {kartenInhalt}
                     </div>
-                  </Link>
+                  )}
                 </li>
               );
             })}

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { MessagesSquare, Lock, Plus, MessageCircle, Users } from "lucide-react";
+import { MessagesSquare, Lock, Plus, MessageCircle, Users, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
@@ -22,22 +22,11 @@ export default async function ForumPage({
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  if (!istZahlendesKonto(user)) {
-    return (
-      <main>
-        <div className="rounded-2xl border border-dashed border-indigo-200 bg-surface p-10 text-center shadow-card-forum sm:p-14">
-          <Lock className="mx-auto mb-3 text-indigo-300" size={32} strokeWidth={1.5} />
-          <h1 className="font-display text-xl font-semibold text-slate-800">
-            Forum für Abo-Konten
-          </h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
-            Lehrkräfte mit einem Abo können sich hier austauschen - Erfahrungen, Methoden und
-            aktuelle Themen. Mehr dazu bei der Person, die den Zugang verwaltet.
-          </p>
-        </div>
-      </main>
-    );
-  }
+  // Bewusst KEIN Zugriffs-Lock mehr für das Lesen (siehe app/forum/[id]/page.tsx,
+  // app/forum/chat/page.tsx): kostenlose Konten sollen sehen, was sie mit einem Abo bekommen
+  // würden, statt nur eine leere Hinweiskarte - nur das SCHREIBEN (neues Thema, Antworten, Chat)
+  // bleibt Abo-Konten vorbehalten (istZahlendesKonto weiter unten nur noch für "Neues Thema").
+  const kannSchreiben = istZahlendesKonto(user);
 
   const kategorieFilter = FORUM_KATEGORIEN.includes(searchParams.kategorie as ForumKategorie)
     ? (searchParams.kategorie as ForumKategorie)
@@ -72,12 +61,21 @@ export default async function ForumPage({
             Austausch unter Kolleg:innen - Erfahrungen, Unterrichtsmethoden und aktuelle Themen.
           </p>
           <div className="mt-5 flex flex-wrap gap-2.5">
-            <Link
-              href="/forum/neu"
-              className="inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-indigo-700 shadow-card transition hover:bg-indigo-50"
-            >
-              <Plus size={17} strokeWidth={2.5} /> Neues Thema
-            </Link>
+            {kannSchreiben ? (
+              <Link
+                href="/forum/neu"
+                className="inline-flex items-center gap-2 rounded-full bg-surface px-5 py-2.5 text-sm font-semibold text-indigo-700 shadow-card transition hover:bg-indigo-50"
+              >
+                <Plus size={17} strokeWidth={2.5} /> Neues Thema
+              </Link>
+            ) : (
+              <span
+                title="Neues Thema eröffnen ist nur mit einem Abo möglich"
+                className="inline-flex cursor-not-allowed items-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white/70"
+              >
+                <Lock size={15} strokeWidth={2.25} /> Neues Thema
+              </span>
+            )}
             <Link
               href="/forum/chat"
               className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
@@ -87,6 +85,16 @@ export default async function ForumPage({
           </div>
         </div>
       </div>
+
+      {!kannSchreiben && (
+        <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-dashed border-indigo-200 bg-indigo-50/50 p-3.5 text-sm text-indigo-800">
+          <Sparkles size={16} className="mt-0.5 shrink-0" />
+          <p>
+            Du kannst hier alles lesen - Themen, Antworten und den Chat. Selbst schreiben (neues
+            Thema, Antworten, Chat-Nachrichten) ist nur mit einem Abo möglich.
+          </p>
+        </div>
+      )}
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Link

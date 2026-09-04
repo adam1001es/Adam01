@@ -28,9 +28,8 @@ export async function GET(request: NextRequest) {
   if (!user) {
     return NextResponse.json({ error: "Nicht angemeldet." }, { status: 401 });
   }
-  if (!istZahlendesKonto(user)) {
-    return NextResponse.json({ error: "Das Forum ist nur in einem Abo verfügbar." }, { status: 403 });
-  }
+  // Mitlesen (Polling) ist bewusst für ALLE eingeloggten Konten offen (siehe app/forum/page.tsx) -
+  // nur das Senden unten (POST) bleibt Abo-Konten vorbehalten.
 
   const since = request.nextUrl.searchParams.get("since");
   if (since === null) {

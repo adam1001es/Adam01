@@ -19,7 +19,9 @@ const CHAT_INITIAL_LIMIT = 50;
 export default async function ForumChatPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
-  if (!istZahlendesKonto(user)) redirect("/forum");
+  // Mitlesen ist für alle eingeloggten Konten offen (siehe app/forum/page.tsx) - nur Schreiben
+  // bleibt Abo-Konten vorbehalten (kannSchreiben, weitergereicht an components/ForumChat.tsx).
+  const kannSchreiben = istZahlendesKonto(user);
 
   await prisma.forumChatNachricht.deleteMany({ where: { createdAt: { lt: chatStichtag() } } });
 
@@ -57,6 +59,7 @@ export default async function ForumChatPage() {
       <ForumChat
         initialMessages={letzteNachrichten.reverse()}
         forumGesperrt={user.forumGesperrt}
+        kannSchreiben={kannSchreiben}
         currentUserId={user.id}
       />
     </main>

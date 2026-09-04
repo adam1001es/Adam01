@@ -30,6 +30,7 @@ const POLL_INTERVALL_MS = 4000;
 export default function ForumChat({
   initialMessages,
   forumGesperrt,
+  kannSchreiben,
   currentUserId,
 }: {
   initialMessages: {
@@ -46,6 +47,9 @@ export default function ForumChat({
     };
   }[];
   forumGesperrt: boolean;
+  /** Kostenlose Konten dürfen mitlesen (siehe app/forum/chat/page.tsx), aber nicht schreiben -
+   * blendet das Sendeformular unten durch einen Hinweistext statt eines echten Formulars aus. */
+  kannSchreiben: boolean;
   /** Eigene Nachrichten bekommen einen Lösch-Button (siehe unten) - Vergleich gegen n.userId. */
   currentUserId: string;
 }) {
@@ -171,7 +175,11 @@ export default function ForumChat({
         )}
       </div>
       <div className="border-t border-slate-200 p-3">
-        {forumGesperrt ? (
+        {!kannSchreiben ? (
+          <p className="text-center text-xs text-slate-400">
+            Mitlesen kannst du frei - zum Schreiben brauchst du ein Abo.
+          </p>
+        ) : forumGesperrt ? (
           <p className="text-center text-xs text-slate-400">{FORUM_GESPERRT_FEHLERTEXT}</p>
         ) : (
           <form onSubmit={senden} className="flex items-end gap-2">
