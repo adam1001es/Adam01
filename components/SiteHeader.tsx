@@ -13,6 +13,7 @@ import {
   BookMarked,
   Lock,
   MessagesSquare,
+  ShieldAlert,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SonnenuntergangAnzeige from "./SonnenuntergangAnzeige";
@@ -206,11 +207,27 @@ export default function SiteHeader({
             <Link
               href="/admin"
               className={navLinkClass(
-                !!pathname?.startsWith("/admin") && !pathname?.startsWith("/admin/wissensbasis"),
+                !!pathname?.startsWith("/admin") &&
+                  !pathname?.startsWith("/admin/wissensbasis") &&
+                  !pathname?.startsWith("/admin/vorfall-datenbank"),
               )}
             >
               <ShieldCheck size={16} strokeWidth={2.25} />
               <span className="hidden sm:inline">Admin</span>
+            </Link>
+          )}
+          {/* Rein persönliche Lernressource für den Betreiber (Rückblick auf den DB-Vorfall vom
+              3./4. September 2026, siehe components/VorfallDatenbankErklaerung.tsx) - deshalb ganz
+              bewusst der "warnung"-Rot-Akzent statt einer neuen Bereichsfarbe wie bei
+              Forum/Wissensbasis, da das hier kein wiederkehrender Funktionsbereich ist. */}
+          {user?.role === "admin" && (
+            <Link
+              href="/admin/vorfall-datenbank"
+              title="DB-Vorfall vom 3./4. September - Rückblick"
+              className={navLinkClass(!!pathname?.startsWith("/admin/vorfall-datenbank"), true)}
+            >
+              <ShieldAlert size={16} strokeWidth={2.25} />
+              <span className="hidden sm:inline">DB-Vorfall</span>
             </Link>
           )}
           {user ? (
