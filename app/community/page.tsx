@@ -14,6 +14,9 @@ import {
 } from "@/lib/curriculum";
 import { communityAutorLabel } from "@/lib/community";
 import CommunityFavoritButton from "@/components/CommunityFavoritButton";
+import AvatarKreis from "@/components/AvatarKreis";
+import { avatarAnzeige } from "@/lib/profil";
+import { istGueltigerStatus, type NutzerStatus } from "@/lib/status";
 import { inputClass } from "@/lib/formStyles";
 
 export const dynamic = "force-dynamic";
@@ -66,7 +69,17 @@ export default async function CommunityPage({
       ...(themenbereichFilter ? { themenbereich: themenbereichFilter } : {}),
       ...(sucheFilter ? { thema: { contains: sucheFilter, mode: "insensitive" } } : {}),
     },
-    include: { user: { select: { username: true } } },
+    include: {
+      user: {
+        select: {
+          username: true,
+          avatarFarbe: true,
+          avatarTextFarbe: true,
+          avatarKuerzel: true,
+          status: true,
+        },
+      },
+    },
     orderBy: [{ geteiltAm: "desc" }],
     take: 300,
   });
@@ -104,60 +117,73 @@ export default async function CommunityPage({
         </div>
       </div>
 
-      <form
-        method="GET"
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-surface p-4 shadow-card"
-      >
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-slate-500">Thema durchsuchen</span>
-          <div className="relative">
-            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              name="suche"
-              defaultValue={sucheFilter ?? ""}
-              placeholder="z.B. Ramadan"
-              className={`${inputClass} w-52 pl-8`}
-            />
-          </div>
-        </label>
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-slate-500">Grundkompetenz</span>
-          <select name="themenbereich" defaultValue={themenbereichFilter ?? ""} className={`${inputClass} w-56`}>
-            <option value="">Alle</option>
-            {THEMENBEREICH_KEYS.map((key) => (
-              <option key={key} value={key}>
-                {THEMENBEREICHE[key].label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-medium text-slate-500">Schulstufe</span>
-          <select name="schulstufe" defaultValue={schulstufeFilter ?? ""} className={`${inputClass} w-52`}>
-            <option value="">Alle</option>
-            {SCHULSTUFEN_CLUSTER.map((cluster) => (
-              <option key={cluster.id} value={cluster.id}>
-                {cluster.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="submit"
-          className="rounded-lg bg-community-gradient px-4 py-2.5 text-sm font-medium text-white shadow-card transition hover:shadow-card-hover"
+      <details open={filterAktiv} className="group mt-6">
+        <summary
+          className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-full border border-slate-200 bg-surface px-4 py-2 text-sm font-medium text-slate-500 shadow-card transition hover:border-brand-300 hover:text-brand-700 [&::-webkit-details-marker]:hidden"
         >
-          Filtern
-        </button>
-        {filterAktiv && (
-          <Link
-            href="/community"
-            className="text-sm font-medium text-slate-500 hover:text-brand-700"
+          <Search size={15} />
+          Suchen &amp; filtern
+          {filterAktiv && (
+            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+              aktiv
+            </span>
+          )}
+        </summary>
+        <form
+          method="GET"
+          className="mt-3 flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-surface p-4 shadow-card"
+        >
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-medium text-slate-500">Thema durchsuchen</span>
+            <div className="relative">
+              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                name="suche"
+                defaultValue={sucheFilter ?? ""}
+                placeholder="z.B. Ramadan"
+                className={`${inputClass} w-52 pl-8`}
+              />
+            </div>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-medium text-slate-500">Grundkompetenz</span>
+            <select name="themenbereich" defaultValue={themenbereichFilter ?? ""} className={`${inputClass} w-56`}>
+              <option value="">Alle</option>
+              {THEMENBEREICH_KEYS.map((key) => (
+                <option key={key} value={key}>
+                  {THEMENBEREICHE[key].label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="mb-1.5 block text-xs font-medium text-slate-500">Schulstufe</span>
+            <select name="schulstufe" defaultValue={schulstufeFilter ?? ""} className={`${inputClass} w-52`}>
+              <option value="">Alle</option>
+              {SCHULSTUFEN_CLUSTER.map((cluster) => (
+                <option key={cluster.id} value={cluster.id}>
+                  {cluster.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="submit"
+            className="rounded-lg bg-community-gradient px-4 py-2.5 text-sm font-medium text-white shadow-card transition hover:shadow-card-hover"
           >
-            Filter zurücksetzen
-          </Link>
-        )}
-      </form>
+            Filtern
+          </button>
+          {filterAktiv && (
+            <Link
+              href="/community"
+              className="text-sm font-medium text-slate-500 hover:text-brand-700"
+            >
+              Filter zurücksetzen
+            </Link>
+          )}
+        </form>
+      </details>
 
       {geteilteWorksheets.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-dashed border-brand-200 bg-surface p-12 text-center shadow-card">
@@ -180,49 +206,65 @@ export default async function CommunityPage({
             {geteilteWorksheets.length}{" "}
             {geteilteWorksheets.length === 1 ? "geteiltes Arbeitsblatt" : "geteilte Arbeitsblätter"}
           </p>
-          <ul className="mt-3 space-y-3">
+          <ul className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {geteilteWorksheets.map((w) => {
               const themenbereich = ThemenbereichSchema.catch("gemischt").parse(w.themenbereich);
               const istEigenes = w.userId === user.id;
+              const autor = w.user ?? { username: null, avatarFarbe: null, avatarTextFarbe: null, avatarKuerzel: null, status: null };
+              const autorStatus = autor.status && istGueltigerStatus(autor.status) ? (autor.status as NutzerStatus) : null;
               return (
                 <li key={w.id}>
                   <Link
                     href={`/worksheet/${w.id}`}
-                    className={`group flex items-center gap-3 rounded-xl border bg-surface p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover sm:p-5 ${
+                    className={`group flex h-full flex-col rounded-2xl border bg-surface p-5 shadow-card transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover ${
                       istEigenes ? "border-gold-200" : "border-slate-200"
                     }`}
                   >
-                    <CommunityFavoritButton
-                      worksheetId={w.id}
-                      initialFavorit={favorisierteIds.has(w.id)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-display text-base font-semibold text-slate-800 group-hover:text-brand-700">
-                        {w.thema}
-                      </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                        <span className="inline-flex items-center gap-1">
-                          <GraduationCap size={13} /> {w.schulstufe}
-                        </span>
-                        <span>{THEMENBEREICHE[themenbereich].label}</span>
-                        {istEigenes ? (
-                          <span className="font-medium text-gold-700">Von dir</span>
-                        ) : (
-                          <span>
-                            von <span dir="auto">{communityAutorLabel(w.user ?? { username: null })}</span>
-                          </span>
-                        )}
-                      </div>
+                    <div className="flex items-start justify-between gap-2">
+                      <span
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${
+                          istEigenes
+                            ? "bg-gold-50 text-gold-700 ring-gold-200"
+                            : "bg-brand-50 text-brand-700 ring-brand-200"
+                        }`}
+                      >
+                        <Users size={13} /> {istEigenes ? "Von dir geteilt" : "Geteilt"}
+                      </span>
+                      <CommunityFavoritButton
+                        worksheetId={w.id}
+                        initialFavorit={favorisierteIds.has(w.id)}
+                      />
                     </div>
-                    <span
-                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${
-                        istEigenes
-                          ? "bg-gold-50 text-gold-700 ring-gold-200"
-                          : "bg-brand-50 text-brand-700 ring-brand-200"
-                      }`}
-                    >
-                      <Users size={13} /> {istEigenes ? "Von dir geteilt" : "Geteilt"}
-                    </span>
+
+                    <div className="mt-3 flex-1 font-display text-lg font-semibold leading-snug text-slate-800 group-hover:text-brand-700">
+                      {w.thema}
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                      <span className="inline-flex items-center gap-1">
+                        <GraduationCap size={13} /> {w.schulstufe}
+                      </span>
+                      <span>{THEMENBEREICHE[themenbereich].label}</span>
+                    </div>
+
+                    <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3">
+                      {istEigenes ? (
+                        <span className="text-sm font-medium text-gold-700">Von dir</span>
+                      ) : (
+                        <>
+                          <AvatarKreis
+                            anzeige={avatarAnzeige(autor.avatarKuerzel, autor.username)}
+                            farbe={autor.avatarFarbe ?? "#0f766e"}
+                            textFarbe={autor.avatarTextFarbe ?? "#ffffff"}
+                            status={autorStatus}
+                            size={26}
+                          />
+                          <span className="truncate text-sm text-slate-600" dir="auto">
+                            {communityAutorLabel(autor)}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </Link>
                 </li>
               );
