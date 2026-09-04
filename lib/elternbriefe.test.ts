@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { fuelleVorlage, ELTERNBRIEF_VORLAGEN, findeElternbriefVorlage } from "./elternbriefe";
+import {
+  fuelleVorlage,
+  absaetzeZuText,
+  textZuAbsaetze,
+  ISLAMISCHER_GRUSS,
+  ELTERNBRIEF_VORLAGEN,
+  findeElternbriefVorlage,
+} from "./elternbriefe";
 
 describe("findeElternbriefVorlage", () => {
   it("findet eine bestehende Vorlage per id", () => {
@@ -31,5 +38,22 @@ describe("fuelleVorlage", () => {
     for (const absatz of gefuellt) {
       expect(absatz).not.toMatch(/\{\{.*\}\}/);
     }
+  });
+
+  it("stellt den islamischen Gruß nur bei islamischerGruss=true voran", () => {
+    expect(fuelleVorlage(vorlage, {}, false)[0]).not.toBe(ISLAMISCHER_GRUSS);
+    expect(fuelleVorlage(vorlage, {}, true)[0]).toBe(ISLAMISCHER_GRUSS);
+  });
+});
+
+describe("absaetzeZuText / textZuAbsaetze", () => {
+  it("sind zueinander invers (Roundtrip)", () => {
+    const absaetze = ["Erster Absatz.", "", "Zweiter Absatz."];
+    expect(textZuAbsaetze(absaetzeZuText(absaetze))).toEqual(absaetze);
+  });
+
+  it("gibt handbearbeiteten Text unverändert als Absatz-Liste zurück", () => {
+    const text = "Eigene erste Zeile.\nEigene zweite Zeile.";
+    expect(textZuAbsaetze(text)).toEqual(["Eigene erste Zeile.", "Eigene zweite Zeile."]);
   });
 });

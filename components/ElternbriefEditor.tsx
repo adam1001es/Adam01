@@ -1,21 +1,37 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Download } from "lucide-react";
-import { fuelleVorlage, type ElternbriefVorlage } from "@/lib/elternbriefe";
+import { useEffect, useState } from "react";
+import { Download, RotateCcw } from "lucide-react";
+import { absaetzeZuText, fuelleVorlage, type ElternbriefVorlage } from "@/lib/elternbriefe";
 import { inputClass, labelClass } from "@/lib/formStyles";
 
-/** Editor für eine Elternbrief-Vorlage (siehe app/werkzeuge/elternbriefe/[id]) - Felder direkt im
- * Browser ausfüllen, Live-Vorschau, dann als fertig ausgefülltes Word-Dokument herunterladen
- * (POST an die API-Route statt eines einfachen Links, da die ausgefüllten Werte mitgeschickt
- * werden müssen). Kein KI-Aufruf: die Word-Erzeugung ist reines Textersetzen, siehe
- * lib/elternbriefe.ts/lib/elternbriefeDocx.ts. */
+/** Editor für eine Elternbrief-Vorlage (siehe app/werkzeuge/elternbriefe/[id]) - Angaben ausfüllen
+ * erzeugt einen Entwurf, den die Lehrkraft danach in einem normalen Textfeld frei umformulieren
+ * kann (nicht nur Platzhalter füllen), bevor sie ihn als fertiges Word-Dokument herunterlädt. Der
+ * Download schickt den aktuellen, ggf. handbearbeiteten Text (nicht mehr die Feldwerte) an die
+ * API - siehe app/api/werkzeuge/elternbriefe/[id]/route.ts. Kein KI-Aufruf: die Entwurfserzeugung
+ * ist reines Textersetzen, siehe lib/elternbriefe.ts/lib/elternbriefeDocx.ts.
+ *
+ * Sobald die Lehrkraft den Text von Hand ändert (bearbeitet=true), wird er NICHT mehr automatisch
+ * neu aus den Feldern erzeugt - sonst würden Tippfehler-Korrekturen in den Feldern eigene
+ * Formulierungen überschreiben. "Entwurf neu erstellen" setzt bewusst zurück. */
 export default function ElternbriefEditor({ vorlage }: { vorlage: ElternbriefVorlage }) {
   const [werte, setWerte] = useState<Record<string, string>>({});
+  const [islamischerGruss, setIslamischerGruss] = useState(true);
+  const [text, setText] = useState(() => absaetzeZuText(fuelleVorlage(vorlage, {}, true)));
+  const [bearbeitet, setBearbeitet] = useState(false);
   const [wirdHeruntergeladen, setWirdHeruntergeladen] = useState(false);
   const [fehler, setFehler] = useState<string | null>(null);
 
-  const absaetze = useMemo(() => fuelleVorlage(vorlage, werte), [vorlage, werte]);
+  useEffect(() => {
+    if (bearbeitet) return;
+    setText(absaetzeZuText(fuelleVorlage(vorlage, werte, islamischerGruss)));
+  }, [vorlage, werte, islamischerGruss, bearbeitet]);
+
+  function entwurfNeuErstellen() {
+    setBearbeitet(false);
+    setText(absaetzeZuText(fuelleVorlage(vorlage, werte, islamischerGruss)));
+  }
 
   async function herunterladen() {
     setFehler(null);
@@ -24,7 +40,7 @@ export default function ElternbriefEditor({ vorlage }: { vorlage: ElternbriefVor
       const res = await fetch(`/api/werkzeuge/elternbriefe/${vorlage.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(werte),
+        body: JSON.stringify({ text }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -66,6 +82,18 @@ export default function ElternbriefEditor({ vorlage }: { vorlage: ElternbriefVor
           ))}
         </div>
 
+        <label className="mt-4 flex items-start gap-2 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+            checked={islamischerGruss}
+            onChange={(e) => setIslamischerGruss(e.target.checked)}
+          />
+          <span>
+            Islamischen Gruß voranstellen <span className="text-slate-400">(„As-salamu alaikum…“)</span>
+          </span>
+        </label>
+
         {fehler && <p className="mt-4 text-sm text-red-600">{fehler}</p>}
 
         <button
@@ -79,12 +107,31 @@ export default function ElternbriefEditor({ vorlage }: { vorlage: ElternbriefVor
       </div>
 
       <div className="rounded-2xl border border-amber-200 bg-surface p-5 shadow-card-werkzeuge sm:p-6">
-        <h2 className="mb-4 font-display text-base font-semibold text-slate-800">Vorschau</h2>
-        <div className="space-y-3 text-sm leading-relaxed text-slate-700">
-          {absaetze.map((absatz, i) =>
-            absatz ? <p key={i}>{absatz}</p> : <div key={i} className="h-2" />,
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 className="font-display text-base font-semibold text-slate-800">Brieftext</h2>
+          {bearbeitet && (
+            <button
+              type="button"
+              onClick={entwurfNeuErstellen}
+              className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-amber-700"
+            >
+              <RotateCcw size={13} /> Entwurf neu erstellen
+            </button>
           )}
         </div>
+        <p className="mb-3 text-xs text-slate-500">
+          Du kannst den Text hier frei umformulieren - er wird beim Herunterladen genau so
+          übernommen.
+        </p>
+        <textarea
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            setBearbeitet(true);
+          }}
+          rows={20}
+          className="w-full resize-y rounded-xl border border-slate-200 bg-canvas p-3 text-sm leading-relaxed text-slate-700 shadow-inner focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400"
+        />
       </div>
     </div>
   );

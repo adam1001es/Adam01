@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSessionUser } from "@/lib/auth";
-import { findeElternbriefVorlage, fuelleVorlage } from "@/lib/elternbriefe";
+import { findeElternbriefVorlage, fuelleVorlage, textZuAbsaetze } from "@/lib/elternbriefe";
 import { renderElternbriefDocxBuffer } from "@/lib/elternbriefeDocx";
 import { slugifyTitel } from "@/lib/worksheetExport";
 
 export const runtime = "nodejs";
 
 /** Elternbrief-Vorlage als Word-Dokument (siehe app/werkzeuge/elternbriefe) - für jedes
- * eingeloggte Konto frei verfügbar, kein KI-Aufruf/Kontingent. GET liefert die unausgefüllte
- * Vorlage (Platzhalter in [eckigen Klammern]), POST die im Editor ausgefüllte Fassung (siehe
- * components/ElternbriefEditor.tsx). */
+ * eingeloggte Konto frei verfügbar, kein KI-Aufruf/Kontingent. GET liefert einen unausgefüllten
+ * Standardentwurf (Platzhalter in [eckigen Klammern]), POST den von der Lehrkraft im Editor frei
+ * umformulierten Text (siehe components/ElternbriefEditor.tsx) - der Editor schickt nicht mehr
+ * einzelne Feldwerte, sondern den fertigen Brieftext, damit die Wortwahl nicht auf die
+ * Vorlagen-Platzhalter beschränkt bleibt. */
 async function docxResponse(titel: string, absaetze: string[]) {
   const buffer = await renderElternbriefDocxBuffer(titel, absaetze);
   return new NextResponse(new Uint8Array(buffer), {
@@ -32,10 +34,10 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: "Vorlage nicht gefunden." }, { status: 404 });
   }
 
-  return docxResponse(vorlage.titel, fuelleVorlage(vorlage, {}));
+  return docxResponse(vorlage.titel, fuelleVorlage(vorlage, {}, true));
 }
 
-const WERTE_SCHEMA = z.record(z.string().max(300));
+const TEXT_SCHEMA = z.object({ text: z.string().trim().min(1).max(20_000) });
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const user = await getSessionUser();
@@ -54,10 +56,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   } catch {
     return NextResponse.json({ error: "Ungültiges JSON im Request-Body." }, { status: 400 });
   }
-  const parsed = WERTE_SCHEMA.safeParse(body);
+  const parsed = TEXT_SCHEMA.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Ungültige Eingabe." }, { status: 400 });
   }
 
-  return docxResponse(vorlage.titel, fuelleVorlage(vorlage, parsed.data));
+  return docxResponse(vorlage.titel, textZuAbsaetze(parsed.data.text));
 }

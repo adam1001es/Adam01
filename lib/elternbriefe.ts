@@ -110,16 +110,41 @@ export function findeElternbriefVorlage(id: string): ElternbriefVorlage | null {
   return ELTERNBRIEF_VORLAGEN.find((v) => v.id === id) ?? null;
 }
 
+/** Islamischer Gruß, den eine Lehrkraft des Islamischen Religionsunterrichts optional vor die
+ * formelle deutsche Anrede stellen kann - passend, da alle Vorlagen sich an Eltern von Kindern im
+ * Islamischen Religionsunterricht richten. Bewusst NICHT fest eingebaut, sondern über
+ * `islamischerGruss` zuschaltbar (siehe fuelleVorlage) - manche Lehrkräfte/Schulen bevorzugen die
+ * rein formelle Anrede. */
+export const ISLAMISCHER_GRUSS = "As-salamu alaikum wa rahmatullahi wa barakatuh,";
+
 /** Ersetzt {{feld.id}}-Platzhalter durch die eingegebenen Werte - ein leer gelassenes Feld fällt
  * auf "[Label]" zurück (statt eine leere Lücke zu hinterlassen), damit ein unvollständig
- * ausgefüllter Brief beim Download trotzdem klar erkennbar bleibt, was noch fehlt. Rein
- * textbasiert, kein docx-Import - nutzbar sowohl serverseitig (Word-Erzeugung) als auch
- * clientseitig (Live-Vorschau beim Ausfüllen). */
-export function fuelleVorlage(vorlage: ElternbriefVorlage, werte: Record<string, string>): string[] {
-  return vorlage.absaetze.map((absatz) =>
+ * ausgefüllter Brief beim Download trotzdem klar erkennbar bleibt, was noch fehlt. Liefert den
+ * ERSTEN ENTWURF eines Briefs (ein Absatz pro Array-Eintrag) - die Lehrkraft kann diesen Text im
+ * Editor danach frei umformulieren, siehe absaetzeZuText/textZuAbsaetze. Rein textbasiert, kein
+ * docx-Import - nutzbar sowohl serverseitig (Word-Erzeugung) als auch clientseitig (Editor). */
+export function fuelleVorlage(
+  vorlage: ElternbriefVorlage,
+  werte: Record<string, string>,
+  islamischerGruss = false,
+): string[] {
+  const absaetze = vorlage.absaetze.map((absatz) =>
     vorlage.felder.reduce((text, feld) => {
       const wert = werte[feld.id]?.trim();
       return text.split(`{{${feld.id}}}`).join(wert || `[${feld.label}]`);
     }, absatz),
   );
+  return islamischerGruss ? [ISLAMISCHER_GRUSS, "", ...absaetze] : absaetze;
+}
+
+/** Wandelt die Absatz-Liste in einen einzigen, frei bearbeitbaren Text um (ein Absatz pro Zeile -
+ * genau wie im erzeugten Word-Dokument, siehe lib/elternbriefeDocx.ts) und zurück. Damit kann der
+ * Editor den Entwurf als normalen Fließtext in einem Textfeld anzeigen, den die Lehrkraft frei
+ * umformulieren kann, statt nur vorgegebene Platzhalter zu füllen. */
+export function absaetzeZuText(absaetze: string[]): string {
+  return absaetze.join("\n");
+}
+
+export function textZuAbsaetze(text: string): string[] {
+  return text.split("\n");
 }
