@@ -32,9 +32,20 @@ export default async function AdminMeldungenPage() {
   // lib/rollen.ts).
   const istAdmin = admin.role === "admin";
 
+  // "select" statt "include", damit das potenziell große "screenshot"-Bytes-Feld NICHT für jede
+  // Meldung in der Liste mitgeladen wird - hier reicht "screenshotMimeType" (nicht null = ein
+  // Screenshot existiert), die eigentlichen Bytes liefert erst die eigene Route unten bei Bedarf.
   const meldungen = await prisma.meldung.findMany({
     orderBy: [{ bearbeitet: "asc" }, { createdAt: "desc" }],
-    include: {
+    select: {
+      id: true,
+      kategorie: true,
+      beschreibung: true,
+      status: true,
+      diagnose: true,
+      bearbeitet: true,
+      createdAt: true,
+      screenshotMimeType: true,
       user: { select: { email: true, username: true } },
       worksheet: { select: { id: true, thema: true, contentJson: true, erstattet: true } },
     },
@@ -128,6 +139,20 @@ export default async function AdminMeldungenPage() {
                     <span className="font-medium text-slate-500">Meldung der Lehrkraft: </span>
                     {m.beschreibung}
                   </p>
+                )}
+                {m.screenshotMimeType && (
+                  <a
+                    href={`/api/admin/meldungen/${m.id}/screenshot`}
+                    target="_blank"
+                    className="mt-2.5 inline-block"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/admin/meldungen/${m.id}/screenshot`}
+                      alt="Screenshot der Lehrkraft"
+                      className="h-20 w-20 rounded-lg border border-slate-200 object-cover shadow-sm transition hover:opacity-80"
+                    />
+                  </a>
                 )}
                 {m.diagnose && (
                   <p className="mt-1.5 rounded-lg bg-white/70 px-3 py-2 text-sm text-slate-600">

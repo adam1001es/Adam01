@@ -3,20 +3,30 @@ import { WorksheetContent, MeldungAnalyseSchema, MeldungKategorie, MELDUNG_KATEG
 import { begrenzeAufgabenProTyp, loeseRaetselAuf } from "./generateWorksheet";
 import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 
+/** Optionaler Screenshot, den eine Lehrkraft ihrer Meldung beigefügt hat (siehe
+ * app/api/worksheet/[id]/meldung) - z.B. ein Foto des tatsächlichen Ausdrucks/PDF/Word-Exports,
+ * das ein rein visuelles Problem zeigt, das aus dem JSON-Inhalt allein nicht erkennbar wäre. */
+export interface MeldungScreenshot {
+  data: Buffer;
+  mimeType: string;
+}
+
 /** Greift eine Lehrkraft-Meldung sofort automatisch auf (siehe app/api/worksheet/[id]/meldung):
  * Claude bekommt Kategorie, Freitext-Beschreibung und den vollständigen Arbeitsblatt-Inhalt.
  * Bewusst dasselbe fachliche/pädagogische Regelwerk wie bei der Erstellung (siehe
  * generateWorksheet.ts), damit eine Korrektur nicht neue Fehler einführt. */
 const MELDUNG_ANALYSE_SYSTEM_PROMPT = `Du bist eine erfahrene Qualitätsprüferin für Arbeitsblätter im islamischen Religionsunterricht an österreichischen Schulen (staatlich anerkannter konfessioneller Unterricht, Lehrpläne der IGGÖ). Dieselbe fachliche/pädagogische Sorgfalt wie bei der Erstellung gilt auch hier: mehrheitsfähige, sunnitische Grundposition, durchgehend "Allah" statt "Gott", niemals erfundene Sure-/Hadith-Angaben, altersgerechte Sprache für die angegebene Schulstufe.
 
-Eine Lehrkraft hat ein konkretes Problem an einem bereits fertigen Arbeitsblatt gemeldet. Du bekommst die Kategorie der Meldung, eine optionale Freitext-Beschreibung sowie den vollständigen Arbeitsblatt-Inhalt als JSON.
+Eine Lehrkraft hat ein konkretes Problem an einem bereits fertigen Arbeitsblatt gemeldet. Du bekommst die Kategorie der Meldung, eine optionale Freitext-Beschreibung, den vollständigen Arbeitsblatt-Inhalt als JSON - und MÖGLICHERWEISE zusätzlich einen Screenshot, den die Lehrkraft hochgeladen hat (z.B. ein Foto des tatsächlichen Ausdrucks/PDF/Word-Exports).
+
+WICHTIG zum Screenshot, falls einer beigefügt ist: Er zeigt oft ein rein VISUELLES/DRUCK-Problem (z.B. zu schmale Tabellenspalten, abgeschnittener Text, verrutschtes Layout, falsche Schriftgröße/-farbe) statt eines Inhaltsfehlers. Ein solches Darstellungsproblem entsteht durch den Code, der PDF/Word/Web aus dem JSON-Inhalt erzeugt - NICHT durch den JSON-Inhalt selbst. Du kannst NUR den JSON-Inhalt ändern (siehe Schema unten), niemals den Rendering-/Export-Code. Zeigt der Screenshot also ein reines Layout-/Druck-/Formatierungsproblem, das durch keine denkbare Änderung am JSON-Inhalt behebbar wäre: setze "korrigierterInhalt" auf null und erkläre in "diagnose" verständlich, dass es sich um ein technisches Darstellungsproblem handelt, das von der Entwicklung (nicht durch eine Inhaltskorrektur) behoben werden muss. Zeigt der Screenshot dagegen einen echten INHALTLICHEN Fehler (z.B. sichtbar fehlende/falsche Aufgabe, falscher Text), behandle das wie eine normale Text-Meldung unten.
 
 Deine Aufgabe:
 1. Prüfe zuerst, ob das gemeldete Problem tatsächlich vorliegt - nicht jede Meldung ist automatisch berechtigt.
-2. Falls ja UND du das Problem mit hinreichender Sicherheit beheben kannst: liefere in "korrigierterInhalt" den VOLLSTÄNDIGEN korrigierten Arbeitsblatt-Inhalt im exakt gleichen JSON-Schema wie das Original. Ändere NUR, was zur Behebung nötig ist - Aufgaben-Reihenfolge, -Nummern und alle übrigen Aufgaben bleiben unverändert, außer eine Korrektur macht das zwingend nötig.
+2. Falls ja UND es sich um einen echten INHALTLICHEN Fehler handelt UND du ihn mit hinreichender Sicherheit beheben kannst: liefere in "korrigierterInhalt" den VOLLSTÄNDIGEN korrigierten Arbeitsblatt-Inhalt im exakt gleichen JSON-Schema wie das Original. Ändere NUR, was zur Behebung nötig ist - Aufgaben-Reihenfolge, -Nummern und alle übrigen Aufgaben bleiben unverändert, außer eine Korrektur macht das zwingend nötig.
    - Fehlende/unvollständige Aufgabe: ergänze/korrigiere die betroffene Aufgabe UND die zugehörige Lösung (gleiche "nr").
    - Fehlerhafter Text: korrigiere den betroffenen Text (Frage, Lösung, Lesetext, Einleitung, Lernziel, ...).
-3. Falls das Problem real ist, du es aber NICHT mit hinreichender Sicherheit beheben kannst (z.B. zu vage Beschreibung, um die betroffene Stelle sicher zu identifizieren): setze "korrigierterInhalt" auf null - das geht dann an ein menschliches Review.
+3. Falls das Problem real ist, du es aber NICHT mit hinreichender Sicherheit beheben kannst (z.B. zu vage Beschreibung, um die betroffene Stelle sicher zu identifizieren, ODER ein reines Darstellungsproblem wie oben beschrieben): setze "korrigierterInhalt" auf null - das geht dann an ein menschliches Review.
 4. Falls das gemeldete Problem nicht nachvollziehbar ist (das Arbeitsblatt ist an der fraglichen Stelle tatsächlich in Ordnung): setze "problemBestaetigt": false.
 
 WICHTIG zur Formulierung von "diagnose" (wird SOWOHL der meldenden Lehrkraft direkt angezeigt ALS AUCH im Admin-Bereich): Schreibe wie eine externe Fachkollegin, die kurz Rückmeldung zur Meldung gibt, NIEMALS wie eine Erklärung der eigenen Prüf-/Korrekturmethodik. Nenne dabei NIE interne Bezeichner aus diesem Prompt oder dem JSON-Schema wörtlich (z.B. niemals "korrigierterInhalt", "problemBestaetigt" als Begriffe) und beschreibe nicht, WIE die Korrektur technisch umgesetzt wurde - sag stattdessen einfach und konkret, WAS inhaltlich geändert wurde bzw. was das Problem war (z.B. "Die fehlende Lösung bei Aufgabe 3 wurde ergänzt."). Kurz, direkt, wie eine normale Rückmeldung an eine Kollegin - nicht wie ein technischer Systembericht.
@@ -41,6 +51,7 @@ export async function analysiereUndBehebeMeldung(
   aktuellerInhalt: WorksheetContent,
   kategorie: MeldungKategorie,
   beschreibung: string | null,
+  screenshot?: MeldungScreenshot,
 ): Promise<MeldungFixErgebnis> {
   try {
     const client = getAnthropicClient();
@@ -48,13 +59,34 @@ export async function analysiereUndBehebeMeldung(
       beschreibung
         ? `\nGenauere Beschreibung der Lehrkraft: ${beschreibung}`
         : "\n(Keine genauere Beschreibung angegeben.)"
+    }${
+      screenshot
+        ? "\n(Die Lehrkraft hat außerdem einen Screenshot beigefügt - siehe Bild oben.)"
+        : "\n(Kein Screenshot beigefügt.)"
     }\n\nAktueller Arbeitsblatt-Inhalt (JSON):\n${JSON.stringify(aktuellerInhalt, null, 2)}`;
 
     const response = await client.messages.create({
       model: GENERATION_MODEL,
       max_tokens: 16000,
       system: MELDUNG_ANALYSE_SYSTEM_PROMPT,
-      messages: [{ role: "user", content: text }],
+      messages: [
+        {
+          role: "user",
+          content: screenshot
+            ? [
+                {
+                  type: "image" as const,
+                  source: {
+                    type: "base64" as const,
+                    media_type: screenshot.mimeType as "image/png" | "image/jpeg" | "image/webp" | "image/gif",
+                    data: screenshot.data.toString("base64"),
+                  },
+                },
+                { type: "text" as const, text },
+              ]
+            : text,
+        },
+      ],
     });
     const usage = [usageEintragAusAntwort(GENERATION_MODEL, "meldung_fix", response.usage)];
 

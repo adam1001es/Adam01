@@ -236,8 +236,17 @@ model Meldung {
   worksheet    Worksheet @relation(fields: [worksheetId], references: [id], onDelete: Cascade)
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  kategorie    String // "aufgabe_fehlt" | "bild_fehlerhaft" | "text_fehlerhaft" | "sonstiges"
+  kategorie    String // "aufgabe_fehlt" | "bild_fehlerhaft" | "text_fehlerhaft" | "layout_darstellung" | "sonstiges"
   beschreibung String? // freiwillige, genauere Beschreibung durch die Lehrkraft
+  // Optionaler Screenshot der Lehrkraft (z.B. wie ein Ausdruck/PDF/Word tatsächlich aussieht) -
+  // wird der KI-Analyse als Bild mitgegeben (siehe lib/meldungFix.ts), damit auch rein visuell
+  // erkennbare Probleme (Layout, Darstellung) gemeldet werden können, die sich aus dem reinen
+  // JSON-Inhalt nicht ablesen lassen. Analog zu GeneratedImage.data direkt in der DB gespeichert
+  // statt in einem externen Blob-Storage - bei diesen Größenordnungen (einzelne Foto-Uploads)
+  // unproblematisch. screenshotMimeType wird gebraucht, um die Bytes später korrekt zu kodieren
+  // (Base64 für Claude, Content-Type beim Ausliefern an den Admin-Bereich).
+  screenshot         Bytes?
+  screenshotMimeType String?
   // "offen" (Analyse noch nicht abgeschlossen - sollte nur extrem kurz/im Fehlerfall bestehen
   // bleiben) | "automatisch_behoben" | "nicht_behebbar" (Problem real, KI konnte es nicht sicher
   // beheben) | "kein_fehler_gefunden" (KI hält die Meldung für nicht zutreffend) | "fehler"

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { MeldungRequestSchema, WorksheetContentSchema } from "@/lib/types";
-import { analysiereUndBehebeMeldung } from "@/lib/meldungFix";
+import {
+  MeldungRequestSchema,
+  WorksheetContentSchema,
+  MELDUNG_SCREENSHOT_MIME_TYPEN,
+  MELDUNG_SCREENSHOT_MAX_BYTES,
+} from "@/lib/types";
+import { analysiereUndBehebeMeldung, MeldungScreenshot } from "@/lib/meldungFix";
 import { speichereUsage } from "@/lib/usageLog";
 
 // Die Analyse (Opus-Aufruf, ggf. inkl. neuer Bildgenerierung) läuft synchron in dieser Route,
@@ -28,16 +33,39 @@ export async function POST(
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 
-  let body: unknown;
+  // multipart/form-data statt JSON, damit optional ein Screenshot mitgeschickt werden kann (siehe
+  // MeldungButton.tsx) - Kategorie/Beschreibung kommen als normale Formularfelder mit.
+  let formData: FormData;
   try {
-    body = await request.json();
+    formData = await request.formData();
   } catch {
-    return NextResponse.json({ error: "Ungültiges JSON im Request-Body." }, { status: 400 });
+    return NextResponse.json({ error: "Ungültige Formulardaten." }, { status: 400 });
   }
 
-  const parsed = MeldungRequestSchema.safeParse(body);
+  const parsed = MeldungRequestSchema.safeParse({
+    kategorie: formData.get("kategorie"),
+    beschreibung: formData.get("beschreibung") || undefined,
+  });
   if (!parsed.success) {
     return NextResponse.json({ error: "Bitte eine gültige Kategorie angeben." }, { status: 400 });
+  }
+
+  let screenshot: MeldungScreenshot | undefined;
+  const datei = formData.get("screenshot");
+  if (datei instanceof File && datei.size > 0) {
+    if (!MELDUNG_SCREENSHOT_MIME_TYPEN.includes(datei.type as (typeof MELDUNG_SCREENSHOT_MIME_TYPEN)[number])) {
+      return NextResponse.json(
+        { error: "Screenshot muss ein PNG-, JPEG-, WebP- oder GIF-Bild sein." },
+        { status: 400 },
+      );
+    }
+    if (datei.size > MELDUNG_SCREENSHOT_MAX_BYTES) {
+      return NextResponse.json(
+        { error: "Screenshot ist zu groß (maximal 8 MB)." },
+        { status: 400 },
+      );
+    }
+    screenshot = { data: Buffer.from(await datei.arrayBuffer()), mimeType: datei.type };
   }
 
   const meldung = await prisma.meldung.create({
@@ -46,6 +74,8 @@ export async function POST(
       userId: user.id,
       kategorie: parsed.data.kategorie,
       beschreibung: parsed.data.beschreibung || null,
+      screenshot: screenshot?.data,
+      screenshotMimeType: screenshot?.mimeType,
     },
   });
 
@@ -66,6 +96,7 @@ export async function POST(
     inhaltParsed.data,
     parsed.data.kategorie,
     parsed.data.beschreibung || null,
+    screenshot,
   );
   await speichereUsage(ergebnis.usage, user.id, worksheet.id);
 

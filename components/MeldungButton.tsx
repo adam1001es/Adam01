@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Flag, CheckCircle2, Sparkles, HelpCircle, AlertTriangle, RefreshCw } from "lucide-react";
-import { MELDUNG_KATEGORIEN, MELDUNG_KATEGORIE_LABEL, MeldungKategorie } from "@/lib/types";
+import { useEffect, useRef, useState } from "react";
+import { Flag, CheckCircle2, Sparkles, HelpCircle, AlertTriangle, RefreshCw, Image as ImageIcon, X } from "lucide-react";
+import {
+  MELDUNG_KATEGORIEN,
+  MELDUNG_KATEGORIE_LABEL,
+  MeldungKategorie,
+  MELDUNG_SCREENSHOT_MAX_BYTES,
+} from "@/lib/types";
 
 type Ergebnis = {
   status: "automatisch_behoben" | "nicht_behebbar" | "kein_fehler_gefunden" | "fehler";
@@ -18,9 +23,38 @@ export default function MeldungButton({ worksheetId }: { worksheetId: string }) 
   const [offen, setOffen] = useState(false);
   const [kategorie, setKategorie] = useState<MeldungKategorie | null>(null);
   const [beschreibung, setBeschreibung] = useState("");
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [screenshotVorschau, setScreenshotVorschau] = useState<string | null>(null);
   const [senden, setSenden] = useState(false);
   const [ergebnis, setErgebnis] = useState<Ergebnis | null>(null);
   const [fehler, setFehler] = useState<string | null>(null);
+  const dateiInputRef = useRef<HTMLInputElement>(null);
+
+  // Objekt-URL für die Bildvorschau erst beim Auswählen erzeugen und beim Wechsel/Unmount wieder
+  // freigeben - sonst sammeln sich bei mehrfachem Auswählen unnötig Blob-URLs im Speicher an.
+  useEffect(() => {
+    if (!screenshot) {
+      setScreenshotVorschau(null);
+      return;
+    }
+    const url = URL.createObjectURL(screenshot);
+    setScreenshotVorschau(url);
+    return () => URL.revokeObjectURL(url);
+  }, [screenshot]);
+
+  function screenshotAuswaehlen(datei: File | undefined) {
+    if (!datei) return;
+    if (!datei.type.startsWith("image/")) {
+      setFehler("Bitte ein Bild auswählen (Screenshot).");
+      return;
+    }
+    if (datei.size > MELDUNG_SCREENSHOT_MAX_BYTES) {
+      setFehler("Screenshot ist zu groß (maximal 8 MB).");
+      return;
+    }
+    setFehler(null);
+    setScreenshot(datei);
+  }
 
   async function absenden() {
     if (!kategorie) {
@@ -30,10 +64,13 @@ export default function MeldungButton({ worksheetId }: { worksheetId: string }) 
     setSenden(true);
     setFehler(null);
     try {
+      const formData = new FormData();
+      formData.set("kategorie", kategorie);
+      if (beschreibung) formData.set("beschreibung", beschreibung);
+      if (screenshot) formData.set("screenshot", screenshot);
       const res = await fetch(`/api/worksheet/${worksheetId}/meldung`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kategorie, beschreibung: beschreibung || undefined }),
+        body: formData,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error();
@@ -124,6 +161,41 @@ export default function MeldungButton({ worksheetId }: { worksheetId: string }) 
         placeholder="Optional: genauer beschreiben (z.B. welche Aufgabe, welches Bild) - hilft der KI, den Fehler sicher zu finden"
         className="mt-2.5 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-400 focus:outline-none"
       />
+      <input
+        ref={dateiInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => screenshotAuswaehlen(e.target.files?.[0])}
+      />
+      {screenshotVorschau ? (
+        <div className="mt-2.5 flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={screenshotVorschau}
+            alt="Screenshot-Vorschau"
+            className="h-14 w-14 rounded-lg border border-slate-200 object-cover"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              setScreenshot(null);
+              if (dateiInputRef.current) dateiInputRef.current.value = "";
+            }}
+            className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-red-600"
+          >
+            <X size={13} /> Screenshot entfernen
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => dateiInputRef.current?.click()}
+          className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-500 transition hover:border-brand-300 hover:text-brand-700"
+        >
+          <ImageIcon size={14} /> Optional: Screenshot hochladen (z.B. Ausdruck/PDF)
+        </button>
+      )}
       {fehler && <p className="mt-1.5 text-xs text-red-600">{fehler}</p>}
       {senden && (
         <p className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">

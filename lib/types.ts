@@ -551,6 +551,7 @@ export const MELDUNG_KATEGORIEN = [
   "aufgabe_fehlt",
   "bild_fehlerhaft",
   "text_fehlerhaft",
+  "layout_darstellung",
   "sonstiges",
 ] as const;
 export type MeldungKategorie = (typeof MELDUNG_KATEGORIEN)[number];
@@ -559,8 +560,15 @@ export const MELDUNG_KATEGORIE_LABEL: Record<MeldungKategorie, string> = {
   aufgabe_fehlt: "Eine Aufgabe fehlt/ist unvollständig",
   bild_fehlerhaft: "Ein Bild ist fehlerhaft",
   text_fehlerhaft: "Ein Text ist fehlerhaft",
+  layout_darstellung: "Layout/Darstellung stimmt nicht (z.B. beim Ausdrucken)",
   sonstiges: "Sonstiges",
 };
+
+// Von Claude unterstützte Bild-Formate für den optionalen Meldungs-Screenshot (siehe
+// lib/meldungFix.ts) - bewusst KEIN HEIC (das iOS bei "Foto aufnehmen" liefern kann), ein
+// tatsächlicher Bildschirm-Screenshot ist auf iOS/Android aber ohnehin praktisch immer PNG.
+export const MELDUNG_SCREENSHOT_MIME_TYPEN = ["image/png", "image/jpeg", "image/webp", "image/gif"] as const;
+export const MELDUNG_SCREENSHOT_MAX_BYTES = 8 * 1024 * 1024;
 
 export const MeldungRequestSchema = z.object({
   kategorie: z.enum(MELDUNG_KATEGORIEN),
