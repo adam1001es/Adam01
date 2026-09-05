@@ -46,6 +46,15 @@ import { Tafel, Buecherregal, Fenster, Pflanzenkuebel } from "@/components/Klass
  * zusammenhängender Bogen neu gebaut: Hero -> die vier Bereiche im Überblick -> jeweils vertieft
  * -> Vergleich -> Ablauf -> Preis -> Abschluss-CTA. "use client" wegen der Scroll-Einblend-
  * Animationen (framer-motion, siehe Reveal unten) - rein dekorativ, kein interaktiver Zustand.
+ *
+ * Praktisch jeder statische Textblock kommt aus "inhalte" (siehe lib/siteContent.ts
+ * SITE_CONTENT_FELDER, serverseitig in app/page.tsx per holeSiteInhalte() geladen und admin-
+ * editierbar über app/admin/inhalte) statt fest im Code zu stehen - bewusst NICHT jeder String:
+ * Absätze mit eingebettetem Preis/Punkte-Wert (z.B. die Preis-Untertitel, die CTA-Fußzeile) bleiben
+ * code-seitig fest, damit ein Admin-Override sie nicht versehentlich mit veralteten Zahlen
+ * einfriert. Icons, Farben (akzent), Anker-Links und strukturelle Daten (z.B. die
+ * Klassenzimmer-Beispielgrafik) bleiben ebenfalls im Code - nur die Textinhalte selbst sind
+ * editierbar.
  */
 
 const REVEAL: Variants = {
@@ -101,6 +110,7 @@ function SectionHeading({
 // Echte Rendering-Engine statt einer nachgebauten Grafik: dieselbe WorksheetView-Komponente, die
 // auch ein tatsächlich erstelltes Arbeitsblatt zeigt (siehe app/worksheet/[id]) - garantiert, dass
 // die Vorschau im Hero exakt wie das echte Produkt aussieht, statt eine geschönte Attrappe zu sein.
+// Bewusst NICHT admin-editierbar - eine strukturierte Beispiel-Aufgabe, kein einzelner Textblock.
 const HERO_VORSCHAU_INHALT: WorksheetContent = {
   titel: "Idschtihad und die Rechtsschulen (Madhahib)",
   fach: "Islamischer Religionsunterricht",
@@ -172,35 +182,13 @@ const HERO_VORSCHAU_LAYOUT: LayoutConfig = {
 // Hydration-Mismatch-Flackern zwischen Server- und Client-Render.
 const HERO_VORSCHAU_DATUM = new Date("2026-03-02T09:00:00");
 
+// Icon/Anker-Link/Akzentfarbe bleiben hier fest (strukturell, nicht admin-editierbar) - Titel/Text
+// jeder Kachel kommen über den Index aus "inhalte" (landing.pfeiler.<n>.titel/.text).
 const PFEILER = [
-  {
-    href: "#arbeitsblaetter",
-    icon: Wand2,
-    titel: "Arbeitsblätter",
-    text: "In ca. 3 Minuten fertig, zweifach geprüft, direkt druckbereit.",
-    akzent: "brand",
-  },
-  {
-    href: "#klassen",
-    icon: GraduationCap,
-    titel: "Klassen & Prüfungen",
-    text: "Wissensstand pro Klasse und Schüler:in auf einen Blick.",
-    akzent: "klassen",
-  },
-  {
-    href: "#community",
-    icon: Users,
-    titel: "Community",
-    text: "Bewährte Arbeitsblätter von Kolleg:innen entdecken.",
-    akzent: "community",
-  },
-  {
-    href: "#koran",
-    icon: BookOpenText,
-    titel: "Direkt aus dem Koran",
-    text: "Vers/Sure live abgerufen - garantiert korrekt zitiert.",
-    akzent: "gold",
-  },
+  { href: "#arbeitsblaetter", icon: Wand2, akzent: "brand" },
+  { href: "#klassen", icon: GraduationCap, akzent: "klassen" },
+  { href: "#community", icon: Users, akzent: "community" },
+  { href: "#koran", icon: BookOpenText, akzent: "gold" },
 ] as const;
 
 const PFEILER_BADGE: Record<(typeof PFEILER)[number]["akzent"], string> = {
@@ -211,48 +199,13 @@ const PFEILER_BADGE: Record<(typeof PFEILER)[number]["akzent"], string> = {
 };
 
 const FEATURES = [
-  {
-    icon: ShieldCheck,
-    titel: "Zweite, unabhängige Prüfung",
-    text: "Nicht nur generiert - ein separater KI-Durchlauf checkt jedes Arbeitsblatt gezielt gegen: Quellenangaben, Vollständigkeit, Altersgerechtigkeit, Kompetenzorientierung.",
-    akzent: "brand",
-  },
-  {
-    icon: GraduationCap,
-    titel: "Pädagogisch fundiert",
-    text: "Anforderungsbereiche (AFB I-III), anerkannte Kompetenzbereiche und kompetenzorientierte Lernziele sind fest eingebaut - bei jedem Arbeitsblatt, nicht nur wenn man daran denkt, es zu verlangen.",
-    akzent: "gold",
-  },
-  {
-    icon: BookOpenCheck,
-    titel: "Für den österreichischen IGGÖ-Lehrplan",
-    text: "Orientiert an der Grobstruktur des aktuellen Lehrplans für islamischen Religionsunterricht der IGGÖ („Lehrplan IRU NEU“) - Themenbereich und Schulstufen-Cluster fließen direkt in Sprache und Inhalt ein.",
-    akzent: "brand",
-  },
-  {
-    icon: Sparkles,
-    titel: "Direkt druckfertig",
-    text: "Kein Fließtext zum Selbst-Formatieren: fertiges, layoutetes PDF oder Word-Dokument, wahlweise mit islamischem Datum und Ornament-Musterstreifen.",
-    akzent: "brand",
-  },
-  {
-    icon: FileDown,
-    titel: "Kontrollierte Quellendisziplin",
-    text: "Hadith-Angaben werden bewusst konservativ generiert, bevorzugt aus Sahih al-Bukhari/Muslim - Unsicheres wird als „bitte prüfen” markiert statt erfunden.",
-    akzent: "gold",
-  },
-  {
-    icon: Baby,
-    titel: "Altersgerecht für die 1. Klasse",
-    text: "Für noch nicht lese-/schreibkundige Kinder vier eigene Aufgabentypen: Bewegungsaufgabe (körperlich reagieren statt lesen), Sortierkarten (ausschneiden & einordnen), Malaufgabe (selbst zeichnen) und Nachspurübung (Schreibmotorik).",
-    akzent: "brand",
-  },
-  {
-    icon: FileSearch,
-    titel: "Recherche- und Referatsaufträge",
-    text: "Ab der Sekundarstufe I: eigenständige Recherche-/Präsentationsaufgaben zu Personen, Orten oder Themen - mit Leitfaden, Bewertungskriterien und Quellenhinweis statt vager Freitext-Anweisung.",
-    akzent: "gold",
-  },
+  { icon: ShieldCheck, akzent: "brand" },
+  { icon: GraduationCap, akzent: "gold" },
+  { icon: BookOpenCheck, akzent: "brand" },
+  { icon: Sparkles, akzent: "brand" },
+  { icon: FileDown, akzent: "gold" },
+  { icon: Baby, akzent: "brand" },
+  { icon: FileSearch, akzent: "gold" },
 ] as const;
 
 const FEATURE_BADGE = {
@@ -260,104 +213,21 @@ const FEATURE_BADGE = {
   gold: "bg-gold-100 text-gold-700",
 } as const;
 
-const VERGLEICH_CHAT = [
-  "Lehrplan, Kompetenzniveau und Quellenregeln musst du selbst formulieren - jedes Mal neu",
-  "Du bekommst Fließtext, den du selbst in ein druckfertiges Arbeitsblatt bringen musst - mit Recherche, Schreiben und Formatieren schnell 10-15+ Minuten",
-  "Niemand prüft die Antwort gegen - die fachliche Kontrolle bleibt komplett bei dir",
-  "Kein Verlauf, keine Bibliothek deiner bisherigen Arbeitsblätter",
-  "Kein Überblick, welche Klasse welches Thema schon hatte oder wie sie dabei steht",
-];
-
-const VERGLEICH_UNS = [
-  "IGGÖ-Lehrplan, Schulstufen-Cluster und Quellenregeln sind fest eingebaut",
-  "Fertiges, layoutetes PDF/Word - direkt zum Ausdrucken, in ca. 3 Minuten statt 10-15+",
-  "Ein zweiter, unabhängiger KI-Durchlauf prüft gezielt gegen, bevor du es siehst",
-  "Alle erstellten Arbeitsblätter gespeichert, favorisierbar, jederzeit wieder abrufbar",
-  "Klassen, Wissensstand und Prüfungen direkt im selben Werkzeug - kein Zettelchaos",
-];
-
-const WAS_ENTHALTEN = [
-  "Bewusst nur Aufgabentypen, deren Inhalt sich zuverlässig bewerten lässt statt Nonsens-Vielfalt: Multiple Choice, Lückentext, Zuordnung, Offene Frage, Wahr/Falsch mit Begründung, Reihenfolge, Lesetext",
-  "Speziell für die Kleinsten: Bewegungsaufgabe, Sortierkarten, Malaufgabe und Nachspurübung - vier Aufgabentypen ganz ohne Lese-/Schreibkompetenz für Kinder, die noch nicht lesen/schreiben können",
-  "Ab Sekundarstufe I: Recherche-/Referatsaufträge mit Leitfaden, Bewertungskriterien und Quellenhinweis",
-  "Koran-Vers oder ganze Sure gezielt auswählen - als reinen Text zum Ausdrucken oder als vollständiges Arbeitsblatt drumherum",
-  "Fertiges, druckreifes PDF oder Word-Dokument - direkt zum Ausdrucken",
-  "Eine zweite, unabhängige KI-Prüfung für jedes einzelne Arbeitsblatt",
-  "Eigene Bibliothek: alle bisher erstellten Arbeitsblätter jederzeit wieder abrufbar",
-  "Wahlweise mit islamischem Datum und dezentem Ornament-Musterstreifen im Kopfbereich",
-];
-
-const KLASSEN_PUNKTE = [
-  {
-    icon: Users,
-    titel: "Klassen & pseudonyme Schüler-Kürzel",
-    text: "Klassen anlegen, Schüler:innen nur mit Kürzel führen (z.B. „Schüler 1“) - bewusst ohne echte Namen, damit Datenschutz kein Thema ist.",
-  },
-  {
-    icon: ClipboardList,
-    titel: "Zuweisungen erfassen",
-    text: "Welches Arbeitsblatt oder welche Prüfung hat welche Klasse wann bekommen - eigene Blätter, geteilte Community-Blätter oder manuell erfasste externe Materialien.",
-  },
-  {
-    icon: BarChart3,
-    titel: "Wissensstand automatisch berechnet",
-    text: "Klassendurchschnitt, Abdeckung nach Grundkompetenz und Entwicklung pro Schüler:in - inklusive Noten-Richtwert nach gängigem österreichischem Schlüssel.",
-  },
-  {
-    icon: LayoutGrid,
-    titel: "Klassenzimmer-Ansicht",
-    text: "Tafel und Schülertische von oben, jeder Tisch farbcodiert nach Notendurchschnitt - Klick auf einen Tisch öffnet ein animiertes Profil mit Prozent-Ring und Ergebnisverlauf.",
-  },
-  {
-    icon: FileCheck2,
-    titel: "Prüfungen zusammenstellen oder neu generieren",
-    text: "Aus bereits geprüften Aufgaben eine Prüfung zusammenstellen (punktegewichtet, ohne zusätzliches Kontingent) - oder komplett neu generieren lassen, inklusive Punkteschema.",
-  },
-  {
-    icon: ShieldCheck,
-    titel: "Auch für Maturaklassen gedacht",
-    text: "Formeller Prüfungston, AFB-II/III-Schwerpunkt statt reiner Reproduktion, nur prüfungstaugliche Aufgabenformate - für echte Wissensfeststellung, nicht nur Übung.",
-  },
-] as const;
-
-const COMMUNITY_PUNKTE = [
-  {
-    icon: Users,
-    titel: "Freigegebene Arbeitsblätter aller Kolleg:innen",
-    text: "Jede Lehrkraft mit Abo kann eigene, bereits geprüfte Arbeitsblätter mit der Community teilen - und umgekehrt von deren Auswahl profitieren.",
-  },
-  {
-    icon: Search,
-    titel: "Gezielt filtern statt durchscrollen",
-    text: "Nach Grundkompetenz und Schulstufen-Cluster filtern oder per Volltextsuche das passende Blatt für die nächste Stunde finden.",
-  },
-  {
-    icon: Heart,
-    titel: "Favorisieren für später",
-    text: "Gute Funde direkt markieren - landen in der eigenen Übersicht, ohne bei jedem Mal neu suchen zu müssen.",
-  },
-] as const;
+const KLASSEN_ICONS = [Users, ClipboardList, BarChart3, LayoutGrid, FileCheck2, ShieldCheck];
+const COMMUNITY_ICONS = [Users, Search, Heart];
 
 /** "tokenGesamt" ist eine aggregierte, anonyme Transparenz-Kennzahl über ALLE Konten hinweg
  * (siehe summeTokens in lib/usageLog.ts, ohne Nutzerbezug, serverseitig in app/page.tsx berechnet
  * und hier nur noch angezeigt) - zeigt Interessent:innen, dass hinter den Arbeitsblättern echte,
  * laufend genutzte KI-Rechenleistung steckt. Optional/undefined abgesichert, falls die Abfrage
- * (noch) keine Daten liefert. heroBadge/heroUeberschrift/heroUntertext/ctaUeberschrift kommen aus
- * lib/siteContent.ts (holeSiteInhalte(), serverseitig in app/page.tsx geladen) - admin-editierbar
- * über app/admin/inhalte, siehe dort für die übrigen, bewusst NICHT editierbaren Textstellen
- * dieser Seite (v.a. alles mit eingebetteten Preisen/Zahlen). */
+ * (noch) keine Daten liefert. "inhalte" kommt aus lib/siteContent.ts (holeSiteInhalte(),
+ * serverseitig in app/page.tsx geladen) - siehe Kommentar oben für den Umfang. */
 export default function LandingPage({
   tokenGesamt,
-  heroBadge,
-  heroUeberschrift,
-  heroUntertext,
-  ctaUeberschrift,
+  inhalte,
 }: {
   tokenGesamt?: number;
-  heroBadge: string;
-  heroUeberschrift: string;
-  heroUntertext: string;
-  ctaUeberschrift: string;
+  inhalte: Record<string, string>;
 }) {
   return (
     <main className="space-y-20 sm:space-y-24">
@@ -370,12 +240,12 @@ export default function LandingPage({
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1 text-xs font-semibold tracking-wide text-white ring-1 ring-inset ring-white/30">
-              <Sparkles size={12} /> {heroBadge}
+              <Sparkles size={12} /> {inhalte["landing.hero.badge"]}
             </span>
             <h1 className="mt-4 font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-[2.75rem]">
-              {heroUeberschrift}
+              {inhalte["landing.hero.ueberschrift"]}
             </h1>
-            <p className="mt-4 max-w-xl text-sm text-brand-50 sm:text-base">{heroUntertext}</p>
+            <p className="mt-4 max-w-xl text-sm text-brand-50 sm:text-base">{inhalte["landing.hero.untertext"]}</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/register"
@@ -387,12 +257,10 @@ export default function LandingPage({
                 href="/login"
                 className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                Anmelden
+                {inhalte["landing.hero.anmeldenButton"]}
               </Link>
             </div>
-            <p className="mt-3 text-xs text-brand-50/80">
-              Nur E-Mail + Passwort - in wenigen Minuten startklar.
-            </p>
+            <p className="mt-3 text-xs text-brand-50/80">{inhalte["landing.hero.hinweis"]}</p>
           </motion.div>
 
           {/* Echte WorksheetView-Vorschau, kein nachgebautes Bild - siehe HERO_VORSCHAU_INHALT.
@@ -457,7 +325,7 @@ export default function LandingPage({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, delay: 0.7 }}
             >
-              <ShieldCheck size={13} className="text-brand-500" /> Zweifach geprüft
+              <ShieldCheck size={13} className="text-brand-500" /> {inhalte["landing.hero.badgeGeprueft"]}
             </motion.span>
             <motion.span
               className="absolute -right-4 -bottom-4 hidden items-center gap-1.5 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold text-gold-700 shadow-card ring-1 ring-black/5 sm:inline-flex"
@@ -465,7 +333,7 @@ export default function LandingPage({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, delay: 0.9 }}
             >
-              <Sparkles size={13} className="text-gold-500" /> In ca. 3 Minuten fertig
+              <Sparkles size={13} className="text-gold-500" /> {inhalte["landing.hero.badgeSchnell"]}
             </motion.span>
           </motion.div>
         </div>
@@ -477,8 +345,8 @@ export default function LandingPage({
       {/* VIER BEREICHE IM ÜBERBLICK */}
       <section>
         <div className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {PFEILER.map(({ href, icon: Icon, titel, text, akzent }, i) => (
-            <Reveal key={titel} delay={i * 0.07}>
+          {PFEILER.map(({ href, icon: Icon, akzent }, i) => (
+            <Reveal key={href} delay={i * 0.07}>
               <a
                 href={href}
                 className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-surface p-5 shadow-card transition hover:-translate-y-1 hover:shadow-card-hover"
@@ -486,8 +354,12 @@ export default function LandingPage({
                 <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${PFEILER_BADGE[akzent]}`}>
                   <Icon size={17} strokeWidth={2.25} />
                 </span>
-                <h3 className="mt-3 font-display text-sm font-semibold text-slate-800">{titel}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">{text}</p>
+                <h3 className="mt-3 font-display text-sm font-semibold text-slate-800">
+                  {inhalte[`landing.pfeiler.${i + 1}.titel`]}
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  {inhalte[`landing.pfeiler.${i + 1}.text`]}
+                </p>
                 <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand-600 opacity-0 transition group-hover:opacity-100">
                   Mehr erfahren <ArrowRight size={12} />
                 </span>
@@ -501,18 +373,22 @@ export default function LandingPage({
       <section id="arbeitsblaetter" className="scroll-mt-24">
         <SectionHeading
           eyebrow="Arbeitsblätter"
-          title="Was jedes Arbeitsblatt automatisch mitbringt"
-          subtitle="Kein Nachjustieren nötig - das steckt in jedem einzelnen Blatt, ohne dass du extra danach fragen musst."
+          title={inhalte["landing.arbeitsblaetter.titel"]}
+          subtitle={inhalte["landing.arbeitsblaetter.untertitel"]}
         />
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, titel, text, akzent }, i) => (
-            <Reveal key={titel} delay={(i % 3) * 0.06}>
+          {FEATURES.map(({ icon: Icon, akzent }, i) => (
+            <Reveal key={i} delay={(i % 3) * 0.06}>
               <div className="h-full rounded-2xl border border-slate-200 bg-surface p-6 shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover">
                 <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${FEATURE_BADGE[akzent]}`}>
                   <Icon size={20} strokeWidth={2} />
                 </span>
-                <h3 className="mt-3 font-display text-lg font-semibold text-slate-800">{titel}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-slate-500">{text}</p>
+                <h3 className="mt-3 font-display text-lg font-semibold text-slate-800">
+                  {inhalte[`landing.feature.${i + 1}.titel`]}
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                  {inhalte[`landing.feature.${i + 1}.text`]}
+                </p>
               </div>
             </Reveal>
           ))}
@@ -524,27 +400,15 @@ export default function LandingPage({
         <div className="relative z-10 mx-auto grid max-w-4xl items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
           <Reveal>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide ring-1 ring-inset ring-white/30">
-              <BookOpenText size={12} /> Koran als eigenständige Aufgabe
+              <BookOpenText size={12} /> {inhalte["landing.koran.badge"]}
             </span>
-            <h2 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">
-              Sure oder Vers gezielt auswählen - live und garantiert korrekt zitiert
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-gold-50 sm:text-base">
-              Der Koran-Text wird nicht aus dem KI-Gedächtnis erinnert, sondern live von einer
-              Koran-Datenbank abgerufen (Arabisch + deutsche Übersetzung von Bubenheim &amp;
-              Elyas). Zwei Wege stehen zur Wahl: nur der reine Text zum Ausdrucken - ganz ohne
-              Kontingent-Verbrauch - oder ein vollständiges Arbeitsblatt mit Methoden und Aufgaben
-              rund um den Vers.
-            </p>
+            <h2 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">{inhalte["landing.koran.titel"]}</h2>
+            <p className="mt-3 text-sm leading-relaxed text-gold-50 sm:text-base">{inhalte["landing.koran.text"]}</p>
             <ul className="mt-5 space-y-2 text-sm text-gold-50">
-              {[
-                "Ganze Sure oder ein bestimmter Versbereich",
-                "Original-Arabisch + deutsche Übersetzung, rechtsläufig korrekt gesetzt",
-                "„Nur Text“-Modus: kein KI-Aufruf, kostet kein Kontingent",
-              ].map((punkt) => (
-                <li key={punkt} className="flex items-start gap-2.5">
+              {[1, 2, 3].map((n) => (
+                <li key={n} className="flex items-start gap-2.5">
                   <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-white" />
-                  <span>{punkt}</span>
+                  <span>{inhalte[`landing.koran.punkt.${n}`]}</span>
                 </li>
               ))}
             </ul>
@@ -568,27 +432,25 @@ export default function LandingPage({
         <div className="relative z-10 mx-auto max-w-4xl">
           <Reveal>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide ring-1 ring-inset ring-white/30">
-              <Lock size={12} /> Enthalten im Abo
+              <Lock size={12} /> {inhalte["landing.badge.enthaltenImAbo"]}
             </span>
-            <h2 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">
-              Klassen, Wissensstand und Prüfungen - der Teil, der aus einem Generator ein echtes
-              Unterrichtswerkzeug macht
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm text-emerald-50 sm:text-base">
-              Besonders gedacht auch für Lehrkräfte, die Maturaklassen betreuen und echte
-              Wissensfeststellung brauchen, nicht nur Übungsblätter.
-            </p>
+            <h2 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">{inhalte["landing.klassen.titel"]}</h2>
+            <p className="mt-3 max-w-2xl text-sm text-emerald-50 sm:text-base">{inhalte["landing.klassen.untertitel"]}</p>
           </Reveal>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {KLASSEN_PUNKTE.map(({ icon: Icon, titel, text }, i) => (
-              <Reveal key={titel} delay={(i % 3) * 0.06}>
+            {KLASSEN_ICONS.map((Icon, i) => (
+              <Reveal key={i} delay={(i % 3) * 0.06}>
                 <div className="h-full rounded-2xl bg-white/10 p-5 ring-1 ring-inset ring-white/15">
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
                     <Icon size={18} strokeWidth={2} />
                   </span>
-                  <h3 className="mt-3 font-display text-sm font-semibold">{titel}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-emerald-50/90">{text}</p>
+                  <h3 className="mt-3 font-display text-sm font-semibold">
+                    {inhalte[`landing.klassenpunkt.${i + 1}.titel`]}
+                  </h3>
+                  <p className="mt-1 text-xs leading-relaxed text-emerald-50/90">
+                    {inhalte[`landing.klassenpunkt.${i + 1}.text`]}
+                  </p>
                 </div>
               </Reveal>
             ))}
@@ -596,10 +458,12 @@ export default function LandingPage({
 
           <Reveal delay={0.2} className="mt-8">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-white/80">
-              Beispielhafte Darstellung - Klassenzimmer-Ansicht
+              {inhalte["landing.klassenzimmer.label"]}
             </p>
             {/* Dieselben Raum-Bauteile wie in der echten Ansicht (components/Klassenzimmer.tsx) -
-                nicht nur die Tische, damit die Landingpage keinen abgespeckten Eindruck vermittelt. */}
+                nicht nur die Tische, damit die Landingpage keinen abgespeckten Eindruck vermittelt.
+                Die Beispielgrafik selbst (Kürzel/Prozente/Farben) bleibt bewusst strukturiert und
+                nicht admin-editierbar - eine Illustration, kein Textblock. */}
             <div className="papier-hell overflow-hidden rounded-2xl shadow-card">
               <div className="bg-gradient-to-b from-[#eaf6f0] to-[#e1f0e8] px-4 pb-6 pt-5 sm:px-8 sm:pt-6">
                 <div className="mx-auto flex max-w-md items-end justify-center gap-3 sm:gap-6">
@@ -670,11 +534,7 @@ export default function LandingPage({
                 </linearGradient>
               </defs>
             </svg>
-            <p className="mt-3 text-xs text-emerald-50/80">
-              Statische Beispielabbildung mit frei gewählten Kürzeln statt echter Namen. Nach der
-              Anmeldung ist die echte Ansicht interaktiv: ein Klick auf einen Tisch öffnet dort ein
-              animiertes Profil mit Prozent-Ring und Ergebnisverlauf.
-            </p>
+            <p className="mt-3 text-xs text-emerald-50/80">{inhalte["landing.klassenzimmer.hinweis"]}</p>
           </Reveal>
         </div>
       </section>
@@ -684,26 +544,24 @@ export default function LandingPage({
         <div className="relative z-10 mx-auto max-w-4xl">
           <Reveal>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wide ring-1 ring-inset ring-white/30">
-              <Users size={12} /> Enthalten im Abo
+              <Users size={12} /> {inhalte["landing.badge.enthaltenImAbo"]}
             </span>
-            <h2 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">
-              Nicht bei null anfangen - von der Auswahl der ganzen Community profitieren
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm text-cyan-50 sm:text-base">
-              Jede Lehrkraft mit Abo kann eigene Arbeitsblätter freigeben - und selbst aus der
-              wachsenden, gefilterten Auswahl der anderen schöpfen, statt jedes Thema von vorne zu
-              erstellen.
-            </p>
+            <h2 className="mt-4 font-display text-2xl font-semibold sm:text-3xl">{inhalte["landing.community.titel"]}</h2>
+            <p className="mt-3 max-w-2xl text-sm text-cyan-50 sm:text-base">{inhalte["landing.community.untertitel"]}</p>
           </Reveal>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {COMMUNITY_PUNKTE.map(({ icon: Icon, titel, text }, i) => (
-              <Reveal key={titel} delay={i * 0.08}>
+            {COMMUNITY_ICONS.map((Icon, i) => (
+              <Reveal key={i} delay={i * 0.08}>
                 <div className="h-full rounded-2xl bg-white/10 p-5 ring-1 ring-inset ring-white/15">
                   <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">
                     <Icon size={18} strokeWidth={2} />
                   </span>
-                  <h3 className="mt-3 font-display text-sm font-semibold">{titel}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-cyan-50/90">{text}</p>
+                  <h3 className="mt-3 font-display text-sm font-semibold">
+                    {inhalte[`landing.communitypunkt.${i + 1}.titel`]}
+                  </h3>
+                  <p className="mt-1 text-xs leading-relaxed text-cyan-50/90">
+                    {inhalte[`landing.communitypunkt.${i + 1}.text`]}
+                  </p>
                 </div>
               </Reveal>
             ))}
@@ -714,20 +572,20 @@ export default function LandingPage({
       {/* VERGLEICH */}
       <section>
         <SectionHeading
-          title={'„Kann ich nicht einfach meine KI-App fragen?"'}
-          subtitle="Kannst du - der Unterschied ist, was danach noch an dir hängen bleibt."
+          title={inhalte["landing.vergleich.titel"]}
+          subtitle={inhalte["landing.vergleich.untertitel"]}
         />
         <div className="mx-auto mt-8 grid max-w-3xl gap-4 sm:grid-cols-2">
           <Reveal>
             <div className="h-full rounded-2xl border border-slate-200 bg-slate-50 p-6">
               <h3 className="mb-4 font-display text-base font-semibold text-slate-500">
-                Normaler KI-Chat
+                {inhalte["landing.vergleich.spalteChat"]}
               </h3>
               <ul className="space-y-3 text-sm text-slate-600">
-                {VERGLEICH_CHAT.map((punkt) => (
-                  <li key={punkt} className="flex items-start gap-2.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <li key={n} className="flex items-start gap-2.5">
                     <XCircle size={16} className="mt-0.5 shrink-0 text-slate-400" />
-                    <span>{punkt}</span>
+                    <span>{inhalte[`landing.vergleich.chat.${n}`]}</span>
                   </li>
                 ))}
               </ul>
@@ -735,12 +593,14 @@ export default function LandingPage({
           </Reveal>
           <Reveal delay={0.1}>
             <div className="h-full rounded-2xl border border-brand-300 bg-brand-50 p-6">
-              <h3 className="mb-4 font-display text-base font-semibold text-brand-800">Lernwerk</h3>
+              <h3 className="mb-4 font-display text-base font-semibold text-brand-800">
+                {inhalte["landing.vergleich.spalteUns"]}
+              </h3>
               <ul className="space-y-3 text-sm text-brand-900">
-                {VERGLEICH_UNS.map((punkt) => (
-                  <li key={punkt} className="flex items-start gap-2.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <li key={n} className="flex items-start gap-2.5">
                     <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-600" />
-                    <span>{punkt}</span>
+                    <span>{inhalte[`landing.vergleich.uns.${n}`]}</span>
                   </li>
                 ))}
               </ul>
@@ -751,23 +611,21 @@ export default function LandingPage({
 
       {/* ABLAUF */}
       <section>
-        <SectionHeading title="In drei Schritten fertig" />
+        <SectionHeading title={inhalte["landing.ablauf.titel"]} />
         <div className="mx-auto mt-8 grid max-w-3xl gap-4 sm:grid-cols-3">
-          {[
-            { schritt: "1", titel: "Vorgeben", text: "Bereich, Thema, Schulstufe und Layout auswählen.", gold: false },
-            { schritt: "2", titel: "Prüfen lassen", text: "KI erstellt den Inhalt, eine zweite KI prüft ihn unabhängig gegen.", gold: true },
-            { schritt: "3", titel: "Drucken", text: "Fertiges PDF oder Word direkt herunterladen und austeilen.", gold: false },
-          ].map(({ schritt, titel, text, gold }, i, arr) => (
-            <Reveal key={schritt} delay={i * 0.1} className="relative flex flex-col items-center text-center">
+          {[1, 2, 3].map((n, i, arr) => (
+            <Reveal key={n} delay={i * 0.1} className="relative flex flex-col items-center text-center">
               <span
                 className={`flex h-11 w-11 items-center justify-center rounded-full font-display text-lg font-semibold shadow-card ${
-                  gold ? "bg-gold-400 text-gold-700" : "bg-brand-gradient text-white"
+                  n === 2 ? "bg-gold-400 text-gold-700" : "bg-brand-gradient text-white"
                 }`}
               >
-                {schritt}
+                {n}
               </span>
-              <h3 className="mt-3 font-display text-base font-semibold text-slate-800">{titel}</h3>
-              <p className="mt-1 text-sm text-slate-500">{text}</p>
+              <h3 className="mt-3 font-display text-base font-semibold text-slate-800">
+                {inhalte[`landing.ablauf.${n}.titel`]}
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">{inhalte[`landing.ablauf.${n}.text`]}</p>
               {i < arr.length - 1 && (
                 <ArrowRight size={18} className="absolute -right-2 top-3 hidden text-slate-300 sm:block" />
               )}
@@ -779,35 +637,30 @@ export default function LandingPage({
       {/* PREIS */}
       <section>
         <SectionHeading
-          title="Was du bekommst"
+          title={inhalte["landing.preis.titel"]}
           subtitle={`Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist das Punkte-Guthaben (${KOSTENLOS_PUNKTE_LIMIT} Punkte einmalig zum Ausprobieren, ${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}, vs. ${TIER_PUNKTE_QUOTA.pro} Punkte/Monat im Abo, ${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) sowie der Zugang zur Community und zu Klassen-Tracking/Prüfungsgenerierung, die Abo-Konten vorbehalten sind. 1 Punkt entspricht dabei den tatsächlich gemessenen KI-Kosten eines Arbeitsblatts, nicht einer festen Stückzahl.`}
         />
         <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-2">
-          {WAS_ENTHALTEN.map((punkt, i) => (
-            <Reveal key={punkt} delay={(i % 4) * 0.05}>
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((n, i) => (
+            <Reveal key={n} delay={(i % 4) * 0.05}>
               <div className="flex h-full items-start gap-2.5 rounded-xl border border-slate-200 bg-surface p-4 text-sm text-slate-600 shadow-card">
                 <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-500" />
-                <span>{punkt}</span>
+                <span>{inhalte[`landing.enthalten.${n}`]}</span>
               </div>
             </Reveal>
           ))}
           <Reveal className="sm:col-span-2">
             <div className="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-sm text-emerald-900 shadow-card-klassen">
               <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-emerald-600" />
-              <span>
-                Nur im Abo: Klassen-Tracking, Wissensstand-Auswertung, Klassenzimmer-Ansicht,
-                Prüfungsgenerierung und geteilte Community-Arbeitsblätter
-              </span>
+              <span>{inhalte["landing.preis.nurImAbo"]}</span>
             </div>
           </Reveal>
         </div>
 
         <Reveal className="mx-auto mt-8 max-w-2xl rounded-2xl border border-slate-200 bg-slate-50/70 p-5 text-center">
           <p className="text-sm leading-relaxed text-slate-500">
-            <span className="font-medium text-slate-700">Wofür wird bezahlt? </span>
-            Jedes erstellte und geprüfte Arbeitsblatt braucht echte KI-Rechenleistung - das Abo
-            deckt genau diese Kosten sowie den laufenden Betrieb der Plattform, damit sie für die
-            Lehrer:innen-Community dauerhaft kostendeckend weiterbestehen kann.
+            <span className="font-medium text-slate-700">{inhalte["landing.preis.wofuerLabel"]} </span>
+            {inhalte["landing.preis.wofuerText"]}
           </p>
         </Reveal>
 
@@ -828,10 +681,7 @@ export default function LandingPage({
             </div>
           </div>
         </Reveal>
-        <p className="mt-4 text-center text-xs text-slate-400">
-          Die Freischaltung einer bezahlten Stufe erfolgt manuell - kontaktiere dazu einfach die
-          Person, die den Zugang für deine Schule/Einrichtung verwaltet.
-        </p>
+        <p className="mt-4 text-center text-xs text-slate-400">{inhalte["landing.preis.freischaltungHinweis"]}</p>
         {tokenGesamt !== undefined && tokenGesamt > 0 && (
           <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
             <Cpu size={13} className="shrink-0" />
@@ -844,7 +694,7 @@ export default function LandingPage({
       {/* ABSCHLUSS-CTA */}
       <Reveal>
         <section className="relative overflow-hidden rounded-3xl bg-brand-gradient px-6 py-12 text-center text-white shadow-card sm:px-12 sm:py-14">
-          <h2 className="font-display text-2xl font-semibold sm:text-3xl">{ctaUeberschrift}</h2>
+          <h2 className="font-display text-2xl font-semibold sm:text-3xl">{inhalte["landing.cta.ueberschrift"]}</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-brand-50 sm:text-base">
             {formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)} kostenlos, keine Zahlungsdaten
             nötig - startklar in wenigen Minuten.
@@ -853,7 +703,7 @@ export default function LandingPage({
             href="/register"
             className="mt-7 inline-flex items-center gap-2 rounded-full bg-surface px-6 py-3 text-sm font-semibold text-brand-700 shadow-card transition hover:-translate-y-0.5 hover:shadow-card-hover active:translate-y-0"
           >
-            <Gift size={16} /> Jetzt kostenlos starten
+            <Gift size={16} /> {inhalte["landing.cta.registrierenButton"]}
           </Link>
           <div className="pointer-events-none absolute inset-x-0 bottom-0">
             <IslamicPatternStrip color="#f4ead1" opacity={0.4} hoehe={16} />

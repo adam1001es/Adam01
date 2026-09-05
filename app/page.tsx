@@ -51,15 +51,7 @@ export default async function DashboardPage({
     // summeTokens in lib/usageLog.ts) - nur für nicht angemeldete Besucher:innen relevant, daher
     // hier statt in der eingeloggten Dashboard-Ansicht abgefragt.
     const { gesamt } = await summeTokens();
-    return (
-      <LandingPage
-        tokenGesamt={gesamt}
-        heroBadge={inhalte["landing.hero.badge"]}
-        heroUeberschrift={inhalte["landing.hero.ueberschrift"]}
-        heroUntertext={inhalte["landing.hero.untertext"]}
-        ctaUeberschrift={inhalte["landing.cta.ueberschrift"]}
-      />
-    );
+    return <LandingPage tokenGesamt={gesamt} inhalte={inhalte} />;
   }
 
   const worksheets = await prisma.worksheet.findMany({
