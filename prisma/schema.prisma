@@ -173,6 +173,7 @@ model User {
   forumChatNachrichten ForumChatNachricht[]
   forumMeldungen       ForumMeldung[]
   stundenplanEintraege StundenplanEintrag[]
+  jahresplaene         Jahresplan[]
 }
 
 // Ein Platzhalter-Eintrag pro GERADE LAUFENDEM Claude-Aufruf (siehe lib/auslastung.ts) - beim
@@ -520,6 +521,45 @@ model StundenplanEintrag {
   createdAt      DateTime @default(now())
 
   @@index([userId, wochentag])
+}
+
+// Jahresplanung (siehe app/werkzeuge/jahresplanung, lib/jahresplan.ts) - die vom IGGÖ-Schulamt als
+// Dienstpflicht beschriebene Wochenplanung pro Religionsunterrichtsgruppe. "variante" referenziert
+// NUR eine ID aus lib/jahresplanKalender.ts (JAHRESPLAN_KALENDER_VARIANTEN) statt eigener
+// Datumsfelder - die kompletten Kalenderdaten (Wochendatum/Hijri/Ferien) bleiben Code, nicht DB,
+// damit ein späteres Update der offiziellen Vorlage (z.B. neues Schuljahr) keine Migration
+// braucht. gruppe/erstelltVon/bemerkungenGruppe/speziellerFokus spiegeln die freien Kopf-Felder
+// der Word-Vorlage 1:1.
+model Jahresplan {
+  id                 String            @id @default(cuid())
+  userId             String
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variante           String
+  gruppe             String
+  erstelltVon        String?
+  bemerkungenGruppe  String?
+  speziellerFokus    String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  wochen             JahresplanWoche[]
+
+  @@index([userId])
+}
+
+// Eine Zeile der Jahresplanung - "nummer" referenziert die fortlaufende Wochennummer aus der
+// gewählten Kalender-Variante (siehe Jahresplan.variante). Datum/Hijri/Ferien-Anmerkungen werden
+// NICHT gespeichert (siehe Kommentar oben), nur die drei von der Lehrkraft selbst eingetragenen
+// Spalten der offiziellen Vorlage.
+model JahresplanWoche {
+  id           String     @id @default(cuid())
+  jahresplanId String
+  jahresplan   Jahresplan @relation(fields: [jahresplanId], references: [id], onDelete: Cascade)
+  nummer       Int
+  wochenthema  String?
+  kompetenzen  String?
+  notizen      String?
+
+  @@unique([jahresplanId, nummer])
 }
 
 // Admin-editierbare Inhalte (Texte, Bilder) für fest im Code registrierte Stellen auf

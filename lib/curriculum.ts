@@ -268,7 +268,7 @@ export const SCHULSTUFE_THEMEN: Record<number, string[]> = {
     "Das Opferfest – Idul-Adha",
     "Offenbarungsreligionen: Judentum, Christentum",
     "So fühle ich mich zuhause – Ich wähle meinen Weg",
-    "Geschichten von Propheten: Ibrahim (as), Yusuf (as)",
+    "Geschichten von Propheten: Ibrahim (as)",
     "Ich lerne im Koran: Ayat al Kursi, Al-Qadr, At-Tin, Al-Kauthar",
   ],
   5: [
@@ -281,6 +281,8 @@ export const SCHULSTUFE_THEMEN: Record<number, string[]> = {
     "Ein guter Mensch sein",
     "Friedliche Wege in der Konfliktlösung",
     "Verantwortung",
+    "Krankenbesuch",
+    "Umgang mit Tieren",
   ],
   6: [
     "Das tägliche rituelle Gebet (As-Salah)",
@@ -318,6 +320,7 @@ export const SCHULSTUFE_THEMEN: Record<number, string[]> = {
     "Geschichten von Propheten: Isa (as)",
     "Verantwortung in der Kommunikation",
     "Menschen auf der Flucht",
+    "Liebe – Ehe – Sexualität",
     "Islamische Kultur: die Madrasa, islamische Universitäten",
     "Islam in Österreich und Europa",
   ],
