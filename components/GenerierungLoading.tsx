@@ -80,11 +80,14 @@ function MatrixRegen() {
 // damit es wie echter Fließtext statt gleichförmiger Balken wirkt.
 const GLAS_ZEILEN_BREITEN = [92, 76, 88, 64, 90, 72];
 
-/** Kompakte Lade-Anzeige während der (teils minutenlangen) Arbeitsblatt-Erstellung - ersetzt nur
- * den Erstellen-Button, kein vollflächiges Overlay. Zeigt ein "Glas"-Blatt, auf dem sich laufend
- * neue Zeilen aufbauen, mit einem dezenten, futuristischen Zeichen-Regen im Hintergrund - bei
- * einer durchschnittlichen Wartezeit von ca. 3 Minuten (siehe STAGE_TEXTE/SPAET_TEXTE oben) soll
- * hier erkennbar etwas passieren statt einer stillstehenden Balkenanzeige.
+/** Lade-Anzeige während der (teils minutenlangen) Arbeitsblatt-Erstellung - als zentriertes Popup
+ * über der gesamten Ansicht (statt nur inline anstelle des Erstellen-Buttons), damit sie besonders
+ * auf dem Handy wie ein echtes, mittig sitzendes Overlay wirkt und nicht irgendwo im Formular
+ * verschwindet, wenn man beim Auslösen bereits weiter unten gescrollt hatte. Sperrt währenddessen
+ * das Scrollen der Seite dahinter (klassisches Popup-Verhalten). Zeigt ein "Glas"-Blatt, auf dem
+ * sich laufend neue Zeilen aufbauen, mit einem dezenten, futuristischen Zeichen-Regen im
+ * Hintergrund - bei einer durchschnittlichen Wartezeit von ca. 3 Minuten (siehe STAGE_TEXTE/
+ * SPAET_TEXTE oben) soll hier erkennbar etwas passieren statt einer stillstehenden Balkenanzeige.
  */
 export default function GenerierungLoading() {
   const [tick, setTick] = useState(0);
@@ -94,33 +97,46 @@ export default function GenerierungLoading() {
     return () => clearInterval(intervall);
   }, []);
 
+  // Body-Scroll sperren, solange das Popup sichtbar ist - typisches Modal-Verhalten, verhindert
+  // dass man die Seite dahinter versehentlich wegscrollt. Ursprünglichen Wert beim Aufräumen
+  // wiederherstellen statt hart auf "" zu setzen, falls schon vorher etwas anderes galt.
+  useEffect(() => {
+    const vorher = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = vorher;
+    };
+  }, []);
+
   const text =
     tick < STAGE_TEXTE.length ? STAGE_TEXTE[tick] : SPAET_TEXTE[(tick - STAGE_TEXTE.length) % SPAET_TEXTE.length];
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-brand-800/40 bg-gradient-to-br from-[#0b1f1c] via-[#0f2e29] to-[#0b1f1c] px-5 py-6 shadow-card">
-      <MatrixRegen />
+    <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-brand-800/40 bg-gradient-to-br from-[#0b1f1c] via-[#0f2e29] to-[#0b1f1c] px-5 py-6 shadow-2xl">
+        <MatrixRegen />
 
-      <div className="relative mx-auto w-full max-w-[240px] rounded-xl border border-white/15 bg-white/10 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
-        <div className="mb-3 flex items-center gap-1.5">
-          <Sparkles size={14} className="animate-pulse text-gold-300" />
-          <span className="text-[11px] font-medium tracking-wide text-white/80">Bismillahirrahmanirrahim</span>
+        <div className="relative mx-auto w-full max-w-[240px] rounded-xl border border-white/15 bg-white/10 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
+          <div className="mb-3 flex items-center gap-1.5">
+            <Sparkles size={14} className="animate-pulse text-gold-300" />
+            <span className="text-[11px] font-medium tracking-wide text-white/80">Bismillahirrahmanirrahim</span>
+          </div>
+          {GLAS_ZEILEN_BREITEN.map((breite, i) => (
+            <div
+              key={i}
+              className="animate-glass-line mb-2 h-1.5 rounded-full bg-white/40 last:mb-0 motion-reduce:animate-none motion-reduce:w-full"
+              style={{ "--zeilenbreite": `${breite}%`, animationDelay: `${i * 0.35}s` } as React.CSSProperties}
+            />
+          ))}
         </div>
-        {GLAS_ZEILEN_BREITEN.map((breite, i) => (
-          <div
-            key={i}
-            className="animate-glass-line mb-2 h-1.5 rounded-full bg-white/40 last:mb-0 motion-reduce:animate-none motion-reduce:w-full"
-            style={{ "--zeilenbreite": `${breite}%`, animationDelay: `${i * 0.35}s` } as React.CSSProperties}
-          />
-        ))}
-      </div>
 
-      <p key={tick} className="animate-fade-in relative mt-4 text-center text-sm font-medium text-white/90">
-        {text}
-      </p>
+        <p key={tick} className="animate-fade-in relative mt-4 text-center text-sm font-medium text-white/90">
+          {text}
+        </p>
 
-      <div className="relative mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-        <div className="animate-lade-balken absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-gold-300 to-brand-300 motion-reduce:animate-none motion-reduce:w-full" />
+        <div className="relative mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="animate-lade-balken absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-gold-300 to-brand-300 motion-reduce:animate-none motion-reduce:w-full" />
+        </div>
       </div>
     </div>
   );
