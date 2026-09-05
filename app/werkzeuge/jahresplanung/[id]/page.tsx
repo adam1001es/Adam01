@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, NotebookPen } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { holeKalenderVariante } from "@/lib/jahresplanKalender";
+import { holeKalenderVarianteAsync } from "@/lib/jahresplanVarianten";
 import JahresplanEditor from "@/components/JahresplanEditor";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export default async function JahresplanDetailPage({ params }: { params: { id: s
   });
   if (!jahresplan || jahresplan.userId !== user.id) notFound();
 
-  const variante = holeKalenderVariante(jahresplan.variante);
+  const variante = await holeKalenderVarianteAsync(jahresplan.variante);
   if (!variante) notFound();
 
   return (

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, NotebookPen, Plus } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { holeKalenderVariante } from "@/lib/jahresplanKalender";
+import { holeAlleVarianten } from "@/lib/jahresplanVarianten";
 import EinfacherLoeschButton from "@/components/EinfacherLoeschButton";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +15,14 @@ export default async function JahresplanungPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
 
-  const jahresplaene = await prisma.jahresplan.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  const [jahresplaene, alleVarianten] = await Promise.all([
+    prisma.jahresplan.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    holeAlleVarianten(),
+  ]);
+  const variantenNachId = new Map(alleVarianten.map((v) => [v.id, v]));
 
   return (
     <main className="mx-auto max-w-2xl">
@@ -51,7 +55,7 @@ export default async function JahresplanungPage() {
       ) : (
         <ul className="mt-6 space-y-3">
           {jahresplaene.map((j) => {
-            const variante = holeKalenderVariante(j.variante);
+            const variante = variantenNachId.get(j.variante);
             return (
               <li key={j.id}>
                 <Link

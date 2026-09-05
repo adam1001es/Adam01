@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, NotebookPen } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
+import { holeAlleVarianten } from "@/lib/jahresplanVarianten";
 import JahresplanErstellenForm from "@/components/JahresplanErstellenForm";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function NeueJahresplanungPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login");
+  const varianten = await holeAlleVarianten();
 
   return (
     <main className="mx-auto max-w-xl">
@@ -26,7 +28,7 @@ export default async function NeueJahresplanungPage() {
       </p>
 
       <div className="mt-6">
-        <JahresplanErstellenForm />
+        <JahresplanErstellenForm varianten={varianten} />
       </div>
     </main>
   );

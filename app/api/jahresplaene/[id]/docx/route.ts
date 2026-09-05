@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { holeKalenderVariante } from "@/lib/jahresplanKalender";
+import { holeKalenderVarianteAsync } from "@/lib/jahresplanVarianten";
 import { renderJahresplanDocxBuffer } from "@/lib/jahresplanDocx";
 import { slugifyTitel } from "@/lib/worksheetExport";
 
@@ -21,7 +21,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ error: "Jahresplanung nicht gefunden." }, { status: 404 });
   }
 
-  const variante = holeKalenderVariante(jahresplan.variante);
+  const variante = await holeKalenderVarianteAsync(jahresplan.variante);
   if (!variante) {
     return NextResponse.json({ error: "Unbekannter Schulbeginn-Termin." }, { status: 400 });
   }

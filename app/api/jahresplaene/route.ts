@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { JahresplanErstellenSchema } from "@/lib/jahresplan";
-import { holeKalenderVariante } from "@/lib/jahresplanKalender";
+import { holeKalenderVarianteAsync } from "@/lib/jahresplanVarianten";
 
 export async function GET() {
   const user = await getSessionUser();
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const variante = holeKalenderVariante(parsed.data.variante);
+  const variante = await holeKalenderVarianteAsync(parsed.data.variante);
   if (!variante) {
     return NextResponse.json({ error: "Unbekannter Schulbeginn-Termin." }, { status: 400 });
   }

@@ -30,6 +30,25 @@ export const JahresplanWochenSpeichernSchema = z.object({
   wochen: z.array(JahresplanWocheEingabeSchema).min(1).max(60),
 });
 
+/** Für den admin-exklusiven Upload künftiger Schuljahre (siehe app/admin/jahresplan-varianten,
+ * lib/jahresplanImport.ts) - Zod-Gegenstück zu JahresplanKalenderWoche/-Variante aus
+ * lib/jahresplanKalender.ts, für den Preview-bestätigt-speichern-Zyklus. */
+export const JahresplanKalenderWocheSchema = z.object({
+  nummer: z.number().int().min(1).max(60),
+  semester: z.union([z.literal(1), z.literal(2)]),
+  von: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "ISO-Datum erwartet."),
+  bis: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "ISO-Datum erwartet."),
+  hijri: z.string().max(200),
+  anmerkungen: z.array(z.string().max(500)).max(20),
+});
+
+export const JahresplanVarianteSpeichernSchema = z.object({
+  varianteId: z.string().trim().min(1, "Bitte eine Kennung angeben.").max(40),
+  label: z.string().trim().min(1, "Bitte eine Bezeichnung angeben.").max(120),
+  schuljahr: z.string().trim().min(1, "Bitte das Schuljahr angeben.").max(20),
+  wochen: z.array(JahresplanKalenderWocheSchema).min(1).max(60),
+});
+
 export interface JahresplanWocheZeile {
   id: string;
   nummer: number;

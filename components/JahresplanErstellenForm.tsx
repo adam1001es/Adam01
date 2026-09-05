@@ -3,15 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { inputClass, labelClass } from "@/lib/formStyles";
-import { JAHRESPLAN_KALENDER_VARIANTEN } from "@/lib/jahresplanKalender";
+import type { JahresplanKalenderVariante } from "@/lib/jahresplanKalender";
 
 /** Formular für eine neue Jahresplanung (siehe app/werkzeuge/jahresplanung/neu) - spiegelt die
  * freien Kopf-Felder der offiziellen Word-Vorlage (Gruppe/Erstellt von/Bemerkungen/Fokus), plus
- * die Wahl der Kalender-Variante (siehe lib/jahresplanKalender.ts - benannt nach dem tatsächlichen
- * Schulbeginn-Termin der eigenen Schule, nicht nach Bundesland). */
-export default function JahresplanErstellenForm() {
+ * die Wahl der Kalender-Variante (benannt nach dem tatsächlichen Schulbeginn-Termin der eigenen
+ * Schule, nicht nach Bundesland). "varianten" kommt vom Server (app/werkzeuge/jahresplanung/neu)
+ * statt direkt aus lib/jahresplanKalender.ts importiert zu werden - enthält so auch admin-
+ * hochgeladene Varianten aus der Datenbank (siehe lib/jahresplanVarianten.ts), die eine
+ * Client-Komponente nicht selbst per Prisma abfragen könnte. */
+export default function JahresplanErstellenForm({
+  varianten,
+}: {
+  varianten: JahresplanKalenderVariante[];
+}) {
   const router = useRouter();
-  const [variante, setVariante] = useState(JAHRESPLAN_KALENDER_VARIANTEN[0].id);
+  const [variante, setVariante] = useState(varianten[0]?.id ?? "");
   const [gruppe, setGruppe] = useState("");
   const [erstelltVon, setErstelltVon] = useState("");
   const [bemerkungenGruppe, setBemerkungenGruppe] = useState("");
@@ -49,7 +56,7 @@ export default function JahresplanErstellenForm() {
       <label className="block">
         <span className={labelClass}>Schulbeginn-Termin deiner Schule</span>
         <select value={variante} onChange={(e) => setVariante(e.target.value)} className={inputClass}>
-          {JAHRESPLAN_KALENDER_VARIANTEN.map((v) => (
+          {varianten.map((v) => (
             <option key={v.id} value={v.id}>
               {v.label} (Schuljahr {v.schuljahr})
             </option>
