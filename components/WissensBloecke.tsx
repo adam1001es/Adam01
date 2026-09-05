@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useAnimation } from "framer-motion";
-import { RotateCcw, Trophy } from "lucide-react";
+import { CheckCircle2, HelpCircle, RotateCcw, Trophy, XCircle } from "lucide-react";
 import { SPIEL_FRAGEN, type SpielFrage } from "@/lib/spielFragen";
 import {
   type Formteil,
@@ -87,6 +87,8 @@ export default function WissensBloecke() {
   const [drag, setDrag] = useState<DragZustand | null>(null);
   const [blitzZellen, setBlitzZellen] = useState<Set<string> | null>(null);
   const [feierAktiv, setFeierAktiv] = useState(false);
+  const [antwortFeedback, setAntwortFeedback] = useState<"richtig" | "falsch" | null>(null);
+  const [regelnOffen, setRegelnOffen] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const schuettelControls = useAnimation();
 
@@ -164,17 +166,24 @@ export default function WissensBloecke() {
     (gewaehlt: boolean) => {
       if (!frage) return;
       const richtig = gewaehlt === frage.wahr;
-      if (richtig) {
-        const optionen = dreiAuswahlFormen().map((form) => ({ form, farbe: zufallsFarbe() }));
-        if (!optionen.some((option) => findeGueltigenAnker(raster, option.form))) {
-          spielBeenden();
-          return;
+      // Kurzer Farb-Flash (grün/rot) direkt auf der Fragekarte, BEVOR es weitergeht, damit
+      // erkennbar ist, ob die Antwort richtig oder falsch war - sonst sah man bei "falsch" gar
+      // keine Rückmeldung, sondern bekam kommentarlos ein schwereres Kästchen zugewiesen.
+      setAntwortFeedback(richtig ? "richtig" : "falsch");
+      setTimeout(() => {
+        setAntwortFeedback(null);
+        if (richtig) {
+          const optionen = dreiAuswahlFormen().map((form) => ({ form, farbe: zufallsFarbe() }));
+          if (!optionen.some((option) => findeGueltigenAnker(raster, option.form))) {
+            spielBeenden();
+            return;
+          }
+          setAuswahlOptionen(optionen);
+          setPhase("waehlen");
+        } else {
+          stueckSetzenUndPruefen({ form: zufallsSchwereForm(), farbe: zufallsFarbe() }, raster);
         }
-        setAuswahlOptionen(optionen);
-        setPhase("waehlen");
-      } else {
-        stueckSetzenUndPruefen({ form: zufallsSchwereForm(), farbe: zufallsFarbe() }, raster);
-      }
+      }, 700);
     },
     [frage, raster, stueckSetzenUndPruefen, spielBeenden],
   );
@@ -343,15 +352,29 @@ export default function WissensBloecke() {
         <span className="flex items-center gap-1 text-amber-700">
           <Trophy size={14} /> Bestwert: {bestwert}
         </span>
+        <button
+          type="button"
+          onClick={() => setRegelnOffen(true)}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-amber-300 text-amber-700 transition hover:bg-amber-50"
+          aria-label="Spielregeln anzeigen"
+        >
+          <HelpCircle size={15} />
+        </button>
       </div>
 
       {phase === "start" ? (
-        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 p-8 text-center">
+        <div className="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 p-6 text-center sm:p-8">
           <p className="font-display text-lg font-semibold text-slate-800">Wissensblöcke</p>
-          <p className="mx-auto mt-2 max-w-[32ch] text-sm text-slate-600">
-            Beantworte die Frage, platziere dein Kästchen im Raster - eine volle Reihe oder Spalte
-            löst sich auf. Kein Zeitdruck, du entscheidest in Ruhe.
+          <p className="mx-auto mt-2 max-w-[34ch] text-sm text-slate-600">
+            Kein Zeitdruck: du entscheidest in Ruhe, wie du Fragen beantwortest und Kästchen
+            platzierst.
           </p>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-amber-700">
+            So funktioniert&apos;s
+          </p>
+          <div className="mt-2">
+            <SpielRegelnListe />
+          </div>
           <motion.button
             whileTap={{ scale: 0.94 }}
             whileHover={{ scale: 1.04 }}
@@ -445,29 +468,52 @@ export default function WissensBloecke() {
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   exit={{ opacity: 0, scale: 0.7, rotate: 4 }}
                   transition={{ type: "spring", bounce: 0.4, duration: 0.45 }}
-                  className="absolute inset-x-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center justify-center gap-4 rounded-xl bg-white/80 p-4 text-center shadow-2xl"
+                  className="absolute inset-x-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center justify-center gap-4 rounded-xl p-4 text-center shadow-2xl transition-colors duration-300"
+                  style={{
+                    backgroundColor:
+                      antwortFeedback === "richtig"
+                        ? "rgba(5,150,105,0.94)"
+                        : antwortFeedback === "falsch"
+                          ? "rgba(190,18,60,0.94)"
+                          : "rgba(255,255,255,0.8)",
+                  }}
                 >
-                  <p className="text-base font-semibold text-slate-800">{frage.text}</p>
-                  <div className="flex gap-4">
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      whileHover={{ scale: 1.06 }}
-                      type="button"
-                      onClick={() => antworten(true)}
-                      className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md"
+                  {antwortFeedback ? (
+                    <motion.div
+                      key={antwortFeedback}
+                      initial={{ scale: 0.4, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", bounce: 0.5, duration: 0.4 }}
+                      className="flex flex-col items-center gap-2 text-white"
                     >
-                      Wahr
-                    </motion.button>
-                    <motion.button
-                      whileTap={{ scale: 0.9 }}
-                      whileHover={{ scale: 1.06 }}
-                      type="button"
-                      onClick={() => antworten(false)}
-                      className="rounded-lg bg-rose-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md"
-                    >
-                      Falsch
-                    </motion.button>
-                  </div>
+                      {antwortFeedback === "richtig" ? <CheckCircle2 size={48} /> : <XCircle size={48} />}
+                      <p className="text-lg font-bold">{antwortFeedback === "richtig" ? "Richtig!" : "Falsch!"}</p>
+                    </motion.div>
+                  ) : (
+                    <>
+                      <p className="text-base font-semibold text-slate-800">{frage.text}</p>
+                      <div className="flex gap-4">
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          whileHover={{ scale: 1.06 }}
+                          type="button"
+                          onClick={() => antworten(true)}
+                          className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md"
+                        >
+                          Wahr
+                        </motion.button>
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          whileHover={{ scale: 1.06 }}
+                          type="button"
+                          onClick={() => antworten(false)}
+                          className="rounded-lg bg-rose-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md"
+                        >
+                          Falsch
+                        </motion.button>
+                      </div>
+                    </>
+                  )}
                 </motion.div>
               )}
 
@@ -577,7 +623,59 @@ export default function WissensBloecke() {
         Fragen zu Schulrecht, Pädagogik, islamischem Grundwissen &amp; Schulalltag - einfach
         gehalten, keine Rechtsberatung.
       </p>
+
+      <AnimatePresence>
+        {regelnOffen && (
+          <motion.div
+            key="regeln-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+            onClick={() => setRegelnOffen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              transition={{ type: "spring", bounce: 0.35, duration: 0.4 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-2xl bg-white p-5 text-center shadow-2xl"
+            >
+              <p className="font-display text-base font-semibold text-slate-800">So funktioniert&apos;s</p>
+              <div className="mt-3">
+                <SpielRegelnListe />
+              </div>
+              <button
+                type="button"
+                onClick={() => setRegelnOffen(false)}
+                className="mt-4 rounded-lg bg-werkzeuge-gradient px-5 py-2 text-sm font-medium text-white shadow-card-werkzeuge"
+              >
+                Verstanden
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+  );
+}
+
+function SpielRegelnListe() {
+  return (
+    <ol className="mx-auto max-w-[34ch] list-decimal space-y-2 pl-5 text-left text-sm text-slate-600">
+      <li>Beantworte die Wahr-oder-Falsch-Frage.</li>
+      <li>
+        <strong className="text-emerald-700">Richtig?</strong> Wähle eines von drei Kästchen und
+        ziehe es direkt ins Raster.
+      </li>
+      <li>
+        <strong className="text-rose-700">Falsch?</strong> Du bekommst automatisch ein größeres,
+        unregelmäßiges Kästchen zugewiesen.
+      </li>
+      <li>Fülle eine ganze Reihe oder Spalte komplett - sie löst sich auf und bringt Bonuspunkte.</li>
+      <li>Game Over, sobald dein Kästchen nirgendwo mehr ins Raster passt.</li>
+    </ol>
   );
 }
 
