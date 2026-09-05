@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   BookOpen,
   ListChecks,
@@ -235,6 +236,15 @@ function loescheEntwurf(klasseId?: string) {
     // siehe speichereEntwurf
   }
 }
+
+// Wortgleich in der Fehlermeldung UND im Vergleich unten verwendet (siehe handleSubmit/error-
+// Anzeige) - eine gemeinsame Konstante statt zweier getrennter Textstellen, die sonst
+// auseinanderlaufen könnten. Nennt bewusst eine konkrete Wartezeit (1-2 Minuten) statt nur "kurz
+// warten" - ein reines "schau erstmal nach" ohne Zeitangabe hat Lehrkräfte in der Praxis dazu
+// verleitet, sofort wieder "Arbeitsblatt erstellen" zu klicken, weil das Blatt noch gar nicht in
+// der Übersicht auftauchen konnte.
+const VERBINDUNG_UNTERBROCHEN_FEHLER =
+  "Die Verbindung wurde während der Erstellung unterbrochen (z.B. schwaches Netz oder die Seite wurde in den Hintergrund gelegt). Das Arbeitsblatt kann serverseitig trotzdem fertig geworden sein: geh zuerst auf die Übersicht und warte dort 1-2 Minuten. Taucht es dort nicht auf, kannst du es hier erneut versuchen - sonst kann versehentlich ein zweites Mal Kontingent verbraucht werden.";
 
 /**
  * Prüfungs-Modus B (komplette Neu-Generierung als formelle Prüfung, siehe lib/generateWorksheet.ts
@@ -647,9 +657,7 @@ export default function NewWorksheetForm({
         // Fall trotzdem fertig geworden sein (und dabei Kontingent verbraucht haben) - deshalb
         // NICHT einfach "erneut versuchen" vorschlagen, ohne vorher auf ein mögliches Duplikat
         // hinzuweisen.
-        throw new Error(
-          "Die Verbindung wurde während der Erstellung unterbrochen (z.B. schwaches Netz oder die Seite wurde in den Hintergrund gelegt). Bitte zuerst in der Übersicht nachsehen, ob das Arbeitsblatt trotzdem schon fertig wurde, bevor erneut versucht wird - sonst kann versehentlich ein zweites Mal Kontingent verbraucht werden.",
-        );
+        throw new Error(VERBINDUNG_UNTERBROCHEN_FEHLER);
       }
 
       const rohtext = await res.text();
@@ -1507,7 +1515,15 @@ export default function NewWorksheetForm({
 
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
-            {error}
+            <p>{error}</p>
+            {error === VERBINDUNG_UNTERBROCHEN_FEHLER && (
+              <Link
+                href="/"
+                className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-red-700"
+              >
+                Zur Übersicht
+              </Link>
+            )}
           </div>
         )}
 
