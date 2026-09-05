@@ -32,6 +32,7 @@ import {
   KOSTENLOS_PUNKTE_LIMIT,
   formatEur,
   formatArbeitsblaetterSpanne,
+  zuCoins,
 } from "@/lib/quota";
 import { WorksheetContent, LayoutConfig } from "@/lib/types";
 import IslamicPatternStrip from "@/components/IslamicPatternStrip";
@@ -638,7 +639,7 @@ export default function LandingPage({
       <section>
         <SectionHeading
           title={inhalte["landing.preis.titel"]}
-          subtitle={`Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist das Punkte-Guthaben (${KOSTENLOS_PUNKTE_LIMIT} Punkte einmalig zum Ausprobieren, ${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}, vs. ${TIER_PUNKTE_QUOTA.pro} Punkte/Monat im Abo, ${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) sowie der Zugang zur Community und zur Klassenübersicht/Prüfungserstellung, die Abo-Konten vorbehalten sind. 1 Punkt entspricht dabei den tatsächlich anfallenden Kosten eines Arbeitsblatts, nicht einer festen Stückzahl.`}
+          subtitle={`Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist das Coin-Guthaben (${zuCoins(KOSTENLOS_PUNKTE_LIMIT)} Coins einmalig zum Ausprobieren, ${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}, vs. ${zuCoins(TIER_PUNKTE_QUOTA.pro)} Coins/Monat im Abo, ${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) sowie der Zugang zur Community und zur Klassenübersicht/Prüfungserstellung, die Abo-Konten vorbehalten sind. Je nach Umfang und Aufgabenanzahl eines Arbeitsblatts wird unterschiedlich viel Guthaben verbraucht, statt einer festen Stückzahl.`}
         />
         <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-2">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((n, i) => (
@@ -668,7 +669,7 @@ export default function LandingPage({
           <div className="rounded-xl border border-slate-200 bg-surface p-4 text-center">
             <div className="text-sm font-semibold text-slate-700">Kostenlos</div>
             <div className="mt-1 text-xs text-slate-400">
-              {KOSTENLOS_PUNKTE_LIMIT} Punkte insgesamt, einmalig ({formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)})
+              {zuCoins(KOSTENLOS_PUNKTE_LIMIT)} Coins insgesamt, einmalig ({formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)})
             </div>
           </div>
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 text-center">
@@ -676,7 +677,7 @@ export default function LandingPage({
               Abo <span className="font-normal text-slate-400">· {formatEur(TIER_PREIS_EUR.pro)}€/Monat</span>
             </div>
             <div className="mt-1 text-xs text-slate-400">
-              {TIER_PUNKTE_QUOTA.pro} Punkte/Monat ({formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) · inkl.
+              {zuCoins(TIER_PUNKTE_QUOTA.pro)} Coins/Monat ({formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) · inkl.
               Community, Klassen &amp; Prüfungen
             </div>
           </div>

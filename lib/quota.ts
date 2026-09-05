@@ -39,6 +39,23 @@ export function formatEur(betrag: number): string {
   return betrag.toFixed(2).replace(".", ",");
 }
 
+/** Kund:innen sehen "Coins" statt "Punkte" - intern bleibt die gesamte Abrechnung (Limits,
+ * Verbrauch, Guthaben-Prüfung in app/api/generate, echte Kosten in lib/pricing.ts) unverändert in
+ * Punkten/Cent, NUR die angezeigte Beschriftung/Zahl wird umgerechnet (siehe zuCoins unten).
+ * Faktor bewusst so gewählt, dass das Abo-Guthaben als runde "1000 Coins" erscheint (statt 300
+ * Punkte) - der eigentliche Grund ist aber Marketing, nicht Kosmetik: bei "1 Punkt = 1 Cent" ließe
+ * sich aus der sichtbaren Zahl die reale Kostenbasis (und damit die Marge) trivial zurückrechnen;
+ * mit einem krummen Umrechnungsfaktor und einer eigenen Einheit ist das praktisch nicht mehr
+ * möglich. Nur für Kund:innen-Anzeigen (Landingpage, FAQ, KontingentBanner, Account-Seite,
+ * Guthaben-Fehlermeldung) - die admin-interne Kontenverwaltung (AdminUserTable/AdminTierForm)
+ * zeigt bewusst weiterhin die echten Punkte, damit der Admin die reale Kostenbasis nicht selbst
+ * erst zurückrechnen muss. */
+const COIN_FAKTOR = 1000 / TIER_PUNKTE_QUOTA.pro;
+
+export function zuCoins(punkte: number): number {
+  return Math.round(punkte * COIN_FAKTOR);
+}
+
 // Für die "ca. X-Y Arbeitsblätter"-Anzeige (siehe schaetzeArbeitsblaetterSpanne) - bewusst NICHT
 // der echte gemessene Durchschnitt (aktuell ca. 25 Punkte/Blatt), sondern ein etwas teurerer
 // Realitäts-Korridor: er berücksichtigt, dass einzelne aufwendigere Arbeitsblätter (bis ca. 60
@@ -66,7 +83,7 @@ export function formatArbeitsblaetterSpanne(punkte: number): string {
   return von === bis ? `ca. ${von} Arbeitsblätter` : `ca. ${von}-${bis} Arbeitsblätter`;
 }
 
-const ABO_LABEL = `Abo (${formatEur(TIER_PREIS_EUR.pro)}€ / ${TIER_PUNKTE_QUOTA.pro} Punkte im Monat, ${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)})`;
+const ABO_LABEL = `Abo (${formatEur(TIER_PREIS_EUR.pro)}€ / ${zuCoins(TIER_PUNKTE_QUOTA.pro)} Coins im Monat, ${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)})`;
 export const TIER_LABEL: Record<string, string> = {
   starter: ABO_LABEL,
   pro: ABO_LABEL,
@@ -79,7 +96,7 @@ export const TIER_LABEL: Record<string, string> = {
 // nur im aktuellen Zyklus). Wer mehr will, braucht das bezahlte Abo - kein "jeden Monat wieder
 // gratis". 100 Punkte entsprechen bei echten Kosten in etwa den früheren "4 Arbeitsblätter".
 export const KOSTENLOS_PUNKTE_LIMIT = 100;
-export const KOSTENLOS_LABEL = `Kostenlos zum Ausprobieren (${KOSTENLOS_PUNKTE_LIMIT} Punkte insgesamt, einmalig, ${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)})`;
+export const KOSTENLOS_LABEL = `Kostenlos zum Ausprobieren (${zuCoins(KOSTENLOS_PUNKTE_LIMIT)} Coins insgesamt, einmalig, ${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)})`;
 
 // Eigenständige, bewusst NICHT punktebasierte Obergrenze für die Browser-/IP-Sperre (siehe
 // lib/trial.ts) - die verhindert nur, dass sich jemand mehrere Konten anlegt, um ein Vielfaches

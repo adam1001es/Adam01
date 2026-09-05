@@ -1,6 +1,6 @@
 import { Gauge, ShieldCheck } from "lucide-react";
 import type { Kontingent } from "@/lib/quota";
-import { tierLabel, formatArbeitsblaetterSpanne } from "@/lib/quota";
+import { tierLabel, formatArbeitsblaetterSpanne, zuCoins } from "@/lib/quota";
 
 export default function KontingentBanner({ kontingent }: { kontingent: Kontingent }) {
   if (kontingent.unbegrenzt) {
@@ -10,7 +10,7 @@ export default function KontingentBanner({ kontingent }: { kontingent: Kontingen
         <div>
           <span className="font-medium">Admin-Konto – unbegrenztes Kontingent</span>
           <p className="mt-0.5 opacity-80">
-            {kontingent.verbraucht} Punkte in diesem Zyklus verbraucht, kein Limit.
+            {zuCoins(kontingent.verbraucht)} Coins in diesem Zyklus verbraucht, kein Limit.
           </p>
         </div>
       </div>
@@ -34,7 +34,7 @@ export default function KontingentBanner({ kontingent }: { kontingent: Kontingen
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
           <span className="font-medium">{tierLabel(kontingent.tier)}</span>
           <span>
-            {kontingent.verbraucht} / {kontingent.limit} Punkte
+            {zuCoins(kontingent.verbraucht)} / {zuCoins(kontingent.limit)} Coins
             {hatZyklus ? " in diesem Zyklus" : " insgesamt"}
           </span>
         </div>

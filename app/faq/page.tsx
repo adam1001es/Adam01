@@ -4,6 +4,7 @@ import {
   KOSTENLOS_PUNKTE_LIMIT,
   formatEur,
   formatArbeitsblaetterSpanne,
+  zuCoins,
 } from "@/lib/quota";
 import { holeSiteInhalte } from "@/lib/siteContent";
 
@@ -15,13 +16,13 @@ export default async function FaqPage() {
   const inhalte = await holeSiteInhalte();
 
   // Frage 1 (Preise) bewusst NICHT admin-editierbar (siehe lib/siteContent.ts) - der Text enthält
-  // echte, sich ändernde Preis-/Punktezahlen aus lib/quota.ts, ein Override würde diese sonst
+  // echte, sich ändernde Preis-/Coin-Zahlen aus lib/quota.ts, ein Override würde diese sonst
   // stillschweigend einfrieren. Fragen 2-5 kommen aus der Registry (siehe app/admin/inhalte).
   const FRAGEN: { frage: string; antwort: React.ReactNode }[] = [
     {
       frage: "Was kostet Lernwerk?",
       antwort:
-        `${KOSTENLOS_PUNKTE_LIMIT} Punkte (${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}) können einmalig kostenlos getestet werden. Danach kostet das Abo ${formatEur(TIER_PREIS_EUR.pro)} € im Monat für ${TIER_PUNKTE_QUOTA.pro} Punkte (${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}). 1 Punkt entspricht den tatsächlich anfallenden Kosten - je nach Umfang eines Arbeitsblatts werden also unterschiedlich viele Punkte verbraucht, statt einer festen Stückzahl.`,
+        `${zuCoins(KOSTENLOS_PUNKTE_LIMIT)} Coins (${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}) können einmalig kostenlos getestet werden. Danach kostet das Abo ${formatEur(TIER_PREIS_EUR.pro)} € im Monat für ${zuCoins(TIER_PUNKTE_QUOTA.pro)} Coins (${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}). Je nach Umfang eines Arbeitsblatts werden unterschiedlich viele Coins verbraucht, statt einer festen Stückzahl.`,
     },
     { frage: inhalte["faq.frage.erstellung"], antwort: inhalte["faq.antwort.erstellung"] },
     { frage: inhalte["faq.frage.datenschutz"], antwort: inhalte["faq.antwort.datenschutz"] },
