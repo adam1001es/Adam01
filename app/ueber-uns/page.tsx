@@ -1,20 +1,21 @@
+import { holeSiteInhalte } from "@/lib/siteContent";
+
 export const metadata = {
   title: "Über Lernwerk",
 };
 
-export default function UeberUnsPage() {
+export default async function UeberUnsPage() {
+  const inhalte = await holeSiteInhalte();
+
   return (
     <main className="mx-auto max-w-2xl">
       <div className="rounded-2xl border border-slate-200 bg-surface p-8 shadow-card">
         <h1 className="mb-6 font-display text-2xl font-semibold text-slate-800">Über Lernwerk</h1>
 
-        <p className="mb-4 text-sm leading-relaxed text-slate-600">
-          Lernwerk ist für Lehrkräfte des islamischen Religionsunterrichts an österreichischen
-          Schulen entstanden: Statt jedes Arbeitsblatt von Grund auf selbst zu recherchieren und zu
-          gestalten, entsteht es hier lehrplanorientiert, mit belegten Quellen und einer
-          eigenständigen Qualitätsprüfung - in wenigen Minuten statt Stunden.
-        </p>
+        <p className="mb-4 text-sm leading-relaxed text-slate-600">{inhalte["ueberuns.absatz1"]}</p>
 
+        {/* Bewusst NICHT admin-editierbar (siehe lib/siteContent.ts) - enthält einen internen Link
+            auf /paedagogik, der bei einem reinen Text-Override verloren ginge. */}
         <p className="mb-4 text-sm leading-relaxed text-slate-600">
           Der Fokus liegt bewusst auf Qualität statt Menge: jedes Arbeitsblatt wird gegen
           Quellenangaben, Vollständigkeit, Altersgerechtigkeit und Kompetenzorientierung
@@ -25,12 +26,7 @@ export default function UeberUnsPage() {
           ).
         </p>
 
-        <p className="text-sm leading-relaxed text-slate-600">
-          Neben dem Erstellen einzelner Arbeitsblätter unterstützt Lernwerk auch die
-          Klassenverwaltung (anonymisiert, ohne echte Schülernamen), das Zusammenstellen und
-          Generieren von Prüfungen sowie eine Community, in der Lehrkräfte Arbeitsblätter
-          untereinander teilen können.
-        </p>
+        <p className="text-sm leading-relaxed text-slate-600">{inhalte["ueberuns.absatz3"]}</p>
       </div>
     </main>
   );

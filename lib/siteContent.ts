@@ -163,6 +163,186 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
       "Ersetzt das kleine Kreis-Icon links neben dem Schriftzug „Lernwerk“ im Kopfbereich jeder Seite. Ohne Upload bleibt das ursprüngliche Icon sichtbar.",
     standard: "",
   },
+  // Die vier statischen Info-Seiten unten (Pädagogischer Ansatz/Schulstufen/Über Lernwerk/
+  // Datenschutz) sowie Impressum: pro Abschnitt Überschrift + Fließtext, wo vorhanden. Absätze mit
+  // eingebettetem Link (z.B. Verweis auf eine andere Seite oder ein mailto:-Link) sind bewusst
+  // NICHT Teil der Registry - als reiner Text überschrieben würde der Link verloren gehen (siehe
+  // app/paedagogik, app/ueber-uns, app/impressum, app/datenschutz für die jeweils
+  // ausgesparten Absätze).
+  {
+    key: "paedagogik.lehrplan.titel",
+    typ: "text",
+    seite: "Pädagogischer Ansatz",
+    label: "Abschnitt 1 - Überschrift",
+    standard: "Lehrplanverankerung",
+  },
+  {
+    key: "paedagogik.lehrplan.text",
+    typ: "richtext",
+    seite: "Pädagogischer Ansatz",
+    label: "Abschnitt 1 - Text",
+    standard:
+      "Inhalte orientieren sich am aktuellen Lehrplan für den islamischen Religionsunterricht an österreichischen Schulen und dessen Grundkompetenzen - kein freies Erfinden von Themen, sondern eine Zuordnung zu tatsächlich vorgesehenen Kompetenzbereichen.",
+  },
+  {
+    key: "paedagogik.pruefung.titel",
+    typ: "text",
+    seite: "Pädagogischer Ansatz",
+    label: "Abschnitt 2 - Überschrift",
+    standard: "Zweifache Prüfung",
+  },
+  {
+    key: "paedagogik.pruefung.text",
+    typ: "richtext",
+    seite: "Pädagogischer Ansatz",
+    label: "Abschnitt 2 - Text",
+    standard:
+      "Jedes Arbeitsblatt wird in einem zweiten, unabhängigen Durchlauf gezielt gegengeprüft - auf Quellenangaben, Vollständigkeit, Altersgerechtigkeit und Kompetenzorientierung - bevor es angezeigt wird.",
+  },
+  {
+    key: "paedagogik.wissensbasis.titel",
+    typ: "text",
+    seite: "Pädagogischer Ansatz",
+    label: "Abschnitt 3 - Überschrift",
+    standard: "Wissensbasis statt freiem Erfinden",
+  },
+  {
+    key: "paedagogik.wissensbasis.text",
+    typ: "richtext",
+    seite: "Pädagogischer Ansatz",
+    label: "Abschnitt 3 - Text",
+    standard:
+      "Zitate (z.B. aus Koran und Hadith) und Fachbegriffe stammen aus einer kuratierten, von uns geprüften Wissensbasis statt aus dem freien Erinnern der KI - jede Quelle ist damit nachvollziehbar.",
+  },
+  {
+    key: "schulstufen.intro",
+    typ: "richtext",
+    seite: "Schulstufen",
+    label: "Einleitung",
+    standard:
+      "Lernwerk deckt alle Schulstufen des islamischen Religionsunterrichts an österreichischen Schulen ab - von der 1. Klasse Volksschule bis zur Matura. Inhalte, Aufgabentypen und Anforderungsniveau passen sich dabei automatisch der gewählten Schulstufe an.",
+  },
+  {
+    key: "schulstufen.volksschule.titel",
+    typ: "text",
+    seite: "Schulstufen",
+    label: "Volksschule - Überschrift",
+    standard: "Volksschule (1.-4. Klasse)",
+  },
+  {
+    key: "schulstufen.volksschule.text",
+    typ: "richtext",
+    seite: "Schulstufen",
+    label: "Volksschule - Text",
+    standard:
+      "Spielerischer Zugang mit Mal- und Bewegungsaufgaben, kurzen Texten und Rücksicht auf noch ungeübte Leser:innen (z.B. Hinweise zum Vorlesen statt reiner Lesetexte).",
+  },
+  {
+    key: "schulstufen.sek1.titel",
+    typ: "text",
+    seite: "Schulstufen",
+    label: "Sekundarstufe 1 - Überschrift",
+    standard: "Sekundarstufe 1 (Mittelschule/AHS-Unterstufe, 5.-8. Schulstufe)",
+  },
+  {
+    key: "schulstufen.sek1.text",
+    typ: "richtext",
+    seite: "Schulstufen",
+    label: "Sekundarstufe 1 - Text",
+    standard:
+      "Breitere Mischung an Aufgabentypen (u.a. Multiple Choice, Lückentext, Zuordnung, offene Fragen) zur Vertiefung des Grundwissens.",
+  },
+  {
+    key: "schulstufen.sek2.titel",
+    typ: "text",
+    seite: "Schulstufen",
+    label: "Sekundarstufe 2 - Überschrift",
+    standard: "Sekundarstufe 2 (Polytechnische Schule, AHS-Oberstufe/BMHS, Berufsschule)",
+  },
+  {
+    key: "schulstufen.sek2.text",
+    typ: "richtext",
+    seite: "Schulstufen",
+    label: "Sekundarstufe 2 - Text",
+    standard:
+      "Anspruchsvollere Aufgabenstellungen mit stärkerer Gewichtung höherer Anforderungsbereiche - hier lassen sich auch echte Prüfungen inklusive Punktevergabe zusammenstellen oder generieren, gezielt auch für Maturaklassen.",
+  },
+  {
+    key: "schulstufen.berufsschule.titel",
+    typ: "text",
+    seite: "Schulstufen",
+    label: "Berufsschule - Überschrift",
+    standard: "Berufsschule",
+  },
+  {
+    key: "schulstufen.berufsschule.text",
+    typ: "richtext",
+    seite: "Schulstufen",
+    label: "Berufsschule - Text",
+    standard: "Eigene, an den Berufsschul-Kontext angepasste Themenvorschläge.",
+  },
+  {
+    key: "ueberuns.absatz1",
+    typ: "richtext",
+    seite: "Über Lernwerk",
+    label: "Absatz 1",
+    standard:
+      "Lernwerk ist für Lehrkräfte des islamischen Religionsunterrichts an österreichischen Schulen entstanden: Statt jedes Arbeitsblatt von Grund auf selbst zu recherchieren und zu gestalten, entsteht es hier lehrplanorientiert, mit belegten Quellen und einer eigenständigen Qualitätsprüfung - in wenigen Minuten statt Stunden.",
+  },
+  {
+    key: "ueberuns.absatz3",
+    typ: "richtext",
+    seite: "Über Lernwerk",
+    label: "Absatz 3",
+    standard:
+      "Neben dem Erstellen einzelner Arbeitsblätter unterstützt Lernwerk auch die Klassenverwaltung (anonymisiert, ohne echte Schülernamen), das Zusammenstellen und Generieren von Prüfungen sowie eine Community, in der Lehrkräfte Arbeitsblätter untereinander teilen können.",
+  },
+  {
+    key: "impressum.adresse",
+    typ: "richtext",
+    seite: "Impressum",
+    label: "Name & Anschrift",
+    hinweis: "Jede Zeile wird einzeln dargestellt (Zeilenumbrüche bleiben erhalten).",
+    standard: "Dua Zentrum\nBeethovenplatz 1 (Ecke Lothringerstraße)\n1010 Wien\nÖsterreich\nVertreten durch: Adam Es",
+  },
+  {
+    key: "impressum.email",
+    typ: "text",
+    seite: "Impressum",
+    label: "Kontakt-E-Mail",
+    standard: "magdykasim30008000@gmail.com",
+  },
+  {
+    key: "datenschutz.kontoNutzung",
+    typ: "richtext",
+    seite: "Datenschutz",
+    label: "Konto & Nutzung",
+    standard:
+      "Bei der Registrierung verarbeiten wir E-Mail-Adresse und Passwort (verschlüsselt gespeichert), zur Anmeldung ein technisch notwendiges Session-Cookie. Grundlage ist die Erfüllung des Nutzungsvertrags (Art. 6 Abs. 1 lit. b DSGVO). Schüler:innen werden in der Klassen-Funktion ausschließlich mit einem selbst gewählten Kürzel geführt, nie mit echten Namen.",
+  },
+  {
+    key: "datenschutz.empfaenger",
+    typ: "richtext",
+    seite: "Datenschutz",
+    label: "Empfänger",
+    standard:
+      "Zur Erbringung des Dienstes setzen wir folgende Auftragsverarbeiter ein: Anthropic (USA) zur Erstellung der Arbeitsblatt-Inhalte, Google/Gmail zum Versand von System-E-Mails (z.B. Bestätigungslink), Sentry zur technischen Fehlererfassung (ohne Bildschirmaufzeichnung).",
+  },
+  {
+    key: "datenschutz.speicherdauer",
+    typ: "text",
+    seite: "Datenschutz",
+    label: "Speicherdauer",
+    standard: "Kontodaten werden bis zur Löschung des Kontos gespeichert.",
+  },
+  {
+    key: "datenschutz.rechte",
+    typ: "richtext",
+    seite: "Datenschutz",
+    label: "Ihre Rechte",
+    standard:
+      "Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit sowie Widerspruch (Art. 15-21 DSGVO) - Anfragen an obige Kontakt-E-Mail. Außerdem besteht ein Beschwerderecht bei der österreichischen Datenschutzbehörde (dsb.gv.at).",
+  },
 ];
 
 /** Lädt alle Overrides in EINER Abfrage (die Tabelle bleibt klein - eine Handvoll Zeilen) und

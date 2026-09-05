@@ -1,8 +1,12 @@
+import { holeSiteInhalte } from "@/lib/siteContent";
+
 export const metadata = {
   title: "Pädagogischer Ansatz - Lernwerk",
 };
 
-export default function PaedagogikPage() {
+export default async function PaedagogikPage() {
+  const inhalte = await holeSiteInhalte();
+
   return (
     <main className="mx-auto max-w-2xl">
       <div className="rounded-2xl border border-slate-200 bg-surface p-8 shadow-card">
@@ -11,32 +15,22 @@ export default function PaedagogikPage() {
         </h1>
 
         <section className="mb-6">
-          <h2 className="mb-1 text-sm font-semibold text-slate-700">Lehrplanverankerung</h2>
-          <p className="text-sm leading-relaxed text-slate-600">
-            Inhalte orientieren sich am aktuellen Lehrplan für den islamischen Religionsunterricht
-            an österreichischen Schulen und dessen Grundkompetenzen - kein freies Erfinden von
-            Themen, sondern eine Zuordnung zu tatsächlich vorgesehenen Kompetenzbereichen.
-          </p>
+          <h2 className="mb-1 text-sm font-semibold text-slate-700">{inhalte["paedagogik.lehrplan.titel"]}</h2>
+          <p className="text-sm leading-relaxed text-slate-600">{inhalte["paedagogik.lehrplan.text"]}</p>
         </section>
 
         <section className="mb-6">
-          <h2 className="mb-1 text-sm font-semibold text-slate-700">Zweifache Prüfung</h2>
-          <p className="text-sm leading-relaxed text-slate-600">
-            Jedes Arbeitsblatt wird in einem zweiten, unabhängigen Durchlauf gezielt
-            gegengeprüft - auf Quellenangaben, Vollständigkeit, Altersgerechtigkeit und
-            Kompetenzorientierung - bevor es angezeigt wird.
-          </p>
+          <h2 className="mb-1 text-sm font-semibold text-slate-700">{inhalte["paedagogik.pruefung.titel"]}</h2>
+          <p className="text-sm leading-relaxed text-slate-600">{inhalte["paedagogik.pruefung.text"]}</p>
         </section>
 
         <section className="mb-6">
-          <h2 className="mb-1 text-sm font-semibold text-slate-700">Wissensbasis statt freiem Erfinden</h2>
-          <p className="text-sm leading-relaxed text-slate-600">
-            Zitate (z.B. aus Koran und Hadith) und Fachbegriffe stammen aus einer kuratierten,
-            von uns geprüften Wissensbasis statt aus dem freien Erinnern der KI - jede Quelle ist
-            damit nachvollziehbar.
-          </p>
+          <h2 className="mb-1 text-sm font-semibold text-slate-700">{inhalte["paedagogik.wissensbasis.titel"]}</h2>
+          <p className="text-sm leading-relaxed text-slate-600">{inhalte["paedagogik.wissensbasis.text"]}</p>
         </section>
 
+        {/* Bewusst NICHT admin-editierbar (siehe lib/siteContent.ts) - enthält einen internen Link
+            auf /schulstufen, der bei einem reinen Text-Override verloren ginge. */}
         <section>
           <h2 className="mb-1 text-sm font-semibold text-slate-700">Altersgerechte Gestaltung</h2>
           <p className="text-sm leading-relaxed text-slate-600">

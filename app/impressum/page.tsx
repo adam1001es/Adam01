@@ -1,3 +1,5 @@
+import { holeSiteInhalte } from "@/lib/siteContent";
+
 export const metadata = {
   title: "Impressum - Lernwerk",
 };
@@ -8,25 +10,21 @@ export const metadata = {
  * Online-Dienstleistungsverträgen mit Verbraucher:innen). Absichtlich nicht in der
  * Seitennavigation verlinkt, sondern nur über den kleinen Footer-Link erreichbar (siehe
  * components/SiteFooter.tsx) - bleibt trotzdem mit einem Klick von jeder Seite aus erreichbar
- * (§5 ECG: "leicht und unmittelbar erreichbar").
+ * (§5 ECG: "leicht und unmittelbar erreichbar"). Adresse/E-Mail admin-editierbar (siehe
+ * lib/siteContent.ts) - der EU-Streitschlichtung-Absatz bleibt fest (reines Pflicht-Boilerplate
+ * mit externem Link).
  */
-export default function ImpressumPage() {
+export default async function ImpressumPage() {
+  const inhalte = await holeSiteInhalte();
+
   return (
     <main className="mx-auto max-w-2xl">
       <div className="rounded-2xl border border-slate-200 bg-surface p-8 shadow-card">
         <h1 className="mb-6 font-display text-2xl font-semibold text-slate-800">Impressum</h1>
 
         <section className="mb-6">
-          <p className="text-sm leading-relaxed text-slate-600">
-            Dua Zentrum
-            <br />
-            Beethovenplatz 1 (Ecke Lothringerstraße)
-            <br />
-            1010 Wien
-            <br />
-            Österreich
-            <br />
-            Vertreten durch: Adam Es
+          <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">
+            {inhalte["impressum.adresse"]}
           </p>
         </section>
 
@@ -34,8 +32,11 @@ export default function ImpressumPage() {
           <h2 className="mb-1 text-sm font-semibold text-slate-700">Kontakt</h2>
           <p className="text-sm leading-relaxed text-slate-600">
             E-Mail:{" "}
-            <a href="mailto:magdykasim30008000@gmail.com" className="text-brand-600 hover:underline">
-              magdykasim30008000@gmail.com
+            <a
+              href={`mailto:${inhalte["impressum.email"]}`}
+              className="text-brand-600 hover:underline"
+            >
+              {inhalte["impressum.email"]}
             </a>
           </p>
         </section>
