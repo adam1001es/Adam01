@@ -9,6 +9,7 @@ import { istZahlendesKonto } from "@/lib/quota";
 import { hatModRechte } from "@/lib/rollen";
 import { toHijri } from "@/lib/hijri";
 import { prisma } from "@/lib/prisma";
+import { holeSiteInhalte } from "@/lib/siteContent";
 
 const display = Newsreader({
   subsets: ["latin"],
@@ -54,6 +55,10 @@ export default async function RootLayout({
 }) {
   const user = await getSessionUser();
   const hijriDatum = toHijri(new Date()).label;
+  // Logo-Bild-Override (siehe lib/siteContent.ts "design.logo.bild") - auf JEDER Seite
+  // gerendert (Kopfbereich), daher hier statt in app/page.tsx geladen. Leerer String zählt als
+  // "kein Override" (siehe SiteHeader: logoBild ist dann falsy).
+  const { "design.logo.bild": logoBild } = await holeSiteInhalte();
   // Für Admins UND Moderator:innen abgefragt (auf jeder Seite gerendert, siehe SiteHeader unten)
   // - eine ungenutzte Zählabfrage für alle anderen Nutzer:innen wäre reine Verschwendung. Beide
   // Rollen dürfen Wissensbasis-Einträge prüfen/freigeben (siehe lib/rollen.ts).
@@ -108,6 +113,7 @@ export default async function RootLayout({
         </Script>
         <SiteHeader
           hijriDatum={hijriDatum}
+          logoBild={logoBild || undefined}
           offeneWissensEntwuerfe={offeneWissensEntwuerfe}
           neueRegistrierungen={neueRegistrierungen}
           offeneModerationsMeldungen={offeneModerationsMeldungen}

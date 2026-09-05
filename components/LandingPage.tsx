@@ -342,8 +342,23 @@ const COMMUNITY_PUNKTE = [
  * (siehe summeTokens in lib/usageLog.ts, ohne Nutzerbezug, serverseitig in app/page.tsx berechnet
  * und hier nur noch angezeigt) - zeigt Interessent:innen, dass hinter den Arbeitsblättern echte,
  * laufend genutzte KI-Rechenleistung steckt. Optional/undefined abgesichert, falls die Abfrage
- * (noch) keine Daten liefert. */
-export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = {}) {
+ * (noch) keine Daten liefert. heroBadge/heroUeberschrift/heroUntertext/ctaUeberschrift kommen aus
+ * lib/siteContent.ts (holeSiteInhalte(), serverseitig in app/page.tsx geladen) - admin-editierbar
+ * über app/admin/inhalte, siehe dort für die übrigen, bewusst NICHT editierbaren Textstellen
+ * dieser Seite (v.a. alles mit eingebetteten Preisen/Zahlen). */
+export default function LandingPage({
+  tokenGesamt,
+  heroBadge,
+  heroUeberschrift,
+  heroUntertext,
+  ctaUeberschrift,
+}: {
+  tokenGesamt?: number;
+  heroBadge: string;
+  heroUeberschrift: string;
+  heroUntertext: string;
+  ctaUeberschrift: string;
+}) {
   return (
     <main className="space-y-20 sm:space-y-24">
       {/* HERO */}
@@ -355,16 +370,12 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1 text-xs font-semibold tracking-wide text-white ring-1 ring-inset ring-white/30">
-              <Sparkles size={12} /> NEU: Koran direkt aus der Quelle - live abgerufen
+              <Sparkles size={12} /> {heroBadge}
             </span>
             <h1 className="mt-4 font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-[2.75rem]">
-              Dein komplettes digitales Werkzeug für den islamischen Religionsunterricht
+              {heroUeberschrift}
             </h1>
-            <p className="mt-4 max-w-xl text-sm text-brand-50 sm:text-base">
-              KI-geprüfte, lehrplanorientierte Arbeitsblätter in ca. 3 Minuten - plus
-              Klassen-Tracking, geteilte Community-Materialien und Prüfungsgenerierung, die auch
-              Maturaklassen ernst nimmt.
-            </p>
+            <p className="mt-4 max-w-xl text-sm text-brand-50 sm:text-base">{heroUntertext}</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/register"
@@ -833,9 +844,7 @@ export default function LandingPage({ tokenGesamt }: { tokenGesamt?: number } = 
       {/* ABSCHLUSS-CTA */}
       <Reveal>
         <section className="relative overflow-hidden rounded-3xl bg-brand-gradient px-6 py-12 text-center text-white shadow-card sm:px-12 sm:py-14">
-          <h2 className="font-display text-2xl font-semibold sm:text-3xl">
-            Das nächste Arbeitsblatt in ca. 3 Minuten statt 15
-          </h2>
+          <h2 className="font-display text-2xl font-semibold sm:text-3xl">{ctaUeberschrift}</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm text-brand-50 sm:text-base">
             {formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)} kostenlos, keine Zahlungsdaten
             nötig - startklar in wenigen Minuten.

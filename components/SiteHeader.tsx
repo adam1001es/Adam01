@@ -52,12 +52,18 @@ interface SiteHeaderUser {
 export default function SiteHeader({
   user,
   hijriDatum,
+  logoBild,
   offeneWissensEntwuerfe,
   neueRegistrierungen,
   offeneModerationsMeldungen,
   neueCommunityBeitraege,
 }: {
   user: SiteHeaderUser | null;
+  /** Admin-Override für das Kreis-Icon links neben dem "Lernwerk"-Schriftzug (siehe
+   * lib/siteContent.ts "design.logo.bild", bearbeitbar über app/admin/inhalte) - eine data:-URL
+   * oder undefined/leer, falls kein Bild hochgeladen wurde (dann bleibt das ursprüngliche
+   * LogoMark-Icon sichtbar). */
+  logoBild?: string;
   /** Heutiges Hijri-Datum (z.B. "17. Rabi al-Awwal 1448 n. H.") - immer sichtbar, unabhängig
    * vom Login-Status, als kleiner einladender islamischer Akzent im Kopfbereich (siehe
    * lib/hijri.ts). Eigene volle Zeile statt Platz in der ohnehin engen Navigation zu
@@ -173,7 +179,12 @@ export default function SiteHeader({
       </div>
       <div className="mx-auto flex max-w-6xl flex-col px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-y-1.5 sm:px-6">
         <Link href="/" className="flex items-center gap-2 transition active:scale-95 sm:gap-3">
-          <LogoMark />
+          {logoBild ? (
+            // eslint-disable-next-line @next/next/no-img-element -- data:-URL (siehe lib/siteContent.ts), kein next/image nötig
+            <img src={logoBild} alt="" className="h-9 w-9 rounded-xl object-cover shadow-card" />
+          ) : (
+            <LogoMark />
+          )}
           <span className="flex flex-col leading-tight">
             <span className="font-display text-base font-semibold text-brand-800 sm:text-lg">
               Lernwerk

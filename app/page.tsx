@@ -8,6 +8,7 @@ import LandingPage from "@/components/LandingPage";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
 import { summeTokens } from "@/lib/usageLog";
+import { holeSiteInhalte } from "@/lib/siteContent";
 
 /** Für kostenlose Testkonten: bewusst gedämpfte (nicht in den echten Bereichsfarben gehaltene),
  * gesperrte Vorschau ECHTER Abo-Bereiche direkt am Dashboard, statt sie komplett zu verstecken -
@@ -44,12 +45,21 @@ export default async function DashboardPage({
   searchParams: { verifizierung?: string };
 }) {
   const user = await getSessionUser();
+  const inhalte = await holeSiteInhalte();
   if (!user) {
     // Aggregierte, anonyme Token-Transparenz-Kennzahl über alle Konten hinweg (siehe
     // summeTokens in lib/usageLog.ts) - nur für nicht angemeldete Besucher:innen relevant, daher
     // hier statt in der eingeloggten Dashboard-Ansicht abgefragt.
     const { gesamt } = await summeTokens();
-    return <LandingPage tokenGesamt={gesamt} />;
+    return (
+      <LandingPage
+        tokenGesamt={gesamt}
+        heroBadge={inhalte["landing.hero.badge"]}
+        heroUeberschrift={inhalte["landing.hero.ueberschrift"]}
+        heroUntertext={inhalte["landing.hero.untertext"]}
+        ctaUeberschrift={inhalte["landing.cta.ueberschrift"]}
+      />
+    );
   }
 
   const worksheets = await prisma.worksheet.findMany({
@@ -69,11 +79,10 @@ export default async function DashboardPage({
       <div className="relative overflow-hidden rounded-2xl bg-brand-gradient px-6 py-8 shadow-card sm:px-9 sm:py-10">
         <div className="max-w-2xl">
           <h1 className="font-display text-3xl font-semibold text-white sm:text-4xl">
-            Deine Arbeitsblätter
+            {inhalte["dashboard.hero.ueberschrift"]}
           </h1>
           <p className="mt-2 text-sm text-brand-50/90 sm:text-base">
-            Bereich, Thema und Schulstufe angeben – der Inhalt wird automatisch erstellt,
-            geprüft und lehrplanorientiert aufbereitet.
+            {inhalte["dashboard.hero.untertext"]}
           </p>
           <Link
             href="/new"

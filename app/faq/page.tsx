@@ -5,40 +5,30 @@ import {
   formatEur,
   formatArbeitsblaetterSpanne,
 } from "@/lib/quota";
+import { holeSiteInhalte } from "@/lib/siteContent";
 
 export const metadata = {
   title: "Häufige Fragen - Lernwerk",
 };
 
-const FRAGEN: { frage: string; antwort: React.ReactNode }[] = [
-  {
-    frage: "Was kostet Lernwerk?",
-    antwort:
-      `${KOSTENLOS_PUNKTE_LIMIT} Punkte (${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}) können einmalig kostenlos getestet werden. Danach kostet das Abo ${formatEur(TIER_PREIS_EUR.pro)} € im Monat für ${TIER_PUNKTE_QUOTA.pro} Punkte (${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}). 1 Punkt entspricht den tatsächlich gemessenen KI-Kosten - je nach Umfang eines Arbeitsblatts werden also unterschiedlich viele Punkte verbraucht, statt einer festen Stückzahl.`,
-  },
-  {
-    frage: "Wie werden die Arbeitsblätter erstellt?",
-    antwort:
-      "KI-gestützt und lehrplanorientiert, mit Zitaten/Begriffen aus einer kuratierten Wissensbasis. Ein zweiter, unabhängiger KI-Durchlauf prüft jedes Arbeitsblatt gezielt gegen, bevor es angezeigt wird.",
-  },
-  {
-    frage: "Sind Schülerdaten sicher?",
-    antwort:
-      "Schüler:innen werden in der Klassen-Funktion nur mit einem selbst gewählten Kürzel geführt (z.B. „Schüler 1“), nie mit echten Namen.",
-  },
-  {
-    frage: "Was ist die Community?",
-    antwort:
-      "Ein Bereich, in dem Lehrkräfte ihre Arbeitsblätter freiwillig teilen und die Arbeitsblätter anderer durchsuchen und verwenden können.",
-  },
-  {
-    frage: "Kann ich damit auch Prüfungen erstellen?",
-    antwort:
-      "Ja, auf zwei Wegen: aus bereits vorhandenen Arbeitsblättern zusammenstellen (kostet kein zusätzliches Kontingent) oder komplett neu generieren (zählt wie ein normales Arbeitsblatt zum Kontingent).",
-  },
-];
+export default async function FaqPage() {
+  const inhalte = await holeSiteInhalte();
 
-export default function FaqPage() {
+  // Frage 1 (Preise) bewusst NICHT admin-editierbar (siehe lib/siteContent.ts) - der Text enthält
+  // echte, sich ändernde Preis-/Punktezahlen aus lib/quota.ts, ein Override würde diese sonst
+  // stillschweigend einfrieren. Fragen 2-5 kommen aus der Registry (siehe app/admin/inhalte).
+  const FRAGEN: { frage: string; antwort: React.ReactNode }[] = [
+    {
+      frage: "Was kostet Lernwerk?",
+      antwort:
+        `${KOSTENLOS_PUNKTE_LIMIT} Punkte (${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}) können einmalig kostenlos getestet werden. Danach kostet das Abo ${formatEur(TIER_PREIS_EUR.pro)} € im Monat für ${TIER_PUNKTE_QUOTA.pro} Punkte (${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}). 1 Punkt entspricht den tatsächlich gemessenen KI-Kosten - je nach Umfang eines Arbeitsblatts werden also unterschiedlich viele Punkte verbraucht, statt einer festen Stückzahl.`,
+    },
+    { frage: inhalte["faq.frage.erstellung"], antwort: inhalte["faq.antwort.erstellung"] },
+    { frage: inhalte["faq.frage.datenschutz"], antwort: inhalte["faq.antwort.datenschutz"] },
+    { frage: inhalte["faq.frage.community"], antwort: inhalte["faq.antwort.community"] },
+    { frage: inhalte["faq.frage.pruefungen"], antwort: inhalte["faq.antwort.pruefungen"] },
+  ];
+
   return (
     <main className="mx-auto max-w-2xl">
       <div className="rounded-2xl border border-slate-200 bg-surface p-8 shadow-card">

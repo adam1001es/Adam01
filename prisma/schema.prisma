@@ -521,3 +521,22 @@ model StundenplanEintrag {
 
   @@index([userId, wochentag])
 }
+
+// Admin-editierbare Inhalte (Texte, Bilder) für fest im Code registrierte Stellen auf
+// öffentlichen/eingeloggten Seiten (siehe lib/siteContent.ts SITE_CONTENT_FELDER +
+// app/admin/inhalte) - bewusst ein generisches Key-Value-Modell statt einer Spalte je Textstelle,
+// damit neue Felder ohne Migration ergänzt werden können (nur ein neuer Registry-Eintrag). "key"
+// ist KEIN frei vergebbarer Name, sondern muss exakt einem SITE_CONTENT_FELDER-Eintrag
+// entsprechen (siehe API-Route). value ist null, solange der Admin nichts überschrieben hat -
+// dann greift der Code-seitige Standardtext aus der Registry (siehe holeSiteInhalte()). type
+// steuert nur, welches Eingabefeld das Admin-Panel zeigt (siehe lib/siteContent.ts
+// SiteContentTyp) - keine harte DB-Beschränkung. Bilder werden als data:-URL direkt im value
+// gespeichert (kein eigener Blob-Storage im Projekt) - deshalb ein reines String-Feld ohne
+// Längenbegrenzung (Postgres TEXT), analog zu Worksheet.contentJson.
+model SiteContent {
+  key       String   @id
+  type      String
+  value     String?
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
