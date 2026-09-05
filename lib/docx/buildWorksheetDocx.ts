@@ -15,6 +15,7 @@ import {
   WidthType,
   VerticalAlign,
   HeightRule,
+  TableLayoutType,
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante, SCHREIBLINIEN_PRO_TYP } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
@@ -109,7 +110,8 @@ const OHNE_RAHMEN = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 // Docx-Standardseite ist A4 mit 1 Zoll (1440 dxa) Rand auf jeder Seite (siehe
 // sectionPageSizeDefaults/sectionMarginDefaults der docx-Bibliothek - hier wird kein eigenes
 // `page`/`margin` gesetzt, es gilt also dieser Standard), 20 dxa = 1pt.
-const DOCX_INHALT_BREITE_PT = (11906 - 2 * 1440) / 20;
+const DOCX_INHALT_BREITE_TWIPS = 11906 - 2 * 1440;
+const DOCX_INHALT_BREITE_PT = DOCX_INHALT_BREITE_TWIPS / 20;
 
 /** Zellgröße für Wortsuche-/Kreuzworträtsel-Tabellen (in dxa) - siehe lib/raetselLayout.ts für
  * die Formel; ein früherer fest verdrahteter Wert (340 dxa unabhängig von der Spaltenzahl) machte
@@ -135,6 +137,14 @@ function baueWortsucheTabelle(gitter: string[][]): Table {
   const zellgroesseDxa = raetselZellgroesseDxa(spalten);
   const schriftgroesse = raetselSchriftHalbpunkte(spalten);
   return new Table({
+    // WICHTIG: "columnWidths" MUSS gesetzt werden, auch wenn jede Zelle schon ihre eigene DXA-
+    // Breite hat - ohne diese Angabe erzeugt docx.js im <w:tblGrid> für JEDE Spalte nur einen
+    // Default von 100 Twips (≈1,8mm), unabhängig von den Zellbreiten. Word selbst korrigiert das
+    // beim Öffnen meist automatisch aus den Zellbreiten, aber strengere Betrachter (v.a. Apple
+    // Pages/Vorschau) übernehmen den winzigen tblGrid-Wert direkt - Buchstaben/Wörter brechen
+    // dann einzelzeichenweise um. Gilt für JEDE Tabelle in dieser Datei, siehe die übrigen
+    // baue*Tabelle-Funktionen unten.
+    columnWidths: Array(spalten).fill(zellgroesseDxa),
     width: { size: 0, type: WidthType.AUTO },
     borders: {
       top: OHNE_RAHMEN,
@@ -174,6 +184,8 @@ function baueKreuzwortTabelle(gitter: (KreuzwortZelle | null)[][]): Table {
   const spalten = gitter[0]?.length ?? 10;
   const zellgroesseDxa = raetselZellgroesseDxa(spalten);
   return new Table({
+    // Siehe Kommentar zu "columnWidths" in baueWortsucheTabelle oben.
+    columnWidths: Array(spalten).fill(zellgroesseDxa),
     width: { size: 0, type: WidthType.AUTO },
     borders: {
       top: OHNE_RAHMEN,
@@ -218,7 +230,9 @@ function baueKreuzwortTabelle(gitter: (KreuzwortZelle | null)[][]): Table {
 const MALAUFGABE_HOEHE_TWIPS = 3000;
 function baueMalaufgabeBox(): Table {
   return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
+    // Siehe Kommentar zu "columnWidths" in baueWortsucheTabelle oben.
+    columnWidths: [DOCX_INHALT_BREITE_TWIPS],
+    layout: TableLayoutType.FIXED,
     rows: [
       new TableRow({
         height: { value: MALAUFGABE_HOEHE_TWIPS, rule: HeightRule.ATLEAST },
@@ -244,7 +258,9 @@ function baueMalaufgabeBox(): Table {
 function baueSortierKategorienTabelle(kategorien: string[], baseSize: number): Table {
   const rahmen = { style: BorderStyle.SINGLE, size: 6, color: "94A3B8" };
   return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
+    // Siehe Kommentar zu "columnWidths" in baueWortsucheTabelle oben.
+    columnWidths: Array(kategorien.length).fill(Math.floor(DOCX_INHALT_BREITE_TWIPS / kategorien.length)),
+    layout: TableLayoutType.FIXED,
     rows: [
       new TableRow({
         children: kategorien.map(
@@ -276,7 +292,9 @@ function baueSortierKartenTabelle(kartenTexte: string[], baseSize: number): Tabl
     zeilen.push(kartenTexte.slice(i, i + SPALTEN));
   }
   return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
+    // Siehe Kommentar zu "columnWidths" in baueWortsucheTabelle oben.
+    columnWidths: Array(SPALTEN).fill(Math.floor(DOCX_INHALT_BREITE_TWIPS / SPALTEN)),
+    layout: TableLayoutType.FIXED,
     rows: zeilen.map(
       (zeile) =>
         new TableRow({

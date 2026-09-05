@@ -11,6 +11,7 @@ import {
   BorderStyle,
   VerticalAlign,
   ShadingType,
+  TableLayoutType,
 } from "docx";
 import type { JahresplanKalenderWoche } from "./jahresplanKalender";
 import type { JahresplanWocheZeile } from "./jahresplan";
@@ -20,9 +21,28 @@ const RAND = { style: BorderStyle.SINGLE, size: 2, color: "CBD5E1" };
 const ZELLE_RAND = { top: RAND, bottom: RAND, left: RAND, right: RAND };
 const KOPF_SCHATTIERUNG = { type: ShadingType.SOLID, color: "0F766E", fill: "0F766E" };
 
-function kopfZelle(text: string, breite: number): TableCell {
+// Satzspiegelbreite bei A4 quer (Landscape) abzüglich der Standard-Seitenränder (je 1440 Twips =
+// 1 Zoll links/rechts - siehe sections[0].properties, wo keine eigenen Ränder gesetzt werden,
+// also die docx.js-Standardränder gelten). WICHTIG: eine Tabelle OHNE explizites "columnWidths"
+// am Table-Konstruktor bekommt von docx.js für JEDE Spalte nur 100 Twips (≈1,8mm) im <w:tblGrid>
+// - die pro Zelle gesetzte Breite (vorher als Prozentwert) betrifft nur den "tcW"-Hinweis, den
+// nicht jeder Word-Betrachter beim ersten Öffnen respektiert. Genau das führte dazu, dass die
+// Tabelle in Apple Pages/Vorschau (die sich strikt an <w:tblGrid> hält) mit hauchdünnen Spalten
+// öffnete, in denen jedes Wort einzelbuchstabenweise umbrach. Explizite Breiten in Twips (DXA)
+// UND "layout: FIXED" (siehe unten) erzwingen die Spaltenbreiten unabhängig vom jeweiligen Viewer.
+const SEITENBREITE_QUER_TWIPS = 16838;
+const SEITENRAND_TWIPS = 1440;
+const SATZSPIEGEL_BREITE_TWIPS = SEITENBREITE_QUER_TWIPS - 2 * SEITENRAND_TWIPS;
+// Reihenfolge/Anteile entsprechen den 5 Spalten: Woche, Datum/Hijri, Wochenthema, Kompetenzen,
+// Anmerkung/Notizen - Summe 1.
+const SPALTEN_ANTEILE = [0.08, 0.2, 0.24, 0.2, 0.28] as const;
+const SPALTEN_BREITEN_TWIPS = SPALTEN_ANTEILE.map((anteil) =>
+  Math.round(SATZSPIEGEL_BREITE_TWIPS * anteil),
+);
+
+function kopfZelle(text: string, breiteTwips: number): TableCell {
   return new TableCell({
-    width: { size: breite, type: WidthType.PERCENTAGE },
+    width: { size: breiteTwips, type: WidthType.DXA },
     borders: ZELLE_RAND,
     shading: KOPF_SCHATTIERUNG,
     verticalAlign: VerticalAlign.CENTER,
@@ -34,10 +54,14 @@ function kopfZelle(text: string, breite: number): TableCell {
   });
 }
 
-function textZelle(text: string, breite: number, optionen?: { bold?: boolean; groesse?: number }): TableCell {
+function textZelle(
+  text: string,
+  breiteTwips: number,
+  optionen?: { bold?: boolean; groesse?: number },
+): TableCell {
   const zeilen = text.split("\n");
   return new TableCell({
-    width: { size: breite, type: WidthType.PERCENTAGE },
+    width: { size: breiteTwips, type: WidthType.DXA },
     borders: ZELLE_RAND,
     verticalAlign: VerticalAlign.TOP,
     children: zeilen.map(
@@ -91,11 +115,11 @@ export async function renderJahresplanDocxBuffer(
     new TableRow({
       tableHeader: true,
       children: [
-        kopfZelle("Woche", 8),
-        kopfZelle("Datum / Hijri", 20),
-        kopfZelle("Wochenthema", 24),
-        kopfZelle("Kompetenzen", 20),
-        kopfZelle("Anmerkung / Notizen danach", 28),
+        kopfZelle("Woche", SPALTEN_BREITEN_TWIPS[0]),
+        kopfZelle("Datum / Hijri", SPALTEN_BREITEN_TWIPS[1]),
+        kopfZelle("Wochenthema", SPALTEN_BREITEN_TWIPS[2]),
+        kopfZelle("Kompetenzen", SPALTEN_BREITEN_TWIPS[3]),
+        kopfZelle("Anmerkung / Notizen danach", SPALTEN_BREITEN_TWIPS[4]),
       ],
     }),
   ];
@@ -115,11 +139,14 @@ export async function renderJahresplanDocxBuffer(
     zeilen.push(
       new TableRow({
         children: [
-          textZelle(String(woche.nummer), 8, { bold: true }),
-          textZelle(`${formatWochenDatum(woche.von, woche.bis)}\n${woche.hijri}`, 20),
-          textZelle(eintrag?.wochenthema ?? "", 24),
-          textZelle(eintrag?.kompetenzen ?? "", 20),
-          textZelle(anmerkungUndNotizen || "", 28),
+          textZelle(String(woche.nummer), SPALTEN_BREITEN_TWIPS[0], { bold: true }),
+          textZelle(
+            `${formatWochenDatum(woche.von, woche.bis)}\n${woche.hijri}`,
+            SPALTEN_BREITEN_TWIPS[1],
+          ),
+          textZelle(eintrag?.wochenthema ?? "", SPALTEN_BREITEN_TWIPS[2]),
+          textZelle(eintrag?.kompetenzen ?? "", SPALTEN_BREITEN_TWIPS[3]),
+          textZelle(anmerkungUndNotizen || "", SPALTEN_BREITEN_TWIPS[4]),
         ],
       }),
     );
@@ -176,7 +203,8 @@ export async function renderJahresplanDocxBuffer(
               ]
             : [new Paragraph({ spacing: { after: 200 }, children: [] })]),
           new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
+            columnWidths: [...SPALTEN_BREITEN_TWIPS],
+            layout: TableLayoutType.FIXED,
             rows: zeilen,
           }),
         ],
