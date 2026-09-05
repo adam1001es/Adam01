@@ -132,10 +132,32 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(4px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        // Ein einzelnes Zeichen einer "Matrix-Regen"-Spalte fällt von oben nach unten durch und
+        // blendet dabei ein/aus (siehe GenerierungLoading.tsx) - Dauer/Verzögerung sind bewusst NICHT
+        // hier fest codiert, sondern kommen pro Spalte als Inline-Style (animationDuration/-Delay),
+        // damit die Spalten nicht alle synchron laufen.
+        "matrix-fall": {
+          "0%": { transform: "translateY(-120%)", opacity: "0" },
+          "12%": { opacity: "1" },
+          "88%": { opacity: "1" },
+          "100%": { transform: "translateY(120%)", opacity: "0" },
+        },
+        // Eine "Zeile" auf dem sich zusammensetzenden Glas-Blatt wächst wie beim Schreiben von 0 auf
+        // ihre Zielbreite, hält kurz, und verschwindet wieder - endlos wiederholt, weil die tatsächliche
+        // Generierungsdauer variiert (siehe Kommentar in GenerierungLoading.tsx). Die Zielbreite kommt
+        // pro Zeile über die CSS-Variable "--zeilenbreite" (Inline-Style), das Keyframe selbst bleibt
+        // dadurch für alle Zeilen identisch.
+        "glass-line": {
+          "0%, 100%": { width: "0%", opacity: "0.35" },
+          "45%": { width: "var(--zeilenbreite, 70%)", opacity: "0.9" },
+          "75%": { width: "var(--zeilenbreite, 70%)", opacity: "0.9" },
+        },
       },
       animation: {
         "lade-balken": "lade-balken 1.3s ease-in-out infinite",
         "fade-in": "fade-in 0.25s ease-out",
+        "matrix-fall": "matrix-fall linear infinite",
+        "glass-line": "glass-line 4.5s ease-in-out infinite",
       },
     },
   },
