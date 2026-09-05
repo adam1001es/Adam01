@@ -11,7 +11,12 @@ import {
   zaehleGenerierteBilder,
   formatEur,
 } from "@/lib/quota";
-import { summeTokens, summeKostenEur, durchschnittKostenProBlattEur } from "@/lib/usageLog";
+import {
+  summeTokens,
+  summeKostenEur,
+  summeKostenProTag,
+  durchschnittKostenProBlattEur,
+} from "@/lib/usageLog";
 import { KOSTEN_BERECHNUNGSGRUNDLAGE } from "@/lib/pricing";
 
 export const dynamic = "force-dynamic";
@@ -65,11 +70,12 @@ export default async function AdminKostenPage() {
   // keine UsageLog-Zeilen. Der €-Betrag ist eine Schätzung auf Basis von Anthropic-Listenpreisen
   // und einem gerundeten Wechselkurs (siehe KOSTEN_BERECHNUNGSGRUNDLAGE), kein exakter
   // Rechnungsbetrag.
-  const [tokensMonat, kostenMonat, kostenGesamt, durchschnittGesamt] = await Promise.all([
+  const [tokensMonat, kostenMonat, kostenGesamt, durchschnittGesamt, kostenProTag] = await Promise.all([
     summeTokens(monatsbeginn),
     summeKostenEur(monatsbeginn),
     summeKostenEur(),
     durchschnittKostenProBlattEur(),
+    summeKostenProTag(14),
   ]);
 
   const STATS = [
@@ -149,7 +155,45 @@ export default async function AdminKostenPage() {
           </div>
         ))}
       </div>
-      <p className="text-xs text-slate-400">"Echte Kosten": {KOSTEN_BERECHNUNGSGRUNDLAGE}.</p>
+      <p className="mb-6 text-xs text-slate-400">"Echte Kosten": {KOSTEN_BERECHNUNGSGRUNDLAGE}.</p>
+
+      <div className="rounded-2xl border border-slate-200 bg-surface p-5 shadow-card">
+        <h2 className="mb-1 font-display text-lg font-semibold text-slate-800">
+          Echte Kosten pro Tag (letzte 14 Tage)
+        </h2>
+        <p className="mb-4 text-xs text-slate-400">
+          Tage in UTC (wie in der Anthropic-Konsole) - direkt für einen Tages-Abgleich mit der
+          eigenen Anthropic-Rechnungsübersicht geeignet. Tage ohne Aufruf fehlen in der Liste.
+        </p>
+        {kostenProTag.length === 0 ? (
+          <p className="text-sm text-slate-500">Noch keine Daten in diesem Zeitraum.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-left text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <th className="py-2 pr-4">Tag (UTC)</th>
+                  <th className="py-2 pr-4">Echte Kosten</th>
+                  <th className="py-2 pr-4">Tokens</th>
+                  <th className="py-2">API-Aufrufe</th>
+                </tr>
+              </thead>
+              <tbody>
+                {kostenProTag.map(({ tag, kostenEur, tokensGesamt, anzahlAufrufe }) => (
+                  <tr key={tag} className="border-b border-slate-100 last:border-0">
+                    <td className="py-2 pr-4 text-slate-700">{tag}</td>
+                    <td className="py-2 pr-4 font-medium text-slate-800">
+                      {kostenEur < 0.01 && kostenEur > 0 ? "<0,01€" : `${formatEur(kostenEur)}€`}
+                    </td>
+                    <td className="py-2 pr-4 text-slate-600">{tokensGesamt.toLocaleString("de-AT")}</td>
+                    <td className="py-2 text-slate-600">{anzahlAufrufe}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </main>
   );
 }

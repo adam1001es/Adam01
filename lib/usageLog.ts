@@ -233,6 +233,77 @@ export async function verbrauchtePunkteFuerUser(userId: string, seit?: Date): Pr
   return Math.round(kostenEur * 100);
 }
 
+export interface TagesKosten {
+  /** YYYY-MM-DD in UTC (toISOString) - die Anthropic-Konsole zeigt Tage ebenfalls in UTC, daher
+   * bewusst keine Umrechnung auf die österreichische Lokalzeit, um einen 1:1-Abgleich zu erlauben. */
+  tag: string;
+  kostenEur: number;
+  tokensGesamt: number;
+  anzahlAufrufe: number;
+}
+
+/** Echte Kosten PRO TAG für die letzten `tageAnzahl` Tage (inkl. heute) - Grundlage für einen
+ * direkten Abgleich einzelner Tage mit der Anthropic-Rechnungsübersicht (die dort nur EINEN
+ * Gesamtbetrag über alle angebundenen Projekte zeigt, hier aber tageweise genau für Lernwerk).
+ * Holt die Rohzeilen einmal und gruppiert in JS statt per SQL-Datumsgruppierung, da
+ * berechneKostenEur() pro Modell unterschiedliche Preise braucht (siehe summeKostenEur) und im
+ * Projekt bisher bewusst kein Raw-SQL verwendet wird. Tage ohne jeden Aufruf fehlen in der
+ * zurückgegebenen Liste komplett (kein Nulleintrag). */
+export async function summeKostenProTag(tageAnzahl: number): Promise<TagesKosten[]> {
+  const seit = new Date();
+  seit.setDate(seit.getDate() - (tageAnzahl - 1));
+  seit.setHours(0, 0, 0, 0);
+
+  const zeilen = await prisma.usageLog.findMany({
+    where: { createdAt: { gte: seit } },
+    select: {
+      createdAt: true,
+      model: true,
+      inputTokens: true,
+      outputTokens: true,
+      cacheCreationInputTokens: true,
+      cacheReadInputTokens: true,
+    },
+  });
+
+  const proTagUndModell = new Map<string, Map<string, TokenSumme>>();
+  for (const zeile of zeilen) {
+    const tag = zeile.createdAt.toISOString().slice(0, 10);
+    if (!proTagUndModell.has(tag)) proTagUndModell.set(tag, new Map());
+    const proModell = proTagUndModell.get(tag)!;
+    const bisher = proModell.get(zeile.model) ?? {
+      inputTokens: 0,
+      outputTokens: 0,
+      cacheCreationInputTokens: 0,
+      cacheReadInputTokens: 0,
+      gesamt: 0,
+      anzahlAufrufe: 0,
+    };
+    bisher.inputTokens += zeile.inputTokens;
+    bisher.outputTokens += zeile.outputTokens;
+    bisher.cacheCreationInputTokens += zeile.cacheCreationInputTokens;
+    bisher.cacheReadInputTokens += zeile.cacheReadInputTokens;
+    bisher.gesamt +=
+      zeile.inputTokens + zeile.outputTokens + zeile.cacheCreationInputTokens + zeile.cacheReadInputTokens;
+    bisher.anzahlAufrufe += 1;
+    proModell.set(zeile.model, bisher);
+  }
+
+  const ergebnis: TagesKosten[] = [];
+  for (const [tag, proModell] of proTagUndModell) {
+    let kostenEur = 0;
+    let tokensGesamt = 0;
+    let anzahlAufrufe = 0;
+    for (const [model, summe] of proModell) {
+      kostenEur += berechneKostenEur(model, summe);
+      tokensGesamt += summe.gesamt;
+      anzahlAufrufe += summe.anzahlAufrufe;
+    }
+    ergebnis.push({ tag, kostenEur, tokensGesamt, anzahlAufrufe });
+  }
+  return ergebnis.sort((a, b) => b.tag.localeCompare(a.tag));
+}
+
 /** Echter Durchschnittspreis pro Arbeitsblatt in € - die belastbare Grundlage für die
  * Preiskalkulation (siehe README/Abo-Kalkulation in lib/quota.ts), statt der bisherigen
  * Pauschalschätzung GESCHAETZTE_KOSTEN_TEXT_PRO_BLATT_EUR oder eines einzelnen Datenpunkts. Je
