@@ -44,8 +44,8 @@ export default async function JahresplanungPage() {
         </Link>
       </div>
       <p className="mt-1.5 text-sm text-slate-500">
-        Wochenraster nach Vorlage des Schulamts der IGGÖ - Wochendatum, Hijri-Datum und Ferien/
-        Feiertage sind vorausgefüllt, Wochenthema, Kompetenzen und Notizen trägst du selbst ein.
+        Wochenraster für die Jahresplanung - Wochendatum, Hijri-Datum und Ferien/Feiertage sind
+        vorausgefüllt, Wochenthema, Kompetenzen und Notizen trägst du selbst ein.
       </p>
 
       {jahresplaene.length === 0 ? (

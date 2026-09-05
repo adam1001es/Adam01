@@ -46,7 +46,7 @@ const WERKZEUGE = [
     icon: NotebookPen,
     titel: "Jahresplanung",
     beschreibung:
-      "Offizielles Wochenraster des Schulamts der IGGÖ - Datum, Hijri-Datum und Ferien/Feiertage vorausgefüllt, Wochenthema/Kompetenzen/Notizen selbst eintragen und als Word herunterladen.",
+      "Wochenraster für die Jahresplanung - Datum, Hijri-Datum und Ferien/Feiertage vorausgefüllt, Wochenthema/Kompetenzen/Notizen selbst eintragen und als Word herunterladen.",
   },
   {
     href: "/werkzeuge/stundenplan",
