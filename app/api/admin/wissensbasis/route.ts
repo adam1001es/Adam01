@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 import { THEMENBEREICH_KEYS } from "@/lib/curriculum";
 import {
   legeWissensEntwurfAn,
@@ -27,7 +28,7 @@ const BodySchema = z.object({
  * "geprueft" anzulegen. */
 export async function POST(request: NextRequest) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 

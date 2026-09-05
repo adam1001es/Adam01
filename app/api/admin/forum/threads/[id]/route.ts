@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 
-/** Admin löscht ein gemeldetes Forum-Thema (kaskadiert dessen Antworten, siehe
+/** Admin/Moderator löscht ein gemeldetes Forum-Thema (kaskadiert dessen Antworten, siehe
  * ForumThread.antworten onDelete: Cascade). Die zugehörige(n) ForumMeldung(en) bleiben als
  * Nachweis bestehen (lose zielId-Referenz, siehe Kommentar am ForumMeldung-Modell). */
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 

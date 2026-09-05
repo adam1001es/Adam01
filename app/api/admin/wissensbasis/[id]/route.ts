@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 import {
   setzeStatus,
   aktualisiereInhalt,
@@ -26,7 +27,7 @@ const BodySchema = z
  * und das passiert ausschließlich über diese admin-only Route, nie automatisiert. */
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 
@@ -81,7 +82,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 

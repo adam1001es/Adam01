@@ -30,7 +30,8 @@ const STATUS_BADGE: Record<string, string> = {
 
 type Tab = "zitat" | "musteraufgabe" | "begriff" | "analyse";
 
-/** Interaktiver Teil der Admin-only Wissensbasis (siehe app/admin/wissensbasis/page.tsx für die
+/** Interaktiver Teil der Wissensbasis (Admin ODER Moderator, siehe lib/rollen.ts; siehe
+ * app/admin/wissensbasis/page.tsx für die
  * serverseitige Datenladung, lib/wissensbasis.ts für das Gesamtkonzept). Vier Tabs: Zitate,
  * Musteraufgaben, Begriffe (alle drei mit demselben Freigabe-Workflow), Aufgabentyp-Analyse (rein
  * lesend). */

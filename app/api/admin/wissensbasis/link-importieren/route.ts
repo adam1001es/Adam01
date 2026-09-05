@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 import { importiereZitateVonLink } from "@/lib/linkImport";
 
 /** Admin-only Link-Import (siehe lib/linkImport.ts) - Gegenstück zu koran-nachschlagen für
@@ -8,7 +9,7 @@ import { importiereZitateVonLink } from "@/lib/linkImport";
  * ALLE auf der Seite gefundenen Zitate (z.B. jeden Hadith einer ganzen Sammlung) auf einmal. */
 export async function POST(request: NextRequest) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 

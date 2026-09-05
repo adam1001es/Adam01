@@ -3,19 +3,20 @@ import { BookMarked } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { berechneAufgabentypAnalyse } from "@/lib/wissensbasis";
+import { hatModRechte } from "@/lib/rollen";
 import WissensbasisClient, { WissensEintragRow } from "@/components/WissensbasisClient";
 
 export const dynamic = "force-dynamic";
 
-/** Admin-only "Wissensbasis" - eigener Top-Level-Bereich (siehe SiteHeader, nicht mehr nur eine
- * Unterseite der Konten-Verwaltung): Übersicht + Freigabe-Workflow für den wachsenden Pool aus
- * geprüften Zitaten/Musteraufgaben (siehe lib/wissensbasis.ts für das Gesamtkonzept). Die
- * eigentliche Interaktivität (Tabs, Freigeben/Ablehnen, Anlegen, Scan) sitzt in
- * WissensbasisClient - hier wird nur einmal serverseitig geladen. */
+/** Admin/Moderator-Bereich "Wissensbasis" - eigener Top-Level-Bereich (siehe SiteHeader, nicht
+ * mehr nur eine Unterseite der Konten-Verwaltung): Übersicht + Freigabe-Workflow für den
+ * wachsenden Pool aus geprüften Zitaten/Musteraufgaben (siehe lib/wissensbasis.ts für das
+ * Gesamtkonzept). Die eigentliche Interaktivität (Tabs, Freigeben/Ablehnen, Anlegen, Scan) sitzt
+ * in WissensbasisClient - hier wird nur einmal serverseitig geladen. */
 export default async function AdminWissensbasisPage() {
   const admin = await getSessionUser();
   if (!admin) redirect("/login");
-  if (admin.role !== "admin") redirect("/");
+  if (!hatModRechte(admin)) redirect("/");
 
   const eintraegeRaw = await prisma.wissensEintrag.findMany({
     orderBy: [{ status: "asc" }, { createdAt: "desc" }],

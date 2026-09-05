@@ -2,15 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 
 const BodySchema = z.object({ gesperrt: z.boolean() });
 
 /** Sperrt/entsperrt ein Konto fürs Forum (User.forumGesperrt) - eigene Route statt Erweiterung
  * von PATCH /api/admin/users/[id] (das steuert nur tier/tierGueltigVon/Bis von einer anderen
- * Seite/Komponente aus, siehe app/admin/forum-meldungen vs. app/admin AdminTierForm). */
+ * Seite/Komponente aus, siehe app/admin/forum-meldungen vs. app/admin AdminTierForm). Admin ODER
+ * Moderator - Forum-Sperre ist eine Kernaufgabe der Moderation, siehe lib/rollen.ts. */
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 

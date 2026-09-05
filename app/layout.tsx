@@ -6,6 +6,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
+import { hatModRechte } from "@/lib/rollen";
 import { toHijri } from "@/lib/hijri";
 import { prisma } from "@/lib/prisma";
 
@@ -53,17 +54,32 @@ export default async function RootLayout({
 }) {
   const user = await getSessionUser();
   const hijriDatum = toHijri(new Date()).label;
-  // Nur für Admins abgefragt (auf jeder Seite gerendert, siehe SiteHeader unten) - eine
-  // ungenutzte Zählabfrage für alle anderen Nutzer:innen wäre reine Verschwendung.
+  // Für Admins UND Moderator:innen abgefragt (auf jeder Seite gerendert, siehe SiteHeader unten)
+  // - eine ungenutzte Zählabfrage für alle anderen Nutzer:innen wäre reine Verschwendung. Beide
+  // Rollen dürfen Wissensbasis-Einträge prüfen/freigeben (siehe lib/rollen.ts).
   const offeneWissensEntwuerfe =
-    user?.role === "admin"
+    user && hatModRechte(user)
       ? await prisma.wissensEintrag.count({ where: { status: "entwurf" } })
       : undefined;
   // Neue Registrierungen seit dem letzten Besuch von app/admin - siehe User.letzteKontenAnsicht
-  // im Prisma-Schema, als kleiner Punkt am Admin-Icon (siehe SiteHeader.tsx).
+  // im Prisma-Schema, als kleiner Punkt am Admin-Icon (siehe SiteHeader.tsx). Admin-exklusiv (nur
+  // Admins sehen die Kontenverwaltung überhaupt).
   const neueRegistrierungen =
     user?.role === "admin"
       ? await prisma.user.count({ where: { createdAt: { gt: user.letzteKontenAnsicht } } })
+      : undefined;
+  // Für den "Moderation"-Nav-Punkt (nur Moderator:innen - Admins haben ihre eigenen Badges direkt
+  // auf app/admin, siehe dort) - Summe aus beiden Meldungsarten als ein Punkt/Zahl, analog zu
+  // neueRegistrierungen.
+  const offeneModerationsMeldungen =
+    user?.role === "moderator"
+      ? await (async () => {
+          const [offeneMeldungen, offeneForumMeldungen] = await Promise.all([
+            prisma.meldung.count({ where: { bearbeitet: false } }),
+            prisma.forumMeldung.count({ where: { bearbeitet: false } }),
+          ]);
+          return offeneMeldungen + offeneForumMeldungen;
+        })()
       : undefined;
   // Neu geteilte Arbeitsblätter seit dem letzten Besuch von app/community - für ALLE Konten
   // (nicht nur Admin), siehe User.letzteCommunityAnsicht im Prisma-Schema. Eigene Arbeitsblätter
@@ -94,6 +110,7 @@ export default async function RootLayout({
           hijriDatum={hijriDatum}
           offeneWissensEntwuerfe={offeneWissensEntwuerfe}
           neueRegistrierungen={neueRegistrierungen}
+          offeneModerationsMeldungen={offeneModerationsMeldungen}
           neueCommunityBeitraege={neueCommunityBeitraege}
           user={
             user

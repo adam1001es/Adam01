@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 import { sammleZitatKandidaten } from "@/lib/wissensMining";
 
 /** Stößt das Zitat-Mining manuell an (siehe lib/wissensMining.ts) - durchsucht eigene +
@@ -8,7 +9,7 @@ import { sammleZitatKandidaten } from "@/lib/wissensMining";
  * Scan-Durchlauf sinnvoll ist (z.B. nachdem einige neue Arbeitsblätter dazugekommen sind). */
 export async function POST() {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 

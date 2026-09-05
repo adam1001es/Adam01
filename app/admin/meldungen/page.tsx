@@ -4,6 +4,7 @@ import { ArrowLeft, Flag, Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { MELDUNG_KATEGORIE_LABEL, MELDUNG_STATUS_LABEL, MeldungKategorie } from "@/lib/types";
+import { hatModRechte } from "@/lib/rollen";
 import MeldungStatusButton from "@/components/MeldungStatusButton";
 import MeldungErstattenButton from "@/components/MeldungErstattenButton";
 
@@ -25,7 +26,11 @@ const STATUS_BADGE_KLASSE: Record<string, string> = {
 export default async function AdminMeldungenPage() {
   const admin = await getSessionUser();
   if (!admin) redirect("/login");
-  if (admin.role !== "admin") redirect("/");
+  if (!hatModRechte(admin)) redirect("/");
+  // Kontingent-Erstattung bleibt eine finanzielle, admin-exklusive Entscheidung - Moderator:innen
+  // dürfen Meldungen einsehen und als bearbeitet markieren, aber nicht erstatten (siehe
+  // lib/rollen.ts).
+  const istAdmin = admin.role === "admin";
 
   const meldungen = await prisma.meldung.findMany({
     orderBy: [{ bearbeitet: "asc" }, { createdAt: "desc" }],
@@ -38,10 +43,10 @@ export default async function AdminMeldungenPage() {
   return (
     <main>
       <Link
-        href="/admin"
+        href={istAdmin ? "/admin" : "/admin/moderation"}
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-700"
       >
-        <ArrowLeft size={15} /> Zurück zur Konten-Verwaltung
+        <ArrowLeft size={15} /> {istAdmin ? "Zurück zur Konten-Verwaltung" : "Zurück zur Moderation"}
       </Link>
       <div className="mb-6 flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600">
@@ -109,7 +114,7 @@ export default async function AdminMeldungenPage() {
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    {m.worksheet && (
+                    {istAdmin && m.worksheet && (
                       <MeldungErstattenButton
                         meldungId={m.id}
                         initialErstattet={m.worksheet.erstattet}

@@ -81,7 +81,7 @@ model User {
   // (siehe app/account), daher optional und anfangs leer.
   username     String?  @unique
   passwordHash String
-  role         String   @default("user") // "user" | "admin" - der erste registrierte Account wird automatisch Admin
+  role         String   @default("user") // "user" | "moderator" | "admin" (siehe lib/rollen.ts) - der erste registrierte Account wird automatisch Admin
   // War die Registrierung schon vor Einführung der E-Mail-Verifizierung, gilt das Konto per
   // Migration als bereits verifiziert (siehe migration.sql) - nur neue Registrierungen müssen
   // den Link aus der Mail bestätigen, bevor ein Login möglich ist (siehe lib/mailer.ts).

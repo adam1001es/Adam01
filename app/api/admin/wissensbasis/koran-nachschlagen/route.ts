@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 import { holeVersBereich } from "@/lib/quranApi";
 
 /** Admin-only Live-Nachschlagewerkzeug für die Wissensbasis (siehe lib/quranApi.ts) - holt
  * Vers(e) direkt von der Al-Quran-Cloud-API statt sie gespeichert/erinnert zu haben. */
 export async function GET(request: NextRequest) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 

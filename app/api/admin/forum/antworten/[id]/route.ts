@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 
-/** Admin löscht eine einzelne gemeldete Forum-Antwort. Die zugehörige ForumMeldung bleibt als
- * Nachweis bestehen (lose zielId-Referenz). */
+/** Admin/Moderator löscht eine einzelne gemeldete Forum-Antwort. Die zugehörige ForumMeldung
+ * bleibt als Nachweis bestehen (lose zielId-Referenz). */
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 

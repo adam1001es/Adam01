@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, GraduationCap, ChevronDown } from "lucide-react";
 import AdminTierForm from "@/components/AdminTierForm";
+import AdminRolleForm from "@/components/AdminRolleForm";
 import AdminDeleteUserButton from "@/components/AdminDeleteUserButton";
 import AvatarKreis from "@/components/AvatarKreis";
 import { avatarAnzeige } from "@/lib/profil";
@@ -96,6 +97,11 @@ function AdminKontoZeile({ r }: { r: AdminUserRow }) {
               Admin
             </span>
           )}
+          {r.role === "moderator" && (
+            <span className="shrink-0 rounded-full bg-gold-50 px-2 py-0.5 text-xs font-medium text-gold-700">
+              Moderator:in
+            </span>
+          )}
           <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
             {r.tier ? PAKET_LABEL[r.tier] : "Kostenlos"}
           </span>
@@ -129,6 +135,11 @@ function AdminKontoZeile({ r }: { r: AdminUserRow }) {
             initialGueltigVon={r.tierGueltigVon}
             initialGueltigBis={r.tierGueltigBis}
           />
+          {!r.istSelbst && (
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <AdminRolleForm userId={r.id} initialRolle={r.role} />
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -15,6 +15,7 @@ import {
   MessagesSquare,
   ShieldAlert,
   Wrench,
+  Flag,
 } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import SonnenuntergangAnzeige from "./SonnenuntergangAnzeige";
@@ -53,6 +54,7 @@ export default function SiteHeader({
   hijriDatum,
   offeneWissensEntwuerfe,
   neueRegistrierungen,
+  offeneModerationsMeldungen,
   neueCommunityBeitraege,
 }: {
   user: SiteHeaderUser | null;
@@ -69,6 +71,10 @@ export default function SiteHeader({
    * dargestellt (siehe unten), damit er auch auf Mobile sichtbar bleibt, wo die Textbeschriftung
    * der Nav-Icons ausgeblendet ist. */
   neueRegistrierungen?: number;
+  /** Nur für role "moderator" gesetzt (siehe app/layout.tsx) - Summe unbearbeiteter Arbeitsblatt-
+   * und Forum-Meldungen, als Zahl am "Moderation"-Nav-Punkt (Gegenstück zu neueRegistrierungen am
+   * "Admin"-Punkt, den Moderator:innen gar nicht erst sehen). */
+  offeneModerationsMeldungen?: number;
   /** Für ALLE eingeloggten Konten gesetzt (siehe app/layout.tsx) - Anzahl neu geteilter
    * Arbeitsblätter seit dem letzten Besuch von app/community (siehe
    * User.letzteCommunityAnsicht), als Punkt am Community-Icon analog zu neueRegistrierungen. */
@@ -276,7 +282,7 @@ export default function SiteHeader({
               Profil und Admin-Gruppe eingeklemmt zu sein. Statt einer Textbeschriftung ("Admin")
               und grauer Füllung nur ein dünner roter Rahmen als dezenter, aber eindeutiger
               Hinweis. */}
-          {user?.role === "admin" && (
+          {(user?.role === "admin" || user?.role === "moderator") && (
             <>
               <span aria-hidden="true" className="mx-1 hidden h-7 w-px shrink-0 self-stretch bg-slate-300 sm:block" />
               <div className="flex flex-wrap items-center gap-1 rounded-2xl border border-red-200 p-1">
@@ -289,43 +295,65 @@ export default function SiteHeader({
                     Wissensbasis{offeneWissensEntwuerfe ? ` (${offeneWissensEntwuerfe})` : ""}
                   </span>
                 </Link>
-                <Link
-                  href="/admin"
-                  title={
-                    neueRegistrierungen
-                      ? `${neueRegistrierungen} neue Registrierung${neueRegistrierungen === 1 ? "" : "en"}`
-                      : undefined
-                  }
-                  className={
-                    navLinkClass(
-                      !!pathname?.startsWith("/admin") &&
-                        !pathname?.startsWith("/admin/wissensbasis") &&
-                        !pathname?.startsWith("/admin/vorfall-datenbank"),
-                    ) + " relative"
-                  }
-                >
-                  <ShieldCheck size={16} strokeWidth={2.25} />
-                  <span className="hidden sm:inline">Admin</span>
-                  {!!neueRegistrierungen && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-surface"
-                    />
-                  )}
-                </Link>
+                {user.role === "admin" ? (
+                  <Link
+                    href="/admin"
+                    title={
+                      neueRegistrierungen
+                        ? `${neueRegistrierungen} neue Registrierung${neueRegistrierungen === 1 ? "" : "en"}`
+                        : undefined
+                    }
+                    className={
+                      navLinkClass(
+                        !!pathname?.startsWith("/admin") &&
+                          !pathname?.startsWith("/admin/wissensbasis") &&
+                          !pathname?.startsWith("/admin/vorfall-datenbank"),
+                      ) + " relative"
+                    }
+                  >
+                    <ShieldCheck size={16} strokeWidth={2.25} />
+                    <span className="hidden sm:inline">Admin</span>
+                    {!!neueRegistrierungen && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-surface"
+                      />
+                    )}
+                  </Link>
+                ) : (
+                  // Moderator:innen sehen statt "Admin" (Kontenverwaltung, für sie kein Zugriff)
+                  // einen eigenen Nav-Punkt zur Moderations-Übersicht (siehe app/admin/moderation
+                  // + lib/rollen.ts).
+                  <Link
+                    href="/admin/moderation"
+                    title={
+                      offeneModerationsMeldungen
+                        ? `${offeneModerationsMeldungen} unbearbeitete Meldung${offeneModerationsMeldungen === 1 ? "" : "en"}`
+                        : undefined
+                    }
+                    className={navLinkClass(!!pathname?.startsWith("/admin/moderation"))}
+                  >
+                    <Flag size={16} strokeWidth={2.25} />
+                    <span className="hidden sm:inline">
+                      Moderation{offeneModerationsMeldungen ? ` (${offeneModerationsMeldungen})` : ""}
+                    </span>
+                  </Link>
+                )}
                 {/* Rein persönliche Lernressource für den Betreiber (Rückblick auf den DB-Vorfall
                     vom 3./4. September 2026, siehe components/VorfallDatenbankErklaerung.tsx) -
                     deshalb ganz bewusst der "warnung"-Rot-Akzent statt einer neuen Bereichsfarbe
                     wie bei Forum/Wissensbasis, da das hier kein wiederkehrender Funktionsbereich
-                    ist. */}
-                <Link
-                  href="/admin/vorfall-datenbank"
-                  title="DB-Vorfall vom 3./4. September - Rückblick"
-                  className={navLinkClass(!!pathname?.startsWith("/admin/vorfall-datenbank"), true)}
-                >
-                  <ShieldAlert size={16} strokeWidth={2.25} />
-                  <span className="hidden sm:inline">DB-Vorfall</span>
-                </Link>
+                    ist. Admin-exklusiv, Moderator:innen sehen diesen Punkt nicht. */}
+                {user.role === "admin" && (
+                  <Link
+                    href="/admin/vorfall-datenbank"
+                    title="DB-Vorfall vom 3./4. September - Rückblick"
+                    className={navLinkClass(!!pathname?.startsWith("/admin/vorfall-datenbank"), true)}
+                  >
+                    <ShieldAlert size={16} strokeWidth={2.25} />
+                    <span className="hidden sm:inline">DB-Vorfall</span>
+                  </Link>
+                )}
               </div>
             </>
           )}

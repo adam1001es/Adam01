@@ -4,6 +4,7 @@ import { ArrowLeft, MessageSquareWarning } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { FORUM_MELDUNG_ZIEL_TYPEN, ForumMeldungZielTyp } from "@/lib/forum";
+import { hatModRechte } from "@/lib/rollen";
 import ForumMeldungStatusButton from "@/components/ForumMeldungStatusButton";
 import ForumInhaltLoeschenButton from "@/components/ForumInhaltLoeschenButton";
 import ForumUserSperrenButton from "@/components/ForumUserSperrenButton";
@@ -22,7 +23,8 @@ const ZIEL_TYP_LABEL: Record<string, string> = {
 export default async function AdminForumMeldungenPage() {
   const admin = await getSessionUser();
   if (!admin) redirect("/login");
-  if (admin.role !== "admin") redirect("/");
+  if (!hatModRechte(admin)) redirect("/");
+  const istAdmin = admin.role === "admin";
 
   const meldungen = await prisma.forumMeldung.findMany({
     orderBy: [{ bearbeitet: "asc" }, { createdAt: "desc" }],
@@ -43,10 +45,10 @@ export default async function AdminForumMeldungenPage() {
   return (
     <main>
       <Link
-        href="/admin"
+        href={istAdmin ? "/admin" : "/admin/moderation"}
         className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-brand-700"
       >
-        <ArrowLeft size={15} /> Zurück zur Konten-Verwaltung
+        <ArrowLeft size={15} /> {istAdmin ? "Zurück zur Konten-Verwaltung" : "Zurück zur Moderation"}
       </Link>
       <div className="mb-6 flex items-center gap-3">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600">

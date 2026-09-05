@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { hatModRechte } from "@/lib/rollen";
 
 const BodySchema = z.object({ bearbeitet: z.boolean() });
 
@@ -9,7 +10,7 @@ const BodySchema = z.object({ bearbeitet: z.boolean() });
  * app/api/admin/meldungen/[id]/route.ts (Arbeitsblatt-Meldungen). */
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   const admin = await getSessionUser();
-  if (!admin || admin.role !== "admin") {
+  if (!admin || !hatModRechte(admin)) {
     return NextResponse.json({ error: "Kein Zugriff." }, { status: 403 });
   }
 
