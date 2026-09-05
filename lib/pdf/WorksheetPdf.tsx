@@ -518,17 +518,19 @@ function buildStyles(layout: LayoutConfig) {
 }
 
 /** Dezentes, halbtransparentes Domain-Wasserzeichen für öffentlich per Link geteilte Arbeitsblätter
- * (siehe wasserzeichen-Parameter unten sowie dieselbe Absicht in WorksheetView.tsx/
+ * (siehe wasserzeichenText-Parameter unten sowie dieselbe Absicht in WorksheetView.tsx/
  * buildWorksheetDocx.ts) - erscheint NUR bei Export über den öffentlichen Link
  * (app/api/blatt/[token]/pdf), NIE beim regulären Eigentümer-Download (app/api/worksheet/[id]/pdf),
- * damit die eigene Nutzung des Kontos nicht durch eigene Werbung gestört wird. "fixed" sorgt dafür,
- * dass es sich bei mehrseitigen Arbeitsblättern (Inhalt läuft über mehrere physische Seiten
- * innerhalb DERSELBEN <Page>) automatisch wiederholt. Bewusst VOR dem eigentlichen Seiteninhalt im
- * Baum platziert, damit react-pdf es zuerst (also optisch dahinter) zeichnet - der Text bleibt so
- * überall dort lesbar, wo er das Wasserzeichen überdeckt, während es in Zwischenräumen (Rand,
- * Schreiblinien, Absatzabstände) sichtbar bleibt.
+ * damit die eigene Nutzung des Kontos nicht durch eigene Werbung gestört wird. Der angezeigte Text
+ * kommt admin-editierbar aus lib/siteContent.ts ("design.wasserzeichen.text", siehe
+ * app/admin/inhalte), damit z.B. eine spätere Domain-Änderung ohne Code-Anpassung möglich ist.
+ * "fixed" sorgt dafür, dass es sich bei mehrseitigen Arbeitsblättern (Inhalt läuft über mehrere
+ * physische Seiten innerhalb DERSELBEN <Page>) automatisch wiederholt. Bewusst VOR dem
+ * eigentlichen Seiteninhalt im Baum platziert, damit react-pdf es zuerst (also optisch dahinter)
+ * zeichnet - der Text bleibt so überall dort lesbar, wo er das Wasserzeichen überdeckt, während es
+ * in Zwischenräumen (Rand, Schreiblinien, Absatzabstände) sichtbar bleibt.
  */
-function Wasserzeichen() {
+function Wasserzeichen({ text }: { text: string }) {
   const positionen = [
     { top: 90, left: 30 },
     { top: 90, left: 330 },
@@ -554,7 +556,7 @@ function Wasserzeichen() {
             transform: "rotate(-30deg)",
           }}
         >
-          ki.islamlernen.at
+          {text}
         </Text>
       ))}
     </View>
@@ -956,7 +958,7 @@ export function WorksheetPdfDocument({
   themenbereichLabel,
   erstelltAm,
   generierteBilder = {},
-  wasserzeichen = false,
+  wasserzeichenText,
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
@@ -964,14 +966,15 @@ export function WorksheetPdfDocument({
   erstelltAm: Date;
   /** bildGeneriertId -> base64-Data-URI, vorab von der aufrufenden Route aufgelöst. */
   generierteBilder?: Record<string, string>;
-  /** Nur bei Export über den öffentlichen Link true, siehe Wasserzeichen() oben. */
-  wasserzeichen?: boolean;
+  /** Nur bei Export über den öffentlichen Link gesetzt (admin-editierbarer Text aus
+   * lib/siteContent.ts "design.wasserzeichen.text"), siehe Wasserzeichen() oben. */
+  wasserzeichenText?: string;
 }) {
   const styles = buildStyles(layout);
   return (
     <Document title={content.titel}>
       <Page size="A4" style={styles.page}>
-        {wasserzeichen && <Wasserzeichen />}
+        {wasserzeichenText && <Wasserzeichen text={wasserzeichenText} />}
         <View style={styles.seiteInhalt}>
           <Header
             content={content}
@@ -1001,7 +1004,7 @@ export function WorksheetPdfDocument({
           die ganze Lösungsseite entfällt dann. */}
       {content.loesungen.length > 0 && (
         <Page size="A4" style={styles.page}>
-          {wasserzeichen && <Wasserzeichen />}
+          {wasserzeichenText && <Wasserzeichen text={wasserzeichenText} />}
           <View style={styles.seiteInhalt}>
             <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
             <LoesungenSeite content={content} layout={layout} />

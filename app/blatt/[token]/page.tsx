@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FileText, FileType2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema, LayoutConfigSchema, ThemenbereichSchema, Verification } from "@/lib/types";
+import { holeSiteInhalte } from "@/lib/siteContent";
 import WorksheetView from "@/components/WorksheetView";
 import VerificationBanner from "@/components/VerificationBanner";
 
@@ -76,6 +77,9 @@ export default async function OeffentlichesBlattPage({ params }: { params: { tok
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
   const verification = JSON.parse(worksheet.verification) as Verification;
   const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
+  // Admin-editierbarer Wasserzeichen-Text (siehe lib/siteContent.ts "design.wasserzeichen.text",
+  // app/admin/inhalte) - nur auf dieser öffentlichen Link-Ansicht verwendet.
+  const inhalte = await holeSiteInhalte();
 
   return (
     <main>
@@ -110,7 +114,7 @@ export default async function OeffentlichesBlattPage({ params }: { params: { tok
         layout={layout}
         themenbereich={themenbereich}
         erstelltAm={worksheet.createdAt}
-        wasserzeichen
+        wasserzeichenText={inhalte["design.wasserzeichen.text"]}
       />
     </main>
   );

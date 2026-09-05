@@ -68,17 +68,18 @@ export default function WorksheetView({
   layout,
   themenbereich,
   erstelltAm,
-  wasserzeichen = false,
+  wasserzeichenText,
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
   themenbereich: ThemenbereichKey;
   erstelltAm: Date;
-  /** Nur true auf der öffentlichen Link-Ansicht (app/blatt/[token]) - blendet ein dezentes
-   * Domain-Wasserzeichen ein, siehe dieselbe Absicht/denselben Text in WorksheetPdf.tsx/
+  /** Nur auf der öffentlichen Link-Ansicht (app/blatt/[token]) gesetzt - der admin-editierbare
+   * Text aus lib/siteContent.ts ("design.wasserzeichen.text", siehe app/admin/inhalte), blendet
+   * ein dezentes Domain-Wasserzeichen ein, siehe dieselbe Absicht in WorksheetPdf.tsx/
    * buildWorksheetDocx.ts. Bewusst NICHT "no-print": soll auch beim direkten Browser-Druck
    * (Strg+P) sichtbar bleiben, nicht nur bei den generierten PDF-/Word-Downloads. */
-  wasserzeichen?: boolean;
+  wasserzeichenText?: string;
 }) {
   const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
   const isModern = layout.template === "modern";
@@ -492,17 +493,17 @@ export default function WorksheetView({
         </div>
       )}
 
-      {wasserzeichen && <Wasserzeichen />}
+      {wasserzeichenText && <Wasserzeichen text={wasserzeichenText} />}
     </div>
   );
 }
 
-/** Dezentes, halbtransparentes Domain-Wasserzeichen - siehe wasserzeichen-Prop oben. Als letztes
- * Kind der relativ positionierten Karte gerendert, damit es (ohne z-index) über allem anderen
- * liegt; "pointer-events-none" hält es aus Klicks/Textauswahl heraus, "select-none" verhindert,
- * dass es beim Markieren des eigentlichen Inhalts mitkopiert wird. Bewusst KEIN "no-print" -
- * soll auch beim direkten Browser-Ausdruck (Strg+P) erhalten bleiben. */
-function Wasserzeichen() {
+/** Dezentes, halbtransparentes Domain-Wasserzeichen - siehe wasserzeichenText-Prop oben. Als
+ * letztes Kind der relativ positionierten Karte gerendert, damit es (ohne z-index) über allem
+ * anderen liegt; "pointer-events-none" hält es aus Klicks/Textauswahl heraus, "select-none"
+ * verhindert, dass es beim Markieren des eigentlichen Inhalts mitkopiert wird. Bewusst KEIN
+ * "no-print" - soll auch beim direkten Browser-Ausdruck (Strg+P) erhalten bleiben. */
+function Wasserzeichen({ text }: { text: string }) {
   return (
     <div
       aria-hidden
@@ -513,7 +514,7 @@ function Wasserzeichen() {
           <div key={zeile} className="flex flex-wrap justify-around gap-x-10 whitespace-nowrap">
             {Array.from({ length: 3 }).map((_, spalte) => (
               <span key={spalte} className="text-xl font-bold text-slate-900">
-                ki.islamlernen.at
+                {text}
               </span>
             ))}
           </div>
