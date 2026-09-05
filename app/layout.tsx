@@ -4,6 +4,7 @@ import { Newsreader, Inter } from "next/font/google";
 import "./globals.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 import { getSessionUser } from "@/lib/auth";
 import { istZahlendesKonto } from "@/lib/quota";
 import { hatModRechte } from "@/lib/rollen";
@@ -135,6 +136,7 @@ export default async function RootLayout({
         />
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">{children}</div>
         <SiteFooter />
+        <ScrollToTopButton />
       </body>
     </html>
   );
