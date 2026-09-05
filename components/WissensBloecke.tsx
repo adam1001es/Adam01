@@ -66,9 +66,23 @@ function findeGueltigenAnker(raster: Raster, form: Formteil): boolean {
   return false;
 }
 
-function zufallsFrage(letzteId: string | null): SpielFrage {
-  const auswahl = letzteId ? SPIEL_FRAGEN.filter((f) => f.id !== letzteId) : SPIEL_FRAGEN;
-  return auswahl[Math.floor(Math.random() * auswahl.length)];
+// "Shuffle-Bag": mischt den GESAMTEN Fragenkatalog einmal durch und zieht danach nacheinander
+// ohne Zurücklegen - so wiederholt sich KEINE Frage, bevor nicht wirklich jede andere einmal
+// dran war (statt wie zuvor bei rein zufälliger Ziehung schon nach wenigen Runden Wiederholungen
+// zu riskieren, selbst bei einem größeren Fragenkatalog). Erst wenn der Beutel leer ist, wird neu
+// gemischt.
+function mischeFragenBeutel(letzteId: string | null): SpielFrage[] {
+  const beutel = [...SPIEL_FRAGEN];
+  for (let i = beutel.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [beutel[i], beutel[j]] = [beutel[j], beutel[i]];
+  }
+  // Verhindert, dass ausgerechnet die zuletzt gezeigte Frage (letzte des vorigen Beutels) als
+  // Erstes im neuen Beutel direkt wieder drankommt.
+  if (letzteId && beutel[0]?.id === letzteId && beutel.length > 1) {
+    [beutel[0], beutel[1]] = [beutel[1], beutel[0]];
+  }
+  return beutel;
 }
 
 export default function WissensBloecke() {
@@ -91,6 +105,7 @@ export default function WissensBloecke() {
   const [regelnOffen, setRegelnOffen] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const schuettelControls = useAnimation();
+  const fragenBeutelRef = useRef<SpielFrage[]>([]);
 
   const feierPartikel = useMemo(
     () =>
@@ -115,7 +130,10 @@ export default function WissensBloecke() {
   const level = Math.floor(zeilenGeloescht / ZEILEN_PRO_LEVEL) + 1;
 
   const naechsteFrage = useCallback((letzte: string | null) => {
-    const f = zufallsFrage(letzte);
+    if (fragenBeutelRef.current.length === 0) {
+      fragenBeutelRef.current = mischeFragenBeutel(letzte);
+    }
+    const f = fragenBeutelRef.current.shift()!;
     setLetzteFrageId(f.id);
     setFrage(f);
     setPhase("frage");
