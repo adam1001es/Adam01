@@ -126,10 +126,12 @@ export default function WorksheetView({
         </div>
       )}
 
-      <div className="mb-5 text-sm text-slate-500">
-        Name: _______________________&nbsp;&nbsp;&nbsp; Klasse: __________
-        {!layout.zeigeIslamischesDatum && <>&nbsp;&nbsp;&nbsp; Datum: __________</>}
-      </div>
+      {layout.zeigeNamensfeld && (
+        <div className="mb-5 text-sm text-slate-500">
+          Name: _______________________&nbsp;&nbsp;&nbsp; Klasse: __________
+          {!layout.zeigeIslamischesDatum && <>&nbsp;&nbsp;&nbsp; Datum: __________</>}
+        </div>
+      )}
 
       <div className={spacing}>
         {layout.zeigeLernziel && (

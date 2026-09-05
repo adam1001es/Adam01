@@ -202,6 +202,7 @@ interface FormDraft {
   musterVariante: MusterVariante;
   zeigeLernziel: boolean;
   farbmodus: Farbmodus;
+  zeigeNamensfeld: boolean;
 }
 
 function entwurfSchluessel(klasseId?: string): string {
@@ -448,6 +449,7 @@ export default function NewWorksheetForm({
   const [musterVariante, setMusterVariante] = useState<MusterVariante>("sterne");
   const [zeigeLernziel, setZeigeLernziel] = useState(false);
   const [farbmodus, setFarbmodus] = useState<Farbmodus>("schwarzweiss");
+  const [zeigeNamensfeld, setZeigeNamensfeld] = useState(true);
 
   // Gespeicherten Entwurf beim ersten Laden NUR erkennen, NICHT automatisch übernehmen (siehe
   // FormDraft oben) - bewusst sichtbar statt still im Hintergrund: die Lehrkraft entscheidet
@@ -502,6 +504,7 @@ export default function NewWorksheetForm({
     if (entwurf.musterVariante !== undefined) setMusterVariante(entwurf.musterVariante);
     if (entwurf.zeigeLernziel !== undefined) setZeigeLernziel(entwurf.zeigeLernziel);
     if (entwurf.farbmodus !== undefined) setFarbmodus(entwurf.farbmodus);
+    if (entwurf.zeigeNamensfeld !== undefined) setZeigeNamensfeld(entwurf.zeigeNamensfeld);
     setVerfuegbarerEntwurf(null);
   }
 
@@ -594,6 +597,7 @@ export default function NewWorksheetForm({
       musterVariante,
       zeigeLernziel,
       farbmodus,
+      zeigeNamensfeld,
     });
 
     setLoading(true);
@@ -631,6 +635,7 @@ export default function NewWorksheetForm({
               musterVariante,
               zeigeLernziel,
               farbmodus,
+              zeigeNamensfeld,
             },
           }),
         });
@@ -681,6 +686,7 @@ export default function NewWorksheetForm({
     musterVariante,
     zeigeLernziel,
     farbmodus,
+    zeigeNamensfeld,
   };
 
   // Dynamische Schrittanzeige (siehe SectionCard "schritt") - der Aufgaben-Schritt entfällt bei
@@ -1460,6 +1466,12 @@ export default function NewWorksheetForm({
               onChange={setZeigeLernziel}
               label="Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen"
               description="Standardmäßig aus – nur einblenden, wenn gewünscht"
+            />
+            <ToggleSwitch
+              checked={zeigeNamensfeld}
+              onChange={setZeigeNamensfeld}
+              label="Namensfeld (Name / Klasse / Datum) anzeigen"
+              description="Zum Ausfüllen von Hand - abschaltbar, wenn nicht an einzelne Schüler:innen ausgeteilt wird"
             />
           </div>
           {zeigeMuster && (

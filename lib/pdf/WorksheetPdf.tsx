@@ -932,7 +932,7 @@ export function WorksheetPdfDocument({
             erstelltAm={erstelltAm}
           />
           <MusterStreifen layout={layout} />
-          <NameZeile layout={layout} />
+          {layout.zeigeNamensfeld && <NameZeile layout={layout} />}
           {layout.zeigeLernziel && (
             <>
               <Text style={styles.sectionTitel}>Lernziel</Text>

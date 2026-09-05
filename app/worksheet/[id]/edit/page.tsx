@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { WorksheetContentSchema } from "@/lib/types";
+import { WorksheetContentSchema, LayoutConfigSchema } from "@/lib/types";
 import EditWorksheetForm from "@/components/EditWorksheetForm";
 import { getSessionUser } from "@/lib/auth";
 import { AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM } from "@/lib/aufgabeErgaenzen";
@@ -17,6 +17,7 @@ export default async function EditWorksheetPage({ params }: { params: { id: stri
   if (!worksheet || worksheet.userId !== user.id) notFound();
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
+  const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
 
   return (
     <main>
@@ -34,6 +35,7 @@ export default async function EditWorksheetPage({ params }: { params: { id: stri
       <EditWorksheetForm
         worksheetId={worksheet.id}
         initialContent={content}
+        initialLayout={layout}
         aufgabeErgaenzenAnzahl={worksheet.aufgabeErgaenzenAnzahl}
         aufgabeErgaenzenMaximum={AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM}
       />

@@ -177,6 +177,7 @@ const HERO_VORSCHAU_LAYOUT: LayoutConfig = {
   musterVariante: "sterne",
   zeigeLernziel: true,
   farbmodus: "schwarzweiss",
+  zeigeNamensfeld: true,
 };
 
 // Statisches Datum statt new Date() - rein dekorativ, vermeidet aber ein mögliches

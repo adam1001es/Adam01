@@ -1,7 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { WorksheetContentSchema } from "@/lib/types";
+import { WorksheetContentSchema, LayoutConfigSchema } from "@/lib/types";
 import { getSessionUser } from "@/lib/auth";
+
+// "layout" ist optional, damit ältere Aufrufer (bzw. ein künftiger reiner Inhalts-Patch) weiterhin
+// funktionieren - siehe components/EditWorksheetForm.tsx, das inzwischen IMMER beides mitschickt.
+const PatchBodySchema = z.object({
+  content: WorksheetContentSchema,
+  layout: LayoutConfigSchema.optional(),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -19,7 +27,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Ungültiges JSON im Request-Body." }, { status: 400 });
   }
 
-  const parsed = WorksheetContentSchema.safeParse(body);
+  const parsed = PatchBodySchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Ungültiger Inhalt.", details: parsed.error.flatten() },
@@ -32,9 +40,13 @@ export async function PATCH(
     return NextResponse.json({ error: "Arbeitsblatt nicht gefunden." }, { status: 404 });
   }
 
+  const { content, layout } = parsed.data;
   await prisma.worksheet.update({
     where: { id: params.id },
-    data: { contentJson: JSON.stringify(parsed.data) },
+    data: {
+      contentJson: JSON.stringify(content),
+      ...(layout && { layoutConfig: JSON.stringify(layout), template: layout.template }),
+    },
   });
 
   return NextResponse.json({ ok: true });

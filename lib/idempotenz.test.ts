@@ -22,6 +22,7 @@ function baueRequest(overrides: Partial<GenerateRequest> = {}): GenerateRequest 
       musterVariante: "sterne",
       zeigeLernziel: false,
       farbmodus: "schwarzweiss",
+      zeigeNamensfeld: true,
     },
     ...overrides,
   };

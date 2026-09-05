@@ -382,6 +382,10 @@ export const LayoutConfigSchema = z.object({
   musterVariante: z.enum(MUSTER_VARIANTEN).default("sterne"),
   zeigeLernziel: z.boolean().default(false),
   farbmodus: z.enum(FARBMODI).default("schwarzweiss"),
+  // Die Zeile "Name: ___ Klasse: ___ (Datum: ___)" oberhalb der Aufgaben - Standard AN, aber z.B.
+  // bei einer reinen Lesetext-/Zitat-Ausgabe (ausgabeform "text") oder für den eigenen Gebrauch
+  // der Lehrkraft ohne Klassenbezug oft unerwünscht.
+  zeigeNamensfeld: z.boolean().default(true),
 });
 export type LayoutConfig = z.infer<typeof LayoutConfigSchema>;
 

@@ -354,19 +354,21 @@ export async function buildWorksheetDocx(
     children.push(musterDivider(layout.musterVariante));
   }
 
-  children.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: layout.zeigeIslamischesDatum
-            ? "Name: _______________________   Klasse: __________"
-            : "Name: _______________________   Klasse: __________   Datum: __________",
-          size: baseSize - 2,
-        }),
-      ],
-      spacing: { before: 120, after: 240 },
-    }),
-  );
+  if (layout.zeigeNamensfeld) {
+    children.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: layout.zeigeIslamischesDatum
+              ? "Name: _______________________   Klasse: __________"
+              : "Name: _______________________   Klasse: __________   Datum: __________",
+            size: baseSize - 2,
+          }),
+        ],
+        spacing: { before: 120, after: 240 },
+      }),
+    );
+  }
 
   if (layout.zeigeLernziel) {
     children.push(

@@ -15,6 +15,7 @@ import {
   BookOpenText,
   RotateCcw,
   X,
+  LayoutTemplate,
 } from "lucide-react";
 import {
   WorksheetContent,
@@ -26,14 +27,29 @@ import {
   KOMPLEXITAET_STUFEN,
   KOMPLEXITAET_LABEL,
   Komplexitaet,
+  LayoutConfig,
+  TEMPLATES,
+  FARBMODI,
+  MUSTER_VARIANTEN,
 } from "@/lib/types";
 import { ANFORDERUNGSBEREICHE, ANFORDERUNGSBEREICHE_KEYS, AnforderungsbereichKey } from "@/lib/curriculum";
 import { ICON_KEYS, ICONS, IconKey, iconPfadWeb, generiertesBildPfadWeb } from "@/lib/icons";
 import { erzeugeWortsucheGitter } from "@/lib/wortsuche";
 import { erzeugeKreuzwortraetsel } from "@/lib/kreuzwortraetsel";
 import { MAX_VERSE_PRO_ABFRAGE, type SurahMeta } from "@/lib/quranApi";
+import { MUSTER_LABEL } from "@/lib/patternStrip";
+import { SEKTION_FARBEN } from "@/lib/sectionFarben";
 import SectionCard from "@/components/SectionCard";
+import ToggleSwitch from "@/components/ToggleSwitch";
+import IslamicPatternStrip from "@/components/IslamicPatternStrip";
 import { inputClass, labelClass } from "@/lib/formStyles";
+
+const CHIP_BASIS = "border-slate-200 text-slate-500 hover:border-slate-300";
+const TEMPLATE_META: Record<(typeof TEMPLATES)[number], { label: string; swatch: string }> = {
+  klassisch: { label: "Klassisch", swatch: "#9c7a2c" },
+  modern: { label: "Modern", swatch: "#0f766e" },
+  kompakt: { label: "Kompakt", swatch: "#64748b" },
+};
 
 /** Ein geprüfter Hadith-Zitat-Eintrag aus der Wissensbasis (siehe app/api/hadithe/route.ts) -
  * eigener, schlanker Typ statt ZitatInhalt direkt zu importieren, damit dieses Formular nicht von
@@ -136,11 +152,13 @@ function RemoveButton({ onClick }: { onClick: () => void }) {
 export default function EditWorksheetForm({
   worksheetId,
   initialContent,
+  initialLayout,
   aufgabeErgaenzenAnzahl,
   aufgabeErgaenzenMaximum,
 }: {
   worksheetId: string;
   initialContent: WorksheetContent;
+  initialLayout: LayoutConfig;
   // Wie oft "Aufgabe von KI erstellen" (siehe unten) für DIESES Arbeitsblatt schon genutzt wurde
   // - bewusst pro Arbeitsblatt begrenzt (siehe AUFGABE_ERGAENZEN_PRO_ARBEITSBLATT_MAXIMUM in
   // lib/aufgabeErgaenzen.ts), NICHT nur über ein tägliches Gesamtlimit: 1 reguläre Nutzung plus
@@ -150,6 +168,7 @@ export default function EditWorksheetForm({
 }) {
   const router = useRouter();
   const [content, setContent] = useState<WorksheetContent>(initialContent);
+  const [layout, setLayout] = useState<LayoutConfig>(initialLayout);
   const [loesungenByNr, setLoesungenByNr] = useState<Record<number, string>>(
     Object.fromEntries(initialContent.loesungen.map((l) => [l.nr, l.loesung])),
   );
@@ -469,7 +488,7 @@ export default function EditWorksheetForm({
       const res = await fetch(`/api/worksheet/${worksheetId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalContent),
+        body: JSON.stringify({ content: finalContent, layout }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -538,6 +557,132 @@ export default function EditWorksheetForm({
             onChange={(e) => setContent((c) => ({ ...c, einleitung: e.target.value }))}
           />
         </label>
+      </SectionCard>
+
+      <SectionCard icon={LayoutTemplate} title="Layout">
+        <span className={labelClass}>Vorlage</span>
+        <div className="mb-5 flex flex-wrap gap-2">
+          {TEMPLATES.map((t) => {
+            const meta = TEMPLATE_META[t];
+            const active = layout.template === t;
+            return (
+              <button
+                type="button"
+                key={t}
+                onClick={() => setLayout((l) => ({ ...l, template: t }))}
+                className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
+                  active ? SEKTION_FARBEN.brand.aktiv : CHIP_BASIS
+                }`}
+              >
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: meta.swatch }} />
+                {meta.label}
+              </button>
+            );
+          })}
+        </div>
+        <span className={labelClass}>Druckfarbe</span>
+        <div className="mb-5 flex flex-wrap gap-2">
+          {FARBMODI.map((f) => {
+            const active = layout.farbmodus === f;
+            return (
+              <button
+                type="button"
+                key={f}
+                onClick={() => setLayout((l) => ({ ...l, farbmodus: f }))}
+                className={`inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition ${
+                  active ? SEKTION_FARBEN.brand.aktiv : CHIP_BASIS
+                }`}
+              >
+                <span
+                  className="h-2.5 w-2.5 rounded-full border border-slate-300"
+                  style={{ backgroundColor: f === "farbe" ? "#0e6b4a" : "#1a1a1a" }}
+                />
+                {f === "farbe" ? "Farbe" : "Schwarz-Weiß"}
+              </button>
+            );
+          })}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className={labelClass}>Schulname (optional, im Kopf)</span>
+            <input
+              className={inputClass}
+              value={layout.schulname ?? ""}
+              onChange={(e) => setLayout((l) => ({ ...l, schulname: e.target.value || undefined }))}
+              placeholder="z.B. Islamische Volksschule Wien"
+            />
+          </label>
+          <label className="block">
+            <span className={labelClass}>Schriftgröße</span>
+            <select
+              className={inputClass}
+              value={layout.schriftgroesse}
+              onChange={(e) =>
+                setLayout((l) => ({ ...l, schriftgroesse: e.target.value as "normal" | "gross" }))
+              }
+            >
+              <option value="normal">Normal</option>
+              <option value="gross">Groß</option>
+            </select>
+          </label>
+        </div>
+        <p className="mt-4 text-xs leading-relaxed text-slate-400">
+          Lösungen erscheinen immer auf einem separaten Blatt bzw. Dokumentabschnitt, nie auf dem
+          Arbeitsblatt selbst.
+        </p>
+        <div className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-100 bg-slate-50/60 px-4">
+          <ToggleSwitch
+            checked={layout.zeigeIslamischesDatum}
+            onChange={(v) => setLayout((l) => ({ ...l, zeigeIslamischesDatum: v }))}
+            label="Datum im Kopfbereich anzeigen (gregorianisch + Hijri)"
+            description="Nur sinnvoll, wenn am Drucktag ausgeteilt wird - sonst bekommt der Schüler stattdessen ein Datumsfeld zum Selbst-Ausfüllen"
+          />
+          <ToggleSwitch
+            checked={layout.zeigeMuster}
+            onChange={(v) => setLayout((l) => ({ ...l, zeigeMuster: v }))}
+            label="Islamisches Ornament-Muster anzeigen"
+            description="Dezenter Zierstreifen im Kopfbereich"
+          />
+          <ToggleSwitch
+            checked={layout.zeigeLernziel}
+            onChange={(v) => setLayout((l) => ({ ...l, zeigeLernziel: v }))}
+            label="Lernziel-Abschnitt auf dem Arbeitsblatt anzeigen"
+            description="Standardmäßig aus – nur einblenden, wenn gewünscht"
+          />
+          <ToggleSwitch
+            checked={layout.zeigeNamensfeld}
+            onChange={(v) => setLayout((l) => ({ ...l, zeigeNamensfeld: v }))}
+            label="Namensfeld (Name / Klasse / Datum) anzeigen"
+            description="Zum Ausfüllen von Hand - abschaltbar, wenn nicht an einzelne Schüler:innen ausgeteilt wird"
+          />
+        </div>
+        {layout.zeigeMuster && (
+          <div className="mt-4">
+            <span className={labelClass}>Musterauswahl</span>
+            <div className="grid grid-cols-2 gap-2">
+              {MUSTER_VARIANTEN.map((v) => {
+                const active = layout.musterVariante === v;
+                return (
+                  <button
+                    type="button"
+                    key={v}
+                    onClick={() => setLayout((l) => ({ ...l, musterVariante: v }))}
+                    className={`flex flex-col items-center gap-1.5 rounded-lg border px-3 py-2.5 transition ${
+                      active ? "border-brand-600 bg-brand-50" : CHIP_BASIS
+                    }`}
+                  >
+                    <div className="flex h-5 w-full items-center justify-center overflow-hidden">
+                      <IslamicPatternStrip variante={v} hoehe={20} />
+                    </div>
+                    <span className={`text-xs font-medium ${active ? "text-brand-700" : "text-slate-500"}`}>
+                      {MUSTER_LABEL[v]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard
