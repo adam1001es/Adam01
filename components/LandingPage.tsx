@@ -638,7 +638,7 @@ export default function LandingPage({
       <section>
         <SectionHeading
           title={inhalte["landing.preis.titel"]}
-          subtitle={`Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist das Punkte-Guthaben (${KOSTENLOS_PUNKTE_LIMIT} Punkte einmalig zum Ausprobieren, ${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}, vs. ${TIER_PUNKTE_QUOTA.pro} Punkte/Monat im Abo, ${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) sowie der Zugang zur Community und zu Klassen-Tracking/Prüfungsgenerierung, die Abo-Konten vorbehalten sind. 1 Punkt entspricht dabei den tatsächlich gemessenen KI-Kosten eines Arbeitsblatts, nicht einer festen Stückzahl.`}
+          subtitle={`Aufgabentypen, Prüfung und Formate sind bei jeder Stufe identisch - der Unterschied ist das Punkte-Guthaben (${KOSTENLOS_PUNKTE_LIMIT} Punkte einmalig zum Ausprobieren, ${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}, vs. ${TIER_PUNKTE_QUOTA.pro} Punkte/Monat im Abo, ${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}) sowie der Zugang zur Community und zur Klassenübersicht/Prüfungserstellung, die Abo-Konten vorbehalten sind. 1 Punkt entspricht dabei den tatsächlich anfallenden Kosten eines Arbeitsblatts, nicht einer festen Stückzahl.`}
         />
         <div className="mx-auto mt-8 grid max-w-3xl gap-3 sm:grid-cols-2">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((n, i) => (
@@ -685,8 +685,8 @@ export default function LandingPage({
         {tokenGesamt !== undefined && tokenGesamt > 0 && (
           <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
             <Cpu size={13} className="shrink-0" />
-            Transparenz: bisher {tokenGesamt.toLocaleString("de-AT")} Tokens echter KI-Rechenleistung
-            für geprüfte Arbeitsblätter verwendet.
+            Transparenz: bisher {tokenGesamt.toLocaleString("de-AT")} Einheiten Rechenleistung
+            für die Erstellung und Prüfung von Arbeitsblättern eingesetzt.
           </p>
         )}
       </section>

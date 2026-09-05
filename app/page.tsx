@@ -51,7 +51,15 @@ export default async function DashboardPage({
     // summeTokens in lib/usageLog.ts) - nur für nicht angemeldete Besucher:innen relevant, daher
     // hier statt in der eingeloggten Dashboard-Ansicht abgefragt.
     const { gesamt } = await summeTokens();
-    return <LandingPage tokenGesamt={gesamt} inhalte={inhalte} />;
+    // Nur die "landing."-Felder an die Client-Komponente reichen (nicht die komplette,
+    // seitenübergreifende inhalte-Map) - sonst würde Next.js z.B. auch FAQ-/Impressum-Texte und
+    // ein eventuell hochgeladenes Logo-Bild (als data:-URL, potenziell mehrere hundert KB) unnötig
+    // in den React-Hydration-Payload jeder Landingpage-Auslieferung mitserialisieren, obwohl
+    // LandingPage sie gar nicht verwendet.
+    const landingInhalte = Object.fromEntries(
+      Object.entries(inhalte).filter(([key]) => key.startsWith("landing.")),
+    );
+    return <LandingPage tokenGesamt={gesamt} inhalte={landingInhalte} />;
   }
 
   const worksheets = await prisma.worksheet.findMany({

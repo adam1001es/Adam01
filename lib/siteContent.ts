@@ -67,7 +67,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     label: "Untertext",
     hinweis: "Der erklärende Absatz unter der Hero-Überschrift.",
     standard:
-      "KI-geprüfte, lehrplanorientierte Arbeitsblätter in ca. 3 Minuten - plus Klassen-Tracking, geteilte Community-Materialien und Prüfungsgenerierung, die auch Maturaklassen ernst nimmt.",
+      "Lehrplanorientierte Arbeitsblätter in ca. 3 Minuten fertig - automatisch erstellt und sorgfältig gegengeprüft, du behältst dabei immer das letzte Wort. Dazu: Überblick über deine Klassen, Materialien von Kolleg:innen und Prüfungen, die auch der Matura gerecht werden.",
   },
   {
     key: "landing.hero.hinweis",
@@ -180,7 +180,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Landingpage: Arbeitsblätter",
     label: "Feature 1 - Text",
     standard:
-      "Nicht nur generiert - ein separater KI-Durchlauf checkt jedes Arbeitsblatt gezielt gegen: Quellenangaben, Vollständigkeit, Altersgerechtigkeit, Kompetenzorientierung.",
+      "Jedes Arbeitsblatt wird nach der Erstellung in einem zweiten, unabhängigen Schritt noch einmal genau gegengeprüft - auf Quellenangaben, Vollständigkeit, Altersgerechtigkeit und pädagogischen Aufbau. Die letzte Kontrolle liegt trotzdem bei dir.",
   },
   {
     key: "landing.feature.2.titel",
@@ -225,7 +225,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Landingpage: Arbeitsblätter",
     label: "Feature 4 - Text",
     standard:
-      "Kein Fließtext zum Selbst-Formatieren: fertiges, layoutetes PDF oder Word-Dokument, wahlweise mit islamischem Datum und Ornament-Musterstreifen.",
+      "Kein Fließtext, den du erst noch in Form bringen musst: ein fertiges PDF oder Word-Dokument zum sofortigen Ausdrucken - auf Wunsch mit islamischem Datum und einem dezenten Ornament-Muster.",
   },
   {
     key: "landing.feature.5.titel",
@@ -240,7 +240,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Landingpage: Arbeitsblätter",
     label: "Feature 5 - Text",
     standard:
-      "Hadith-Angaben werden bewusst konservativ generiert, bevorzugt aus Sahih al-Bukhari/Muslim - Unsicheres wird als „bitte prüfen” markiert statt erfunden.",
+      "Hadith-Angaben stammen bevorzugt aus den anerkannten Sammlungen Sahih al-Bukhari und Muslim. Ist sich das System bei einer Angabe nicht sicher, steht deutlich „bitte prüfen“ dabei - nichts wird einfach erfunden.",
   },
   {
     key: "landing.feature.6.titel",
@@ -292,7 +292,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Landingpage: Koran",
     label: "Absatz",
     standard:
-      "Der Koran-Text wird nicht aus dem KI-Gedächtnis erinnert, sondern live von einer Koran-Datenbank abgerufen (Arabisch + deutsche Übersetzung von Bubenheim & Elyas). Zwei Wege stehen zur Wahl: nur der reine Text zum Ausdrucken - ganz ohne Kontingent-Verbrauch - oder ein vollständiges Arbeitsblatt mit Methoden und Aufgaben rund um den Vers.",
+      "Der Koran-Text wird nicht aus der Erinnerung nachgebildet, sondern direkt aus einer Koran-Datenbank geholt (Arabisch + deutsche Übersetzung von Bubenheim & Elyas). Zwei Wege stehen zur Wahl: nur der reine Text zum Ausdrucken - ganz ohne dein Guthaben zu belasten - oder ein vollständiges Arbeitsblatt mit Methoden und Aufgaben rund um den Vers.",
   },
   {
     key: "landing.koran.punkt.1",
@@ -313,7 +313,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "text",
     seite: "Landingpage: Koran",
     label: "Stichpunkt 3",
-    standard: "„Nur Text“-Modus: kein KI-Aufruf, kostet kein Kontingent",
+    standard: "„Nur Text“-Option: verbraucht kein Guthaben",
   },
   {
     key: "landing.badge.enthaltenImAbo",
@@ -508,7 +508,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "text",
     seite: "Landingpage: Vergleich",
     label: "Überschrift",
-    standard: "„Kann ich nicht einfach meine KI-App fragen?\"",
+    standard: "„Reicht dafür nicht einfach ein Chatbot?\"",
   },
   {
     key: "landing.vergleich.untertitel",
@@ -522,7 +522,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "text",
     seite: "Landingpage: Vergleich",
     label: "Linke Spalte - Überschrift",
-    standard: "Normaler KI-Chat",
+    standard: "Ein normaler Chatbot",
   },
   {
     key: "landing.vergleich.spalteUns",
@@ -579,14 +579,14 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "richtext",
     seite: "Landingpage: Vergleich",
     label: "Rechte Spalte - Punkt 2",
-    standard: "Fertiges, layoutetes PDF/Word - direkt zum Ausdrucken, in ca. 3 Minuten statt 10-15+",
+    standard: "Fertiges PDF/Word zum direkten Ausdrucken - in ca. 3 Minuten statt 10-15+",
   },
   {
     key: "landing.vergleich.uns.3",
     typ: "richtext",
     seite: "Landingpage: Vergleich",
     label: "Rechte Spalte - Punkt 3",
-    standard: "Ein zweiter, unabhängiger KI-Durchlauf prüft gezielt gegen, bevor du es siehst",
+    standard: "Ein zweiter, unabhängiger Kontrollschritt prüft alles gegen, bevor du es siehst",
   },
   {
     key: "landing.vergleich.uns.4",
@@ -635,7 +635,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "text",
     seite: "Landingpage: Ablauf",
     label: "Schritt 2 - Text",
-    standard: "KI erstellt den Inhalt, eine zweite KI prüft ihn unabhängig gegen.",
+    standard: "Der Inhalt wird automatisch erstellt und in einem zweiten Schritt unabhängig gegengeprüft.",
   },
   {
     key: "landing.ablauf.3.titel",
@@ -701,7 +701,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "richtext",
     seite: "Landingpage: Preis",
     label: "Enthalten - Punkt 6",
-    standard: "Eine zweite, unabhängige KI-Prüfung für jedes einzelne Arbeitsblatt",
+    standard: "Eine zweite, unabhängige Prüfung für jedes einzelne Arbeitsblatt",
   },
   {
     key: "landing.enthalten.7",
@@ -723,7 +723,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Landingpage: Preis",
     label: "Hervorhebung „Nur im Abo“",
     standard:
-      "Nur im Abo: Klassen-Tracking, Wissensstand-Auswertung, Klassenzimmer-Ansicht, Prüfungsgenerierung und geteilte Community-Arbeitsblätter",
+      "Nur im Abo: Klassenübersicht, Wissensstand-Auswertung, Klassenzimmer-Ansicht, Prüfungserstellung und geteilte Arbeitsblätter von Kolleg:innen",
   },
   {
     key: "landing.preis.wofuerLabel",
@@ -738,7 +738,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Landingpage: Preis",
     label: "„Wofür wird bezahlt?“ - Text",
     standard:
-      "Jedes erstellte und geprüfte Arbeitsblatt braucht echte KI-Rechenleistung - das Abo deckt genau diese Kosten sowie den laufenden Betrieb der Plattform, damit sie für die Lehrer:innen-Community dauerhaft kostendeckend weiterbestehen kann.",
+      "Jedes erstellte und geprüfte Arbeitsblatt braucht echte Rechenleistung - das Abo deckt genau diese Kosten sowie den laufenden Betrieb der Plattform, damit sie für die Lehrer:innen-Community dauerhaft kostendeckend weiterbestehen kann.",
   },
   {
     key: "landing.preis.freischaltungHinweis",
@@ -785,7 +785,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Häufige Fragen",
     label: "Antwort 2",
     standard:
-      "KI-gestützt und lehrplanorientiert, mit Zitaten/Begriffen aus einer kuratierten Wissensbasis. Ein zweiter, unabhängiger KI-Durchlauf prüft jedes Arbeitsblatt gezielt gegen, bevor es angezeigt wird.",
+      "Die Inhalte entstehen mithilfe von künstlicher Intelligenz als Hilfsmittel und richten sich nach dem Lehrplan - Zitate und Fachbegriffe stammen aus einer von uns geprüften Quellen-Bibliothek, nicht aus dem freien Gedächtnis der KI. Bevor ein Arbeitsblatt angezeigt wird, prüft ein zweiter, unabhängiger Durchlauf es noch einmal genau. Trotzdem gilt wie bei jedem Hilfsmittel: Wirf vor dem Einsatz selbst noch einen kurzen Blick darauf.",
   },
   {
     key: "faq.frage.datenschutz",
@@ -875,7 +875,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Pädagogischer Ansatz",
     label: "Abschnitt 2 - Text",
     standard:
-      "Jedes Arbeitsblatt wird in einem zweiten, unabhängigen Durchlauf gezielt gegengeprüft - auf Quellenangaben, Vollständigkeit, Altersgerechtigkeit und Kompetenzorientierung - bevor es angezeigt wird.",
+      "Jedes Arbeitsblatt wird in einem zweiten, unabhängigen Durchlauf noch einmal genau gegengeprüft - auf Quellenangaben, Vollständigkeit, Altersgerechtigkeit und pädagogischen Aufbau - bevor es angezeigt wird. Als zusätzliche Sicherheit solltest du als Lehrkraft trotzdem selbst kurz draufschauen, bevor du es einsetzt.",
   },
   {
     key: "paedagogik.wissensbasis.titel",
@@ -890,7 +890,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Pädagogischer Ansatz",
     label: "Abschnitt 3 - Text",
     standard:
-      "Zitate (z.B. aus Koran und Hadith) und Fachbegriffe stammen aus einer kuratierten, von uns geprüften Wissensbasis statt aus dem freien Erinnern der KI - jede Quelle ist damit nachvollziehbar.",
+      "Zitate (z.B. aus Koran und Hadith) und Fachbegriffe stammen aus einer kuratierten, von uns geprüften Quellen-Bibliothek statt aus dem freien Erinnern der künstlichen Intelligenz - jede Quelle ist damit nachvollziehbar.",
   },
   {
     key: "schulstufen.intro",
