@@ -196,9 +196,13 @@ export default async function AccountPage({
         </SectionCard>
 
         {user.role !== "admin" && (
-          <SectionCard icon={Trash2} title="Konto löschen" subtitle="Unwiderruflich - bitte mit Bedacht">
+          <EinklappbareSectionCard
+            icon={<Trash2 size={18} strokeWidth={2} />}
+            title="Konto löschen"
+            subtitle="Unwiderruflich - bitte mit Bedacht"
+          >
             <KontoLoeschenForm />
-          </SectionCard>
+          </EinklappbareSectionCard>
         )}
       </div>
     </main>
