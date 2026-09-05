@@ -245,7 +245,7 @@ export const SCHULSTUFE_THEMEN: Record<number, string[]> = {
     "Mein Gebet",
     "Der Monat Ramadan",
     "Ich bin ein guter Mensch",
-    "Geschichten von Propheten: Adam (as) und Hawa, Nuh (as)",
+    "Geschichten von Propheten (Adam (as), Nuh (as)) und von Hawa",
     "Ich lerne im Koran: Sura Quraisch, Al-Ma'uun, Al-Fiel",
   ],
   3: [
@@ -255,7 +255,7 @@ export const SCHULSTUFE_THEMEN: Record<number, string[]> = {
     "Der Ramadan ist da",
     "Die soziale Pflichtabgabe – Die Zakat",
     "Ich nehme meine Gefühle wahr",
-    "Geschichten von Propheten: Musa (as), Isa (as) und Maryam, Yunus (as)",
+    "Geschichten von Propheten (Musa (as), Isa (as), Yunus (as)) und von Maryam",
     "Ich lerne im Koran: Al-Kafirun, Al-'Asr",
   ],
   4: [
