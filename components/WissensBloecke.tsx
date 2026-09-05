@@ -475,10 +475,15 @@ export default function WissensBloecke() {
                 <motion.div
                   key="waehlen"
                   initial={{ opacity: 0, scale: 0.7, rotate: 4 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  animate={{ opacity: drag ? 0 : 1, scale: 1, rotate: 0 }}
                   exit={{ opacity: 0, scale: 0.7, rotate: -4 }}
-                  transition={{ type: "spring", bounce: 0.4, duration: 0.45 }}
-                  className="absolute inset-x-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center justify-center gap-3 rounded-xl bg-white/80 p-4 text-center shadow-2xl"
+                  transition={{
+                    default: { type: "spring", bounce: 0.4, duration: 0.45 },
+                    opacity: drag ? { duration: 0.15 } : { type: "spring", bounce: 0.4, duration: 0.45 },
+                  }}
+                  className={`absolute inset-x-3 top-1/2 z-30 flex -translate-y-1/2 flex-col items-center justify-center gap-3 rounded-xl bg-white/80 p-4 text-center shadow-2xl ${
+                    drag ? "pointer-events-none" : ""
+                  }`}
                 >
                   <p className="text-sm font-semibold text-emerald-700">Richtig! Ziehe dein Kästchen ins Raster:</p>
                   <div className="flex flex-wrap justify-center gap-3">
