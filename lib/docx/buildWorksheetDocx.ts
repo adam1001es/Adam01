@@ -14,6 +14,7 @@ import {
   TableCell,
   WidthType,
   VerticalAlign,
+  HeightRule,
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante, SCHREIBLINIEN_PRO_TYP } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
@@ -205,6 +206,36 @@ function baueKreuzwortTabelle(gitter: (KreuzwortZelle | null)[][]): Table {
           ),
         }),
     ),
+  });
+}
+
+/** Baut die leere Zeichenfläche bei "malaufgabe" als einzellige Tabelle mit fest vorgegebener
+ * MINDESThöhe (HeightRule.ATLEAST) statt mehrerer leerer Absätze - eine Tabellenzeile ist in Word
+ * die einzige Möglichkeit, eine garantierte Mindesthöhe unabhängig von Schriftgröße/Zeilenabstand
+ * durchzusetzen. 3000 Twips = 150pt, exakt dieselbe Höhe wie styles.malRahmen.height in
+ * lib/pdf/WorksheetPdf.tsx - vorher ergaben die früher genutzten leeren Absätze in Word real nur
+ * knapp 90pt und damit spürbar weniger Zeichenfläche als PDF/Web für dieselbe Aufgabe. */
+const MALAUFGABE_HOEHE_TWIPS = 3000;
+function baueMalaufgabeBox(): Table {
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        height: { value: MALAUFGABE_HOEHE_TWIPS, rule: HeightRule.ATLEAST },
+        children: [
+          new TableCell({
+            borders: {
+              top: { style: BorderStyle.DASHED, size: 4, color: "94A3B8" },
+              bottom: { style: BorderStyle.DASHED, size: 4, color: "94A3B8" },
+              left: { style: BorderStyle.DASHED, size: 4, color: "94A3B8" },
+              right: { style: BorderStyle.DASHED, size: 4, color: "94A3B8" },
+            },
+            verticalAlign: VerticalAlign.CENTER,
+            children: [new Paragraph({ children: [] })],
+          }),
+        ],
+      }),
+    ],
   });
 }
 
@@ -643,24 +674,7 @@ export async function buildWorksheetDocx(
       }
     }
     if (a.typ === "malaufgabe") {
-      children.push(
-        new Paragraph({
-          indent: { left: 360 },
-          border: {
-            top: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
-            bottom: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
-            left: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
-            right: { style: BorderStyle.DASHED, size: 3, color: "94a3b8", space: 8 },
-          },
-          spacing: { before: 80, after: 80 },
-          children: [new TextRun({ text: " ", size: baseSize })],
-        }),
-        // Leere Zeilen statt eines festen Bild-Platzhalters, damit im Rahmen sichtbar Platz zum
-        // Zeichnen bleibt (Word kennt keine feste Rahmenhöhe wie PDF/Web).
-        new Paragraph({ children: [], spacing: { after: 80 } }),
-        new Paragraph({ children: [], spacing: { after: 80 } }),
-        new Paragraph({ children: [], spacing: { after: 80 } }),
-      );
+      children.push(baueMalaufgabeBox());
     }
     if (a.typ === "recherche_auftrag") {
       if (a.leitfaden && a.leitfaden.length > 0) {
