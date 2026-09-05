@@ -68,17 +68,11 @@ export default function WorksheetView({
   layout,
   themenbereich,
   erstelltAm,
-  wasserzeichen = false,
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
   themenbereich: ThemenbereichKey;
   erstelltAm: Date;
-  /** Nur true auf der öffentlichen Link-Ansicht (app/blatt/[token]) - blendet ein dezentes
-   * Domain-Wasserzeichen ein, siehe dieselbe Absicht/denselben Text in WorksheetPdf.tsx/
-   * buildWorksheetDocx.ts. Bewusst NICHT "no-print": soll auch beim direkten Browser-Druck
-   * (Strg+P) sichtbar bleiben, nicht nur bei den generierten PDF-/Word-Downloads. */
-  wasserzeichen?: boolean;
 }) {
   const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
   const isModern = layout.template === "modern";
@@ -491,34 +485,6 @@ export default function WorksheetView({
           <LoesungenBlock content={content} isModernFarbig={isModernFarbig} />
         </div>
       )}
-
-      {wasserzeichen && <Wasserzeichen />}
-    </div>
-  );
-}
-
-/** Dezentes, halbtransparentes Domain-Wasserzeichen - siehe wasserzeichen-Prop oben. Als letztes
- * Kind der relativ positionierten Karte gerendert, damit es (ohne z-index) über allem anderen
- * liegt; "pointer-events-none" hält es aus Klicks/Textauswahl heraus, "select-none" verhindert,
- * dass es beim Markieren des eigentlichen Inhalts mitkopiert wird. Bewusst KEIN "no-print" -
- * soll auch beim direkten Browser-Ausdruck (Strg+P) erhalten bleiben. */
-function Wasserzeichen() {
-  return (
-    <div
-      aria-hidden
-      className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl select-none"
-    >
-      <div className="absolute inset-0 flex -rotate-[28deg] flex-col justify-around gap-8 opacity-[0.08]">
-        {Array.from({ length: 6 }).map((_, zeile) => (
-          <div key={zeile} className="flex flex-wrap justify-around gap-x-10 whitespace-nowrap">
-            {Array.from({ length: 3 }).map((_, spalte) => (
-              <span key={spalte} className="text-xl font-bold text-slate-900">
-                ki.islamlernen.at
-              </span>
-            ))}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

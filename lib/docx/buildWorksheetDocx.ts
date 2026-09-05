@@ -16,7 +16,6 @@ import {
   VerticalAlign,
   HeightRule,
   TableLayoutType,
-  Footer,
 } from "docx";
 import { WorksheetContent, LayoutConfig, Aufgabe, MusterVariante, SCHREIBLINIEN_PRO_TYP } from "@/lib/types";
 import { formatDoppelDatum } from "@/lib/hijri";
@@ -347,39 +346,12 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
 
 const ACCENT = "0d9488";
 
-/** Dezente Fußzeilen-Kennzeichnung für öffentlich per Link geteilte Arbeitsblätter (siehe
- * wasserzeichen-Parameter unten sowie dieselbe Absicht in WorksheetPdf.tsx/WorksheetView.tsx) -
- * anders als beim PDF/Web-Wasserzeichen kein diagonal wiederholter Überdruck: die docx-Bibliothek
- * unterstützt keine rotierten Text-/Bild-Wasserzeichen ohne eigene OOXML-Konstruktion, eine
- * schlichte Fußzeile auf jeder Seite erreicht denselben Werbezweck zuverlässig. Erscheint NUR bei
- * Export über den öffentlichen Link (app/api/blatt/[token]/docx), NIE beim regulären
- * Eigentümer-Download.
- */
-function wasserzeichenFooter(): Footer {
-  return new Footer({
-    children: [
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [
-          new TextRun({
-            text: "Kostenlos erstellt mit Lernwerk Hilal - ki.islamlernen.at",
-            size: 16,
-            italics: true,
-            color: "94A3B8",
-          }),
-        ],
-      }),
-    ],
-  });
-}
-
 export async function buildWorksheetDocx(
   content: WorksheetContent,
   layout: LayoutConfig,
   themenbereichLabel: string,
   erstelltAm: Date,
   generierteBilder: Record<string, Buffer> = {},
-  wasserzeichen = false,
 ): Promise<Buffer> {
   const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
   const accentColor = layout.template === "modern" && !istSchwarzweiss ? ACCENT : "111111";
@@ -871,8 +843,7 @@ export async function buildWorksheetDocx(
     }
   }
 
-  const footers = wasserzeichen ? { default: wasserzeichenFooter() } : undefined;
-  const sections = [{ children, footers }];
+  const sections = [{ children }];
 
   // Lösungen erscheinen bewusst NIE auf dem Arbeitsblatt selbst - immer in einer eigenen,
   // separaten Dokument-Section, damit sie nicht versehentlich mit an Schüler:innen geht. Bei
@@ -889,10 +860,7 @@ export async function buildWorksheetDocx(
       }),
     );
     pushLoesungen(loesungChildren, content, baseSize);
-    // Jede Section bekommt ihre eigene Fußzeile - eine Section übernimmt die Fußzeile der
-    // vorherigen nicht automatisch, und ein frisches Footer()-Objekt pro Section vermeidet
-    // von vornherein jede Frage, ob dieselbe Instanz in zwei Sections gültig wäre.
-    sections.push({ children: loesungChildren, footers: wasserzeichen ? { default: wasserzeichenFooter() } : undefined });
+    sections.push({ children: loesungChildren });
   }
 
   const doc = new Document({ sections });
