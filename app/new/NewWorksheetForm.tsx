@@ -242,9 +242,11 @@ function loescheEntwurf(klasseId?: string) {
 // auseinanderlaufen könnten. Nennt bewusst eine konkrete Wartezeit (1-2 Minuten) statt nur "kurz
 // warten" - ein reines "schau erstmal nach" ohne Zeitangabe hat Lehrkräfte in der Praxis dazu
 // verleitet, sofort wieder "Arbeitsblatt erstellen" zu klicken, weil das Blatt noch gar nicht in
-// der Übersicht auftauchen konnte.
+// der Übersicht auftauchen konnte. Weist außerdem EXPLIZIT aufs Neuladen der Übersicht hin: wer
+// dort schon offen wartet, sieht das neue Arbeitsblatt sonst nicht von selbst - die Seite fragt
+// die Liste nicht laufend neu ab, ein bloßes Warten auf der bereits geladenen Seite reicht nicht.
 const VERBINDUNG_UNTERBROCHEN_FEHLER =
-  "Die Verbindung wurde während der Erstellung unterbrochen (z.B. schwaches Netz oder die Seite wurde in den Hintergrund gelegt). Das Arbeitsblatt kann serverseitig trotzdem fertig geworden sein: geh zuerst auf die Übersicht und warte dort 1-2 Minuten. Taucht es dort nicht auf, kannst du es hier erneut versuchen - sonst kann versehentlich ein zweites Mal Kontingent verbraucht werden.";
+  "Die Verbindung wurde während der Erstellung unterbrochen (z.B. schwaches Netz oder die Seite wurde in den Hintergrund gelegt). Das Arbeitsblatt kann serverseitig trotzdem fertig geworden sein: geh zuerst auf die Übersicht, warte dort 1-2 Minuten und lade die Seite dann neu (Übersicht aktualisieren). Taucht es danach immer noch nicht auf, kannst du es hier erneut versuchen - sonst kann versehentlich ein zweites Mal Kontingent verbraucht werden.";
 
 /**
  * Prüfungs-Modus B (komplette Neu-Generierung als formelle Prüfung, siehe lib/generateWorksheet.ts
