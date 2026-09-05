@@ -19,7 +19,14 @@ export interface UsageEintrag {
   // "aufgabe_ergaenzen" = nachträgliches Hinzufügen EINER Aufgabe zu einem bereits bestehenden
   // Arbeitsblatt (siehe lib/aufgabeErgaenzen.ts) - ebenfalls deutlich günstiger als eine volle
   // Neu-Generierung (ein einzelner Aufruf ohne separate Verifikationsstufe).
-  phase: "generierung" | "pruefung" | "zusammenstellung" | "aufgabe_ergaenzen";
+  // "ideen" = Themenideen-Vorschläge (siehe app/api/thema-ideen) und "meldung_fix" = automatische
+  // Meldungs-Analyse/-Korrektur (siehe lib/meldungFix.ts) - beide riefen bisher Claude auf, OHNE
+  // die Kosten hier zu erfassen (gefundene Lücke: die "echten Kosten"-Anzeige in app/admin/kosten
+  // lag dadurch spürbar unter dem tatsächlichen Anthropic-Rechnungsbetrag). Beide bewusst NICHT
+  // in verbrauchtePunkteFuerUser einbezogen (Themenideen haben ihr eigenes Tageslimit, siehe
+  // lib/themaIdeen.ts; ein Meldungs-Autofix soll die meldende Lehrkraft nicht zusätzlich Guthaben
+  // kosten) - nur für die echte Kosten-Übersicht relevant.
+  phase: "generierung" | "pruefung" | "zusammenstellung" | "aufgabe_ergaenzen" | "ideen" | "meldung_fix";
   inputTokens: number;
   outputTokens: number;
   cacheCreationInputTokens: number;

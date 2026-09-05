@@ -4,6 +4,7 @@ import { getAnthropicClient, IDEEN_MODEL, extractJson, getTextFromMessage } from
 import { ThemaIdeenRequestSchema, ThemaIdeenAntwortSchema } from "@/lib/types";
 import { THEMENBEREICHE, holeSchulstufenThemen } from "@/lib/curriculum";
 import { getThemaIdeenStatus, incrementThemaIdeenUsage, THEMA_IDEEN_TAGESLIMIT } from "@/lib/themaIdeen";
+import { UsageEintrag, usageEintragAusAntwort, speichereUsage } from "@/lib/usageLog";
 
 /** Kurze, günstige Inspirations-Vorschläge für Lehrkräfte ohne eigene Thema-Idee - bewusst
  * NICHT das eigentliche Arbeitsblatt-Kontingent (lib/quota.ts), sondern ein separates,
@@ -31,7 +32,7 @@ ${
  * automatischer zweiter Versuch fast kostenlos und macht die Funktion für die Lehrkraft
  * spürbar zuverlässiger, statt bei einem einmaligen Ausrutscher sofort eine rohe Fehlermeldung
  * zu zeigen. */
-async function versucheIdeenGenerierung(userPrompt: string): Promise<string[]> {
+async function versucheIdeenGenerierung(userPrompt: string, usageAkku: UsageEintrag[]): Promise<string[]> {
   const client = getAnthropicClient();
   const response = await client.messages.create({
     model: IDEEN_MODEL,
@@ -46,6 +47,10 @@ async function versucheIdeenGenerierung(userPrompt: string): Promise<string[]> {
     system: IDEEN_SYSTEM_PROMPT,
     messages: [{ role: "user", content: userPrompt }],
   });
+  // Direkt nach Erhalt der Antwort erfassen, VOR jeder weiteren Verarbeitung, die noch werfen
+  // kann (max_tokens/JSON-Parse-Fehler unten) - der Aufruf selbst hat so oder so schon echtes
+  // Geld gekostet, das war vorher komplett unerfasst (siehe lib/usageLog.ts, Phase "ideen").
+  usageAkku.push(usageEintragAusAntwort(IDEEN_MODEL, "ideen", response.usage));
 
   if (response.stop_reason === "max_tokens") {
     throw new Error("Die Antwort wurde abgeschnitten.");
@@ -96,13 +101,17 @@ export async function POST(request: NextRequest) {
 
   let ideen: string[] | null = null;
   let letzterFehler: unknown = null;
+  const usage: UsageEintrag[] = [];
   for (let versuch = 1; versuch <= 2 && !ideen; versuch++) {
     try {
-      ideen = await versucheIdeenGenerierung(userPrompt);
+      ideen = await versucheIdeenGenerierung(userPrompt, usage);
     } catch (err) {
       letzterFehler = err;
     }
   }
+  // Auch bei einem letztlich fehlgeschlagenen Versuch: jeder tatsächlich ausgeführte Aufruf hat
+  // schon echtes Geld gekostet (siehe Kommentar in versucheIdeenGenerierung oben).
+  await speichereUsage(usage, user.id, null);
 
   if (!ideen) {
     console.error("Themenideen-Generierung nach zwei Versuchen fehlgeschlagen:", letzterFehler);

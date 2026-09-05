@@ -1,6 +1,7 @@
 import { getAnthropicClient, GENERATION_MODEL, extractJson, getTextFromMessage } from "./anthropic";
 import { WorksheetContent, MeldungAnalyseSchema, MeldungKategorie, MELDUNG_KATEGORIE_LABEL } from "./types";
 import { begrenzeAufgabenProTyp, loeseRaetselAuf } from "./generateWorksheet";
+import { UsageEintrag, usageEintragAusAntwort } from "./usageLog";
 
 /** Greift eine Lehrkraft-Meldung sofort automatisch auf (siehe app/api/worksheet/[id]/meldung):
  * Claude bekommt Kategorie, Freitext-Beschreibung und den vollständigen Arbeitsblatt-Inhalt.
@@ -28,6 +29,12 @@ export interface MeldungFixErgebnis {
   status: "automatisch_behoben" | "nicht_behebbar" | "kein_fehler_gefunden" | "fehler";
   diagnose: string;
   neuerInhalt?: WorksheetContent;
+  // Vom Aufrufer (app/api/worksheet/[id]/meldung) an speichereUsage weiterzugeben - dieser Aufruf
+  // kostet echtes Geld (GENERATION_MODEL, bis zu 16000 Tokens), war vorher aber nirgends erfasst
+  // (siehe lib/usageLog.ts, Phase "meldung_fix") - leer nur, wenn der Claude-Aufruf selbst
+  // fehlgeschlagen ist (Netzwerkfehler o.ä., siehe catch unten), da dann keine Antwort mit
+  // "usage"-Angabe existiert.
+  usage: UsageEintrag[];
 }
 
 export async function analysiereUndBehebeMeldung(
@@ -49,11 +56,13 @@ export async function analysiereUndBehebeMeldung(
       system: MELDUNG_ANALYSE_SYSTEM_PROMPT,
       messages: [{ role: "user", content: text }],
     });
+    const usage = [usageEintragAusAntwort(GENERATION_MODEL, "meldung_fix", response.usage)];
 
     if (response.stop_reason === "max_tokens") {
       return {
         status: "fehler",
         diagnose: "Die KI-Antwort wurde wegen zu vieler Inhalte abgeschnitten. Bitte manuell prüfen.",
+        usage,
       };
     }
 
@@ -61,22 +70,23 @@ export async function analysiereUndBehebeMeldung(
     const analyse = MeldungAnalyseSchema.parse(raw);
 
     if (!analyse.problemBestaetigt) {
-      return { status: "kein_fehler_gefunden", diagnose: analyse.diagnose };
+      return { status: "kein_fehler_gefunden", diagnose: analyse.diagnose, usage };
     }
     if (!analyse.korrigierterInhalt) {
-      return { status: "nicht_behebbar", diagnose: analyse.diagnose };
+      return { status: "nicht_behebbar", diagnose: analyse.diagnose, usage };
     }
 
     const neuerInhalt = analyse.korrigierterInhalt;
     begrenzeAufgabenProTyp(neuerInhalt);
     loeseRaetselAuf(neuerInhalt);
 
-    return { status: "automatisch_behoben", diagnose: analyse.diagnose, neuerInhalt };
+    return { status: "automatisch_behoben", diagnose: analyse.diagnose, neuerInhalt, usage };
   } catch (err) {
     console.error("Meldung-Autofix fehlgeschlagen:", err);
     return {
       status: "fehler",
       diagnose: "Die automatische Analyse ist technisch fehlgeschlagen. Bitte manuell prüfen.",
+      usage: [],
     };
   }
 }

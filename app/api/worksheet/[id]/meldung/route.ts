@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { MeldungRequestSchema, WorksheetContentSchema } from "@/lib/types";
 import { analysiereUndBehebeMeldung } from "@/lib/meldungFix";
+import { speichereUsage } from "@/lib/usageLog";
 
 // Die Analyse (Opus-Aufruf, ggf. inkl. neuer Bildgenerierung) läuft synchron in dieser Route,
 // analog zu /api/generate - kann bei einem Bild-Fix mehrere zehn Sekunden dauern.
@@ -66,6 +67,7 @@ export async function POST(
     parsed.data.kategorie,
     parsed.data.beschreibung || null,
   );
+  await speichereUsage(ergebnis.usage, user.id, worksheet.id);
 
   if (ergebnis.status === "automatisch_behoben" && ergebnis.neuerInhalt) {
     await prisma.worksheet.update({
