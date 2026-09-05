@@ -508,7 +508,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "text",
     seite: "Landingpage: Vergleich",
     label: "Überschrift",
-    standard: "„Reicht dafür nicht einfach ein Chatbot?\"",
+    standard: "„Reicht dafür nicht einfach KI?\"",
   },
   {
     key: "landing.vergleich.untertitel",
@@ -522,7 +522,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "text",
     seite: "Landingpage: Vergleich",
     label: "Linke Spalte - Überschrift",
-    standard: "Ein normaler Chatbot",
+    standard: "Normale KI",
   },
   {
     key: "landing.vergleich.spalteUns",
