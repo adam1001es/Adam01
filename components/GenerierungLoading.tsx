@@ -112,7 +112,7 @@ export default function GenerierungLoading() {
     tick < STAGE_TEXTE.length ? STAGE_TEXTE[tick] : SPAET_TEXTE[(tick - STAGE_TEXTE.length) % SPAET_TEXTE.length];
 
   return (
-    <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+    <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-white/40 p-4 backdrop-blur-md backdrop-saturate-150">
       <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-brand-800/40 bg-gradient-to-br from-[#0b1f1c] via-[#0f2e29] to-[#0b1f1c] px-5 py-6 shadow-2xl">
         <MatrixRegen />
 
