@@ -43,7 +43,17 @@ const MATRIX_GLYPHEN = ["0", "1", "◆", "✦", "✧", "▢", "⟡", "☆", "∴
 const MATRIX_SPALTEN = 12;
 const MATRIX_ZEICHEN_PRO_SPALTE = 5;
 
-function MatrixRegen() {
+/** aktiv=false (Tab im Hintergrund, siehe Sichtbarkeits-Hook unten) rendert gar keine Spalten -
+ * Dutzende Elemente mit eigener endloser CSS-Animation kosten kontinuierlich Akku/GPU, genau
+ * während der Wartezeit (ca. 3 Minuten) läuft aber ohnehin schon der eigentlich kritische
+ * fetch()-Request. Mobile Browser (v.a. iOS Safari) werden bei einer im Hintergrund liegenden,
+ * spürbar aktiven Seite eher aggressiv und drosseln/kappen dann auch Netzwerkverbindungen - dieser
+ * Fall wird bereits explizit in der Fehlermeldung in NewWorksheetForm.tsx behandelt
+ * ("... oder die Seite wurde in den Hintergrund gelegt"). Niemand sieht die Animation ohnehin,
+ * solange der Tab nicht sichtbar ist. */
+function MatrixRegen({ aktiv }: { aktiv: boolean }) {
+  if (!aktiv) return null;
+
   const spalten = Array.from({ length: MATRIX_SPALTEN }, (_, i) => {
     const links = (i / MATRIX_SPALTEN) * 100 + pseudoZufall(i) * (100 / MATRIX_SPALTEN) * 0.6;
     const dauer = 2.6 + pseudoZufall(i + 100) * 2.4;
@@ -91,10 +101,27 @@ const GLAS_ZEILEN_BREITEN = [92, 76, 88, 64, 90, 72];
  */
 export default function GenerierungLoading() {
   const [tick, setTick] = useState(0);
+  // Startwert bewusst "true": beim ersten Rendern (Aufruf gerade erst per Klick ausgelöst) ist die
+  // Seite immer sichtbar - document.hidden erst NACH der Hydration abzufragen vermeidet einen
+  // Server/Client-Unterschied beim ersten Render.
+  const [sichtbar, setSichtbar] = useState(true);
 
   useEffect(() => {
     const intervall = setInterval(() => setTick((t) => t + 1), TEXT_INTERVALL_MS);
     return () => clearInterval(intervall);
+  }, []);
+
+  // Läuft die Seite im Hintergrund (Tab gewechselt, Bildschirm gesperrt, App minimiert), laufende
+  // Animationen abschalten statt die ganzen ca. 3 Minuten durchlaufen zu lassen - siehe
+  // Begründung bei MatrixRegen oben. Betrifft NUR die Optik, nicht den eigentlichen fetch()-Request
+  // in NewWorksheetForm.tsx (der läuft unabhängig davon weiter).
+  useEffect(() => {
+    setSichtbar(!document.hidden);
+    function aufSichtbarkeitswechsel() {
+      setSichtbar(!document.hidden);
+    }
+    document.addEventListener("visibilitychange", aufSichtbarkeitswechsel);
+    return () => document.removeEventListener("visibilitychange", aufSichtbarkeitswechsel);
   }, []);
 
   // Body-Scroll sperren, solange das Popup sichtbar ist - typisches Modal-Verhalten, verhindert
@@ -114,28 +141,34 @@ export default function GenerierungLoading() {
   return (
     <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-white/40 p-4 backdrop-blur-md backdrop-saturate-150">
       <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-brand-800/40 bg-gradient-to-br from-[#0b1f1c] via-[#0f2e29] to-[#0b1f1c] px-5 py-6 shadow-2xl">
-        <MatrixRegen />
+        <MatrixRegen aktiv={sichtbar} />
 
         <div className="relative mx-auto w-full max-w-[240px] rounded-xl border border-white/15 bg-white/10 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
           <div className="mb-3 flex items-center gap-1.5">
-            <Sparkles size={14} className="animate-pulse text-gold-300" />
+            <Sparkles size={14} className={`text-gold-300 ${sichtbar ? "animate-pulse" : ""}`} />
             <span className="text-[11px] font-medium tracking-wide text-white/80">Bismillahirrahmanirrahim</span>
           </div>
           {GLAS_ZEILEN_BREITEN.map((breite, i) => (
             <div
               key={i}
-              className="animate-glass-line mb-2 h-1.5 rounded-full bg-white/40 last:mb-0 motion-reduce:animate-none motion-reduce:w-full"
+              className={`mb-2 h-1.5 rounded-full bg-white/40 last:mb-0 motion-reduce:w-full ${
+                sichtbar ? "animate-glass-line motion-reduce:animate-none" : "w-full"
+              }`}
               style={{ "--zeilenbreite": `${breite}%`, animationDelay: `${i * 0.35}s` } as React.CSSProperties}
             />
           ))}
         </div>
 
-        <p key={tick} className="animate-fade-in relative mt-4 text-center text-sm font-medium text-white/90">
+        <p key={tick} className={`relative mt-4 text-center text-sm font-medium text-white/90 ${sichtbar ? "animate-fade-in" : ""}`}>
           {text}
         </p>
 
         <div className="relative mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-          <div className="animate-lade-balken absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-gold-300 to-brand-300 motion-reduce:animate-none motion-reduce:w-full" />
+          <div
+            className={`absolute inset-y-0 w-1/3 rounded-full bg-gradient-to-r from-gold-300 to-brand-300 motion-reduce:w-full ${
+              sichtbar ? "animate-lade-balken motion-reduce:animate-none" : ""
+            }`}
+          />
         </div>
       </div>
     </div>
