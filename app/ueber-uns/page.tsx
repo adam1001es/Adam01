@@ -1,7 +1,7 @@
 import { holeSiteInhalte } from "@/lib/siteContent";
 
 export const metadata = {
-  title: "Über Lernwerk",
+  title: "Über Lernwerk Hilal",
 };
 
 export default async function UeberUnsPage() {
@@ -10,7 +10,7 @@ export default async function UeberUnsPage() {
   return (
     <main className="mx-auto max-w-2xl">
       <div className="rounded-2xl border border-slate-200 bg-surface p-8 shadow-card">
-        <h1 className="mb-6 font-display text-2xl font-semibold text-slate-800">Über Lernwerk</h1>
+        <h1 className="mb-6 font-display text-2xl font-semibold text-slate-800">Über Lernwerk Hilal</h1>
 
         <p className="mb-4 text-sm leading-relaxed text-slate-600">{inhalte["ueberuns.absatz1"]}</p>
 

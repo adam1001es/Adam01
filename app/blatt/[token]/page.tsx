@@ -10,8 +10,8 @@ import VerificationBanner from "@/components/VerificationBanner";
 export const dynamic = "force-dynamic";
 
 /** Titel/Beschreibung der Link-Vorschaukarte (WhatsApp, iMessage, ...) auf das konkrete
- * Arbeitsblatt zuschneiden, statt der generischen "Lernwerk"-Beschreibung aus app/layout.tsx -
- * sonst sieht die Lehrkraft in der eigenen Chat-Historie nur noch "Lernwerk" und weiß später
+ * Arbeitsblatt zuschneiden, statt der generischen "Lernwerk Hilal"-Beschreibung aus app/layout.tsx -
+ * sonst sieht die Lehrkraft in der eigenen Chat-Historie nur noch "Lernwerk Hilal" und weiß später
  * nicht mehr, welches Arbeitsblatt sie wem geschickt hat. Übernimmt das geerbte openGraph/
  * twitter-Objekt vom Eltern-Metadata (per "parent"-Parameter) und überschreibt darin NUR
  * title/description - ein komplett neues openGraph/twitter-Objekt würde sonst das automatisch
@@ -31,7 +31,7 @@ export async function generateMetadata(
   if (!worksheet) return {};
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
-  const titel = `${content.titel} - Lernwerk`;
+  const titel = `${content.titel} - Lernwerk Hilal`;
   const beschreibung = `${content.fach} · ${content.schulstufe} · Thema: ${content.thema}`;
   // Nur "images" wird vom Eltern-Metadata übernommen (die einzige Stelle, die tatsächlich
   // dynamisch generiert wird, inkl. Cache-Busting-Query - siehe app/opengraph-image.tsx); Typ,
@@ -46,7 +46,7 @@ export async function generateMetadata(
       title: titel,
       description: beschreibung,
       images: openGraph?.images,
-      siteName: "Lernwerk",
+      siteName: "Lernwerk Hilal",
       locale: "de_AT",
       type: "website",
     },
@@ -83,7 +83,7 @@ export default async function OeffentlichesBlattPage({ params }: { params: { tok
         <p className="text-sm text-slate-500">
           Über einen geteilten Link geöffnet -{" "}
           <Link href="/" className="font-medium text-brand-600 hover:underline">
-            mehr über Lernwerk
+            mehr über Lernwerk Hilal
           </Link>
         </p>
         <div className="flex flex-wrap items-center gap-2">

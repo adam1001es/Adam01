@@ -529,7 +529,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "text",
     seite: "Landingpage: Vergleich",
     label: "Rechte Spalte - Überschrift",
-    standard: "Lernwerk",
+    standard: "Lernwerk Hilal",
   },
   {
     key: "landing.vergleich.chat.1",
@@ -838,10 +838,10 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Design",
     label: "Logo (Kopfbereich)",
     hinweis:
-      "Ersetzt das kleine Kreis-Icon links neben dem Schriftzug „Lernwerk“ im Kopfbereich jeder Seite. Ohne Upload bleibt das ursprüngliche Icon sichtbar.",
+      "Ersetzt das kleine Kreis-Icon links neben dem Schriftzug „Lernwerk Hilal“ im Kopfbereich jeder Seite. Ohne Upload bleibt das ursprüngliche Icon sichtbar.",
     standard: "",
   },
-  // Die vier statischen Info-Seiten unten (Pädagogischer Ansatz/Schulstufen/Über Lernwerk/
+  // Die vier statischen Info-Seiten unten (Pädagogischer Ansatz/Schulstufen/Über Lernwerk Hilal/
   // Datenschutz) sowie Impressum: pro Abschnitt Überschrift + Fließtext, wo vorhanden. Absätze mit
   // eingebettetem Link (z.B. Verweis auf eine andere Seite oder ein mailto:-Link) sind bewusst
   // NICHT Teil der Registry - als reiner Text überschrieben würde der Link verloren gehen (siehe
@@ -898,7 +898,7 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     seite: "Schulstufen",
     label: "Einleitung",
     standard:
-      "Lernwerk deckt alle Schulstufen des islamischen Religionsunterrichts an österreichischen Schulen ab - von der 1. Klasse Volksschule bis zur Matura. Inhalte, Aufgabentypen und Anforderungsniveau passen sich dabei automatisch der gewählten Schulstufe an.",
+      "Lernwerk Hilal deckt alle Schulstufen des islamischen Religionsunterrichts an österreichischen Schulen ab - von der 1. Klasse Volksschule bis zur Matura. Inhalte, Aufgabentypen und Anforderungsniveau passen sich dabei automatisch der gewählten Schulstufe an.",
   },
   {
     key: "schulstufen.volksschule.titel",
@@ -962,18 +962,18 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
   {
     key: "ueberuns.absatz1",
     typ: "richtext",
-    seite: "Über Lernwerk",
+    seite: "Über Lernwerk Hilal",
     label: "Absatz 1",
     standard:
-      "Lernwerk ist für Lehrkräfte des islamischen Religionsunterrichts an österreichischen Schulen entstanden: Statt jedes Arbeitsblatt von Grund auf selbst zu recherchieren und zu gestalten, entsteht es hier lehrplanorientiert, mit belegten Quellen und einer eigenständigen Qualitätsprüfung - in wenigen Minuten statt Stunden.",
+      "Lernwerk Hilal ist für Lehrkräfte des islamischen Religionsunterrichts an österreichischen Schulen entstanden: Statt jedes Arbeitsblatt von Grund auf selbst zu recherchieren und zu gestalten, entsteht es hier lehrplanorientiert, mit belegten Quellen und einer eigenständigen Qualitätsprüfung - in wenigen Minuten statt Stunden.",
   },
   {
     key: "ueberuns.absatz3",
     typ: "richtext",
-    seite: "Über Lernwerk",
+    seite: "Über Lernwerk Hilal",
     label: "Absatz 3",
     standard:
-      "Neben dem Erstellen einzelner Arbeitsblätter unterstützt Lernwerk auch die Klassenverwaltung (anonymisiert, ohne echte Schülernamen), das Zusammenstellen und Generieren von Prüfungen sowie eine Community, in der Lehrkräfte Arbeitsblätter untereinander teilen können.",
+      "Neben dem Erstellen einzelner Arbeitsblätter unterstützt Lernwerk Hilal auch die Klassenverwaltung (anonymisiert, ohne echte Schülernamen), das Zusammenstellen und Generieren von Prüfungen sowie eine Community, in der Lehrkräfte Arbeitsblätter untereinander teilen können.",
   },
   {
     key: "impressum.adresse",

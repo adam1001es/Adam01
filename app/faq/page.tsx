@@ -9,7 +9,7 @@ import {
 import { holeSiteInhalte } from "@/lib/siteContent";
 
 export const metadata = {
-  title: "Häufige Fragen - Lernwerk",
+  title: "Häufige Fragen - Lernwerk Hilal",
 };
 
 export default async function FaqPage() {
@@ -20,7 +20,7 @@ export default async function FaqPage() {
   // stillschweigend einfrieren. Fragen 2-5 kommen aus der Registry (siehe app/admin/inhalte).
   const FRAGEN: { frage: string; antwort: React.ReactNode }[] = [
     {
-      frage: "Was kostet Lernwerk?",
+      frage: "Was kostet Lernwerk Hilal?",
       antwort:
         `${zuCoins(KOSTENLOS_PUNKTE_LIMIT)} Coins (${formatArbeitsblaetterSpanne(KOSTENLOS_PUNKTE_LIMIT)}) können einmalig kostenlos getestet werden. Danach kostet das Abo ${formatEur(TIER_PREIS_EUR.pro)} € im Monat für ${zuCoins(TIER_PUNKTE_QUOTA.pro)} Coins (${formatArbeitsblaetterSpanne(TIER_PUNKTE_QUOTA.pro)}). Je nach Umfang eines Arbeitsblatts werden unterschiedlich viele Coins verbraucht, statt einer festen Stückzahl.`,
     },

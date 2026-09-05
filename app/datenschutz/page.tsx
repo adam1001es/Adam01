@@ -1,7 +1,7 @@
 import { holeSiteInhalte } from "@/lib/siteContent";
 
 export const metadata = {
-  title: "Datenschutzerklärung - Lernwerk",
+  title: "Datenschutzerklärung - Lernwerk Hilal",
 };
 
 /**

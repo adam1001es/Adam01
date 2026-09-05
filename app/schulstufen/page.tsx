@@ -1,7 +1,7 @@
 import { holeSiteInhalte } from "@/lib/siteContent";
 
 export const metadata = {
-  title: "Schulstufen - Lernwerk",
+  title: "Schulstufen - Lernwerk Hilal",
 };
 
 export default async function SchulstufenPage() {

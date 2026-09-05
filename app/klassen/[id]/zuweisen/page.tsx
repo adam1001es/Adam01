@@ -41,8 +41,8 @@ export default async function ZuweisenPage({ params }: { params: { id: string } 
       </h1>
       <p className="mt-1 text-sm text-slate-500">
         {kannFremdeZuweisen
-          ? "Eigenes/geteiltes Arbeitsblatt auswählen oder ein außerhalb von Lernwerk entstandenes Blatt manuell erfassen."
-          : "Eigenes Arbeitsblatt auswählen oder ein außerhalb von Lernwerk entstandenes Blatt manuell erfassen. Von anderen geteilte Arbeitsblätter lassen sich nur mit einem Abo zuweisen."}
+          ? "Eigenes/geteiltes Arbeitsblatt auswählen oder ein außerhalb von Lernwerk Hilal entstandenes Blatt manuell erfassen."
+          : "Eigenes Arbeitsblatt auswählen oder ein außerhalb von Lernwerk Hilal entstandenes Blatt manuell erfassen. Von anderen geteilte Arbeitsblätter lassen sich nur mit einem Abo zuweisen."}
       </p>
       <div className="mt-6 rounded-2xl border border-emerald-100 bg-surface p-6 shadow-card-klassen">
         <ZuweisenForm klasseId={klasse.id} eigene={eigene} community={community} />

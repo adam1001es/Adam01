@@ -345,7 +345,7 @@ model Schueler {
 
 // Ein Arbeitsblatt oder eine Prüfung, das/die einer Klasse an einem bestimmten Datum gegeben
 // wurde - eigenes/Community-Blatt (worksheetId gesetzt) oder ein manuell erfasstes, außerhalb
-// von Lernwerk entstandenes Blatt (worksheetId leer, nur die Snapshot-Felder). worksheetId ist
+// von Lernwerk Hilal entstandenes Blatt (worksheetId leer, nur die Snapshot-Felder). worksheetId ist
 // bewusst eine lose Referenz OHNE Fremdschlüssel-Constraint, exakt wie UsageLog.worksheetId
 // (siehe Kommentar dort) - ein späteres Löschen des Quell-Arbeitsblatts darf die
 // Zuweisungshistorie und die daraus berechnete Abdeckungs-/Notenübersicht nicht zerstören.

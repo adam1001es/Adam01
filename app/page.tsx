@@ -12,7 +12,7 @@ import { holeSiteInhalte } from "@/lib/siteContent";
 
 /** Für kostenlose Testkonten: bewusst gedämpfte (nicht in den echten Bereichsfarben gehaltene),
  * gesperrte Vorschau ECHTER Abo-Bereiche direkt am Dashboard, statt sie komplett zu verstecken -
- * soll die Bandbreite zeigen ("das kann Lernwerk noch alles"), ohne echten Zugriff zu geben. Die
+ * soll die Bandbreite zeigen ("das kann Lernwerk Hilal noch alles"), ohne echten Zugriff zu geben. Die
  * verlinkte Zielseite selbst zeigt ebenfalls nur eine Beschreibung, keine echten Daten (siehe
  * app/community/page.tsx). Klassen-Tracking gehört bewusst NICHT mehr hierher - das ist für
  * kostenlose Konten inzwischen voll nutzbar (siehe app/klassen/page.tsx), nur das Zuweisen

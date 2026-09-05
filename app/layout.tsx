@@ -31,19 +31,19 @@ const BESCHREIBUNG =
 // app/opengraph-image.tsx bzw. app/twitter-image.tsx (Next.js bindet diese automatisch ein).
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "Lernwerk",
+  title: "Lernwerk Hilal",
   description: BESCHREIBUNG,
   openGraph: {
-    title: "Lernwerk",
+    title: "Lernwerk Hilal",
     description: BESCHREIBUNG,
     url: SITE_URL,
-    siteName: "Lernwerk",
+    siteName: "Lernwerk Hilal",
     locale: "de_AT",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lernwerk",
+    title: "Lernwerk Hilal",
     description: BESCHREIBUNG,
   },
 };

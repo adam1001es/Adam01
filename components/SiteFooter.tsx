@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 const INFO_LINKS = [
   { href: "/paedagogik", label: "Pädagogischer Ansatz" },
   { href: "/schulstufen", label: "Schulstufen" },
-  { href: "/ueber-uns", label: "Über Lernwerk" },
+  { href: "/ueber-uns", label: "Über Lernwerk Hilal" },
   { href: "/faq", label: "Häufige Fragen" },
 ];
 

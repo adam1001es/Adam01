@@ -244,7 +244,7 @@ export interface TagesKosten {
 
 /** Echte Kosten PRO TAG für die letzten `tageAnzahl` Tage (inkl. heute) - Grundlage für einen
  * direkten Abgleich einzelner Tage mit der Anthropic-Rechnungsübersicht (die dort nur EINEN
- * Gesamtbetrag über alle angebundenen Projekte zeigt, hier aber tageweise genau für Lernwerk).
+ * Gesamtbetrag über alle angebundenen Projekte zeigt, hier aber tageweise genau für Lernwerk Hilal).
  * Holt die Rohzeilen einmal und gruppiert in JS statt per SQL-Datumsgruppierung, da
  * berechneKostenEur() pro Modell unterschiedliche Preise braucht (siehe summeKostenEur) und im
  * Projekt bisher bewusst kein Raw-SQL verwendet wird. Tage ohne jeden Aufruf fehlen in der

@@ -29,13 +29,13 @@ export async function sendeVerifizierungsMail(
 ): Promise<void> {
   const t = getTransporter();
   await t.sendMail({
-    from: `"Lernwerk" <${process.env.GMAIL_USER}>`,
+    from: `"Lernwerk Hilal" <${process.env.GMAIL_USER}>`,
     to: empfaenger,
     subject: "Bitte bestätige deine E-Mail-Adresse",
-    text: `Willkommen beim Lernwerk!\n\nBitte bestätige deine E-Mail-Adresse über diesen Link (24 Stunden gültig):\n${verifizierungsUrl}\n\nFalls du dich nicht registriert hast, kannst du diese Mail ignorieren.`,
+    text: `Willkommen bei Lernwerk Hilal!\n\nBitte bestätige deine E-Mail-Adresse über diesen Link (24 Stunden gültig):\n${verifizierungsUrl}\n\nFalls du dich nicht registriert hast, kannst du diese Mail ignorieren.`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
-        <h2 style="color:#0f766e;">Willkommen beim Lernwerk!</h2>
+        <h2 style="color:#0f766e;">Willkommen bei Lernwerk Hilal!</h2>
         <p>Bitte bestätige deine E-Mail-Adresse, um dein Konto zu aktivieren:</p>
         <p>
           <a href="${verifizierungsUrl}" style="display:inline-block;background:#0f766e;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
@@ -57,14 +57,14 @@ export async function sendeEmailAenderungsMail(
 ): Promise<void> {
   const t = getTransporter();
   await t.sendMail({
-    from: `"Lernwerk" <${process.env.GMAIL_USER}>`,
+    from: `"Lernwerk Hilal" <${process.env.GMAIL_USER}>`,
     to: empfaenger,
     subject: "Bitte bestätige deine neue E-Mail-Adresse",
-    text: `Für dein Konto beim Lernwerk wurde diese Adresse als neue E-Mail-Adresse hinterlegt.\n\nBitte bestätige sie über diesen Link (24 Stunden gültig):\n${bestaetigungsUrl}\n\nErst danach wird sie zu deiner neuen Anmelde-Adresse - bis dahin bleibt deine bisherige E-Mail-Adresse aktiv. Falls du das nicht warst, kannst du diese Mail einfach ignorieren.`,
+    text: `Für dein Konto bei Lernwerk Hilal wurde diese Adresse als neue E-Mail-Adresse hinterlegt.\n\nBitte bestätige sie über diesen Link (24 Stunden gültig):\n${bestaetigungsUrl}\n\nErst danach wird sie zu deiner neuen Anmelde-Adresse - bis dahin bleibt deine bisherige E-Mail-Adresse aktiv. Falls du das nicht warst, kannst du diese Mail einfach ignorieren.`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
         <h2 style="color:#0f766e;">Neue E-Mail-Adresse bestätigen</h2>
-        <p>Für dein Konto beim Lernwerk wurde diese Adresse als neue E-Mail-Adresse hinterlegt.</p>
+        <p>Für dein Konto bei Lernwerk Hilal wurde diese Adresse als neue E-Mail-Adresse hinterlegt.</p>
         <p>
           <a href="${bestaetigungsUrl}" style="display:inline-block;background:#0f766e;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
             E-Mail-Adresse bestätigen
@@ -85,14 +85,14 @@ export async function sendePasswortResetMail(
 ): Promise<void> {
   const t = getTransporter();
   await t.sendMail({
-    from: `"Lernwerk" <${process.env.GMAIL_USER}>`,
+    from: `"Lernwerk Hilal" <${process.env.GMAIL_USER}>`,
     to: empfaenger,
     subject: "Passwort zurücksetzen",
-    text: `Für dein Konto beim Lernwerk wurde ein neues Passwort angefordert.\n\nÜber diesen Link (1 Stunde gültig) kannst du ein neues Passwort vergeben:\n${resetUrl}\n\nFalls du das nicht warst, kannst du diese Mail einfach ignorieren - dein Passwort bleibt dann unverändert.`,
+    text: `Für dein Konto bei Lernwerk Hilal wurde ein neues Passwort angefordert.\n\nÜber diesen Link (1 Stunde gültig) kannst du ein neues Passwort vergeben:\n${resetUrl}\n\nFalls du das nicht warst, kannst du diese Mail einfach ignorieren - dein Passwort bleibt dann unverändert.`,
     html: `
       <div style="font-family:sans-serif;max-width:480px;margin:0 auto;">
         <h2 style="color:#0f766e;">Passwort zurücksetzen</h2>
-        <p>Für dein Konto beim Lernwerk wurde ein neues Passwort angefordert.</p>
+        <p>Für dein Konto bei Lernwerk Hilal wurde ein neues Passwort angefordert.</p>
         <p>
           <a href="${resetUrl}" style="display:inline-block;background:#0f766e;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
             Neues Passwort vergeben

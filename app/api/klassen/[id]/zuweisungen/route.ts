@@ -9,7 +9,7 @@ const ZUWEISUNG_SCHEMA = z
     // Eigenes/Community-Arbeitsblatt: Titel/Themenbereich/Prüfungs-Felder werden serverseitig
     // AUS dem Arbeitsblatt übernommen (siehe unten), damit ein Client sie nicht fälschen kann.
     worksheetId: z.string().optional(),
-    // Manueller Eintrag (außerhalb von Lernwerk entstandenes Blatt): beide Felder erforderlich.
+    // Manueller Eintrag (außerhalb von Lernwerk Hilal entstandenes Blatt): beide Felder erforderlich.
     titel: z.string().min(1).max(200).optional(),
     themenbereich: z.string().min(1).max(100).optional(),
     datum: z.string().optional(), // ISO-Datum, Default: heute

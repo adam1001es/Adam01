@@ -33,8 +33,8 @@ export function OgImageLayout() {
           <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" fill="#f4ead1" />
         </svg>
       </div>
-      <div style={{ display: "flex", fontSize: 66, fontWeight: 700, color: "#ffffff" }}>
-        Lernwerk
+      <div style={{ display: "flex", fontSize: 58, fontWeight: 700, color: "#ffffff" }}>
+        Lernwerk Hilal
       </div>
       <div style={{ display: "flex", fontSize: 30, color: "#ccfbf1", marginTop: 20 }}>
         Islamischer Religionsunterricht · Österreich

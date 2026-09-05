@@ -59,7 +59,7 @@ export default function SiteHeader({
   neueCommunityBeitraege,
 }: {
   user: SiteHeaderUser | null;
-  /** Admin-Override für das Kreis-Icon links neben dem "Lernwerk"-Schriftzug (siehe
+  /** Admin-Override für das Kreis-Icon links neben dem "Lernwerk Hilal"-Schriftzug (siehe
    * lib/siteContent.ts "design.logo.bild", bearbeitbar über app/admin/inhalte) - eine data:-URL
    * oder undefined/leer, falls kein Bild hochgeladen wurde (dann bleibt das ursprüngliche
    * LogoMark-Icon sichtbar). */
@@ -106,7 +106,7 @@ export default function SiteHeader({
 
   // Der Klassen-Bereich nutzt die hellste Stufe des Teal-Bandes (siehe tailwind.config
   // klassen-gradient) - eine Nuance heller als die Marke selbst, damit er sich in der Navigation
-  // wie ein eigener "Modus" innerhalb von Lernwerk anfühlt, ohne die Farbfamilie zu verlassen.
+  // wie ein eigener "Modus" innerhalb von Lernwerk Hilal anfühlt, ohne die Farbfamilie zu verlassen.
   const navLinkClassKlassen = (active: boolean) =>
     `flex items-center gap-1.5 rounded-full px-2 py-2 text-sm font-medium transition active:scale-95 sm:px-3.5 ${
       active
@@ -187,7 +187,7 @@ export default function SiteHeader({
           )}
           <span className="flex flex-col leading-tight">
             <span className="font-display text-base font-semibold text-brand-800 sm:text-lg">
-              Lernwerk
+              Lernwerk Hilal
             </span>
             <span className="hidden text-xs text-slate-500 sm:inline">
               Islamischer Religionsunterricht · Österreich

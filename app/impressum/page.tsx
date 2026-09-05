@@ -1,7 +1,7 @@
 import { holeSiteInhalte } from "@/lib/siteContent";
 
 export const metadata = {
-  title: "Impressum - Lernwerk",
+  title: "Impressum - Lernwerk Hilal",
 };
 
 /**

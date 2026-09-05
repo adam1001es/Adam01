@@ -1,7 +1,7 @@
 import { holeSiteInhalte } from "@/lib/siteContent";
 
 export const metadata = {
-  title: "Pädagogischer Ansatz - Lernwerk",
+  title: "Pädagogischer Ansatz - Lernwerk Hilal",
 };
 
 export default async function PaedagogikPage() {
