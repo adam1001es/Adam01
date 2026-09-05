@@ -988,7 +988,16 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
     typ: "text",
     seite: "Impressum",
     label: "Kontakt-E-Mail",
+    hinweis: "Wird auch im Datenschutz-Abschnitt „Verantwortlicher“ als Kontakt angezeigt.",
     standard: "magdykasim30008000@gmail.com",
+  },
+  {
+    key: "datenschutz.verantwortlicherText",
+    typ: "text",
+    seite: "Datenschutz",
+    label: "Verantwortlicher - Name & Anschrift",
+    hinweis: "Die Kontakt-E-Mail dahinter kommt aus dem Impressum-Feld „Kontakt-E-Mail“ (siehe dort).",
+    standard: "Dua Zentrum, Beethovenplatz 1 (Ecke Lothringerstraße), 1010 Wien, vertreten durch Adam Es.",
   },
   {
     key: "datenschutz.kontoNutzung",

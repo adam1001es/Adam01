@@ -8,8 +8,10 @@ export const metadata = {
  * Bewusst knapp gehalten: nur die tatsächlich verarbeiteten Daten (Art. 13 DSGVO), keine
  * generischen Textbausteine für Verarbeitungen, die es hier nicht gibt (z.B. keine
  * Zahlungsanbieter, kein Tracking/Analytics-Dienst, kein Session-Replay - siehe Sentry-Konfig).
- * "Verantwortlicher" bleibt fest (siehe lib/siteContent.ts) - enthält denselben mailto:-Link wie
- * app/impressum, ein Text-Override würde ihn zerstören; Adresse/E-Mail dort ändern.
+ * "Verantwortlicher" nutzt die Kontakt-E-Mail aus app/impressum (impressum.email in
+ * lib/siteContent.ts) wieder statt eines eigenen Feldes - dieselbe reale Adresse, damit beide
+ * Seiten nicht auseinanderlaufen; der mailto:-Link wird daraus zusammengesetzt statt fest im
+ * Text zu stehen.
  */
 export default async function DatenschutzPage() {
   const inhalte = await holeSiteInhalte();
@@ -24,10 +26,12 @@ export default async function DatenschutzPage() {
         <section className="mb-6">
           <h2 className="mb-1 text-sm font-semibold text-slate-700">Verantwortlicher</h2>
           <p className="text-sm leading-relaxed text-slate-600">
-            Dua Zentrum, Beethovenplatz 1 (Ecke Lothringerstraße), 1010 Wien, vertreten durch Adam
-            Es. Kontakt:{" "}
-            <a href="mailto:magdykasim30008000@gmail.com" className="text-brand-600 hover:underline">
-              magdykasim30008000@gmail.com
+            {inhalte["datenschutz.verantwortlicherText"]} Kontakt:{" "}
+            <a
+              href={`mailto:${inhalte["impressum.email"]}`}
+              className="text-brand-600 hover:underline"
+            >
+              {inhalte["impressum.email"]}
             </a>
           </p>
         </section>
