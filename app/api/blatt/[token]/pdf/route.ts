@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { WorksheetContentSchema } from "@/lib/types";
 import { renderWorksheetPdfBuffer, slugifyTitel } from "@/lib/worksheetExport";
-import { holeSiteInhalte } from "@/lib/siteContent";
 
 export const runtime = "nodejs";
 // Siehe dieselbe Begründung in app/api/worksheet/[id]/pdf/route.ts.
@@ -22,10 +21,8 @@ export async function GET(
   }
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
-  // Wasserzeichen-Text nur hier gesetzt, siehe Kommentar auf renderWorksheetPdfBuffer -
-  // admin-editierbar über app/admin/inhalte ("design.wasserzeichen.text").
-  const inhalte = await holeSiteInhalte();
-  const buffer = await renderWorksheetPdfBuffer(worksheet, inhalte["design.wasserzeichen.text"]);
+  // wasserzeichen: true - nur hier, siehe Kommentar auf renderWorksheetPdfBuffer.
+  const buffer = await renderWorksheetPdfBuffer(worksheet, true);
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

@@ -841,15 +841,6 @@ export const SITE_CONTENT_FELDER: SiteContentFeld[] = [
       "Ersetzt das kleine Kreis-Icon links neben dem Schriftzug „Lernwerk Hilal“ im Kopfbereich jeder Seite. Ohne Upload bleibt das ursprüngliche Icon sichtbar.",
     standard: "",
   },
-  {
-    key: "design.wasserzeichen.text",
-    typ: "text",
-    seite: "Design",
-    label: "Wasserzeichen-Text (öffentlicher Link)",
-    hinweis:
-      "Erscheint als dezentes Wasserzeichen auf Arbeitsblättern, die über den öffentlichen Link geteilt werden (PDF, Word-Fußzeile und Web-Ansicht/Browser-Ausdruck) - NICHT auf dem regulären Eigentümer-Download. Praktisch für eine spätere Domain-Änderung, ohne Code anfassen zu müssen.",
-    standard: "ki.islamlernen.at",
-  },
   // Die vier statischen Info-Seiten unten (Pädagogischer Ansatz/Schulstufen/Über Lernwerk Hilal/
   // Datenschutz) sowie Impressum: pro Abschnitt Überschrift + Fließtext, wo vorhanden. Absätze mit
   // eingebettetem Link (z.B. Verweis auf eine andere Seite oder ein mailto:-Link) sind bewusst

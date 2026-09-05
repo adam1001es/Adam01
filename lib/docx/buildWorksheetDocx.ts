@@ -348,22 +348,21 @@ const TYP_LABEL: Record<Aufgabe["typ"], string> = {
 const ACCENT = "0d9488";
 
 /** Dezente Fußzeilen-Kennzeichnung für öffentlich per Link geteilte Arbeitsblätter (siehe
- * wasserzeichenText-Parameter unten sowie dieselbe Absicht in WorksheetPdf.tsx/WorksheetView.tsx) -
+ * wasserzeichen-Parameter unten sowie dieselbe Absicht in WorksheetPdf.tsx/WorksheetView.tsx) -
  * anders als beim PDF/Web-Wasserzeichen kein diagonal wiederholter Überdruck: die docx-Bibliothek
  * unterstützt keine rotierten Text-/Bild-Wasserzeichen ohne eigene OOXML-Konstruktion, eine
  * schlichte Fußzeile auf jeder Seite erreicht denselben Werbezweck zuverlässig. Erscheint NUR bei
  * Export über den öffentlichen Link (app/api/blatt/[token]/docx), NIE beim regulären
- * Eigentümer-Download. "wasserzeichenText" kommt admin-editierbar aus lib/siteContent.ts
- * ("design.wasserzeichen.text", siehe app/admin/inhalte).
+ * Eigentümer-Download.
  */
-function wasserzeichenFooter(wasserzeichenText: string): Footer {
+function wasserzeichenFooter(): Footer {
   return new Footer({
     children: [
       new Paragraph({
         alignment: AlignmentType.CENTER,
         children: [
           new TextRun({
-            text: `Kostenlos erstellt mit Lernwerk Hilal - ${wasserzeichenText}`,
+            text: "Kostenlos erstellt mit Lernwerk Hilal - ki.islamlernen.at",
             size: 16,
             italics: true,
             color: "94A3B8",
@@ -380,7 +379,7 @@ export async function buildWorksheetDocx(
   themenbereichLabel: string,
   erstelltAm: Date,
   generierteBilder: Record<string, Buffer> = {},
-  wasserzeichenText?: string,
+  wasserzeichen = false,
 ): Promise<Buffer> {
   const istSchwarzweiss = layout.farbmodus === "schwarzweiss";
   const accentColor = layout.template === "modern" && !istSchwarzweiss ? ACCENT : "111111";
@@ -872,7 +871,7 @@ export async function buildWorksheetDocx(
     }
   }
 
-  const footers = wasserzeichenText ? { default: wasserzeichenFooter(wasserzeichenText) } : undefined;
+  const footers = wasserzeichen ? { default: wasserzeichenFooter() } : undefined;
   const sections = [{ children, footers }];
 
   // Lösungen erscheinen bewusst NIE auf dem Arbeitsblatt selbst - immer in einer eigenen,
@@ -893,10 +892,7 @@ export async function buildWorksheetDocx(
     // Jede Section bekommt ihre eigene Fußzeile - eine Section übernimmt die Fußzeile der
     // vorherigen nicht automatisch, und ein frisches Footer()-Objekt pro Section vermeidet
     // von vornherein jede Frage, ob dieselbe Instanz in zwei Sections gültig wäre.
-    sections.push({
-      children: loesungChildren,
-      footers: wasserzeichenText ? { default: wasserzeichenFooter(wasserzeichenText) } : undefined,
-    });
+    sections.push({ children: loesungChildren, footers: wasserzeichen ? { default: wasserzeichenFooter() } : undefined });
   }
 
   const doc = new Document({ sections });
