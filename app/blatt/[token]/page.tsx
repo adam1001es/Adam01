@@ -110,6 +110,7 @@ export default async function OeffentlichesBlattPage({ params }: { params: { tok
         layout={layout}
         themenbereich={themenbereich}
         erstelltAm={worksheet.createdAt}
+        wasserzeichen
       />
     </main>
   );

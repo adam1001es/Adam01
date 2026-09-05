@@ -14,7 +14,12 @@ import { sammleBildGeneriertIds } from "@/lib/generiertesBildHelfer";
  * wird: beide Wege unterscheiden sich nur in der Autorisierung (Session vs. Link-Token), nicht
  * im eigentlichen Rendering. */
 
-export async function renderWorksheetPdfBuffer(worksheet: Worksheet): Promise<Buffer> {
+/** wasserzeichen: NUR von den öffentlichen Link-Export-Routen (app/api/blatt/[token]/pdf|docx)
+ * mit true aufgerufen - blendet ein dezentes Domain-Wasserzeichen ein (siehe Wasserzeichen() in
+ * WorksheetPdf.tsx bzw. wasserzeichenFooter() in buildWorksheetDocx.ts). Der reguläre
+ * Eigentümer-Download (app/api/worksheet/[id]/pdf|docx) ruft ohne diesen Parameter auf und bleibt
+ * unverändert werbefrei. */
+export async function renderWorksheetPdfBuffer(worksheet: Worksheet, wasserzeichen = false): Promise<Buffer> {
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
   const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
@@ -33,11 +38,12 @@ export async function renderWorksheetPdfBuffer(worksheet: Worksheet): Promise<Bu
     themenbereichLabel: THEMENBEREICHE[themenbereich].label,
     erstelltAm: worksheet.createdAt,
     generierteBilder,
+    wasserzeichen,
   });
   return renderToBuffer(element as unknown as Parameters<typeof renderToBuffer>[0]);
 }
 
-export async function renderWorksheetDocxBuffer(worksheet: Worksheet): Promise<Buffer> {
+export async function renderWorksheetDocxBuffer(worksheet: Worksheet, wasserzeichen = false): Promise<Buffer> {
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
   const layout = LayoutConfigSchema.parse(JSON.parse(worksheet.layoutConfig));
   const themenbereich = ThemenbereichSchema.catch("gemischt").parse(worksheet.themenbereich);
@@ -54,6 +60,7 @@ export async function renderWorksheetDocxBuffer(worksheet: Worksheet): Promise<B
     THEMENBEREICHE[themenbereich].label,
     worksheet.createdAt,
     generierteBilder,
+    wasserzeichen,
   );
 }
 

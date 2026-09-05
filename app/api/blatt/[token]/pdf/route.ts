@@ -21,7 +21,8 @@ export async function GET(
   }
 
   const content = WorksheetContentSchema.parse(JSON.parse(worksheet.contentJson));
-  const buffer = await renderWorksheetPdfBuffer(worksheet);
+  // wasserzeichen: true - nur hier, siehe Kommentar auf renderWorksheetPdfBuffer.
+  const buffer = await renderWorksheetPdfBuffer(worksheet, true);
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

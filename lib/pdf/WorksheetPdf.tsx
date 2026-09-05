@@ -517,6 +517,50 @@ function buildStyles(layout: LayoutConfig) {
   });
 }
 
+/** Dezentes, halbtransparentes Domain-Wasserzeichen für öffentlich per Link geteilte Arbeitsblätter
+ * (siehe wasserzeichen-Parameter unten sowie dieselbe Absicht in WorksheetView.tsx/
+ * buildWorksheetDocx.ts) - erscheint NUR bei Export über den öffentlichen Link
+ * (app/api/blatt/[token]/pdf), NIE beim regulären Eigentümer-Download (app/api/worksheet/[id]/pdf),
+ * damit die eigene Nutzung des Kontos nicht durch eigene Werbung gestört wird. "fixed" sorgt dafür,
+ * dass es sich bei mehrseitigen Arbeitsblättern (Inhalt läuft über mehrere physische Seiten
+ * innerhalb DERSELBEN <Page>) automatisch wiederholt. Bewusst VOR dem eigentlichen Seiteninhalt im
+ * Baum platziert, damit react-pdf es zuerst (also optisch dahinter) zeichnet - der Text bleibt so
+ * überall dort lesbar, wo er das Wasserzeichen überdeckt, während es in Zwischenräumen (Rand,
+ * Schreiblinien, Absatzabstände) sichtbar bleibt.
+ */
+function Wasserzeichen() {
+  const positionen = [
+    { top: 90, left: 30 },
+    { top: 90, left: 330 },
+    { top: 330, left: 30 },
+    { top: 330, left: 330 },
+    { top: 570, left: 30 },
+    { top: 570, left: 330 },
+    { top: 760, left: 30 },
+    { top: 760, left: 330 },
+  ];
+  return (
+    <View fixed style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+      {positionen.map((pos, i) => (
+        <Text
+          key={i}
+          style={{
+            position: "absolute",
+            top: pos.top,
+            left: pos.left,
+            fontSize: 20,
+            color: "#94a3b8",
+            opacity: 0.25,
+            transform: "rotate(-30deg)",
+          }}
+        >
+          ki.islamlernen.at
+        </Text>
+      ))}
+    </View>
+  );
+}
+
 function Header({
   content,
   layout,
@@ -912,6 +956,7 @@ export function WorksheetPdfDocument({
   themenbereichLabel,
   erstelltAm,
   generierteBilder = {},
+  wasserzeichen = false,
 }: {
   content: WorksheetContent;
   layout: LayoutConfig;
@@ -919,11 +964,14 @@ export function WorksheetPdfDocument({
   erstelltAm: Date;
   /** bildGeneriertId -> base64-Data-URI, vorab von der aufrufenden Route aufgelöst. */
   generierteBilder?: Record<string, string>;
+  /** Nur bei Export über den öffentlichen Link true, siehe Wasserzeichen() oben. */
+  wasserzeichen?: boolean;
 }) {
   const styles = buildStyles(layout);
   return (
     <Document title={content.titel}>
       <Page size="A4" style={styles.page}>
+        {wasserzeichen && <Wasserzeichen />}
         <View style={styles.seiteInhalt}>
           <Header
             content={content}
@@ -953,6 +1001,7 @@ export function WorksheetPdfDocument({
           die ganze Lösungsseite entfällt dann. */}
       {content.loesungen.length > 0 && (
         <Page size="A4" style={styles.page}>
+          {wasserzeichen && <Wasserzeichen />}
           <View style={styles.seiteInhalt}>
             <Text style={styles.titel}>{content.titel} — Lösungsblatt</Text>
             <LoesungenSeite content={content} layout={layout} />
