@@ -287,8 +287,18 @@ export default function WissensBloecke() {
   // auch die drei Auswahl-Karten in der "waehlen"-Phase direkt ziehbar sein können - dort gibt es
   // (bewusst) noch kein `aktuellesStueck`, weil das Auswählen und Platzieren zu einer einzigen
   // Ziehgeste verschmolzen sind.
+  //
+  // releaseVerarbeitetRef verhindert doppelte Verarbeitung EINES Loslassens: pointerup/-cancel
+  // wird sowohl vom ziehenden Element (via Zeigererfassung) als auch von einem globalen
+  // Fenster-Listener weiter unten behandelt (Sicherheitsnetz für Touch-Geräte, bei denen manche
+  // Browser das Ereignis nach einer unterbrochenen Erfassung nicht mehr ans ursprüngliche Element
+  // liefern - sonst bliebe der Ziehschatten für immer sichtbar hängen). Ein Ref statt State, weil
+  // die Prüfung SYNCHRON greifen muss, bevor React einen erneuten Render committet.
+  const releaseVerarbeitetRef = useRef(false);
+
   const dragStarten = useCallback((e: React.PointerEvent<HTMLElement>, stueck: FormMitFarbe) => {
     e.currentTarget.setPointerCapture(e.pointerId);
+    releaseVerarbeitetRef.current = false;
     setHoverAnker(null);
     const rect = gridRef.current?.getBoundingClientRect();
     const zellGroesse = rect && rect.width > 0 ? rect.width / RASTER_SPALTEN : 40;
@@ -307,8 +317,9 @@ export default function WissensBloecke() {
   }, []);
 
   const dragBeenden = useCallback(
-    (e: React.PointerEvent<HTMLElement>) => {
-      if (!drag || drag.pointerId !== e.pointerId) return;
+    (e: React.PointerEvent<HTMLElement> | PointerEvent) => {
+      if (!drag || drag.pointerId !== e.pointerId || releaseVerarbeitetRef.current) return;
+      releaseVerarbeitetRef.current = true;
       const ziel = berechneAnker(e.clientX, e.clientY - drag.anhebung, drag.stueck.form);
       const stueck = drag.stueck;
       setDrag(null);
@@ -319,9 +330,28 @@ export default function WissensBloecke() {
   );
 
   const dragAbbrechen = useCallback(() => {
+    releaseVerarbeitetRef.current = true;
     setDrag(null);
     setHoverAnker(null);
   }, []);
+
+  // Fenster-weites Sicherheitsnetz: solange gezogen wird, zusätzlich auf pointerup/-cancel am
+  // window lauschen. Manche mobilen Browser liefern das Loslassen nach einer durch Systemgesten
+  // unterbrochenen Zeigererfassung nicht mehr an das ursprüngliche Element - ohne dieses
+  // Sicherheitsnetz bliebe der schwebende Schatten dann dauerhaft sichtbar hängen.
+  useEffect(() => {
+    if (!drag) return;
+    const aufLoslassen = (e: PointerEvent) => dragBeenden(e);
+    const aufAbbruch = (e: PointerEvent) => {
+      if (e.pointerId === drag.pointerId) dragAbbrechen();
+    };
+    window.addEventListener("pointerup", aufLoslassen);
+    window.addEventListener("pointercancel", aufAbbruch);
+    return () => {
+      window.removeEventListener("pointerup", aufLoslassen);
+      window.removeEventListener("pointercancel", aufAbbruch);
+    };
+  }, [drag, dragBeenden, dragAbbrechen]);
 
   const vorschau = useMemo(() => {
     const stueck = drag ? drag.stueck : phase === "platzieren" ? aktuellesStueck : null;
