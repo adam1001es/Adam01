@@ -16,6 +16,7 @@ import {
   schaetzeAufgabenAnzahl,
 } from "./types";
 import { buildCurriculumSystemContext, guessSchulstufenCluster } from "./curriculum";
+import { findeUnzulaessigeZeichenaufgaben } from "./darstellungsverbot";
 import { erzeugeWortsucheGitter } from "./wortsuche";
 import { erzeugeKreuzwortraetsel } from "./kreuzwortraetsel";
 import { vereinfacheArabischeTransliteration } from "./transliteration";
@@ -382,6 +383,28 @@ async function generiereUndPruefeEinmal(
   // vorab manuell kuratieren müssten.
   const liveGeprueft = await gleicheQuellenMitKoranApiAb(content);
   const koranVerifikationsHinweis = buildKoranVerifikationsHinweis(liveGeprueft);
+
+  // Deterministisches Sicherheitsnetz (siehe lib/darstellungsverbot.ts) - läuft synchron in
+  // Millisekunden, VOR dem KI-Prüfungsaufruf. Bei einem Treffer steht das Ergebnis schon fest,
+  // die (langsamere, kostenpflichtige) KI-Prüfung wird dafür gar nicht erst aufgerufen - der
+  // bestehende automatische Korrektur-Durchlauf bei "status": "fehler" (siehe
+  // generateAndVerifyWorksheet) greift genauso, nur ohne den zusätzlichen Prüf-Aufruf.
+  const unzulaessigeZeichenaufgaben = findeUnzulaessigeZeichenaufgaben(content);
+  if (unzulaessigeZeichenaufgaben.length > 0) {
+    return {
+      content,
+      verification: {
+        status: "fehler",
+        zusammenfassung:
+          "Automatische Sicherheitsprüfung: Eine Aufgabe verlangt vermutlich eine bildliche Darstellung von Allah, einem Engel, einem Propheten oder einem Sahabi - das ist im Islam nicht zulässig.",
+        hinweise: unzulaessigeZeichenaufgaben.map(
+          (t) =>
+            `Aufgabe ${t.aufgabeNr} ("${t.aufgabeFrage}") umformulieren - ein Motiv OHNE die religiöse Figur selbst wählen (z.B. eine Handlung, einen Ort, einen Gegenstand oder ein Symbol).`,
+        ),
+      },
+      usage: [usageEintragAusAntwort(GENERATION_MODEL, "generierung", genResponse.usage)],
+    };
+  }
 
   const verifyResponse = await client.messages.create({
     model: VERIFICATION_MODEL,
