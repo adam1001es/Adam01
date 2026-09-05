@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import AuthForm from "@/components/AuthForm";
 
 const VERIFIZIERUNG_FEHLER: Record<string, string> = {
@@ -10,11 +10,12 @@ const VERIFIZIERUNG_FEHLER: Record<string, string> = {
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams: { verifizierung?: string };
+  searchParams: { verifizierung?: string; konto?: string };
 }) {
   const fehlerHinweis = searchParams.verifizierung
     ? VERIFIZIERUNG_FEHLER[searchParams.verifizierung]
     : null;
+  const kontoGeloescht = searchParams.konto === "geloescht";
 
   return (
     <main className="mx-auto max-w-sm">
@@ -25,6 +26,12 @@ export default function LoginPage({
           <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
             <AlertTriangle size={16} className="mt-0.5 shrink-0" />
             <span>{fehlerHinweis}</span>
+          </div>
+        )}
+        {kontoGeloescht && (
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-brand-200 bg-brand-50 p-3 text-sm text-brand-800">
+            <CheckCircle2 size={16} className="mt-0.5 shrink-0" />
+            <span>Dein Konto wurde gelöscht. Schade, dass du gehst - du kannst dich jederzeit wieder neu registrieren.</span>
           </div>
         )}
         <AuthForm mode="login" />

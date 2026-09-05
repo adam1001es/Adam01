@@ -15,6 +15,7 @@ import {
   Users,
   School,
   Cpu,
+  Trash2,
 } from "lucide-react";
 import { getSessionUser } from "@/lib/auth";
 import { getKontingent, istZahlendesKonto, tierLabel, aktuellerZyklusStart } from "@/lib/quota";
@@ -33,6 +34,7 @@ import AvatarKreis from "@/components/AvatarKreis";
 import StatusForm from "@/components/StatusForm";
 import UnterrichtsprofilForm from "@/components/UnterrichtsprofilForm";
 import KontingentBanner from "@/components/KontingentBanner";
+import KontoLoeschenForm from "@/components/KontoLoeschenForm";
 
 export const dynamic = "force-dynamic";
 
@@ -192,6 +194,12 @@ export default async function AccountPage({
         <SectionCard icon={KeyRound} title="Passwort" subtitle="Regelmäßig ändern erhöht die Sicherheit deines Kontos">
           <PasswordForm />
         </SectionCard>
+
+        {user.role !== "admin" && (
+          <SectionCard icon={Trash2} title="Konto löschen" subtitle="Unwiderruflich - bitte mit Bedacht">
+            <KontoLoeschenForm />
+          </SectionCard>
+        )}
       </div>
     </main>
   );

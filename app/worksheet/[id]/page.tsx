@@ -43,6 +43,11 @@ export default async function WorksheetPage({ params }: { params: { id: string }
         where: { userId_worksheetId: { userId: user.id, worksheetId: worksheet.id } },
       })
     : null;
+  // worksheet.user kann null sein, wenn die ursprüngliche Besitzerin/der ursprüngliche Besitzer
+  // das eigene Konto inzwischen gelöscht hat (Worksheet.userId wird dabei per Schema auf null
+  // gesetzt, das Arbeitsblatt selbst bleibt aber bestehen) - communityAutorLabel fängt das über
+  // dieselbe Fallback-Konvention ab wie app/community/page.tsx.
+  const autorLabel = communityAutorLabel(worksheet.user ?? { username: null });
 
   return (
     <main>
@@ -98,7 +103,7 @@ export default async function WorksheetPage({ params }: { params: { id: string }
       {!istBesitzer && (
         <div className="no-print mb-5 flex items-center gap-2 rounded-xl border border-brand-200 bg-brand-50 p-3.5 text-sm text-brand-800">
           <Users size={16} className="shrink-0" />
-          Geteilt von <span dir="auto">{communityAutorLabel(worksheet.user!)}</span> - nicht dein
+          Geteilt von <span dir="auto">{autorLabel}</span> - nicht dein
           eigenes Arbeitsblatt, daher nicht bearbeitbar.
         </div>
       )}
