@@ -47,10 +47,14 @@ export default async function DashboardPage({
   const user = await getSessionUser();
   const inhalte = await holeSiteInhalte();
   if (!user) {
-    // Aggregierte, anonyme Token-Transparenz-Kennzahl über alle Konten hinweg (siehe
-    // summeTokens in lib/usageLog.ts) - nur für nicht angemeldete Besucher:innen relevant, daher
-    // hier statt in der eingeloggten Dashboard-Ansicht abgefragt.
-    const { gesamt } = await summeTokens();
+    // Aggregierte, anonyme Transparenz-Kennzahl über alle Konten hinweg (siehe summeTokens in
+    // lib/usageLog.ts) - nur für nicht angemeldete Besucher:innen relevant, daher hier statt in
+    // der eingeloggten Dashboard-Ansicht abgefragt. Bewusst NUR die Anzahl der KI-Aufrufe, NICHT
+    // die tatsächliche Tokenzahl (gesamt) - eine exakte Tokenzahl ließe sich mit den öffentlich
+    // bekannten Anthropic-Listenpreisen (siehe lib/pricing.ts) in einen ungefähren echten
+    // €-Gesamtbetrag zurückrechnen, was auch für nicht eingeloggte Besucher:innen kein
+    // Admin-exklusives Datum bleiben würde.
+    const { anzahlAufrufe } = await summeTokens();
     // Nur die "landing."-Felder an die Client-Komponente reichen (nicht die komplette,
     // seitenübergreifende inhalte-Map) - sonst würde Next.js z.B. auch FAQ-/Impressum-Texte und
     // ein eventuell hochgeladenes Logo-Bild (als data:-URL, potenziell mehrere hundert KB) unnötig
@@ -59,7 +63,7 @@ export default async function DashboardPage({
     const landingInhalte = Object.fromEntries(
       Object.entries(inhalte).filter(([key]) => key.startsWith("landing.")),
     );
-    return <LandingPage tokenGesamt={gesamt} inhalte={landingInhalte} />;
+    return <LandingPage aufrufeGesamt={anzahlAufrufe} inhalte={landingInhalte} />;
   }
 
   const worksheets = await prisma.worksheet.findMany({

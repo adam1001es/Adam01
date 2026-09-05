@@ -177,9 +177,8 @@ export default async function AccountPage({
           <KontingentBanner kontingent={kontingent} />
           <p className="mt-3 flex items-center gap-1.5 text-xs text-slate-400">
             <Cpu size={13} className="shrink-0" />
-            {tokenSumme.gesamt.toLocaleString("de-AT")} Tokens ·{" "}
-            {tokenSumme.anzahlAufrufe} {tokenSumme.anzahlAufrufe === 1 ? "Generierung" : "Generierungen"}{" "}
-            {zahlend ? "in diesem Zyklus" : "insgesamt"}
+            {zahlend ? "In den letzten 30 Tagen" : "Insgesamt"}: {tokenSumme.anzahlAufrufe} KI-gestützte{" "}
+            {tokenSumme.anzahlAufrufe === 1 ? "Generierung" : "Generierungen"}
           </p>
         </SectionCard>
 

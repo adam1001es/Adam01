@@ -217,17 +217,21 @@ const FEATURE_BADGE = {
 const KLASSEN_ICONS = [Users, ClipboardList, BarChart3, LayoutGrid, FileCheck2, ShieldCheck];
 const COMMUNITY_ICONS = [Users, Search, Heart];
 
-/** "tokenGesamt" ist eine aggregierte, anonyme Transparenz-Kennzahl über ALLE Konten hinweg
+/** "aufrufeGesamt" ist eine aggregierte, anonyme Transparenz-Kennzahl über ALLE Konten hinweg
  * (siehe summeTokens in lib/usageLog.ts, ohne Nutzerbezug, serverseitig in app/page.tsx berechnet
  * und hier nur noch angezeigt) - zeigt Interessent:innen, dass hinter den Arbeitsblättern echte,
- * laufend genutzte KI-Rechenleistung steckt. Optional/undefined abgesichert, falls die Abfrage
- * (noch) keine Daten liefert. "inhalte" kommt aus lib/siteContent.ts (holeSiteInhalte(),
- * serverseitig in app/page.tsx geladen) - siehe Kommentar oben für den Umfang. */
+ * laufend genutzte KI-Rechenleistung steckt. Bewusst die Anzahl der KI-Aufrufe, NICHT die
+ * tatsächliche Tokenzahl - eine exakte Tokenzahl ließe sich mit den öffentlich bekannten
+ * Anthropic-Listenpreisen in einen ungefähren echten €-Gesamtbetrag zurückrechnen, den auch nicht
+ * eingeloggte Besucher:innen nicht sehen sollen (das bleibt admin-exklusiv, siehe app/admin/kosten).
+ * Optional/undefined abgesichert, falls die Abfrage (noch) keine Daten liefert. "inhalte" kommt
+ * aus lib/siteContent.ts (holeSiteInhalte(), serverseitig in app/page.tsx geladen) - siehe
+ * Kommentar oben für den Umfang. */
 export default function LandingPage({
-  tokenGesamt,
+  aufrufeGesamt,
   inhalte,
 }: {
-  tokenGesamt?: number;
+  aufrufeGesamt?: number;
   inhalte: Record<string, string>;
 }) {
   return (
@@ -683,11 +687,11 @@ export default function LandingPage({
           </div>
         </Reveal>
         <p className="mt-4 text-center text-xs text-slate-400">{inhalte["landing.preis.freischaltungHinweis"]}</p>
-        {tokenGesamt !== undefined && tokenGesamt > 0 && (
+        {aufrufeGesamt !== undefined && aufrufeGesamt > 0 && (
           <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs text-slate-400">
             <Cpu size={13} className="shrink-0" />
-            Transparenz: bisher {tokenGesamt.toLocaleString("de-AT")} Einheiten Rechenleistung
-            für die Erstellung und Prüfung von Arbeitsblättern eingesetzt.
+            Transparenz: bisher {aufrufeGesamt.toLocaleString("de-AT")} KI-gestützte Generierungen
+            für die Erstellung und Prüfung von Arbeitsblättern durchgeführt.
           </p>
         )}
       </section>
